@@ -5,6 +5,8 @@ import type { PlayerCharacterDTO } from "@workspace/shared/types/player-characte
 
 import { PlayerCharacterManager } from "./player-character-manager"
 
+const renderManager = () => render(<PlayerCharacterManager locale="es" />)
+
 const alice: PlayerCharacterDTO = {
   id: "pc-1",
   name: "Alice",
@@ -46,7 +48,7 @@ describe("PlayerCharacterManager", () => {
   it("lista las personas con nombre y descripción", async () => {
     mocks.listPlayerCharacters.mockResolvedValue([alice])
 
-    render(<PlayerCharacterManager />)
+    renderManager()
 
     expect(await screen.findByText("Alice")).toBeInTheDocument()
     expect(screen.getByText("Una exploradora curiosa.")).toBeInTheDocument()
@@ -55,7 +57,7 @@ describe("PlayerCharacterManager", () => {
   it("muestra el estado vacío sin personas", async () => {
     mocks.listPlayerCharacters.mockResolvedValue([])
 
-    render(<PlayerCharacterManager />)
+    renderManager()
 
     expect(
       await screen.findByText(/Todavía no has creado ninguna persona/),
@@ -66,7 +68,7 @@ describe("PlayerCharacterManager", () => {
     mocks.listPlayerCharacters.mockResolvedValue([])
     mocks.createPlayerCharacter.mockResolvedValue(alice)
 
-    render(<PlayerCharacterManager />)
+    renderManager()
     fireEvent.click(await screen.findByText("Crear persona"))
 
     fireEvent.change(screen.getByLabelText("Nombre"), {
@@ -89,7 +91,7 @@ describe("PlayerCharacterManager", () => {
     mocks.listPlayerCharacters.mockResolvedValue([alice])
     mocks.deletePlayerCharacter.mockResolvedValue(undefined)
 
-    render(<PlayerCharacterManager />)
+    renderManager()
     fireEvent.click(await screen.findByText("Eliminar"))
 
     expect(await screen.findByText("¿Eliminar persona?")).toBeInTheDocument()

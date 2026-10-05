@@ -7,6 +7,8 @@ import type { ConversationSummary } from "@workspace/shared/types/conversation"
 
 import { CharacterList } from "./character-list"
 
+const renderList = () => render(<CharacterList locale="es" />)
+
 const characters: CharacterSummary[] = [
   {
     id: "char-1",
@@ -87,7 +89,7 @@ describe("CharacterList", () => {
     mocks.listCharacters.mockResolvedValue(characters)
     mocks.listConversations.mockResolvedValue([])
 
-    render(<CharacterList />)
+    renderList()
 
     expect(await screen.findByText("Lyra")).toBeInTheDocument()
     expect(screen.getByText("Kael")).toBeInTheDocument()
@@ -100,7 +102,7 @@ describe("CharacterList", () => {
     mocks.listCharacters.mockResolvedValue([characters[0]])
     mocks.listConversations.mockResolvedValue([conversation])
 
-    render(<CharacterList />)
+    renderList()
 
     fireEvent.click(
       await screen.findByLabelText(
@@ -122,7 +124,7 @@ describe("CharacterList", () => {
       defaultProviderStatus: "available",
     })
 
-    render(<CharacterList />)
+    renderList()
 
     fireEvent.click(
       await screen.findByLabelText(
@@ -142,7 +144,7 @@ describe("CharacterList", () => {
     mocks.listCharacters.mockResolvedValue(characters)
     mocks.listConversations.mockResolvedValue([])
 
-    render(<CharacterList />)
+    renderList()
 
     await screen.findByText("Lyra")
     const names = screen
@@ -155,7 +157,7 @@ describe("CharacterList", () => {
     mocks.listCharacters.mockResolvedValue(characters)
     mocks.listConversations.mockResolvedValue([conversation])
 
-    render(<CharacterList />)
+    renderList()
 
     await screen.findByText("Lyra")
     const names = screen
@@ -168,7 +170,7 @@ describe("CharacterList", () => {
     mocks.listCharacters.mockResolvedValue([])
     mocks.listConversations.mockResolvedValue([])
 
-    render(<CharacterList />)
+    renderList()
 
     fireEvent.click(await screen.findByText("Importar personaje"))
 
@@ -181,7 +183,7 @@ describe("CharacterList", () => {
     mocks.listCharacters.mockResolvedValue(characters)
     mocks.listConversations.mockResolvedValue([])
 
-    render(<CharacterList />)
+    renderList()
     await screen.findByText("Lyra")
 
     fireEvent.change(screen.getByLabelText("Buscar personaje"), {
@@ -197,7 +199,7 @@ describe("CharacterList", () => {
     mocks.listCharacters.mockResolvedValue(characters)
     mocks.listConversations.mockResolvedValue([])
 
-    render(<CharacterList />)
+    renderList()
     await screen.findByText("Lyra")
 
     fireEvent.change(screen.getByLabelText("Buscar personaje"), {
@@ -213,7 +215,7 @@ describe("CharacterList", () => {
     mocks.listCharacters.mockResolvedValue(characters)
     mocks.listConversations.mockResolvedValue([])
 
-    render(<CharacterList />)
+    renderList()
     await screen.findByText("Lyra")
 
     expect(visibleNames()).toEqual(["Kael", "Lyra"])
