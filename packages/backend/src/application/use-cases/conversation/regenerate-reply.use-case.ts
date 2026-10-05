@@ -33,10 +33,13 @@ import {
   ConversationNotFoundError,
   MessageNotFoundError,
 } from "../../../domain/errors"
+import type { Locale } from "@workspace/shared/i18n"
 
 export interface RegenerateReplyInput {
   conversationId: string
   messageId: string
+  /** Language of the system prompt (follows the UI language). */
+  locale?: Locale
 }
 
 export interface StreamChunkEvent {
@@ -158,6 +161,7 @@ export class RegenerateReplyUseCase {
       memories: filterMemoriesForPrompt(conversation, memories, allMessages),
       summary: latestSummary ?? undefined,
       playerCharacter,
+      locale: input.locale,
       enableMemoryProposalTool: true,
       filterOocFromHistory: true,
     })

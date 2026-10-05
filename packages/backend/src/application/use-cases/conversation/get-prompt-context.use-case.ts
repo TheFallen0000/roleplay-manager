@@ -11,6 +11,7 @@ import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
 import {
   ConversationNotFoundError,
 } from "../../../domain/errors"
+import type { Locale } from "@workspace/shared/i18n"
 
 export class GetPromptContextUseCase {
   constructor(
@@ -26,6 +27,7 @@ export class GetPromptContextUseCase {
   async execute(
     conversationId: string,
     pendingMessage?: string,
+    locale?: Locale,
   ): Promise<PromptContextDTO> {
     const conv = await this.conversationRepository.findById(conversationId)
     if (!conv) {
@@ -52,6 +54,7 @@ export class GetPromptContextUseCase {
       memories: promptMemories,
       summary: summary ?? undefined,
       playerCharacter,
+      locale,
       enableMemoryProposalTool: true,
       filterOocFromHistory: true,
     })

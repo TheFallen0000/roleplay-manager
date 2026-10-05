@@ -19,6 +19,7 @@ import type { UploadConversationCustomImageUseCase } from "../../../../applicati
 import type { Logger } from "../../../../domain/ports/logger.port"
 import { validate } from "../middlewares/validation"
 import { parseMultipartBody } from "../middlewares/multipart"
+import { resolveRequestLocale } from "../request-locale"
 
 const CreateConversationSchema = z.object({
   characterId: z.string().min(1, "characterId is required"),
@@ -136,6 +137,7 @@ export const buildConversationRouter = (deps: {
       const generator = deps.sendMessage.execute({
         conversationId: id,
         content,
+        locale: resolveRequestLocale(req.header("accept-language")),
       })
 
       sseStarted = true
@@ -235,6 +237,7 @@ export const buildConversationRouter = (deps: {
         const generator = deps.regenerateReply.execute({
           conversationId: id,
           messageId,
+          locale: resolveRequestLocale(req.header("accept-language")),
         })
 
         sseStarted = true
@@ -310,6 +313,7 @@ export const buildConversationRouter = (deps: {
         id = (req.params as { id: string }).id
         const generator = deps.continueConversation.execute({
           conversationId: id,
+          locale: resolveRequestLocale(req.header("accept-language")),
         })
 
         sseStarted = true

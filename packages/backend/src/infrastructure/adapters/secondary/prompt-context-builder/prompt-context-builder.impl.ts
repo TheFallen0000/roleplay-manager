@@ -1,4 +1,10 @@
 import { parseOoc } from "@workspace/shared/lib/ooc-parser"
+import {
+  DEFAULT_LOCALE,
+  translate,
+  type Locale,
+  type TranslationParams,
+} from "@workspace/shared/i18n"
 
 import type { CharacterVersion } from "../../../../domain/entities/character-version.entity"
 import type { Message } from "../../../../domain/entities/message.entity"
@@ -15,6 +21,7 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
     memories?: Memory[]
     summary?: Summary
     playerCharacter?: { name: string; description: string }
+    locale?: Locale
     enableMemoryProposalTool?: boolean
     filterOocFromHistory?: boolean
   }): Promise<PromptContext> {
@@ -25,25 +32,29 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
       memories,
       summary,
       playerCharacter,
+      locale = DEFAULT_LOCALE,
       enableMemoryProposalTool = false,
       filterOocFromHistory = false,
     } = params
 
+    const tr = (key: string, values?: TranslationParams) =>
+      translate(locale, key, values)
+
     const systemParts: string[] = [
-      `Eres ${cv.name}. ${cv.description}`,
+      tr("prompt.intro", { name: cv.name, description: cv.description }),
       "",
 
-      `## Personalidad`,
-      `Nombre: ${cv.name}`,
+      tr("prompt.personality"),
+      tr("prompt.name", { name: cv.name }),
     ]
 
     if (cv.subtitle) {
-      systemParts.push(`Subtítulo: ${cv.subtitle}`)
+      systemParts.push(tr("prompt.subtitle", { subtitle: cv.subtitle }))
     }
 
     if (cv.instructions) {
       systemParts.push("")
-      systemParts.push(`## Instrucciones`)
+      systemParts.push(tr("prompt.instructions"))
       systemParts.push(cv.instructions)
     }
 
@@ -53,10 +64,8 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
 
     if (activeCards.length > 0) {
       systemParts.push("")
-      systemParts.push("## Conocimiento")
-      systemParts.push(
-        "Las siguientes fichas están ordenadas por importancia (la primera es la más relevante). Úsalas para guiar tus respuestas según el contexto."
-      )
+      systemParts.push(tr("prompt.knowledge"))
+      systemParts.push(tr("prompt.knowledgeHint"))
       for (const card of activeCards) {
         systemParts.push(`[${card.title}]: ${card.content}`)
       }
@@ -64,81 +73,80 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
 
     if (playerCharacter) {
       systemParts.push("")
-      systemParts.push("## Personaje del usuario")
+      systemParts.push(tr("prompt.userCharacter"))
       systemParts.push(
-        `El usuario interpreta a ${playerCharacter.name}. ${playerCharacter.description}`,
+        tr("prompt.userCharacterLine", {
+          name: playerCharacter.name,
+          description: playerCharacter.description,
+        }),
       )
     }
 
     if (memories && memories.length > 0) {
       systemParts.push("")
-      systemParts.push("## Memoria dinámica")
-      systemParts.push(
-        "Los siguientes hechos sobre la historia o los personajes se han almacenado previamente. Úsalos para mantener coherencia.",
-      )
+      systemParts.push(tr("prompt.memory"))
+      systemParts.push(tr("prompt.memoryHint"))
       for (const mem of memories) {
-        systemParts.push(`- [${mem.id}] ${mem.actor} → ${mem.title}: ${mem.description} (prioridad ${mem.priority})`)
+        systemParts.push(
+          tr("prompt.memoryLine", {
+            id: mem.id,
+            actor: mem.actor,
+            title: mem.title,
+            description: mem.description,
+            priority: mem.priority,
+          }),
+        )
       }
     }
 
     if (summary) {
       systemParts.push("")
-      systemParts.push("## Resumen de la conversación")
+      systemParts.push(tr("prompt.summary"))
       systemParts.push(summary.content)
     }
 
     if (!enableMemoryProposalTool) {
       systemParts.push("")
-      systemParts.push("## Propuestas de modificación de memoria")
+      systemParts.push(tr("prompt.proposals"))
+      systemParts.push(tr("prompt.proposalsHint"))
+      systemParts.push("")
+      systemParts.push("```memory_proposals")
+      systemParts.push("[")
       systemParts.push(
-        "Si en tu respuesta introduces hechos nuevos relevantes o modificas algunos existentes, puedes proponer cambios sobre la memoria dinámica al final de tu mensaje. Usa este formato exacto:",
+        '  { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5 }',
       )
+      systemParts.push("]")
+      systemParts.push("```")
       systemParts.push("")
-      systemParts.push('```memory_proposals')
-      systemParts.push('[')
-      systemParts.push('  { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5 }')
-      systemParts.push(']')
-      systemParts.push('```')
-      systemParts.push("")
-      systemParts.push("Operaciones válidas: CREATE, UPDATE, DELETE. Para UPDATE o DELETE debes incluir el id de la memoria existente como \"targetMemoryId\". Si no hay cambios que proponer, no incluyas el bloque.")
+      systemParts.push(tr("prompt.proposalsValidOps"))
     } else {
       systemParts.push("")
-      systemParts.push("## Propuestas de memoria (alternativa)")
+      systemParts.push(tr("prompt.proposalsAlt"))
+      systemParts.push(tr("prompt.proposalsAltHint"))
+      systemParts.push("")
+      systemParts.push("```memory_proposals")
       systemParts.push(
-        "Si no puedes llamar a la herramienta `propose_memory_changes`, también puedes proponer cambios sobre la memoria dinámica al final de tu mensaje usando este formato:",
+        '[ { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5 } ]',
       )
+      systemParts.push("```")
       systemParts.push("")
-      systemParts.push('```memory_proposals')
-      systemParts.push('[ { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5 } ]')
-      systemParts.push('```')
-      systemParts.push("")
-      systemParts.push('Operaciones válidas: CREATE, UPDATE, DELETE. Para UPDATE o DELETE debes incluir el id de la memoria existente como "targetMemoryId".')
+      systemParts.push(tr("prompt.proposalsAltValidOps"))
     }
 
     systemParts.push("")
-    systemParts.push(`## Estilo de respuesta`)
-    systemParts.push(
-      `Debes responder siempre en el tono y estilo de ${cv.name}, manteniendo la personalidad descrita arriba. Escribe de forma narrativa y detallada, como si estuvieras interpretando al personaje en una historia.`
-    )
+    systemParts.push(tr("prompt.style"))
+    systemParts.push(tr("prompt.styleLine", { name: cv.name }))
     systemParts.push("")
-    systemParts.push(`Ejemplo del estilo de ${cv.name}:`)
+    systemParts.push(tr("prompt.styleExample", { name: cv.name }))
     systemParts.push(`"${cv.greeting}"`)
 
     if (filterOocFromHistory) {
       systemParts.push("")
-      systemParts.push(`## Meta-instrucciones del usuario (OOC)`)
-      systemParts.push(
-        "El usuario puede incluir meta-instrucciones entre `//...//` (out-of-character) en sus mensajes, normalmente al final. Estas son instrucciones para ti, no parte del roleplay.",
-      )
-      systemParts.push(
-        "- Cuando el último mensaje del usuario contenga una meta-instrucción, ejecútala (por ejemplo, `//crea memorias con lo que sabes//` significa que debes llamar a la herramienta `propose_memory_changes`).",
-      )
-      systemParts.push(
-        "- No respondas a las meta-instrucciones en personaje: no narres que el personaje 'asintió' o 'leyó la nota'. Ejecuta la instrucción silenciosamente y, si tiene sentido narrativo, continúa el roleplay después.",
-      )
-      systemParts.push(
-        "- Las meta-instrucciones de mensajes anteriores ya fueron filtradas; solo verás OOC en el último mensaje del usuario.",
-      )
+      systemParts.push(tr("prompt.ooc"))
+      systemParts.push(tr("prompt.oocHint"))
+      systemParts.push(tr("prompt.oocBullet1"))
+      systemParts.push(tr("prompt.oocBullet2"))
+      systemParts.push(tr("prompt.oocBullet3"))
     }
 
     const systemPrompt = systemParts.join("\n")

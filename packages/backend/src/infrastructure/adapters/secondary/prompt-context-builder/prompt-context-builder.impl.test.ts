@@ -70,6 +70,7 @@ describe("PromptContextBuilderImpl", () => {
   it("construye systemPrompt con nombre y descripcion", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [],
       recentMessageCount: 10,
@@ -87,6 +88,7 @@ describe("PromptContextBuilderImpl", () => {
 
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: version,
       messages: [],
       recentMessageCount: 10,
@@ -102,6 +104,7 @@ describe("PromptContextBuilderImpl", () => {
 
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: version,
       messages: [],
       recentMessageCount: 10,
@@ -123,6 +126,7 @@ describe("PromptContextBuilderImpl", () => {
 
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages,
       recentMessageCount: 2,
@@ -140,6 +144,7 @@ describe("PromptContextBuilderImpl", () => {
 
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: version,
       messages: [],
       recentMessageCount: 10,
@@ -155,6 +160,7 @@ describe("PromptContextBuilderImpl", () => {
 
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: version,
       messages: [],
       recentMessageCount: 10,
@@ -167,6 +173,7 @@ describe("PromptContextBuilderImpl", () => {
   it("incluye seccion de Estilo de respuesta", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [],
       recentMessageCount: 10,
@@ -184,6 +191,7 @@ describe("PromptContextBuilderImpl", () => {
 
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages,
       recentMessageCount: 10,
@@ -198,6 +206,7 @@ describe("PromptContextBuilderImpl", () => {
   it("incluye seccion de propuestas de memoria por default (enableMemoryProposalTool=false)", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [],
       recentMessageCount: 10,
@@ -210,6 +219,7 @@ describe("PromptContextBuilderImpl", () => {
   it("omite las instrucciones completas cuando enableMemoryProposalTool=true pero incluye hint compacto", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [],
       recentMessageCount: 10,
@@ -225,6 +235,7 @@ describe("PromptContextBuilderImpl", () => {
   it("filtra OOC de mensajes del usuario previos al ultimo cuando filterOocFromHistory=true", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [
         createMessage("user", "Hola //primera instruccion//", 0),
@@ -245,6 +256,7 @@ describe("PromptContextBuilderImpl", () => {
   it("preserva el OOC del ultimo mensaje del usuario intacto", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [
         createMessage("user", "Mensaje viejo //instruccion vieja//", 0),
@@ -262,6 +274,7 @@ describe("PromptContextBuilderImpl", () => {
   it("incluye salvaguarda OOC en el systemPrompt cuando filterOocFromHistory=true", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [],
       recentMessageCount: 10,
@@ -275,6 +288,7 @@ describe("PromptContextBuilderImpl", () => {
   it("no incluye salvaguarda OOC por default", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [],
       recentMessageCount: 10,
@@ -286,6 +300,7 @@ describe("PromptContextBuilderImpl", () => {
   it("no filtra OOC de mensajes del assistant", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [
         createMessage("user", "Hola //meta//", 0),
@@ -301,6 +316,7 @@ describe("PromptContextBuilderImpl", () => {
   it("incluye el personaje del usuario cuando se pasa", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [],
       recentMessageCount: 10,
@@ -319,11 +335,46 @@ describe("PromptContextBuilderImpl", () => {
   it("omite la sección de personaje del usuario cuando no se pasa", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
+      locale: "es",
       characterVersion: baseVersion,
       messages: [],
       recentMessageCount: 10,
     })
 
     expect(result.systemPrompt).not.toContain("## Personaje del usuario")
+  })
+
+  it("construye el systemPrompt en inglés por defecto (idioma de la interfaz)", async () => {
+    const builder = new PromptContextBuilderImpl()
+    const result = await builder.build({
+      characterVersion: baseVersion,
+      messages: [],
+      recentMessageCount: 10,
+    })
+
+    expect(result.systemPrompt).toContain("You are Test Character.")
+    expect(result.systemPrompt).toContain("## Personality")
+    expect(result.systemPrompt).toContain("## Reply style")
+    expect(result.systemPrompt).not.toContain("Eres Test Character")
+  })
+
+  it("construye el systemPrompt en el locale indicado", async () => {
+    const builder = new PromptContextBuilderImpl()
+    const result = await builder.build({
+      locale: "en",
+      characterVersion: baseVersion,
+      messages: [],
+      recentMessageCount: 10,
+      playerCharacter: {
+        name: "Alice",
+        description: "A curious explorer.",
+      },
+    })
+
+    expect(result.systemPrompt).toContain("## User character")
+    expect(result.systemPrompt).toContain(
+      "The user plays Alice. A curious explorer.",
+    )
+    expect(result.systemPrompt).not.toContain("Personaje del usuario")
   })
 })

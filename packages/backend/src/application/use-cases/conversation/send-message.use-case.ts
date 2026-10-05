@@ -35,10 +35,13 @@ import {
 import {
   ConversationNotFoundError,
 } from "../../../domain/errors"
+import type { Locale } from "@workspace/shared/i18n"
 
 export interface SendMessageInput {
   conversationId: string
   content: string
+  /** Language of the system prompt (follows the UI language). */
+  locale?: Locale
 }
 
 export interface SendMessageEvents {
@@ -181,6 +184,7 @@ export class SendMessageUseCase {
       memories: filterMemoriesForPrompt(conversation, memories, allMessages),
       summary: latestSummary ?? undefined,
       playerCharacter,
+      locale: input.locale,
       enableMemoryProposalTool: true,
       filterOocFromHistory: true,
     })
