@@ -185,6 +185,19 @@ const buildUserMessage = (content: string) => ({
   alternativesCursor: 0,
 })
 
+describe("MessageBubble line breaks", () => {
+  it("conserva los saltos de línea del contenido", () => {
+    render(
+      <MessageBubble
+        message={buildUserMessage("Primera línea\nSegunda línea")}
+      />,
+    )
+
+    const content = document.querySelector("[data-slot=bubble-content]")
+    expect(content).toHaveClass("whitespace-pre-wrap")
+  })
+})
+
 describe("MessageBubble segment colors", () => {
   it("las acciones del usuario heredan el color de la burbuja", () => {
     render(<MessageBubble message={buildUserMessage("Hola *sonríe*")} />)
