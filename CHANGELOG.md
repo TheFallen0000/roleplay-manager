@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.18.0] - 2026-08-12
+
+### Added
+
+- Welcome screen (PM.13): on the first launch the app asks for language, theme and color mode before entering. It is decided server-side from an `rm_onboarded` cookie (no flash of the app) and remembers the choice.
+- Top menubar (PM.14): the header now has **Theme** (themes + mode) and **Language** (English/Spanish) menus, built on a new Base UI `menubar` component in `@workspace/ui`. The old icon switchers were removed.
+- `setLocale` accepts `{ reload: false }` so the welcome screen can switch language instantly without reloading.
+
+### Changed
+
+- Language and theme selection moved from icon buttons to the top menubar.
+
 ## [1.17.1] - 2026-08-12
 
 ### Fixed
