@@ -1,15 +1,18 @@
 ---
 import "@workspace/ui/globals.css"
 import { AppShell } from "@/components/layout/app-shell"
+import { resolveLocale } from "@/lib/locale"
 
 export interface Props {
   title?: string
 }
 
 const { title = "Roleplay Manager" } = Astro.props
+
+const locale = resolveLocale(Astro.cookies.get("language")?.value)
 ---
 
-<html lang="es">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
@@ -34,7 +37,7 @@ const { title = "Roleplay Manager" } = Astro.props
     </script>
   </head>
   <body class="bg-background text-foreground min-h-svh">
-    <AppShell client:load>
+    <AppShell locale={locale} client:load>
       <slot />
     </AppShell>
   </body>

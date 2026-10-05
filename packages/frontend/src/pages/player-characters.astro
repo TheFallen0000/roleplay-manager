@@ -1,8 +1,13 @@
 ---
 import { PlayerCharacterManager } from "@/components/player-character/player-character-manager"
 import BaseLayout from "@/layouts/base.astro"
+import { resolveLocale } from "@/lib/locale"
+
+export const prerender = false
+
+const locale = resolveLocale(Astro.cookies.get("language")?.value)
 ---
 
 <BaseLayout title="Personajes jugados - Roleplay Manager">
-  <PlayerCharacterManager client:load />
+  <PlayerCharacterManager locale={locale} client:load />
 </BaseLayout>
