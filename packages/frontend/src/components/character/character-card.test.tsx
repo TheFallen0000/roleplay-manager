@@ -73,7 +73,7 @@ const renderCard = (props: Partial<Parameters<typeof CharacterCard>[0]> = {}) =>
 
 const openMenu = async () => {
   fireEvent.contextMenu(screen.getByRole("button", { name: /Abrir la/ }))
-  await screen.findByText("Ir a la más reciente")
+  await screen.findByText("Conversación más reciente")
 }
 
 describe("CharacterCard", () => {
@@ -104,7 +104,7 @@ describe("CharacterCard", () => {
     renderCard()
     await openMenu()
 
-    expect(screen.getByText("Ir a la más reciente")).toBeInTheDocument()
+    expect(screen.getByText("Conversación más reciente")).toBeInTheDocument()
     expect(screen.getByText("Nueva conversación")).toBeInTheDocument()
     expect(screen.getByText("Conversaciones")).toBeInTheDocument()
     expect(screen.getByText("Editar personaje")).toBeInTheDocument()
@@ -130,7 +130,7 @@ describe("CharacterCard", () => {
     renderCard({ conversations: [] })
     await openMenu()
 
-    const item = await screen.findByText("Ir a la más reciente")
+    const item = await screen.findByText("Conversación más reciente")
     expect(item.closest("[data-slot=context-menu-item]")).toHaveAttribute(
       "aria-disabled",
       "true",

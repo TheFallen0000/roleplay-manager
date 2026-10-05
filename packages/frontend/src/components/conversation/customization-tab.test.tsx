@@ -1,10 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { render, screen, cleanup, fireEvent, waitFor, act } from "@testing-library/react"
+import { render as rtlRender, screen, cleanup, fireEvent, waitFor, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import type * as React from "react"
 
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 
 import { CustomizationTab } from "./customization-tab"
+import { I18nProvider } from "@/lib/hooks/i18n-provider"
+
+const render = (ui: React.ReactElement) =>
+  rtlRender(<I18nProvider initialLocale="es">{ui}</I18nProvider>)
 
 const mocks = vi.hoisted(() => ({
   uploadConversationCustomImage: vi.fn(),

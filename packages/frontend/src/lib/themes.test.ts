@@ -15,7 +15,7 @@ describe("themes registry", () => {
     expect(ids).toContain(DEFAULT_THEME)
     expect(new Set(ids).size).toBe(ids.length)
     for (const theme of THEMES) {
-      expect(theme.label.length).toBeGreaterThan(0)
+      expect(theme.labelKey.length).toBeGreaterThan(0)
       expect(theme.swatch.length).toBeGreaterThan(0)
     }
   })
