@@ -93,7 +93,7 @@ Last updated: 2026-08-12
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.11 | Multi-language support, default English. <br>*Phase 1 done as S24 (v1.15.0) — infrastructure + pilot (shell, character list, players screen, errors by code); the rest of the screens land in S25 and PM.13/PM.14 in S26. See `S24-progress.md`.* | — |
+| PM.11 | Multi-language support, default English. <br>*Phases 1–2 done as S24 (v1.15.0) and S25 (v1.16.0): infrastructure + pilot and the whole chat area. S26 covers characters, memory, summaries, providers, page titles and the LLM prompt language; PM.13/PM.14 land in S27.* | — |
 | PM.12 | Predefined color themes. <br>*Done as S22 (v1.13.0) — see `S22-progress.md`.* | — |
 | PM.13 | Welcome screen that asks for language and theme on first launch. | PM.11, PM.12 |
 | PM.14 | Top menubar to pick language and theme. <br>*Theme picker delivered in S22 (v1.13.0) and lives in the top header; the language picker is pending PM.11.* | PM.11, PM.12 |
