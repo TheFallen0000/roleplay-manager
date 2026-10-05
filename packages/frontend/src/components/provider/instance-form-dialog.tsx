@@ -15,6 +15,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { FieldDescription } from "@workspace/ui/components/field"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 interface InstanceFormDialogProps {
   open: boolean
@@ -35,6 +36,7 @@ export function InstanceFormDialog({
   onClose,
   onSave,
 }: InstanceFormDialogProps) {
+  const { t } = useTranslation()
   const [name, setName] = useState(initialName)
   const [url, setUrl] = useState(initialUrl)
   const [apiKey, setApiKey] = useState(initialApiKey)
@@ -56,14 +58,14 @@ export function InstanceFormDialog({
     onSave(name, url, apiKey)
   }
 
-  const title = mode === "create" ? "Nueva instancia OpenAI-compatible" : "Editar instancia"
+  const title = mode === "create" ? t("providers.createInstanceTitle") : t("providers.editInstanceTitle")
   const description =
     mode === "create"
-      ? "Configura una conexion a un proveedor compatible con OpenAI."
-      : "Modifica los datos de la conexion."
+      ? t("providers.createInstanceDescription")
+      : t("providers.editInstanceDescription")
   const apiKeyPlaceholder =
-    mode === "create" ? "sk-..." : "(dejar vacio para mantener)"
-  const saveLabel = mode === "create" ? "Crear instancia" : "Guardar cambios"
+    mode === "create" ? "sk-..." : t("providers.apiKeyKeep")
+  const saveLabel = mode === "create" ? t("providers.createInstanceAction") : t("common.saveChanges")
   const idPrefix = mode
 
   return (
@@ -75,16 +77,16 @@ export function InstanceFormDialog({
         </DialogHeader>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor={`${idPrefix}-name`}>Nombre</FieldLabel>
+            <FieldLabel htmlFor={`${idPrefix}-name`}>{t("providers.nameLabel")}</FieldLabel>
             <Input
               id={`${idPrefix}-name`}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="LM Studio local"
+              placeholder={t("providers.namePlaceholder")}
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor={`${idPrefix}-url`}>URL base</FieldLabel>
+            <FieldLabel htmlFor={`${idPrefix}-url`}>{t("providers.urlLabel")}</FieldLabel>
             <Input
               id={`${idPrefix}-url`}
               type="url"
@@ -93,12 +95,12 @@ export function InstanceFormDialog({
               placeholder="http://localhost:1234/v1"
             />
             <FieldDescription>
-              Debe apuntar a la raíz de la API OpenAI-compatible: <code>http://host:puerto/v1</code>.
-              Por ejemplo: <code>http://localhost:1234/v1</code>.
+              {t("providers.urlHint")} <code>http://host:puerto/v1</code>.{" "}
+              {t("providers.urlHintExample")} <code>http://localhost:1234/v1</code>.
             </FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor={`${idPrefix}-key`}>API key {mode === "edit" ? "(opcional)" : ""}</FieldLabel>
+            <FieldLabel htmlFor={`${idPrefix}-key`}>{t("providers.apiKeyLabel")} {mode === "edit" ? t("providers.apiKeyOptional") : ""}</FieldLabel>
             <Input
               id={`${idPrefix}-key`}
               type="password"
@@ -109,7 +111,7 @@ export function InstanceFormDialog({
           </Field>
         </FieldGroup>
         <div className="flex justify-end gap-2">
-          <DialogClose render={<Button variant="outline" />}>Cancelar</DialogClose>
+          <DialogClose render={<Button variant="outline" />}>{t("common.cancel")}</DialogClose>
           <Button onClick={handleSave}>{saveLabel}</Button>
         </div>
       </DialogContent>

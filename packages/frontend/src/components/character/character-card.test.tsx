@@ -1,11 +1,17 @@
 import {
-  render,
+  render as rtlRender,
   screen,
   fireEvent,
   cleanup,
   waitFor,
 } from "@testing-library/react"
 import { describe, it, expect, vi, afterEach } from "vitest"
+import type * as React from "react"
+
+import { I18nProvider } from "@/lib/hooks/i18n-provider"
+
+const render = (ui: React.ReactElement) =>
+  rtlRender(<I18nProvider initialLocale="es">{ui}</I18nProvider>)
 
 import type {
   CharacterSummary,

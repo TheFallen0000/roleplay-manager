@@ -38,7 +38,7 @@ describe("parseCharacterExport", () => {
   })
 
   it("rechaza texto que no es JSON", () => {
-    const result = parseCharacterExport("no soy json")
+    const result = parseCharacterExport("no soy json", "es")
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
@@ -46,9 +46,19 @@ describe("parseCharacterExport", () => {
     }
   })
 
+  it("usa el idioma por defecto (inglés) cuando no se indica locale", () => {
+    const result = parseCharacterExport("no soy json")
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error).toContain("valid JSON")
+    }
+  })
+
   it("rechaza un kind distinto", () => {
     const result = parseCharacterExport(
       JSON.stringify({ ...validPayload, kind: "otra-cosa" }),
+      "es",
     )
 
     expect(result.ok).toBe(false)
@@ -60,6 +70,7 @@ describe("parseCharacterExport", () => {
   it("rechaza una schemaVersion no soportada", () => {
     const result = parseCharacterExport(
       JSON.stringify({ ...validPayload, schemaVersion: 42 }),
+      "es",
     )
 
     expect(result.ok).toBe(false)
@@ -70,7 +81,10 @@ describe("parseCharacterExport", () => {
 
   it("rechaza un archivo sin definición ni versiones", () => {
     const withoutVersions = { ...validPayload, definition: undefined }
-    const result = parseCharacterExport(JSON.stringify(withoutVersions))
+    const result = parseCharacterExport(
+      JSON.stringify(withoutVersions),
+      "es",
+    )
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
