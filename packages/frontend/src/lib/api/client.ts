@@ -1,4 +1,5 @@
 import { getRequestLocale } from "../locale"
+import type { CharacterAssetVariant } from "@workspace/shared/types/image"
 
 const DEFAULT_BASE_URL = "http://localhost:3001"
 
@@ -26,8 +27,14 @@ export const getBaseUrl = (): string => {
   return DEFAULT_BASE_URL
 }
 
-export const getCharacterAssetUrl = (characterId: string, assetId: string): string =>
-  `${getBaseUrl()}/api/characters/${characterId}/assets/${assetId}`
+export const getCharacterAssetUrl = (
+  characterId: string,
+  assetId: string,
+  variant?: CharacterAssetVariant,
+): string => {
+  const url = `${getBaseUrl()}/api/characters/${characterId}/assets/${assetId}`
+  return variant ? `${url}?variant=${variant}` : url
+}
 
 export const uploadCharacterAsset = async (
   characterId: string,

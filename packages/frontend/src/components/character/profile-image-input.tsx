@@ -88,7 +88,10 @@ export function ProfileImageInput({
   }, [onClear])
 
   const imageSrc =
-    previewUrl ?? (profileImageAssetId ? getCharacterAssetUrl(characterId, profileImageAssetId) : null)
+    previewUrl ??
+    (profileImageAssetId
+      ? getCharacterAssetUrl(characterId, profileImageAssetId, "thumbnail")
+      : null)
 
   return (
     <div>

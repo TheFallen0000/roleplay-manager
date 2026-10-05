@@ -14,6 +14,10 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { UsersIcon } from "lucide-react"
 import { getCharacterAssetUrl } from "@/lib/api/client"
+import {
+  CHARACTER_ASSET_VARIANTS,
+  getCharacterAssetVariantWidth,
+} from "@workspace/shared/types/image"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { CharacterContextMenu } from "./character-context-menu"
 
@@ -41,9 +45,24 @@ export function CharacterCard({
   onDelete,
 }: CharacterCardProps) {
   const { t } = useTranslation()
+  const canUseVariants =
+    character.profileImageAssetId !== null &&
+    character.profileImageMimeType !== "image/gif"
   const imageSrc = character.profileImageAssetId
-    ? getCharacterAssetUrl(character.id, character.profileImageAssetId)
+    ? getCharacterAssetUrl(
+        character.id,
+        character.profileImageAssetId,
+        canUseVariants ? "medium" : undefined,
+      )
     : null
+  const imageSrcSet =
+    canUseVariants && character.profileImageDimensions
+      ? createImageSrcSet(
+          character.id,
+          character.profileImageAssetId!,
+          character.profileImageDimensions.width,
+        )
+      : undefined
 
   return (
     <CharacterContextMenu
@@ -67,6 +86,12 @@ export function CharacterCard({
               <div className="absolute inset-0 z-30 aspect-video" />
               <img
                 src={imageSrc}
+                srcSet={imageSrcSet}
+                sizes="(min-width: 64rem) calc((100vw - 20rem) / 3), (min-width: 48rem) calc((100vw - 19rem) / 2), (min-width: 40rem) calc((100vw - 3rem) / 2), calc(100vw - 2rem)"
+                width={character.profileImageDimensions?.width}
+                height={character.profileImageDimensions?.height}
+                loading="lazy"
+                decoding="async"
                 alt={`${character.name} avatar`}
                 className="relative z-20 aspect-video w-full object-cover"
               />
@@ -103,4 +128,22 @@ export function CharacterCard({
       </Card>
     </CharacterContextMenu>
   )
+}
+
+function createImageSrcSet(
+  characterId: string,
+  assetId: string,
+  originalWidth: number,
+): string {
+  const candidates = new Map<number, string>()
+  for (const variant of CHARACTER_ASSET_VARIANTS) {
+    const width = getCharacterAssetVariantWidth(originalWidth, variant)
+    if (!candidates.has(width)) {
+      candidates.set(
+        width,
+        `${getCharacterAssetUrl(characterId, assetId, variant)} ${width}w`,
+      )
+    }
+  }
+  return [...candidates.values()].join(", ")
 }

@@ -276,7 +276,14 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
         >
           {conv.profileImageAssetId ? (
             <img
-              src={getCharacterAssetUrl(conv.characterId, conv.profileImageAssetId)}
+              src={getCharacterAssetUrl(
+                conv.characterId,
+                conv.profileImageAssetId,
+                "thumbnail",
+              )}
+              width={32}
+              height={32}
+              decoding="async"
               alt={`${conv.characterName} avatar`}
               className="size-full object-cover"
             />
