@@ -4,6 +4,8 @@ export interface CharacterAssetProps {
   mimeType: string
   sizeBytes: number
   extension: string
+  width: number | null
+  height: number | null
   createdAt: Date
 }
 
@@ -23,9 +25,8 @@ export class CharacterAsset {
   get mimeType(): string { return this.props.mimeType }
   get sizeBytes(): number { return this.props.sizeBytes }
   get extension(): string { return this.props.extension }
+  get width(): number | null { return this.props.width }
+  get height(): number | null { return this.props.height }
   get createdAt(): Date { return this.props.createdAt }
 
-  get filePath(): string {
-    return `${this.id}.${this.extension}`
-  }
 }

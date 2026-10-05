@@ -10,5 +10,7 @@ export const characterAssets = sqliteTable("character_assets", {
   mimeType: text("mime_type").notNull(),
   sizeBytes: integer("size_bytes").notNull(),
   extension: text("extension").notNull(),
+  width: integer("width"),
+  height: integer("height"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 })

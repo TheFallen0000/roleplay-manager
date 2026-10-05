@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "assets:backfill-variants": "tsx src/scripts/backfill-character-asset-variants.ts"
   },
   "dependencies": {
     "@workspace/shared": "workspace:*",
@@ -27,6 +28,7 @@
     "openai": "^4.71.0",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
+    "sharp": "^0.35.5",
     "uuid": "^11.0.3",
     "zod": "^3.23.8"
   },

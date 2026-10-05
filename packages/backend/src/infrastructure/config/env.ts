@@ -10,6 +10,7 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("debug"),
   CORS_ORIGIN: z.string().url().default("http://localhost:4321"),
   MAX_PROFILE_IMAGE_BYTES: z.coerce.number().int().positive().default(3 * 1024 * 1024),
+  MAX_PROFILE_IMAGE_PIXELS: z.coerce.number().int().positive().default(40_000_000),
   PROVIDER_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
   PROVIDER_STREAMING_TIMEOUT_MS: z.coerce.number().int().positive().default(300_000),
   OLLAMA_BASE_URL: z
