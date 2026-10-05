@@ -18,6 +18,7 @@ import type { MemoryChangeProposalRepository } from "../../../domain/ports/memor
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { GenerateSummaryUseCase } from "../summary/generate-summary.use-case"
 import type { GenerateConversationTitleUseCase } from "./generate-conversation-title.use-case"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 
 const now = new Date()
 
@@ -162,6 +163,14 @@ const buildCharacterRepo = (): CharacterRepository => ({
   updateProfileImageAssetId: async () => {},
 })
 
+const playerCharacterRepository = {
+  findById: async () => null,
+  list: async () => [],
+  create: async (pc: unknown) => pc,
+  update: async (pc: unknown) => pc,
+  delete: async () => {},
+} as unknown as PlayerCharacterRepository
+
 const buildPromptContextBuilder = (): PromptContextBuilder => ({
   build: async () => ({
     systemPrompt: "Eres Test.",
@@ -286,6 +295,7 @@ describe("SendMessageUseCase", () => {
       buildMemoryRepo(),
       memoryChangeProposalRepository,
       buildPromptContextBuilder(),
+      playerCharacterRepository,
       buildProviderRegistry(),
       buildLogger(),
       buildDefaultProvider(),
@@ -315,6 +325,7 @@ describe("SendMessageUseCase", () => {
       buildMemoryRepo(),
       memoryChangeProposalRepository,
       buildPromptContextBuilder(),
+      playerCharacterRepository,
       buildProviderRegistry(),
       buildLogger(),
       buildDefaultProvider(),
@@ -348,6 +359,7 @@ describe("SendMessageUseCase", () => {
       buildMemoryRepo(),
       memoryChangeProposalRepository,
       buildPromptContextBuilder(),
+      playerCharacterRepository,
       buildProviderRegistry(),
       buildLogger(),
       buildDefaultProvider(),
@@ -386,6 +398,7 @@ describe("SendMessageUseCase", () => {
       buildMemoryRepo(),
       memoryChangeProposalRepository,
       buildPromptContextBuilder(),
+      playerCharacterRepository,
       buildProviderRegistry(true),
       buildLogger(),
       buildDefaultProvider(),
@@ -489,6 +502,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       buildMemoryRepo(),
       proposalRepo,
       buildPromptContextBuilder(),
+      playerCharacterRepository,
       buildProviderWithProposals(),
       buildLogger(),
       buildDefaultProvider(),
@@ -597,6 +611,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       buildMemoryRepoWithTrack(),
       proposalRepo,
       buildPromptContextBuilder(),
+      playerCharacterRepository,
       buildProviderWithProposals(),
       buildLogger(),
       buildDefaultProvider(),
@@ -718,6 +733,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       buildMemoryRepo(),
       proposalRepo,
       promptContextBuilder,
+      playerCharacterRepository,
       buildProviderWithToolCalls(),
       buildLogger(),
       buildDefaultProvider(),
@@ -819,6 +835,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       buildMemoryRepo(),
       buildProposalRepoForOoc(),
       promptContextBuilder,
+      playerCharacterRepository,
       buildProviderRegistry(),
       buildLogger(),
       buildDefaultProvider(),
@@ -895,6 +912,7 @@ function buildSendMessageUseCase(repo: ConversationRepository): SendMessageUseCa
     buildMemoryRepo(),
     memoryChangeProposalRepository,
     buildPromptContextBuilder(),
+    playerCharacterRepository,
     buildProviderRegistry(),
     buildLogger(),
     buildDefaultProvider(),

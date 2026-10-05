@@ -7,12 +7,21 @@ import type { MessageRepository } from "../../../domain/ports/message.repository
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 import { Conversation } from "../../../domain/entities/conversation.entity"
 import { Message } from "../../../domain/entities/message.entity"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import { Summary } from "../../../domain/entities/summary.entity"
 import { Memory } from "../../../domain/entities/memory.entity"
+
+const playerCharacterRepository = {
+  findById: async () => null,
+  list: async () => [],
+  create: async (pc: unknown) => pc,
+  update: async (pc: unknown) => pc,
+  delete: async () => {},
+} as unknown as PlayerCharacterRepository
 
 const now = new Date()
 const character = Character.create({ id: "char-1", name: "TestChar", createdAt: now, updatedAt: now })
@@ -158,6 +167,7 @@ function buildUseCase(params: {
     buildMemoryRepo(params.memories ?? []),
     buildSummaryRepo(params.summary ?? null),
     buildPromptContextBuilder(),
+    playerCharacterRepository,
   )
 }
 

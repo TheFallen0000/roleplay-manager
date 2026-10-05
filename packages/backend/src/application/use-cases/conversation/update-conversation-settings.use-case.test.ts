@@ -7,10 +7,19 @@ import type { ProviderRegistry } from "../../../domain/ports/provider.port"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { CharacterAssetRepository, CharacterAssetStorage } from "../../../domain/ports/character-asset.repository"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 import type { CharacterAssetMetadata } from "../../../domain/ports/character-asset.repository"
 import { Conversation } from "../../../domain/entities/conversation.entity"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
+
+const playerCharacterRepository = {
+  findById: async () => null,
+  list: async () => [],
+  create: async (pc: unknown) => pc,
+  update: async (pc: unknown) => pc,
+  delete: async () => {},
+} as unknown as PlayerCharacterRepository
 
 const now = new Date()
 const character = Character.create({ id: "char-1", name: "Test", createdAt: now, updatedAt: now })
@@ -157,6 +166,7 @@ function buildUseCase(conv: Conversation = existingConv) {
     buildLogger(),
     buildAssetRepo(),
     buildAssetStorage(),
+    playerCharacterRepository,
   )
 }
 

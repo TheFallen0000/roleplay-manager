@@ -297,4 +297,33 @@ describe("PromptContextBuilderImpl", () => {
 
     expect(result.messages[1].content).toBe("Respuesta //mi propia nota//")
   })
+
+  it("incluye el personaje del usuario cuando se pasa", async () => {
+    const builder = new PromptContextBuilderImpl()
+    const result = await builder.build({
+      characterVersion: baseVersion,
+      messages: [],
+      recentMessageCount: 10,
+      playerCharacter: {
+        name: "Alice",
+        description: "Una exploradora curiosa.",
+      },
+    })
+
+    expect(result.systemPrompt).toContain("## Personaje del usuario")
+    expect(result.systemPrompt).toContain(
+      "El usuario interpreta a Alice. Una exploradora curiosa.",
+    )
+  })
+
+  it("omite la sección de personaje del usuario cuando no se pasa", async () => {
+    const builder = new PromptContextBuilderImpl()
+    const result = await builder.build({
+      characterVersion: baseVersion,
+      messages: [],
+      recentMessageCount: 10,
+    })
+
+    expect(result.systemPrompt).not.toContain("## Personaje del usuario")
+  })
 })

@@ -5,6 +5,7 @@ import type { ConversationRepository } from "../../../domain/ports/conversation.
 import type { MessageRepository } from "../../../domain/ports/message.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 import type { ProviderRegistry } from "../../../domain/ports/provider.port"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
@@ -20,6 +21,14 @@ import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { GenerateSummaryUseCase } from "../summary/generate-summary.use-case"
+
+const playerCharacterRepository = {
+  findById: async () => null,
+  list: async () => [],
+  create: async (pc: unknown) => pc,
+  update: async (pc: unknown) => pc,
+  delete: async () => {},
+} as unknown as PlayerCharacterRepository
 
 const now = new Date()
 
@@ -248,6 +257,7 @@ describe("ContinueConversationUseCase - tool calls", () => {
       buildMemoryRepo(),
       proposalRepo,
       buildPromptContextBuilder(),
+      playerCharacterRepository,
       providerWithToolCalls,
       buildLogger(),
       buildDefaultProvider(),
