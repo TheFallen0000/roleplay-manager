@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.15.0] - 2026-08-12
+
+### Added
+
+- i18n infrastructure (PM.11, phase 1): typed dictionaries in `@workspace/shared/i18n` (English as the base locale and source of truth for keys, Spanish typed against it), a pure `translate()` with `{param}` interpolation and `one`/`other` plurals, and an `I18nProvider` + `useTranslation` with `t`/`tRaw`.
+- Language switcher in the app header, next to the theme picker. The language is stored in `localStorage` and in a `language` cookie so the server renders `<html lang>` and the right locale (the previously prerendered pages now render on demand). Because Astro islands are independent React trees, the translated islands receive `locale` as a prop and switching the language reloads the page.
+- Pilot migration: the app shell/sidebar, the character list (toolbar, search, sort, empty states, toasts) and the "Personajes jugados" screen are translated.
+- Backend error messages are now translated by `error.code` (new `errors.*` namespace) with a fallback to the raw backend message.
+- Tests: dictionary key parity, `translate` (interpolation, plurals, fallback), the provider (persistence, cookie, `lang`) and the error helper.
+
+### Changed
+
+- The theme and mode labels are i18n keys instead of hardcoded strings.
+- The default language is English; Spanish is available from the new switcher.
+
 ## [1.14.1] - 2026-08-12
 
 ### Fixed
