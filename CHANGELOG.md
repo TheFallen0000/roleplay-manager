@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.19.0] - 2026-10-05
+
+### Added
+
+- Local WebP profile-image variants (`thumbnail` 128 px, `small` 384 px, `medium` 768 px) generated with Sharp for character profile uploads, chat custom-image uploads and imported characters. Original files remain unchanged and remain the source for editing/export.
+- `GET /api/characters/:id/assets/:assetId?variant=...` serves an optimized variant with immutable browser caching; the existing URL still serves the original. Character cards use responsive `srcset`/`sizes`; chat avatars and edit previews use thumbnails.
+- Idempotent asset backfill command: `pnpm --filter @workspace/backend assets:backfill-variants` (`--dry-run` reports planned variant count and bytes).
+- Image decoded-pixel guard (`MAX_PROFILE_IMAGE_PIXELS`, default 40 MP) in addition to the existing upload byte limit. GIFs preserve animation and are served without static variants.
+
+### Changed
+
+- Character asset metadata records original image dimensions for accurate responsive source descriptors.
+
 ## [1.18.0] - 2026-08-12
 
 ### Added
