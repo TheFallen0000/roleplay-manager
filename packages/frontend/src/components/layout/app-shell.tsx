@@ -13,7 +13,7 @@ import {
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
 import { Toaster } from "@workspace/ui/components/sonner"
-import { UsersIcon, CogIcon } from "lucide-react"
+import { UsersIcon, CogIcon, UserRoundIcon } from "lucide-react"
 import { useSidebar } from "@workspace/ui/components/sidebar"
 import { Logo } from "@workspace/ui/components/logo"
 import { ThemeProvider } from "@/lib/hooks/theme-provider"
@@ -80,6 +80,12 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                   <SidebarMenuButton render={<a href="/settings/providers" />} tooltip="Proveedores">
                       <CogIcon />
                       <span>Proveedores</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton render={<a href="/settings/player-characters" />} tooltip="Personajes jugados">
+                      <UserRoundIcon />
+                      <span>Personajes jugados</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
