@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.14.0] - 2026-08-12
+
+### Added
+
+- User-played characters (PM.15): a new "Personajes jugados" settings screen (next to Proveedores) to create, edit and delete personas — a name and a description, with no versioning — and a new "Persona" option in the conversation settings to pick one per chat (or "Ninguna").
+- The selected persona is included in the system prompt as a `## Personaje del usuario` section, so the AI knows who you are playing and addresses you accordingly. Branches inherit the origin's persona.
+- `GET/POST/PUT/DELETE /api/player-characters` endpoints, the `PlayerCharacter` entity and repository, and Drizzle migration `0011_youthful_post.sql` (`player_characters` table plus `conversations.player_character_id`, a foreign key with `ON DELETE SET NULL` so deleting a persona never breaks a conversation).
+- `ConversationSettingsUpdate.playerCharacterId` (set/clear, validated) and `ConversationDetail.playerCharacterId`.
+- Tests: player character CRUD, prompt inclusion, the settings screen and the conversation selector.
+
 ## [1.13.2] - 2026-08-12
 
 ### Fixed
