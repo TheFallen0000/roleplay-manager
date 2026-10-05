@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.16.0] - 2026-08-12
+
+### Added
+
+- i18n of the chat and conversation area (PM.11, phase 2): message bubbles and their context menu, the message input, confirmation dialogs, the context preview, the chat settings panel (History / Model / Customization / Persona), the model selector, the inference and summary cards and the customization tab are translated into English and Spanish.
+- New `chat` and `settings` namespaces in the shared dictionaries (with `one`/`other` plurals for messages, characters, memories and summaries).
+- The chat island receives the locale as a prop (Astro islands are independent React trees) and the conversation page resolves it from the `language` cookie.
+
+### Fixed
+
+- Stale tests: the character card menu label ("Conversación más reciente") and the theme registry test (`labelKey`).
+
 ## [1.15.0] - 2026-08-12
 
 ### Added
