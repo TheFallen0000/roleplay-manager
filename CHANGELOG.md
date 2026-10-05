@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.17.0] - 2026-08-12
+
+### Added
+
+- The LLM system prompt now follows the UI language: the frontend sends `Accept-Language` with every API request and the backend builds the prompt from translated `prompt.*` templates (English and Spanish), so the context preview is readable in the user's language.
+- i18n of the character area (PM.11, phase 3): list, cards, context menu, form, export/import dialogs and image tools are translated into English and Spanish.
+- i18n of memory (list, proposals, mode and auto-degradation), summaries and providers (manager, cards, instances, instance dialog, model combobox), plus translated page titles.
+- New `characters`, `memory`, `summaries`, `providers`, `pages` and `prompt` namespaces in the shared dictionaries; `common` gains `saveChanges`, `error` and `untitled`.
+
+### Changed
+
+- Dates in summaries follow the UI locale instead of a hardcoded `es-ES`.
+- `parseCharacterExport` reports its errors in the UI language.
+
 ## [1.16.0] - 2026-08-12
 
 ### Added
