@@ -23,7 +23,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { BookOpenTextIcon, CpuIcon, PaletteIcon, SettingsIcon } from "lucide-react"
+import { BookOpenTextIcon, CpuIcon, PaletteIcon, SettingsIcon, UserRoundIcon } from "lucide-react"
 
 import type { ConversationDetail, ConversationSettingsUpdate, MemoryProposalMode } from "@workspace/shared/types/conversation"
 import type { ProviderId } from "@workspace/shared/types/provider"
@@ -42,8 +42,9 @@ import { MemoryList } from "../memory/memory-list"
 import { usePersistedStringList } from "@/lib/hooks/use-persisted-string-list"
 import { ModelSelector } from "./model-selector"
 import { CustomizationTab } from "./customization-tab"
+import { PlayerCharacterCard } from "./player-character-card"
 
-type SettingsSection = "historia" | "modelo" | "personalizacion"
+type SettingsSection = "historia" | "modelo" | "personalizacion" | "persona"
 
 interface SettingsPanelProps {
   conversationId: string
@@ -259,6 +260,10 @@ export function SettingsPanel({
             <PaletteIcon />
             Personalización
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setSection("persona")}>
+            <UserRoundIcon />
+            Persona
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -384,6 +389,23 @@ export function SettingsPanel({
           </DialogHeader>
           <div className="-mx-4 max-h-[60vh] overflow-y-auto px-4">
             <CustomizationTab
+              conversation={current}
+              onSettingsChanged={onSettingsChanged}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={section === "persona"} onOpenChange={(open) => setSection(open ? "persona" : null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader className="pr-8">
+            <DialogTitle>Persona</DialogTitle>
+            <DialogDescription>
+              Quién interpretas tú en esta conversación.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="-mx-4 max-h-[60vh] overflow-y-auto px-4">
+            <PlayerCharacterCard
               conversation={current}
               onSettingsChanged={onSettingsChanged}
             />
