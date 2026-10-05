@@ -14,6 +14,7 @@ import {
   TranslationContext,
   type TranslationContextValue,
 } from "./use-translation"
+import { setRequestLocale } from "../locale"
 
 interface I18nProviderProps {
   initialLocale: Locale
@@ -22,6 +23,10 @@ interface I18nProviderProps {
 
 export function I18nProvider({ initialLocale, children }: I18nProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale)
+
+  // Set during render (not in an effect) so child effects that fire API
+  // requests already send the right `Accept-Language` header.
+  setRequestLocale(locale)
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next)

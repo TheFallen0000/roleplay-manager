@@ -1,3 +1,5 @@
+import { getRequestLocale } from "../locale"
+
 const DEFAULT_BASE_URL = "http://localhost:3001"
 
 export interface ApiError {
@@ -93,6 +95,7 @@ export const apiRequest = async <T>(
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      "Accept-Language": getRequestLocale(),
       ...(init.headers ?? {}),
     },
   })
