@@ -12,6 +12,7 @@ import type {
   CharacterAssetRepository,
   CharacterAssetStorage,
 } from "../../../domain/ports/character-asset.repository"
+import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
 
 const pngBytes = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00,
@@ -107,7 +108,24 @@ const buildRepos = () => {
       throw new Error("not used")
     },
     delete: async () => {},
-    resolvePath: () => "unused",
+  }
+  const storeCharacterAsset: CharacterAssetWriter = {
+    store: vi.fn(async ({ characterId, mimeType, data, createdAt }) => {
+      const extension = mimeType === "image/png" ? "png" : "jpg"
+      const metadata = {
+        id: "new-asset-id",
+        characterId,
+        mimeType,
+        sizeBytes: data.length,
+        extension,
+        width: 1,
+        height: 1,
+        createdAt: createdAt ?? new Date(),
+      }
+      await assetStorage.write(characterId, metadata.id, extension, data)
+      await assetRepository.create(metadata)
+      return metadata
+    }),
   }
 
   return {
@@ -118,6 +136,7 @@ const buildRepos = () => {
     summaryRepository,
     assetRepository,
     assetStorage,
+    storeCharacterAsset,
   }
 }
 
@@ -128,9 +147,7 @@ const buildUseCase = (repos = buildRepos()) =>
     repos.messageRepository,
     repos.memoryRepository,
     repos.summaryRepository,
-    repos.assetRepository,
-    repos.assetStorage,
-    3 * 1024 * 1024,
+    repos.storeCharacterAsset,
   )
 
 describe("ImportCharacterUseCase", () => {

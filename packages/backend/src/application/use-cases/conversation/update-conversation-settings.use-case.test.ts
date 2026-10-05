@@ -145,6 +145,8 @@ const buildAssetRepo = (): CharacterAssetRepository => ({
         mimeType: "image/png",
         sizeBytes: 10,
         extension: "png",
+        width: 1,
+        height: 1,
         createdAt: now,
       }
     }
@@ -160,7 +162,6 @@ const buildAssetStorage = (): CharacterAssetStorage => ({
     throw new Error("not implemented")
   },
   delete: async () => {},
-  resolvePath: () => "",
 })
 
 function buildUseCase(conv: Conversation = existingConv) {

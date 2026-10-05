@@ -96,6 +96,48 @@ describe("CharacterCard", () => {
     ).toBeInTheDocument()
   })
 
+  it("usa variantes responsivas para perfiles con metadata de dimensiones", () => {
+    const characterWithImage: CharacterSummary = {
+      ...character,
+      profileImageAssetId: "asset-1",
+      profileImageMimeType: "image/png",
+      profileImageDimensions: { width: 1200, height: 600 },
+    }
+    renderCard({ character: characterWithImage })
+
+    const image = screen.getByRole("img", { name: "Lyra avatar" })
+    expect(image).toHaveAttribute("src", expect.stringContaining("variant=medium"))
+    expect(image).toHaveAttribute(
+      "srcSet",
+      expect.stringContaining("variant=thumbnail 128w"),
+    )
+    expect(image).toHaveAttribute(
+      "srcSet",
+      expect.stringContaining("variant=small 384w"),
+    )
+    expect(image).toHaveAttribute(
+      "srcSet",
+      expect.stringContaining("variant=medium 768w"),
+    )
+    expect(image).toHaveAttribute("sizes")
+    expect(image).toHaveAttribute("loading", "lazy")
+    expect(image).toHaveAttribute("decoding", "async")
+  })
+
+  it("does not replace animated GIF sources with static WebP variants", () => {
+    const animatedCharacter: CharacterSummary = {
+      ...character,
+      profileImageAssetId: "asset-gif",
+      profileImageMimeType: "image/gif",
+      profileImageDimensions: { width: 640, height: 480 },
+    }
+    renderCard({ character: animatedCharacter })
+
+    const image = screen.getByRole("img", { name: "Lyra avatar" })
+    expect(image).toHaveAttribute("src", expect.not.stringContaining("variant="))
+    expect(image).not.toHaveAttribute("srcSet")
+  })
+
   it("llama onImageClick al pulsar la imagen", () => {
     const onImageClick = vi.fn()
     renderCard({ onImageClick })

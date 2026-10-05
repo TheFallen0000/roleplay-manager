@@ -200,6 +200,8 @@ const buildAssetRepo = (): CharacterAssetRepository => ({
     mimeType: "image/png",
     sizeBytes: 11,
     extension: "png",
+    width: 1,
+    height: 1,
     createdAt: now,
   }),
   findByCharacterId: async () => [],
@@ -210,7 +212,6 @@ const buildAssetStorage = (): CharacterAssetStorage => ({
   write: async () => {},
   read: async () => Readable.from([Buffer.from("image-bytes")]),
   delete: async () => {},
-  resolvePath: () => "unused",
 })
 
 const buildUseCase = () =>

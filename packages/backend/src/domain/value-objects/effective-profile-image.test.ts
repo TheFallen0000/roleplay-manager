@@ -17,6 +17,8 @@ const buildAssetRepo = (existing: string[]): CharacterAssetRepository => ({
           mimeType: "image/png",
           sizeBytes: 10,
           extension: "png",
+          width: 1,
+          height: 1,
           createdAt: now,
         }
       : null,

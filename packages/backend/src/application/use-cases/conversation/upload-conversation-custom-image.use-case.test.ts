@@ -8,6 +8,8 @@ import { FilesystemCharacterAssetStorage } from "../../../infrastructure/adapter
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { CharacterAssetRepository } from "../../../domain/ports/character-asset.repository"
+import type { CharacterAssetImageProcessor } from "../../../domain/ports/character-asset-image-processor"
+import { StoreCharacterAssetService } from "../../services/store-character-asset.service"
 import { Conversation } from "../../../domain/entities/conversation.entity"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
@@ -93,14 +95,33 @@ describe("UploadConversationCustomImageUseCase", () => {
     deleteById: async () => {},
   })
 
-  const buildUseCase = (conversation: Conversation | null = buildConversation()) =>
-    new UploadConversationCustomImageUseCase(
-      buildConversationRepo(conversation),
-      buildCharacterRepo(),
+  const buildUseCase = (conversation: Conversation | null = buildConversation()) => {
+    const imageProcessor: CharacterAssetImageProcessor = {
+      process: async () => ({
+        width: 1,
+        height: 1,
+        variants: [
+          {
+            variant: "thumbnail",
+            width: 1,
+            height: 1,
+            data: Buffer.from("webp-variant"),
+          },
+        ],
+      }),
+    }
+    const storeAsset = new StoreCharacterAssetService(
       buildAssetRepo(),
       storage,
+      imageProcessor,
       3 * 1024 * 1024,
     )
+    return new UploadConversationCustomImageUseCase(
+      buildConversationRepo(conversation),
+      buildCharacterRepo(),
+      storeAsset,
+    )
+  }
 
   it("uploads a valid PNG and stores it under the character", async () => {
     const useCase = buildUseCase()
@@ -133,12 +154,18 @@ describe("UploadConversationCustomImageUseCase", () => {
   })
 
   it("rejects oversized files", async () => {
+    const imageProcessor: CharacterAssetImageProcessor = {
+      process: async () => ({ width: 1, height: 1, variants: [] }),
+    }
     const useCase = new UploadConversationCustomImageUseCase(
       buildConversationRepo(buildConversation()),
       buildCharacterRepo(),
-      buildAssetRepo(),
-      storage,
-      100,
+      new StoreCharacterAssetService(
+        buildAssetRepo(),
+        storage,
+        imageProcessor,
+        100,
+      ),
     )
 
     await expect(

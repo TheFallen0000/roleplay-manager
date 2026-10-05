@@ -7,6 +7,8 @@ import { UploadCharacterAssetUseCase } from "./upload-character-asset.use-case"
 import { FilesystemCharacterAssetStorage } from "../../../infrastructure/adapters/secondary/filesystem/filesystem-character-asset-storage"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { CharacterAssetRepository } from "../../../domain/ports/character-asset.repository"
+import type { CharacterAssetImageProcessor } from "../../../domain/ports/character-asset-image-processor"
+import { StoreCharacterAssetService } from "../../services/store-character-asset.service"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 
@@ -52,7 +54,27 @@ describe("UploadCharacterAssetUseCase", () => {
       findByCharacterId: async () => [],
       deleteById: async () => {},
     }
-    return new UploadCharacterAssetUseCase(charRepo, assetRepo, storage, 3 * 1024 * 1024)
+    const imageProcessor: CharacterAssetImageProcessor = {
+      process: async () => ({
+        width: 1,
+        height: 1,
+        variants: [
+          {
+            variant: "thumbnail",
+            width: 1,
+            height: 1,
+            data: Buffer.from("webp-variant"),
+          },
+        ],
+      }),
+    }
+    const storeAsset = new StoreCharacterAssetService(
+      assetRepo,
+      storage,
+      imageProcessor,
+      3 * 1024 * 1024,
+    )
+    return new UploadCharacterAssetUseCase(charRepo, storeAsset)
   }
 
   it("uploads a valid PNG image", async () => {
@@ -83,6 +105,7 @@ describe("UploadCharacterAssetUseCase", () => {
     expect(result.mimeType).toBe("image/png")
     expect(result.sizeBytes).toBe(10)
     expect(uploadedAssets).toHaveLength(1)
+    expect(await storage.hasVariant("char-1", result.assetId, "thumbnail")).toBe(true)
   })
 
   it("rejects if character not found", async () => {
@@ -123,12 +146,19 @@ describe("UploadCharacterAssetUseCase", () => {
       saveVersion: async (v) => v,
       updateProfileImageAssetId: async () => {},
     }
-    const useCase = new UploadCharacterAssetUseCase(charRepo, {
+    const assetRepo: CharacterAssetRepository = {
       create: async () => {},
       findById: async () => null,
       findByCharacterId: async () => [],
       deleteById: async () => {},
-    }, storage, 100)
+    }
+    const imageProcessor: CharacterAssetImageProcessor = {
+      process: async () => ({ width: 1, height: 1, variants: [] }),
+    }
+    const useCase = new UploadCharacterAssetUseCase(
+      charRepo,
+      new StoreCharacterAssetService(assetRepo, storage, imageProcessor, 100),
+    )
 
     await expect(
       useCase.execute({

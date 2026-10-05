@@ -35,6 +35,8 @@ describe("GetCharacterAssetUseCase", () => {
             mimeType: "image/png",
             sizeBytes: 10,
             extension: "png",
+            width: 1,
+            height: 1,
             createdAt: new Date(),
           }
         }
@@ -67,5 +69,72 @@ describe("GetCharacterAssetUseCase", () => {
 
     const useCase = new GetCharacterAssetUseCase(assetRepo, storage)
     await expect(useCase.execute({ assetId: "nonexistent" })).rejects.toThrow("not found")
+  })
+
+  it("prefers an optimized variant and marks the response cacheable", async () => {
+    await storage.write("char-1", "asset-1", "png", Buffer.from("original"))
+    await storage.writeVariant(
+      "char-1",
+      "asset-1",
+      "thumbnail",
+      Buffer.from("webp-thumbnail"),
+    )
+    const assetRepo: CharacterAssetRepository = {
+      create: async () => {},
+      findById: async () => ({
+        id: "asset-1",
+        characterId: "char-1",
+        mimeType: "image/png",
+        sizeBytes: 8,
+        extension: "png",
+        width: 64,
+        height: 64,
+        createdAt: new Date(),
+      }),
+      findByCharacterId: async () => [],
+      deleteById: async () => {},
+    }
+
+    const result = await new GetCharacterAssetUseCase(assetRepo, storage).execute({
+      assetId: "asset-1",
+      variant: "thumbnail",
+    })
+    const chunks: Buffer[] = []
+    for await (const chunk of result.stream) chunks.push(Buffer.from(chunk))
+
+    expect(result.isVariant).toBe(true)
+    expect(result.asset.mimeType).toBe("image/png")
+    expect(Buffer.concat(chunks)).toEqual(Buffer.from("webp-thumbnail"))
+  })
+
+  it("falls back to the original when a GIF has no static variant", async () => {
+    const gif = Buffer.from("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=", "base64")
+    await storage.write("char-1", "asset-gif", "gif", gif)
+    const assetRepo: CharacterAssetRepository = {
+      create: async () => {},
+      findById: async () => ({
+        id: "asset-gif",
+        characterId: "char-1",
+        mimeType: "image/gif",
+        sizeBytes: gif.length,
+        extension: "gif",
+        width: 1,
+        height: 1,
+        createdAt: new Date(),
+      }),
+      findByCharacterId: async () => [],
+      deleteById: async () => {},
+    }
+
+    const result = await new GetCharacterAssetUseCase(assetRepo, storage).execute({
+      assetId: "asset-gif",
+      variant: "thumbnail",
+    })
+    const chunks: Buffer[] = []
+    for await (const chunk of result.stream) chunks.push(Buffer.from(chunk))
+
+    expect(result.isVariant).toBe(false)
+    expect(result.asset.mimeType).toBe("image/gif")
+    expect(Buffer.concat(chunks)).toEqual(gif)
   })
 })

@@ -46,7 +46,7 @@ const buildRepo = (overrides: Partial<CharacterRepository> = {}): CharacterRepos
 const buildAssetRepo = (exists: boolean): CharacterAssetRepository => ({
   create: async () => {},
   findById: async () =>
-    exists ? { id: "asset-1", characterId: "char-1", mimeType: "image/png", sizeBytes: 10, extension: "png", createdAt: now } : null,
+    exists ? { id: "asset-1", characterId: "char-1", mimeType: "image/png", sizeBytes: 10, extension: "png", width: 1, height: 1, createdAt: now } : null,
   findByCharacterId: async () => [],
   deleteById: async () => {},
 })
