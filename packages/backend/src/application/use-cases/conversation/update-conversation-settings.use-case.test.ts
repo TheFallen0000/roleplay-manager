@@ -8,13 +8,21 @@ import type { ProviderInstanceRepository } from "../../../domain/ports/provider-
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { CharacterAssetRepository, CharacterAssetStorage } from "../../../domain/ports/character-asset.repository"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
+import type { PlayerCharacter } from "../../../domain/entities/player-character.entity"
 import type { CharacterAssetMetadata } from "../../../domain/ports/character-asset.repository"
 import { Conversation } from "../../../domain/entities/conversation.entity"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 
 const playerCharacterRepository = {
-  findById: async () => null,
+  findById: async (id: string) =>
+    id === "pc-1"
+      ? ({
+          id: "pc-1",
+          name: "Alice",
+          description: "Exploradora",
+        } as unknown as PlayerCharacter)
+      : null,
   list: async () => [],
   create: async (pc: unknown) => pc,
   update: async (pc: unknown) => pc,
@@ -252,5 +260,30 @@ describe("UpdateConversationSettingsUseCase", () => {
       useCase.execute("conv-1", { customProfileImageAssetId: "missing" }),
     ).rejects.toThrow("not found")
     expect(deletedAssetIds).toEqual([])
+  })
+
+  it("persiste la persona elegida", async () => {
+    const useCase = buildUseCase()
+
+    await useCase.execute("conv-1", { playerCharacterId: "pc-1" })
+
+    expect(capturedSettings.playerCharacterId).toBe("pc-1")
+  })
+
+  it("permite limpiar la persona", async () => {
+    const useCase = buildUseCase()
+
+    await useCase.execute("conv-1", { playerCharacterId: null })
+
+    expect(capturedSettings.playerCharacterId).toBeNull()
+  })
+
+  it("rechaza una persona inexistente", async () => {
+    const useCase = buildUseCase()
+
+    await expect(
+      useCase.execute("conv-1", { playerCharacterId: "missing" }),
+    ).rejects.toThrow("Player character with id 'missing' not found.")
+    expect(capturedSettings.playerCharacterId).toBeUndefined()
   })
 })

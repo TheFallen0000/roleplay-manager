@@ -55,6 +55,7 @@ const UpdateConversationSettingsSchema = z.object({
   stopSequences: z.array(z.string()).optional(),
   memoryProposalMode: z.enum(["auto", "manual"]).optional(),
   customProfileImageAssetId: z.string().nullable().optional(),
+  playerCharacterId: z.string().nullable().optional(),
   memoryDecayMode: z.enum(["silent", "manual", "off"]).optional(),
   memoryDecayThreshold: z.number().int().min(1).max(10).optional(),
   memoryDecayAgeThreshold: z.number().int().min(1).optional(),
