@@ -95,13 +95,15 @@ Last updated: 2026-08-12
 |---|----------|--------------|
 | PM.11 | Multi-language support, default English. <br>*Done as S24 (v1.15.0), S25 (v1.16.0) and S26 (v1.17.0): infrastructure + pilot, the chat area, characters, memory, summaries, providers, page titles and the LLM prompt following the UI language. PM.13/PM.14 land in S27.* | — |
 | PM.12 | Predefined color themes. <br>*Done as S22 (v1.13.0) — see `S22-progress.md`.* | — |
-| PM.13 | Welcome screen that asks for language and theme on first launch. | PM.11, PM.12 |
-| PM.14 | Top menubar to pick language and theme. <br>*Theme picker delivered in S22 (v1.13.0) and lives in the top header; the language picker is pending PM.11.* | PM.11, PM.12 |
+| PM.13 | Welcome screen that asks for language and theme on first launch. <br>*Done as S27 (v1.18.0) — see `S27-progress.md`.* | PM.11, PM.12 |
+| PM.14 | Top menubar to pick language and theme. <br>*Done as S27 (v1.18.0) — theme picker delivered in S22, language and the menubar in S27. See `S27-progress.md`.* | PM.11, PM.12 |
 
-> **PM.14 (partial, S22) — theme done; language pending (2026-08-12):** The theme
-> + mode picker already lives in the top header (delivered in S22). The language
-> half of PM.14 cannot ship until PM.11 (multi-language, default English) exists;
-> PM.13 depends on it too. No further PM.14 work is planned until PM.11 is done.
+> **PM.13 + PM.14 (S27) — done (2026-08-12, v1.18.0):** The first launch now shows a
+> full-screen welcome (language, theme and color mode) decided server-side from an
+> `rm_onboarded` cookie, so there is no flash of the app. The header hosts a menubar with
+> **Tema** (themes + mode) and **Idioma** (English/Spanish) menus built on a new Base UI
+> `menubar` component; it replaced the old icon switchers, and the theme picker delivered in
+> S22 moved into it. See `S27-progress.md`.
 
 > **PM.12 (S22) — done (2026-08-12, v1.13.0):** Three themes ("Predeterminado",
 > "Bosque", "Océano") defined as semantic CSS token blocks under
