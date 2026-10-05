@@ -11,8 +11,6 @@ import {
   EXPORT_KIND,
   EXPORT_SCHEMA_VERSION,
 } from "@workspace/shared/types/export"
-import { isAllowedImageMime, mimeToExtension } from "@workspace/shared/lib/image"
-
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import { CharacterCard } from "../../../domain/entities/character-card.entity"
@@ -25,12 +23,8 @@ import type { ConversationRepository } from "../../../domain/ports/conversation.
 import type { MessageRepository } from "../../../domain/ports/message.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
-import type {
-  CharacterAssetRepository,
-  CharacterAssetStorage,
-} from "../../../domain/ports/character-asset.repository"
 import { DomainError } from "../../../domain/errors"
-import { ImageMetadata } from "../../../domain/value-objects/image-metadata"
+import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
 
 export interface ImportCharacterInput {
   payload: CharacterExport
@@ -43,9 +37,7 @@ export class ImportCharacterUseCase {
     private readonly messageRepository: MessageRepository,
     private readonly memoryRepository: MemoryRepository,
     private readonly summaryRepository: SummaryRepository,
-    private readonly assetRepository: CharacterAssetRepository,
-    private readonly assetStorage: CharacterAssetStorage,
-    private readonly maxProfileImageBytes: number,
+    private readonly storeCharacterAsset: CharacterAssetWriter,
   ) {}
 
   async execute(input: ImportCharacterInput): Promise<CharacterSummary> {
@@ -172,35 +164,25 @@ export class ImportCharacterUseCase {
     const profileImage = payload.profileImage
     if (!profileImage?.base64) return null
 
-    if (!isAllowedImageMime(profileImage.mimeType)) {
-      throw invalid(`Tipo de imagen no permitido: '${profileImage.mimeType}'.`)
-    }
-    const extension = mimeToExtension(profileImage.mimeType)
-    if (!extension) {
-      throw invalid(`No se pudo determinar la extensión de '${profileImage.mimeType}'.`)
-    }
-
     const data = Buffer.from(profileImage.base64, "base64")
-    const metadata = ImageMetadata.create(
-      profileImage.mimeType,
-      extension,
-      data,
-      this.maxProfileImageBytes,
+    let asset
+    try {
+      asset = await this.storeCharacterAsset.store({
+        characterId,
+        mimeType: profileImage.mimeType,
+        data,
+        createdAt: now,
+      })
+    } catch (error) {
+      if (error instanceof DomainError) throw invalid(error.message)
+      throw error
+    }
+    await this.characterRepository.updateProfileImageAssetId(
+      currentVersion.id,
+      asset.id,
     )
 
-    const assetId = randomUUIDv7()
-    await this.assetStorage.write(characterId, assetId, extension, data)
-    await this.assetRepository.create({
-      id: assetId,
-      characterId,
-      mimeType: metadata.mime,
-      sizeBytes: metadata.sizeBytes,
-      extension: metadata.extension,
-      createdAt: now,
-    })
-    await this.characterRepository.updateProfileImageAssetId(currentVersion.id, assetId)
-
-    return assetId
+    return asset.id
   }
 
   private async importConversations(

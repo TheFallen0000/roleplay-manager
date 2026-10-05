@@ -25,7 +25,11 @@ import type { ProviderRegistry } from "../domain/ports/provider.port"
 import type { SettingsRepository } from "../domain/ports/settings.repository"
 import type { CharacterRepository } from "../domain/ports/character.repository"
 import type { PlayerCharacterRepository } from "../domain/ports/player-character.repository"
-import type { CharacterAssetRepository, CharacterAssetStorage } from "../domain/ports/character-asset.repository"
+import type {
+  CharacterAssetMaintenanceRepository,
+  CharacterAssetRepository,
+  CharacterAssetVariantStorage,
+} from "../domain/ports/character-asset.repository"
 import type { ConversationRepository } from "../domain/ports/conversation.repository"
 import type { MessageRepository } from "../domain/ports/message.repository"
 import type { MemoryRepository } from "../domain/ports/memory.repository"
@@ -48,6 +52,9 @@ import { DeleteCharacterUseCase } from "../application/use-cases/character/delet
 import { ListCharacterVersionsUseCase } from "../application/use-cases/character/list-character-versions.use-case"
 import { UploadCharacterAssetUseCase } from "../application/use-cases/character/upload-character-asset.use-case"
 import { GetCharacterAssetUseCase } from "../application/use-cases/character/get-character-asset.use-case"
+import { BackfillCharacterAssetVariantsUseCase } from "../application/use-cases/character/backfill-character-asset-variants.use-case"
+import { StoreCharacterAssetService } from "../application/services/store-character-asset.service"
+import { SharpCharacterAssetImageProcessor } from "../infrastructure/adapters/secondary/images/sharp-character-asset-image-processor"
 import { CreateConversationUseCase } from "../application/use-cases/conversation/create-conversation.use-case"
 import { BranchConversationUseCase } from "../application/use-cases/conversation/branch-conversation.use-case"
 import { GetConversationUseCase } from "../application/use-cases/conversation/get-conversation.use-case"
@@ -98,7 +105,7 @@ export interface AppContainer {
   characterRepository: CharacterRepository
   playerCharacterRepository: PlayerCharacterRepository
   characterAssetRepository: CharacterAssetRepository
-  characterAssetStorage: CharacterAssetStorage
+  characterAssetStorage: CharacterAssetVariantStorage
   conversationRepository: ConversationRepository
   messageRepository: MessageRepository
   memoryRepository: MemoryRepository
@@ -119,6 +126,7 @@ export interface AppContainer {
   listCharacterVersions: ListCharacterVersionsUseCase
   uploadCharacterAsset: UploadCharacterAssetUseCase
   getCharacterAsset: GetCharacterAssetUseCase
+  backfillCharacterAssetVariants: BackfillCharacterAssetVariantsUseCase
   maxProfileImageBytes: number
   createConversation: CreateConversationUseCase
   branchConversation: BranchConversationUseCase
@@ -167,6 +175,7 @@ export interface BuildContainerOptions {
   database: Database
   dataDir: string
   maxProfileImageBytes: number
+  maxProfileImagePixels: number
   ollamaBaseUrl: string
   providerTimeoutMs: number
   providerStreamingTimeoutMs: number
@@ -178,6 +187,7 @@ export const buildContainer = ({
   database,
   dataDir,
   maxProfileImageBytes,
+  maxProfileImagePixels,
   ollamaBaseUrl,
   providerTimeoutMs,
   providerStreamingTimeoutMs,
@@ -192,8 +202,19 @@ export const buildContainer = ({
   })
   const characterRepository: CharacterRepository = new DrizzleCharacterRepository(database)
   const playerCharacterRepository: PlayerCharacterRepository = new DrizzlePlayerCharacterRepository(database)
-  const characterAssetRepository: CharacterAssetRepository = new DrizzleCharacterAssetRepository(database)
-  const characterAssetStorage: CharacterAssetStorage = new FilesystemCharacterAssetStorage(dataDir)
+  const characterAssetRepository: CharacterAssetMaintenanceRepository =
+    new DrizzleCharacterAssetRepository(database)
+  const characterAssetStorage: CharacterAssetVariantStorage =
+    new FilesystemCharacterAssetStorage(dataDir)
+  const characterAssetImageProcessor = new SharpCharacterAssetImageProcessor(
+    maxProfileImagePixels,
+  )
+  const storeCharacterAsset = new StoreCharacterAssetService(
+    characterAssetRepository,
+    characterAssetStorage,
+    characterAssetImageProcessor,
+    maxProfileImageBytes,
+  )
   const conversationRepository: ConversationRepository = new DrizzleConversationRepository(database)
   const messageRepository: MessageRepository = new DrizzleMessageRepository(database)
   const memoryRepository: MemoryRepository =
@@ -341,7 +362,10 @@ export const buildContainer = ({
     deleteSummary: new DeleteSummaryUseCase(summaryRepository),
     createCharacter: new CreateCharacterUseCase(characterRepository),
     getCharacter: new GetCharacterUseCase(characterRepository),
-    listCharacters: new ListCharactersUseCase(characterRepository),
+    listCharacters: new ListCharactersUseCase(
+      characterRepository,
+      characterAssetRepository,
+    ),
     updateCharacter: new UpdateCharacterUseCase(characterRepository),
     updateCharacterProfileImage: new UpdateCharacterProfileImageUseCase(
       characterRepository,
@@ -362,9 +386,7 @@ export const buildContainer = ({
       messageRepository,
       memoryRepository,
       summaryRepository,
-      characterAssetRepository,
-      characterAssetStorage,
-      maxProfileImageBytes,
+      storeCharacterAsset,
     ),
     createPlayerCharacter: new CreatePlayerCharacterUseCase(playerCharacterRepository),
     listPlayerCharacters: new ListPlayerCharactersUseCase(playerCharacterRepository),
@@ -374,13 +396,16 @@ export const buildContainer = ({
     listCharacterVersions: new ListCharacterVersionsUseCase(characterRepository),
     uploadCharacterAsset: new UploadCharacterAssetUseCase(
       characterRepository,
-      characterAssetRepository,
-      characterAssetStorage,
-      maxProfileImageBytes,
+      storeCharacterAsset,
     ),
     getCharacterAsset: new GetCharacterAssetUseCase(
       characterAssetRepository,
       characterAssetStorage,
+    ),
+    backfillCharacterAssetVariants: new BackfillCharacterAssetVariantsUseCase(
+      characterAssetRepository,
+      characterAssetStorage,
+      characterAssetImageProcessor,
     ),
     maxProfileImageBytes,
     createConversation: new CreateConversationUseCase(
@@ -454,9 +479,7 @@ export const buildContainer = ({
     uploadConversationCustomImage: new UploadConversationCustomImageUseCase(
       conversationRepository,
       characterRepository,
-      characterAssetRepository,
-      characterAssetStorage,
-      maxProfileImageBytes,
+      storeCharacterAsset,
     ),
     listProviderInstances: new ListProviderInstancesUseCase(
       providerInstanceRepository,

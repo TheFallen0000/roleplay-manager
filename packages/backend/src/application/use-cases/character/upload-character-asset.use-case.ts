@@ -1,10 +1,6 @@
-import { v7 as randomUUIDv7 } from "uuid"
-
-import type { CharacterAssetRepository, CharacterAssetStorage } from "../../../domain/ports/character-asset.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import { CharacterNotFoundError, CharacterAssetValidationError } from "../../../domain/errors"
-import { mimeToExtension, isAllowedImageMime } from "@workspace/shared/lib/image"
-import { ImageMetadata } from "../../../domain/value-objects/image-metadata"
+import { CharacterNotFoundError } from "../../../domain/errors"
+import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
 
 export interface UploadCharacterAssetInput {
   characterId: string
@@ -23,9 +19,7 @@ export interface UploadCharacterAssetResult {
 export class UploadCharacterAssetUseCase {
   constructor(
     private readonly characterRepository: CharacterRepository,
-    private readonly assetRepository: CharacterAssetRepository,
-    private readonly assetStorage: CharacterAssetStorage,
-    private readonly maxBytes: number,
+    private readonly storeCharacterAsset: CharacterAssetWriter,
   ) {}
 
   async execute(input: UploadCharacterAssetInput): Promise<UploadCharacterAssetResult> {
@@ -34,37 +28,17 @@ export class UploadCharacterAssetUseCase {
       throw new CharacterNotFoundError(input.characterId)
     }
 
-    if (!isAllowedImageMime(input.mimeType)) {
-      throw new CharacterAssetValidationError(
-        `Mime type '${input.mimeType}' is not allowed. Allowed: png, jpeg, webp, gif`,
-      )
-    }
-
-    const extension = mimeToExtension(input.mimeType)
-    if (!extension) {
-      throw new CharacterAssetValidationError(`Cannot determine extension for mime '${input.mimeType}'`)
-    }
-
-    const metadata = ImageMetadata.create(input.mimeType, extension, input.data, this.maxBytes)
-    const assetId = randomUUIDv7()
-
-    await this.assetStorage.write(input.characterId, assetId, extension, input.data)
-
-    const now = new Date()
-    await this.assetRepository.create({
-      id: assetId,
+    const asset = await this.storeCharacterAsset.store({
       characterId: input.characterId,
-      mimeType: metadata.mime,
-      sizeBytes: metadata.sizeBytes,
-      extension: metadata.extension,
-      createdAt: now,
+      mimeType: input.mimeType,
+      data: input.data,
     })
 
     return {
-      assetId,
-      characterId: input.characterId,
-      mimeType: metadata.mime,
-      sizeBytes: metadata.sizeBytes,
+      assetId: asset.id,
+      characterId: asset.characterId,
+      mimeType: asset.mimeType,
+      sizeBytes: asset.sizeBytes,
     }
   }
 }

@@ -34,6 +34,7 @@ const main = (): void => {
     database: db,
     dataDir: env.DATA_DIR,
     maxProfileImageBytes: env.MAX_PROFILE_IMAGE_BYTES,
+    maxProfileImagePixels: env.MAX_PROFILE_IMAGE_PIXELS,
     ollamaBaseUrl: env.OLLAMA_BASE_URL,
     providerTimeoutMs: env.PROVIDER_TIMEOUT_MS,
     providerStreamingTimeoutMs: env.PROVIDER_STREAMING_TIMEOUT_MS,

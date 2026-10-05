@@ -1,5 +1,6 @@
 import { Router } from "express"
 import { z } from "zod"
+import { CHARACTER_ASSET_VARIANTS } from "@workspace/shared/types/image"
 
 import type { CreateCharacterUseCase } from "../../../../application/use-cases/character/create-character.use-case"
 import type { GetCharacterUseCase } from "../../../../application/use-cases/character/get-character.use-case"
@@ -211,9 +212,25 @@ export const buildCharacterRouter = (deps: {
 
   router.get("/characters/:id/assets/:assetId", async (req, res, next) => {
     try {
-      const result = await deps.getCharacterAsset.execute({ assetId: req.params.assetId })
-      res.setHeader("Content-Type", result.asset.mimeType)
-      res.setHeader("Cache-Control", "private, max-age=300")
+      const variant = z
+        .enum(CHARACTER_ASSET_VARIANTS)
+        .optional()
+        .parse(req.query.variant)
+      const result = await deps.getCharacterAsset.execute({
+        assetId: req.params.assetId,
+        variant,
+      })
+      res.setHeader(
+        "Content-Type",
+        result.isVariant ? "image/webp" : result.asset.mimeType,
+      )
+      res.setHeader(
+        "Cache-Control",
+        result.isVariant
+          ? "private, max-age=31536000, immutable"
+          : "private, max-age=300",
+      )
+      res.setHeader("X-Content-Type-Options", "nosniff")
       result.stream.pipe(res)
     } catch (error) {
       next(error)
