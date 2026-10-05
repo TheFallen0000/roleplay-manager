@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 
 import { useTheme } from "@/lib/hooks/use-theme"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import {
   COLOR_MODES,
   THEMES,
@@ -28,19 +29,20 @@ const MODE_ICONS = {
 
 export function ThemeSwitcher() {
   const { theme, mode, setTheme, setMode } = useTheme()
+  const { t } = useTranslation()
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon" aria-label="Tema y apariencia">
+          <Button variant="ghost" size="icon" aria-label={t("theme.label")}>
             <PaletteIcon className="size-4" />
           </Button>
         }
       />
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Tema</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("theme.theme")}</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={theme}
             onValueChange={(value) => {
@@ -57,14 +59,14 @@ export function ThemeSwitcher() {
                   className="size-3 shrink-0 rounded-full ring-1 ring-foreground/15"
                   style={{ backgroundColor: definition.swatch }}
                 />
-                {definition.label}
+                {t(definition.labelKey)}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Modo</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("theme.mode")}</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={mode}
             onValueChange={(value) => {
@@ -79,7 +81,7 @@ export function ThemeSwitcher() {
                   value={definition.id}
                 >
                   <Icon />
-                  {definition.label}
+                  {t(definition.labelKey)}
                 </DropdownMenuRadioItem>
               )
             })}

@@ -9,13 +9,21 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 
+import { useTranslation } from "@/lib/hooks/use-translation"
 import type { CharacterSortKey } from "@/lib/sort-characters"
 
-const SORT_OPTIONS: { value: CharacterSortKey; label: string }[] = [
-  { value: "recency-desc", label: "Más recientes" },
-  { value: "recency-asc", label: "Más antiguos" },
-  { value: "activity-desc", label: "Última actividad: recientes" },
-  { value: "activity-asc", label: "Última actividad: antiguos" },
+const SORT_OPTIONS: {
+  value: CharacterSortKey
+  labelKey:
+    | "characters.sortRecencyDesc"
+    | "characters.sortRecencyAsc"
+    | "characters.sortActivityDesc"
+    | "characters.sortActivityAsc"
+}[] = [
+  { value: "recency-desc", labelKey: "characters.sortRecencyDesc" },
+  { value: "recency-asc", labelKey: "characters.sortRecencyAsc" },
+  { value: "activity-desc", labelKey: "characters.sortActivityDesc" },
+  { value: "activity-asc", labelKey: "characters.sortActivityAsc" },
 ]
 
 interface CharacterListToolbarProps {
@@ -33,9 +41,10 @@ export function CharacterListToolbar({
   onSortChange,
   resultCount,
 }: CharacterListToolbarProps) {
-  const selectedLabel =
-    SORT_OPTIONS.find((option) => option.value === sort)?.label ??
-    SORT_OPTIONS[0].label
+  const { t } = useTranslation()
+
+  const selectedOption =
+    SORT_OPTIONS.find((option) => option.value === sort) ?? SORT_OPTIONS[0]
   const searching = search.trim().length > 0
 
   return (
@@ -46,15 +55,15 @@ export function CharacterListToolbar({
           type="search"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Buscar personaje…"
-          aria-label="Buscar personaje"
+          placeholder={t("characters.searchPlaceholder")}
+          aria-label={t("characters.searchLabel")}
           className="pl-8"
         />
       </div>
       <div className="flex items-center justify-between gap-2 sm:justify-end">
         {searching ? (
           <span className="text-muted-foreground text-sm whitespace-nowrap">
-            {resultCount} resultado{resultCount !== 1 ? "s" : ""}
+            {t("characters.results", { count: resultCount })}
           </span>
         ) : null}
         <Select
@@ -67,14 +76,14 @@ export function CharacterListToolbar({
         >
           <SelectTrigger
             className="w-full sm:w-64"
-            aria-label="Ordenar por"
+            aria-label={t("characters.sortLabel")}
           >
-            <SelectValue>{selectedLabel}</SelectValue>
+            <SelectValue>{t(selectedOption.labelKey)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {SORT_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </SelectItem>
             ))}
           </SelectContent>

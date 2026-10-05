@@ -32,7 +32,10 @@ import {
   listPlayerCharacters,
   updatePlayerCharacter,
 } from "@/lib/api/player-characters"
-import { ApiClientError } from "@/lib/api/client"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import { I18nProvider } from "@/lib/hooks/i18n-provider"
+import type { Locale } from "@workspace/shared/i18n"
+import { translateApiError } from "@/lib/translate-api-error"
 
 interface FormState {
   id: string | null
@@ -42,13 +45,17 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { id: null, name: "", description: "" }
 
-function errorMessage(error: unknown): string {
-  return error instanceof ApiClientError
-    ? `[${error.code}] ${error.message}`
-    : "Error desconocido"
+export function PlayerCharacterManager({ locale }: { locale: Locale }) {
+  return (
+    <I18nProvider initialLocale={locale}>
+      <PlayerCharacterManagerContent />
+    </I18nProvider>
+  )
 }
 
-export function PlayerCharacterManager() {
+function PlayerCharacterManagerContent() {
+  const { t, tRaw } = useTranslation()
+
   const [playerCharacters, setPlayerCharacters] = useState<PlayerCharacterDTO[]>(
     [],
   )
@@ -66,9 +73,11 @@ export function PlayerCharacterManager() {
         const items = await listPlayerCharacters()
         if (active) setPlayerCharacters(items)
       } catch (error) {
-        if (active) toast.error("No se pudieron cargar", {
-          description: errorMessage(error),
-        })
+        if (active) {
+          toast.error(t("players.loadFailed"), {
+            description: translateApiError(error, tRaw, t("common.unknownError")),
+          })
+        }
       } finally {
         if (active) setLoading(false)
       }
@@ -76,7 +85,7 @@ export function PlayerCharacterManager() {
     return () => {
       active = false
     }
-  }, [])
+  }, [t, tRaw])
 
   const refresh = async () => {
     const items = await listPlayerCharacters()
@@ -86,7 +95,7 @@ export function PlayerCharacterManager() {
   const handleSave = async () => {
     if (!form) return
     if (!form.name.trim() || !form.description.trim()) {
-      toast.error("Nombre y descripción son obligatorios")
+      toast.error(t("players.required"))
       return
     }
 
@@ -98,18 +107,20 @@ export function PlayerCharacterManager() {
       }
       if (form.id) {
         await updatePlayerCharacter(form.id, input)
-        toast.success("Persona actualizada")
+        toast.success(t("players.saved"))
       } else {
         await createPlayerCharacter({
           name: input.name as string,
           description: input.description as string,
         })
-        toast.success("Persona creada")
+        toast.success(t("players.created"))
       }
       setForm(null)
       await refresh()
     } catch (error) {
-      toast.error("No se pudo guardar", { description: errorMessage(error) })
+      toast.error(t("players.saveFailed"), {
+        description: translateApiError(error, tRaw, t("common.unknownError")),
+      })
     } finally {
       setSaving(false)
     }
@@ -119,11 +130,13 @@ export function PlayerCharacterManager() {
     if (!deleteTarget) return
     try {
       await deletePlayerCharacter(deleteTarget.id)
-      toast.success("Persona eliminada")
+      toast.success(t("players.deleted"))
       setDeleteTarget(null)
       await refresh()
     } catch (error) {
-      toast.error("No se pudo eliminar", { description: errorMessage(error) })
+      toast.error(t("players.deleteFailed"), {
+        description: translateApiError(error, tRaw, t("common.unknownError")),
+      })
     }
   }
 
@@ -139,15 +152,14 @@ export function PlayerCharacterManager() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Personajes jugados</h1>
+          <h1 className="text-2xl font-semibold">{t("players.title")}</h1>
           <p className="text-muted-foreground text-sm">
-            A quién interpretas tú. La IA lo sabrá en las conversaciones donde lo
-            elijas.
+            {t("players.subtitle")}
           </p>
         </div>
         <Button onClick={() => setForm(EMPTY_FORM)}>
           <PlusIcon />
-          Crear persona
+          {t("players.create")}
         </Button>
       </header>
 
@@ -155,8 +167,7 @@ export function PlayerCharacterManager() {
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-12 text-center">
           <UserRoundIcon className="text-muted-foreground size-8" />
           <p className="text-muted-foreground text-sm">
-            Todavía no has creado ninguna persona. Crea una para que la IA sepa
-            quién eres.
+            {t("players.emptyTitle")}
           </p>
         </div>
       ) : (
@@ -180,7 +191,7 @@ export function PlayerCharacterManager() {
                   }
                 >
                   <PencilIcon />
-                  Editar
+                  {t("players.edit")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -188,7 +199,7 @@ export function PlayerCharacterManager() {
                   onClick={() => setDeleteTarget(playerCharacter)}
                 >
                   <Trash2Icon />
-                  Eliminar
+                  {t("players.delete")}
                 </Button>
               </CardContent>
             </Card>
@@ -200,11 +211,9 @@ export function PlayerCharacterManager() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {form?.id ? "Editar persona" : "Nueva persona"}
+              {form?.id ? t("players.editTitle") : t("players.createTitle")}
             </DialogTitle>
-            <DialogDescription>
-              Nombre y descripción de tu personaje jugado. Sin versiones.
-            </DialogDescription>
+            <DialogDescription>{t("players.formDescription")}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3">
             <Input
@@ -214,8 +223,8 @@ export function PlayerCharacterManager() {
                   prev ? { ...prev, name: event.target.value } : prev,
                 )
               }
-              placeholder="Nombre"
-              aria-label="Nombre"
+              placeholder={t("players.namePlaceholder")}
+              aria-label={t("players.namePlaceholder")}
               autoFocus
             />
             <Textarea
@@ -225,8 +234,8 @@ export function PlayerCharacterManager() {
                   prev ? { ...prev, description: event.target.value } : prev,
                 )
               }
-              placeholder="Descripción"
-              aria-label="Descripción"
+              placeholder={t("players.descriptionPlaceholder")}
+              aria-label={t("players.descriptionPlaceholder")}
               className="min-h-24 resize-none"
             />
           </div>
@@ -236,11 +245,11 @@ export function PlayerCharacterManager() {
               onClick={() => setForm(null)}
               disabled={saving}
             >
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? <Spinner /> : null}
-              Guardar
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -252,18 +261,17 @@ export function PlayerCharacterManager() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>¿Eliminar persona?</DialogTitle>
+            <DialogTitle>{t("players.deleteTitle")}</DialogTitle>
             <DialogDescription>
-              Se eliminará "{deleteTarget?.name}". Las conversaciones que la
-              usaban se quedarán sin persona asignada.
+              {t("players.deleteDescription", { name: deleteTarget?.name ?? "" })}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
-              Eliminar
+              {t("common.delete")}
             </Button>
           </div>
         </DialogContent>

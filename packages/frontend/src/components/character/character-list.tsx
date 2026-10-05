@@ -19,6 +19,10 @@ import { createConversation } from "@/lib/api/conversations"
 import { deleteCharacter, importCharacter } from "@/lib/api/characters"
 import { ApiClientError } from "@/lib/api/client"
 import { parseCharacterExport } from "@/lib/parse-character-export"
+import { I18nProvider } from "@/lib/hooks/i18n-provider"
+import type { Locale } from "@workspace/shared/i18n"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import { translateApiError } from "@/lib/translate-api-error"
 import {
   DEFAULT_CHARACTER_SORT,
   sortCharacters,
@@ -41,7 +45,15 @@ function normalizeText(value: string): string {
     .trim()
 }
 
-export function CharacterList() {
+export function CharacterList({ locale }: { locale: Locale }) {
+  return (
+    <I18nProvider initialLocale={locale}>
+      <CharacterListContent />
+    </I18nProvider>
+  )
+}
+
+function CharacterListContent() {
   const {
     characters,
     conversationsByCharacter,
@@ -51,6 +63,8 @@ export function CharacterList() {
     refresh,
     loadVersions,
   } = useCharacterList()
+
+  const { t, tRaw } = useTranslation()
 
   const [importOpen, setImportOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -81,17 +95,17 @@ export function CharacterList() {
     try {
       const conv = await createConversation({ characterId: character.id })
       if (conv.defaultProviderStatus === "unavailable") {
-        toast.warning(
-          "No hay un proveedor de IA configurado. La conversación se creó, pero no podrá responder hasta que configures uno.",
-        )
+        toast.warning(t("characters.providerUnavailable"))
       }
       openConversation(conv.conversation.id)
     } catch (error) {
-      if (error instanceof ApiClientError && error.status === 409) {
-        toast.error("Ya existe una conversación para este personaje y versión.")
-      } else {
-        toast.error("No se pudo crear la conversación.")
-      }
+      toast.error(
+        translateApiError(
+          error,
+          tRaw,
+          t("characters.conversationCreateFailed"),
+        ),
+      )
     }
   }
 
@@ -102,20 +116,21 @@ export function CharacterList() {
     try {
       const conv = await createConversation({ characterId, versionId })
       if (conv.defaultProviderStatus === "unavailable") {
-        toast.warning(
-          "No hay un proveedor de IA configurado. La conversación se creó, pero no podrá responder hasta que configures uno.",
-        )
+        toast.warning(t("characters.providerUnavailable"))
       }
       openConversation(conv.conversation.id)
     } catch (error) {
+      const message = translateApiError(
+        error,
+        tRaw,
+        t("characters.conversationCreateFailed"),
+      )
+      toast.error(message)
       if (error instanceof ApiClientError && error.status === 409) {
-        toast.error("Ya existe una conversación para este personaje y versión.")
         const latest = latestConversationByCharacter.get(characterId)
         if (latest) {
           openConversation(latest.id)
         }
-      } else {
-        toast.error("No se pudo crear la conversación.")
       }
     }
   }
@@ -127,10 +142,10 @@ export function CharacterList() {
   const handleDelete = async (characterId: string) => {
     try {
       await deleteCharacter(characterId)
-      toast.success("Personaje eliminado.")
+      toast.success(t("characters.deleted"))
       await refresh()
     } catch {
-      toast.error("No se pudo eliminar el personaje.")
+      toast.error(t("characters.deleteFailed"))
     }
   }
 
@@ -139,15 +154,14 @@ export function CharacterList() {
   ): Promise<ImportCharacterResult> => {
     try {
       const imported = await importCharacter(payload)
-      toast.success(`Personaje "${imported.name}" importado.`)
+      toast.success(t("characters.imported", { name: imported.name }))
       await refresh()
       return { ok: true }
     } catch (error) {
-      const message =
-        error instanceof ApiClientError
-          ? error.message
-          : "No se pudo importar el personaje."
-      return { ok: false, error: message }
+      return {
+        ok: false,
+        error: translateApiError(error, tRaw, t("characters.importFailed")),
+      }
     }
   }
 
@@ -159,7 +173,7 @@ export function CharacterList() {
     }
     const result = await handleImportPayload(parsed.payload)
     if (!result.ok) {
-      toast.error(result.error ?? "No se pudo importar el personaje.")
+      toast.error(result.error ?? t("characters.importFailed"))
     }
   }
 
@@ -177,19 +191,19 @@ export function CharacterList() {
         <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Mis personajes</h1>
+          <h1 className="text-2xl font-semibold">{t("characters.title")}</h1>
           <p className="text-muted-foreground text-sm">
-            {characters.length} personaje{characters.length !== 1 ? "s" : ""}
+            {t("characters.count", { count: characters.length })}
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button variant="outline" onClick={() => setImportOpen(true)}>
             <UploadIcon />
-            Importar personaje
+            {t("characters.import")}
           </Button>
           <Button render={<a href="/characters/new" />} nativeButton={false}>
             <PlusIcon />
-            Crear personaje
+            {t("characters.create")}
           </Button>
         </div>
       </header>
@@ -200,15 +214,15 @@ export function CharacterList() {
             <UsersIcon />
           </EmptyMedia>
           <EmptyHeader>
-            <EmptyTitle>No tienes personajes</EmptyTitle>
+            <EmptyTitle>{t("characters.emptyTitle")}</EmptyTitle>
             <EmptyDescription>
-              Crea tu primer personaje para empezar una conversación.
+              {t("characters.emptyDescription")}
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Button render={<a href="/characters/new" />} nativeButton={false}>
               <PlusIcon />
-              Crear personaje
+              {t("characters.create")}
             </Button>
           </EmptyContent>
         </Empty>
@@ -225,7 +239,7 @@ export function CharacterList() {
             <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-12 text-center">
               <SearchXIcon className="text-muted-foreground size-8" />
               <p className="text-muted-foreground text-sm">
-                No hay personajes que coincidan con "{search.trim()}".
+                {t("characters.noResults", { term: search.trim() })}
               </p>
             </div>
           ) : (
