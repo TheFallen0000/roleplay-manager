@@ -14,6 +14,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
 import { blobToFile, fileToDataUrl, getCroppedImg, type CropArea } from "./image-cropper.utils"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 import "react-easy-crop/react-easy-crop.css"
 
@@ -32,13 +33,15 @@ export function ImageCropperDialog({
   aspect = 1,
   onCropComplete,
 }: ImageCropperDialogProps) {
+  const { t } = useTranslation()
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Recortar imagen</DialogTitle>
+          <DialogTitle>{t("characters.cropTitle")}</DialogTitle>
           <DialogDescription>
-            Ajusta la selección cuadrada de la foto de perfil.
+            {t("characters.cropDescription")}
           </DialogDescription>
         </DialogHeader>
         {file ? (
@@ -66,6 +69,7 @@ interface CropperBodyProps {
 }
 
 function CropperBody({ file, aspect, onCropComplete, onCancel }: CropperBodyProps) {
+  const { t } = useTranslation()
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
@@ -79,12 +83,12 @@ function CropperBody({ file, aspect, onCropComplete, onCancel }: CropperBodyProp
         if (!cancelled) setImageSrc(url)
       })
       .catch(() => {
-        if (!cancelled) toast.error("No se pudo leer la imagen")
+        if (!cancelled) toast.error(t("characters.cropReadFailed"))
       })
     return () => {
       cancelled = true
     }
-  }, [file])
+  }, [file, t])
 
   const handleApply = useCallback(async () => {
     if (!imageSrc || !croppedAreaPixels) return
@@ -93,11 +97,11 @@ function CropperBody({ file, aspect, onCropComplete, onCancel }: CropperBodyProp
       const blob = await getCroppedImg(imageSrc, croppedAreaPixels)
       onCropComplete(blobToFile(blob, "cropped.png", "image/png"))
     } catch {
-      toast.error("No se pudo recortar la imagen")
+      toast.error(t("characters.cropFailed"))
     } finally {
       setBusy(false)
     }
-  }, [imageSrc, croppedAreaPixels, onCropComplete])
+  }, [imageSrc, croppedAreaPixels, onCropComplete, t])
 
   return (
     <>
@@ -116,7 +120,7 @@ function CropperBody({ file, aspect, onCropComplete, onCancel }: CropperBodyProp
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
-          Cancelar
+          {t("common.cancel")}
         </Button>
         <Button
           type="button"
@@ -124,7 +128,7 @@ function CropperBody({ file, aspect, onCropComplete, onCancel }: CropperBodyProp
           disabled={!imageSrc || !croppedAreaPixels || busy}
         >
           {busy ? <Spinner /> : null}
-          Aplicar
+          {t("common.apply")}
         </Button>
       </DialogFooter>
     </>

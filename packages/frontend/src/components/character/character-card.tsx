@@ -14,6 +14,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { UsersIcon } from "lucide-react"
 import { getCharacterAssetUrl } from "@/lib/api/client"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { CharacterContextMenu } from "./character-context-menu"
 
 export interface CharacterCardProps {
@@ -39,6 +40,7 @@ export function CharacterCard({
   onEdit,
   onDelete,
 }: CharacterCardProps) {
+  const { t } = useTranslation()
   const imageSrc = character.profileImageAssetId
     ? getCharacterAssetUrl(character.id, character.profileImageAssetId)
     : null
@@ -58,7 +60,7 @@ export function CharacterCard({
           type="button"
           onClick={() => onImageClick(character)}
           className="block w-full cursor-pointer text-left"
-          aria-label={`Abrir la conversación más reciente con ${character.name}`}
+          aria-label={t("characters.openMostRecent", { name: character.name })}
         >
           {imageSrc ? (
             <>
@@ -85,12 +87,17 @@ export function CharacterCard({
           ) : null}
         </CardHeader>
         <CardFooter className="flex flex-col items-start text-xs text-muted-foreground">
-          <span>Creado: {new Date(character.createdAt).toLocaleDateString()}</span>
           <span>
-            Última actividad:{" "}
-            {lastActivityAt
-              ? new Date(lastActivityAt).toLocaleDateString()
-              : "Sin conversaciones"}
+            {t("characters.createdAt", {
+              date: new Date(character.createdAt).toLocaleDateString(),
+            })}
+          </span>
+          <span>
+            {t("characters.lastActivity", {
+              date: lastActivityAt
+                ? new Date(lastActivityAt).toLocaleDateString()
+                : t("characters.noConversations"),
+            })}
           </span>
         </CardFooter>
       </Card>

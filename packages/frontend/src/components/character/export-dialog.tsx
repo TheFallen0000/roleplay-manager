@@ -17,6 +17,8 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { DownloadIcon } from "lucide-react"
 
 import { exportCharacter } from "@/lib/api/characters"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import type { TranslationKey } from "@workspace/shared/i18n"
 
 const CONVERSATION_CHILDREN: ExportSection[] = [
   "conversations.messages",
@@ -35,21 +37,21 @@ const DEFAULT_SECTIONS: ExportSection[] = [
 
 const ALL_SECTIONS: ExportSection[] = [...DEFAULT_SECTIONS, "standaloneSettings"]
 
-const CHILD_LABELS: Record<string, string> = {
-  "conversations.messages": "Mensajes",
-  "conversations.memories": "Memorias dinámicas",
-  "conversations.summaries": "Resúmenes",
-  "conversations.settings": "Configuraciones y personalizaciones",
+const CHILD_LABEL_KEYS: Record<string, TranslationKey> = {
+  "conversations.messages": "characters.exportMessages",
+  "conversations.memories": "characters.exportMemories",
+  "conversations.summaries": "characters.exportSummaries",
+  "conversations.settings": "characters.exportSettings",
 }
 
-function slugify(value: string): string {
+function slugify(value: string, fallback: string): string {
   const slug = value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-  return slug || "personaje"
+  return slug || fallback
 }
 
 interface ExportDialogProps {
@@ -65,6 +67,7 @@ export function ExportDialog({
   open,
   onOpenChange,
 }: ExportDialogProps) {
+  const { t } = useTranslation()
   const [selected, setSelected] = useState<Set<ExportSection>>(
     () => new Set(DEFAULT_SECTIONS),
   )
@@ -103,7 +106,7 @@ export function ExportDialog({
   const handleExport = async () => {
     if (!character) return
     if (selected.size === 0) {
-      toast.error("Selecciona al menos una sección para exportar.")
+      toast.error(t("characters.exportSelectSection"))
       return
     }
 
@@ -116,17 +119,18 @@ export function ExportDialog({
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = `personaje-${slugify(character.name)}-${new Date()
-        .toISOString()
-        .slice(0, 10)}.json`
+      link.download = `${t("characters.slugFallback")}-${slugify(
+        character.name,
+        t("characters.slugFallback"),
+      )}-${new Date().toISOString().slice(0, 10)}.json`
       document.body.appendChild(link)
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
-      toast.success("Exportación descargada")
+      toast.success(t("characters.exportDone"))
       handleOpenChange(false)
     } catch {
-      toast.error("No se pudo exportar el personaje.")
+      toast.error(t("characters.exportFailed"))
     } finally {
       setExporting(false)
     }
@@ -136,17 +140,14 @@ export function ExportDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Gestor de exportación</DialogTitle>
+          <DialogTitle>{t("characters.exportTitle")}</DialogTitle>
           <DialogDescription>
-            Elige qué quieres exportar de "{character?.name}". El archivo se
-            descargará como JSON y respeta la jerarquía: para exportar
-            conversaciones, memorias o resúmenes, su sección padre debe estar
-            incluida.
+            {t("characters.exportDescription", { name: character?.name ?? "" })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Secciones</span>
+          <span className="text-sm font-medium">{t("characters.exportSections")}</span>
           <div className="flex gap-2">
             <Button
               type="button"
@@ -154,7 +155,7 @@ export function ExportDialog({
               size="sm"
               onClick={() => setSelected(new Set(ALL_SECTIONS))}
             >
-              Marcar todo
+              {t("characters.exportSelectAll")}
             </Button>
             <Button
               type="button"
@@ -162,7 +163,7 @@ export function ExportDialog({
               size="sm"
               onClick={() => setSelected(new Set())}
             >
-              Desmarcar todo
+              {t("characters.exportClearAll")}
             </Button>
           </div>
         </div>
@@ -171,7 +172,7 @@ export function ExportDialog({
           <label className="flex items-center gap-2 opacity-60">
             <Checkbox checked disabled />
             <span className="text-sm font-semibold">
-              {character?.name ?? "Personaje"}
+              {character?.name ?? t("characters.fallbackName")}
             </span>
           </label>
 
@@ -184,7 +185,7 @@ export function ExportDialog({
                 }
               />
               <span className="text-sm">
-                Definición (versión actual, tarjetas incluidas)
+                {t("characters.exportDefinition")}
               </span>
             </label>
 
@@ -195,7 +196,7 @@ export function ExportDialog({
                   setSectionChecked("profileImage", checked)
                 }
               />
-              <span className="text-sm">Imagen de perfil</span>
+              <span className="text-sm">{t("characters.exportProfileImage")}</span>
             </label>
 
             <label className="flex items-center gap-2">
@@ -206,7 +207,7 @@ export function ExportDialog({
                 }
               />
               <span className="text-sm">
-                Historial de versiones (con sus tarjetas)
+                {t("characters.exportVersions")}
               </span>
             </label>
 
@@ -218,7 +219,7 @@ export function ExportDialog({
                 }
               />
               <span className="text-sm">
-                Conversaciones y ramas
+                {t("characters.exportConversations")}
                 <span className="text-muted-foreground">
                   {" "}
                   ({conversationCount})
@@ -243,7 +244,9 @@ export function ExportDialog({
                       setSectionChecked(child, checked)
                     }
                   />
-                  <span className="text-sm">{CHILD_LABELS[child]}</span>
+                  <span className="text-sm">
+                    {t(CHILD_LABEL_KEYS[child])}
+                  </span>
                 </label>
               ))}
             </div>
@@ -256,7 +259,7 @@ export function ExportDialog({
                 }
               />
               <span className="text-sm">
-                Solo configuración (plantilla para aplicar a otro personaje)
+                {t("characters.exportStandaloneSettings")}
               </span>
             </label>
           </div>
@@ -268,11 +271,11 @@ export function ExportDialog({
             onClick={() => handleOpenChange(false)}
             disabled={exporting}
           >
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleExport} disabled={exporting}>
             {exporting ? <Spinner /> : <DownloadIcon className="size-4" />}
-            Exportar
+            {t("characters.exportAction")}
           </Button>
         </DialogFooter>
       </DialogContent>

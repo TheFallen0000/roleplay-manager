@@ -1,10 +1,14 @@
 ---
 import { CharacterForm } from "@/components/character/character-form"
 import BaseLayout from "@/layouts/base.astro"
+import { resolveLocale } from "@/lib/locale"
+import { translate } from "@workspace/shared/i18n"
 
 export const prerender = false
+
+const locale = resolveLocale(Astro.cookies.get("language")?.value)
 ---
 
-<BaseLayout title="Crear personaje - Roleplay Manager">
-  <CharacterForm client:load />
+<BaseLayout title={`${translate(locale, "pages.newCharacter")} - Roleplay Manager`}>
+  <CharacterForm locale={locale} client:load />
 </BaseLayout>

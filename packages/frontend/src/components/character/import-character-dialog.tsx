@@ -15,6 +15,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { FileJsonIcon, UploadIcon } from "lucide-react"
 
 import { parseCharacterExport } from "@/lib/parse-character-export"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 export interface ImportCharacterResult {
   ok: boolean
@@ -32,6 +33,7 @@ export function ImportCharacterDialog({
   onOpenChange,
   onImport,
 }: ImportCharacterDialogProps) {
+  const { t, locale } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,7 +50,7 @@ export function ImportCharacterDialog({
 
   const handleFile = async (file: File) => {
     setError(null)
-    const parsed = parseCharacterExport(await file.text())
+    const parsed = parseCharacterExport(await file.text(), locale)
     if (!parsed.ok) {
       setError(parsed.error)
       return
@@ -58,7 +60,7 @@ export function ImportCharacterDialog({
     try {
       const result = await onImport(parsed.payload)
       if (!result.ok) {
-        setError(result.error ?? "No se pudo importar el personaje.")
+        setError(result.error ?? t("characters.importFailed"))
         return
       }
       handleOpenChange(false)
@@ -71,11 +73,9 @@ export function ImportCharacterDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Importar personaje</DialogTitle>
+          <DialogTitle>{t("characters.importTitle")}</DialogTitle>
           <DialogDescription>
-            Suelta un archivo JSON exportado desde Roleplay Manager para recrear
-            el personaje con sus versiones, imagen, conversaciones, memorias y
-            resúmenes.
+            {t("characters.importDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -109,10 +109,10 @@ export function ImportCharacterDialog({
             <FileJsonIcon className="size-8 text-muted-foreground" />
           )}
           <span className="text-sm font-medium">
-            Suelta aquí el archivo JSON
+            {t("characters.importDropHere")}
           </span>
           <span className="text-xs text-muted-foreground">
-            o pulsa para elegir un archivo
+            {t("characters.importChooseHint")}
           </span>
         </button>
 
@@ -142,14 +142,14 @@ export function ImportCharacterDialog({
             onClick={() => handleOpenChange(false)}
             disabled={importing}
           >
-            Cancelar
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={() => inputRef.current?.click()}
             disabled={importing}
           >
             <UploadIcon className="size-4" />
-            Elegir archivo
+            {t("characters.importChooseFile")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -33,6 +33,7 @@ import {
   Trash2Icon,
 } from "lucide-react"
 import { ExportDialog } from "./export-dialog"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 interface CharacterContextMenuProps {
   character: CharacterSummary
@@ -55,6 +56,7 @@ export function CharacterContextMenu({
   onDelete,
   children,
 }: CharacterContextMenuProps) {
+  const { t } = useTranslation()
   const [versions, setVersions] = useState<CharacterVersionDTO[] | null>(null)
   const [versionsLoading, setVersionsLoading] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -89,16 +91,18 @@ export function CharacterContextMenu({
           }}
         >
           <ClockFading className="size-4" />
-          Conversación más reciente
+          {t("characters.mostRecentConversation")}
         </ContextMenuItem>
         <ContextMenuSub onOpenChange={handleVersionsOpenChange}>
           <ContextMenuSubTrigger>
             <MessageSquarePlusIcon className="size-4" />
-            Nueva conversación
+            {t("characters.newConversation")}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             {versionsLoading && versions === null ? (
-              <ContextMenuItem disabled>Cargando versiones…</ContextMenuItem>
+              <ContextMenuItem disabled>
+                {t("characters.loadingVersions")}
+              </ContextMenuItem>
             ) : (
               (versions ?? []).map((v) => (
                 <ContextMenuItem
@@ -115,11 +119,13 @@ export function CharacterContextMenu({
         <ContextMenuSub>
           <ContextMenuSubTrigger disabled={conversations.length === 0}>
             <MessageSquareTextIcon className="size-4" />
-            Conversaciones
+            {t("characters.conversations")}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             {conversations.length === 0 ? (
-              <ContextMenuItem disabled>Sin conversaciones</ContextMenuItem>
+              <ContextMenuItem disabled>
+                {t("characters.noConversations")}
+              </ContextMenuItem>
             ) : (
               conversations.map((conv) => (
                 <ContextMenuItem
@@ -127,7 +133,7 @@ export function CharacterContextMenu({
                   onClick={() => onOpenConversation(conv.id)}
                 >
                   <span className="max-w-48 truncate">
-                    {conv.title ?? "Sin título"}
+                    {conv.title ?? t("common.untitled")}
                   </span>
                   <span className="text-muted-foreground text-xs">
                     {new Date(conv.lastActivityAt).toLocaleDateString()}
@@ -140,18 +146,18 @@ export function CharacterContextMenu({
         <ContextMenuSeparator />
         <ContextMenuItem onClick={() => onEdit(character.id)}>
           <PencilIcon className="size-4" />
-          Editar personaje
+          {t("characters.edit")}
         </ContextMenuItem>
         <ContextMenuItem onClick={() => setExportOpen(true)}>
           <DownloadIcon className="size-4" />
-          Exportar…
+          {t("characters.export")}
         </ContextMenuItem>
         <ContextMenuItem
           variant="destructive"
           onClick={() => setDeleteOpen(true)}
         >
           <Trash2Icon className="size-4" />
-          Eliminar personaje
+          {t("characters.delete")}
         </ContextMenuItem>
       </ContextMenuContent>
 
@@ -164,15 +170,13 @@ export function CharacterContextMenu({
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
-          <DialogTitle>¿Eliminar personaje?</DialogTitle>
+          <DialogTitle>{t("characters.deleteTitle")}</DialogTitle>
           <DialogDescription>
-            Se eliminará "{character.name}" junto con todas sus versiones,
-            conversaciones, memorias y archivos. Esta acción no se puede
-            deshacer.
+            {t("characters.deleteDescription", { name: character.name })}
           </DialogDescription>
           <div className="mt-4 flex justify-end gap-2">
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -181,7 +185,7 @@ export function CharacterContextMenu({
                 onDelete(character.id)
               }}
             >
-              Eliminar
+              {t("common.delete")}
             </Button>
           </div>
         </DialogContent>

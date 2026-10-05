@@ -45,12 +45,23 @@ import { Sortable, SortableItem, SortableItemHandle } from "@workspace/ui/compon
 import type { CharacterDetail } from "@workspace/shared/types/character"
 import { useCharacterForm } from "./use-character-form"
 import { ProfileImageInput } from "./profile-image-input"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import { I18nProvider } from "@/lib/hooks/i18n-provider"
+import type { Locale } from "@workspace/shared/i18n"
 
 interface Props {
   character?: CharacterDetail
 }
 
-export function CharacterForm({ character }: Props) {
+export function CharacterForm({ character, locale }: Props & { locale: Locale }) {
+  return (
+    <I18nProvider initialLocale={locale}>
+      <CharacterFormContent character={character} />
+    </I18nProvider>
+  )
+}
+
+function CharacterFormContent({ character }: Props) {
   const {
     isEditing,
     name, setName,
@@ -79,13 +90,14 @@ export function CharacterForm({ character }: Props) {
     handleDelete,
     handleStartConversation,
   } = useCharacterForm(character)
+  const { t } = useTranslation()
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="mx-auto flex max-w-2xl flex-col gap-6">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">
-            {isEditing ? "Editar personaje" : "Crear personaje"}
+            {isEditing ? t("characters.editTitle") : t("characters.createTitle")}
           </h1>
           <div className="text-muted-foreground text-sm">
             {isEditing && character && character.versions.length > 1 ? (
@@ -102,7 +114,7 @@ export function CharacterForm({ character }: Props) {
                 </SelectContent>
               </Select>
             ) : (
-              isEditing ? `v${versionNumber}` : "Nuevo personaje"
+              isEditing ? `v${versionNumber}` : t("characters.newTitle")
             )}
           </div>
         </div>
@@ -111,25 +123,27 @@ export function CharacterForm({ character }: Props) {
             <>
               <Button type="button" variant="secondary" onClick={handleStartConversation}>
                 <MessageSquarePlusIcon />
-                Iniciar conversación
+                {t("characters.startConversation")}
               </Button>
               <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogTrigger render={<Button variant="destructive" />}>
-                    Eliminar
+                    {t("common.delete")}
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Eliminar personaje</DialogTitle>
+                    <DialogTitle>{t("characters.deleteDialogTitle")}</DialogTitle>
                     <DialogDescription>
-                      ¿Estás seguro de eliminar "{character?.name}"? Esta acción no se puede deshacer.
+                      {t("characters.deleteConfirmDescription", {
+                        name: character?.name ?? "",
+                      })}
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setShowDeleteDialog(false)}>
-                      Cancelar
+                      {t("common.cancel")}
                     </Button>
                     <Button type="button" variant="destructive" onClick={() => void handleDelete()} disabled={saving}>
-                      Eliminar
+                      {t("common.delete")}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -137,16 +151,16 @@ export function CharacterForm({ character }: Props) {
             </>
           ) : null}
           <Button type="submit" disabled={!canSubmit}>
-            {isEditing ? "Guardar cambios" : "Crear personaje"}
+            {isEditing ? t("characters.saveChanges") : t("characters.createTitle")}
           </Button>
         </div>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="general">{t("characters.tabGeneral")}</TabsTrigger>
           <TabsTrigger value="cards">
-            Tarjetas
+            {t("characters.tabCards")}
             {cards.length > 0 ? <Badge variant="secondary" className="ml-2">{cards.length}</Badge> : null}
           </TabsTrigger>
         </TabsList>
@@ -154,13 +168,13 @@ export function CharacterForm({ character }: Props) {
         <TabsContent value="general" className="flex flex-col gap-4 pt-4">
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="name">Nombre *</FieldLabel>
+              <FieldLabel htmlFor="name">{t("characters.fieldName")}</FieldLabel>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onBlur={() => markTouched("name")}
-                placeholder="Ej: Milka Moori"
+                placeholder={t("characters.namePlaceholder")}
                 maxLength={50}
               />
               <FieldError>{showError("name")}</FieldError>
@@ -168,20 +182,20 @@ export function CharacterForm({ character }: Props) {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="subtitle">Subtítulo</FieldLabel>
+              <FieldLabel htmlFor="subtitle">{t("characters.fieldSubtitle")}</FieldLabel>
               <Input
                 id="subtitle"
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
-                placeholder="Ej: La chica holstaur más agradable."
+                placeholder={t("characters.subtitlePlaceholder")}
                 maxLength={80}
               />
-              <FieldDescription>Opcional. Una frase breve.</FieldDescription>
+              <FieldDescription>{t("characters.subtitleHint")}</FieldDescription>
               <CharCounter current={subtitle.length} max={80} />
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="profileImage">Imagen de perfil *</FieldLabel>
+              <FieldLabel htmlFor="profileImage">{t("characters.fieldProfileImage")}</FieldLabel>
               <ProfileImageInput
                 characterId={character?.id ?? ""}
                 name={name}
@@ -194,13 +208,13 @@ export function CharacterForm({ character }: Props) {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="greeting">Saludo inicial *</FieldLabel>
+              <FieldLabel htmlFor="greeting">{t("characters.fieldGreeting")}</FieldLabel>
               <Textarea
                 id="greeting"
                 value={greeting}
                 onChange={(e) => setGreeting(e.target.value)}
                 onBlur={() => markTouched("greeting")}
-                placeholder="Ej: ¡Hola! Me alegra verte por aqui."
+                placeholder={t("characters.greetingPlaceholder")}
                 maxLength={2000}
               />
               <FieldError>{showError("greeting")}</FieldError>
@@ -208,13 +222,13 @@ export function CharacterForm({ character }: Props) {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="description">Descripción *</FieldLabel>
+              <FieldLabel htmlFor="description">{t("characters.fieldDescription")}</FieldLabel>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={() => markTouched("description")}
-                placeholder="Ej: Dueña de una granja y amiga de todos..."
+                placeholder={t("characters.descriptionPlaceholder")}
                 maxLength={2000}
               />
               <FieldError>{showError("description")}</FieldError>
@@ -222,16 +236,16 @@ export function CharacterForm({ character }: Props) {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="instructions">Instrucciones</FieldLabel>
+              <FieldLabel htmlFor="instructions">{t("characters.fieldInstructions")}</FieldLabel>
               <Textarea
                 id="instructions"
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Indicaciones adicionales para la IA (opcional)"
+                placeholder={t("characters.instructionsPlaceholder")}
                 maxLength={1500}
               />
               <FieldDescription>
-                Instrucciones extra que la IA usará al interpretar este personaje.
+                {t("characters.instructionsHint")}
               </FieldDescription>
               <CharCounter current={instructions.length} max={1500} />
             </Field>
@@ -241,7 +255,7 @@ export function CharacterForm({ character }: Props) {
         <TabsContent value="cards" className="flex flex-col gap-4 pt-4">
           <FieldContent>
               <p className="text-muted-foreground text-sm">
-                Las tarjetas definen las características del personaje. Se ordenan por importancia. Arrastra para reordenar.
+                {t("characters.cardsHint")}
               </p>
           </FieldContent>
 
@@ -249,7 +263,7 @@ export function CharacterForm({ character }: Props) {
             <div className="sticky top-0 z-10 bg-popover py-1">
               <Button type="button" variant="outline" onClick={addCard} className="w-full">
                 <PlusIcon />
-                Añadir tarjeta
+                {t("characters.addCard")}
               </Button>
             </div>
             <Sortable
@@ -270,14 +284,14 @@ export function CharacterForm({ character }: Props) {
                       value={card.title}
                       onChange={(e) => updateCard(idx, "title", e.target.value)}
                       onBlur={() => markTouched(`card-${idx}`)}
-                      placeholder="Título de la tarjeta"
+                      placeholder={t("characters.cardTitlePlaceholder")}
                       maxLength={50}
                     />
                     <Textarea
                       value={card.content}
                       onChange={(e) => updateCard(idx, "content", e.target.value)}
                       onBlur={() => markTouched(`card-${idx}`)}
-                      placeholder="Contenido de la tarjeta"
+                      placeholder={t("characters.cardContentPlaceholder")}
                       maxLength={2500}
                     />
                     <div className="flex items-center gap-2">
@@ -287,7 +301,7 @@ export function CharacterForm({ character }: Props) {
                           checked={card.active}
                           onChange={(e) => updateCard(idx, "active", e.target.checked)}
                         />
-                        Activa
+                        {t("characters.cardActive")}
                       </label>
                       <button
                         type="button"
@@ -295,7 +309,7 @@ export function CharacterForm({ character }: Props) {
                         className="ml-auto flex items-center gap-1 text-xs text-destructive hover:underline"
                       >
                         <Trash2Icon className="size-3" />
-                        Eliminar
+                        {t("common.delete")}
                       </button>
                     </div>
                     <FieldError>{showError(`card-${idx}`)}</FieldError>

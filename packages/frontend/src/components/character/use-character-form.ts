@@ -14,6 +14,7 @@ import {
 } from "@/lib/api/characters"
 import { uploadCharacterAsset } from "@/lib/api/client"
 import { createConversation } from "@/lib/api/conversations"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { buildSnapshot, hasChanges } from "./character-form-utils"
 
 export interface CardEntry {
@@ -28,6 +29,7 @@ function emptyCard(): CardEntry {
 }
 
 export function useCharacterForm(character?: CharacterDetail) {
+  const { t } = useTranslation()
   const isEditing = !!character
   const version: CharacterVersionDTO | undefined = character?.currentVersion
 
@@ -57,17 +59,22 @@ export function useCharacterForm(character?: CharacterDetail) {
 
   const validationErrors = useMemo(() => {
     const errors: Record<string, string | null> = {}
-    errors.name = !name.trim() ? "El nombre es obligatorio" : null
-    errors.profileImage = !profileImageAssetId && !pendingFile ? "La imagen de perfil es obligatoria" : null
-    errors.description = !description.trim() ? "La descripción es obligatoria" : null
-    errors.greeting = !greeting.trim() ? "El saludo inicial es obligatorio" : null
+    errors.name = !name.trim() ? t("characters.validationName") : null
+    errors.profileImage =
+      !profileImageAssetId && !pendingFile
+        ? t("characters.validationImage")
+        : null
+    errors.description = !description.trim()
+      ? t("characters.validationDescription")
+      : null
+    errors.greeting = !greeting.trim() ? t("characters.validationGreeting") : null
     cards.forEach((c, i) => {
       if (!c.title.trim() || !c.content.trim()) {
-        errors[`card-${i}`] = "Título y contenido son obligatorios"
+        errors[`card-${i}`] = t("characters.validationCard")
       }
     })
     return errors
-  }, [name, profileImageAssetId, pendingFile, description, greeting, cards])
+  }, [name, profileImageAssetId, pendingFile, description, greeting, cards, t])
 
   const hasValidationErrors = Object.values(validationErrors).some(Boolean)
 
@@ -159,13 +166,13 @@ export function useCharacterForm(character?: CharacterDetail) {
         const result = await uploadCharacterAsset(character.id, file)
         setProfileImageAssetId(result.assetId)
         setPendingFile(null)
-        toast.success("Imagen subida correctamente")
+        toast.success(t("characters.imageUploaded"))
       } catch {
         setPendingFile(null)
-        toast.error("Error al subir la imagen")
+        toast.error(t("characters.imageUploadFailed"))
       }
     }
-  }, [character])
+  }, [character, t])
 
   const handleImageClear = useCallback(() => {
     setPendingFile(null)
@@ -179,7 +186,7 @@ export function useCharacterForm(character?: CharacterDetail) {
     if (hasValidationErrors) return
 
     if (isEditing && !dirty) {
-      toast.warning("No hay cambios que guardar")
+      toast.warning(t("characters.noChanges"))
       return
     }
 
@@ -224,7 +231,7 @@ export function useCharacterForm(character?: CharacterDetail) {
           result.currentVersion.greeting,
           result.currentVersion.cards.map(c => ({ title: c.title, content: c.content, active: c.active })),
         ))
-        toast.success("Personaje actualizado")
+        toast.success(t("characters.updated"))
       } else {
         const input: CreateCharacterInput = {
           name: name.trim(),
@@ -246,8 +253,8 @@ export function useCharacterForm(character?: CharacterDetail) {
         if (conv.defaultProviderStatus !== "available") {
           toast.warning(
             conv.defaultProviderStatus === "unconfigured"
-              ? "No hay proveedor por defecto configurado"
-              : "El proveedor por defecto no está disponible",
+              ? t("characters.noDefaultProvider")
+              : t("characters.defaultProviderUnavailable"),
             { description: conv.defaultProviderMessage },
           )
         }
@@ -256,9 +263,9 @@ export function useCharacterForm(character?: CharacterDetail) {
       }
     } catch (e) {
       if (e instanceof ApiClientError) {
-        toast.error(`Error: ${e.message}`)
+        toast.error(`${t("common.error")}: ${e.message}`)
       } else {
-        toast.error("Error inesperado al guardar")
+        toast.error(t("characters.saveUnexpectedError"))
       }
     } finally {
       setSaving(false)
@@ -271,13 +278,13 @@ export function useCharacterForm(character?: CharacterDetail) {
     try {
       const { deleteCharacter: del } = await import("@/lib/api/characters")
       await del(character.id)
-      toast.success("Personaje eliminado")
+      toast.success(t("characters.deleted"))
       location.href = "/"
     } catch (e) {
       if (e instanceof ApiClientError) {
-        toast.error(`Error: ${e.message}`)
+        toast.error(`${t("common.error")}: ${e.message}`)
       } else {
-        toast.error("Error inesperado al eliminar")
+        toast.error(t("characters.deleteUnexpectedError"))
       }
     } finally {
       setSaving(false)
@@ -295,14 +302,14 @@ export function useCharacterForm(character?: CharacterDetail) {
       if (conv.defaultProviderStatus !== "available") {
         toast.warning(
           conv.defaultProviderStatus === "unconfigured"
-            ? "No hay proveedor por defecto configurado"
-            : "El proveedor por defecto no está disponible",
+            ? t("characters.noDefaultProvider")
+            : t("characters.defaultProviderUnavailable"),
           { description: conv.defaultProviderMessage },
         )
       }
       location.href = `/conversations/${conv.conversation.id}`
     } catch {
-      toast.error("Error al crear la conversación")
+      toast.error(t("characters.conversationCreateFailed"))
     }
   }
 

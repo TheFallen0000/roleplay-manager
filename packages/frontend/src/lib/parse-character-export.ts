@@ -3,21 +3,33 @@ import {
   EXPORT_KIND,
   EXPORT_SCHEMA_VERSION,
 } from "@workspace/shared/types/export"
+import {
+  DEFAULT_LOCALE,
+  translate,
+  type Locale,
+  type TranslationParams,
+} from "@workspace/shared/i18n"
 
 export type ParseCharacterExportResult =
   | { ok: true; payload: CharacterExport }
   | { ok: false; error: string }
 
-export function parseCharacterExport(text: string): ParseCharacterExportResult {
+export function parseCharacterExport(
+  text: string,
+  locale: Locale = DEFAULT_LOCALE,
+): ParseCharacterExportResult {
+  const tr = (key: string, params?: TranslationParams) =>
+    translate(locale, key, params)
+
   let data: unknown
   try {
     data = JSON.parse(text)
   } catch {
-    return { ok: false, error: "El archivo no es un JSON válido." }
+    return { ok: false, error: tr("characters.importInvalidJson") }
   }
 
   if (!data || typeof data !== "object") {
-    return { ok: false, error: "El archivo no contiene un objeto JSON válido." }
+    return { ok: false, error: tr("characters.importInvalidObject") }
   }
 
   const payload = data as Partial<CharacterExport>
@@ -25,25 +37,28 @@ export function parseCharacterExport(text: string): ParseCharacterExportResult {
   if (payload.kind !== EXPORT_KIND) {
     return {
       ok: false,
-      error: "El archivo no es una exportación de personaje compatible.",
+      error: tr("characters.importIncompatible"),
     }
   }
 
   if (payload.schemaVersion !== EXPORT_SCHEMA_VERSION) {
     return {
       ok: false,
-      error: `Versión de archivo no soportada (${payload.schemaVersion ?? "desconocida"}). Se esperaba ${EXPORT_SCHEMA_VERSION}.`,
+      error: tr("characters.importUnsupportedVersion", {
+        version: payload.schemaVersion ?? tr("characters.unknownVersion"),
+        expected: EXPORT_SCHEMA_VERSION,
+      }),
     }
   }
 
   if (!payload.character?.name) {
-    return { ok: false, error: "El archivo no incluye el nombre del personaje." }
+    return { ok: false, error: tr("characters.importMissingName") }
   }
 
   if (!payload.definition && (!payload.versions || payload.versions.length === 0)) {
     return {
       ok: false,
-      error: "El archivo no contiene la definición del personaje.",
+      error: tr("characters.importMissingDefinition"),
     }
   }
 

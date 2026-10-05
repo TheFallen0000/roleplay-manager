@@ -1,6 +1,8 @@
 import { useRef, useState } from "react"
 import { UploadIcon } from "lucide-react"
 
+import { useTranslation } from "@/lib/hooks/use-translation"
+
 interface CharacterDropOverlayProps {
   onFile: (file: File) => void
   children: React.ReactNode
@@ -14,6 +16,7 @@ export function CharacterDropOverlay({
   onFile,
   children,
 }: CharacterDropOverlayProps) {
+  const { t } = useTranslation()
   const [active, setActive] = useState(false)
   const counter = useRef(0)
 
@@ -56,9 +59,9 @@ export function CharacterDropOverlay({
         >
           <div className="flex flex-col items-center gap-2 text-center">
             <UploadIcon className="size-10 text-primary" />
-            <p className="text-lg font-semibold">Suelta el archivo aquí</p>
+            <p className="text-lg font-semibold">{t("characters.dropHere")}</p>
             <p className="text-sm text-muted-foreground">
-              para iniciar la importación del personaje
+              {t("characters.dropHint")}
             </p>
           </div>
         </div>

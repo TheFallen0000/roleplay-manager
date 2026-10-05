@@ -3,11 +3,14 @@ import { CharacterForm } from "@/components/character/character-form"
 import { CharacterNotFound } from "@/components/character/character-not-found"
 import { getCharacter } from "@/lib/api/characters"
 import BaseLayout from "@/layouts/base.astro"
+import { resolveLocale } from "@/lib/locale"
+import { translate } from "@workspace/shared/i18n"
 import type { CharacterDetail } from "@workspace/shared/types/character"
 
 export const prerender = false
 
 const { id } = Astro.params
+const locale = resolveLocale(Astro.cookies.get("language")?.value)
 
 let character: CharacterDetail | null = null
 let error: string | null = null
@@ -16,15 +19,15 @@ if (id) {
   try {
     character = await getCharacter(id)
   } catch (e) {
-    error = e instanceof Error ? e.message : "Error desconocido"
+    error = e instanceof Error ? e.message : translate(locale, "common.unknownError")
   }
 }
 ---
 
-<BaseLayout title={character ? `${character.name} - Roleplay Manager` : "Personaje no encontrado"}>
+<BaseLayout title={character ? `${character.name} - Roleplay Manager` : translate(locale, "pages.characterNotFound")}>
   {
     character ? (
-      <CharacterForm client:load character={character} />
+      <CharacterForm locale={locale} client:load character={character} />
     ) : (
       <CharacterNotFound error={error} />
     )

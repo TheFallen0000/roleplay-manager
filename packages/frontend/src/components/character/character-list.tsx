@@ -64,7 +64,7 @@ function CharacterListContent() {
     loadVersions,
   } = useCharacterList()
 
-  const { t, tRaw } = useTranslation()
+  const { t, tRaw, locale } = useTranslation()
 
   const [importOpen, setImportOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -166,7 +166,7 @@ function CharacterListContent() {
   }
 
   const handleImportFile = async (file: File) => {
-    const parsed = parseCharacterExport(await file.text())
+    const parsed = parseCharacterExport(await file.text(), locale)
     if (!parsed.ok) {
       toast.error(parsed.error)
       return

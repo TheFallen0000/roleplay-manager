@@ -6,6 +6,7 @@ import { Button } from "@workspace/ui/components/button"
 import { toast } from "@workspace/ui/components/sonner"
 import { ImagePlusIcon, XIcon } from "lucide-react"
 import { getCharacterAssetUrl } from "@/lib/api/client"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { ImageCropperDialog } from "./image-cropper-dialog"
 
 interface ProfileImageInputProps {
@@ -23,16 +24,16 @@ interface ProfileImageInputProps {
 const ACCEPTED_MIMES = ["image/png", "image/jpeg", "image/webp", "image/gif"]
 const MAX_SIZE_BYTES = 3 * 1024 * 1024
 
-function validateFile(file: File): boolean {
+type ValidationKey = "characters.imageInvalidType" | "characters.imageTooLarge"
+
+function validateFile(file: File): ValidationKey | null {
   if (!ACCEPTED_MIMES.includes(file.type)) {
-    toast.error("Tipo de archivo no permitido. Usa PNG, JPEG, WEBP o GIF.")
-    return false
+    return "characters.imageInvalidType"
   }
   if (file.size > MAX_SIZE_BYTES) {
-    toast.error("El archivo es demasiado grande (máximo 3 MB).")
-    return false
+    return "characters.imageTooLarge"
   }
-  return true
+  return null
 }
 
 export function ProfileImageInput({
@@ -42,13 +43,15 @@ export function ProfileImageInput({
   pendingFile,
   aspect = 1,
   showClearButton = true,
-  clearLabel = "Quitar imagen",
+  clearLabel,
   onFileSelected,
   onClear,
 }: ProfileImageInputProps) {
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const [cropperFile, setCropperFile] = useState<File | null>(null)
+  const clearLabelText = clearLabel ?? t("characters.removeImage")
   const previewUrl = useMemo(
     () => (pendingFile ? URL.createObjectURL(pendingFile) : null),
     [pendingFile],
@@ -60,11 +63,17 @@ export function ProfileImageInput({
     }
   }, [previewUrl])
 
-  const handleFile = useCallback((file: File) => {
-    if (validateFile(file)) {
+  const handleFile = useCallback(
+    (file: File) => {
+      const errorKey = validateFile(file)
+      if (errorKey) {
+        toast.error(t(errorKey))
+        return
+      }
       setCropperFile(file)
-    }
-  }, [])
+    },
+    [t],
+  )
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -96,7 +105,7 @@ export function ProfileImageInput({
         }}
         role="button"
         tabIndex={0}
-        aria-label="Subir imagen de perfil"
+        aria-label={t("characters.uploadImage")}
         className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
           dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
         }`}
@@ -110,11 +119,9 @@ export function ProfileImageInput({
           <ImagePlusIcon className="size-10 text-muted-foreground" />
         )}
         <div className="text-sm">
-          <p className="font-medium">
-            Arrastra una imagen aquí o haz clic para seleccionar
-          </p>
+          <p className="font-medium">{t("characters.imageDropHint")}</p>
           <p className="text-xs text-muted-foreground">
-            PNG, JPEG, WEBP o GIF · máximo 3 MB
+            {t("characters.imageFormats")}
           </p>
         </div>
       </div>
@@ -131,13 +138,13 @@ export function ProfileImageInput({
       />
       {pendingFile ? (
         <p className="mt-2 text-xs text-muted-foreground">
-          Imagen pendiente de guardar al crear el personaje.
+          {t("characters.imagePending")}
         </p>
       ) : null}
       {imageSrc && showClearButton ? (
         <Button type="button" variant="ghost" size="sm" onClick={handleClear} className="mt-2">
           <XIcon className="size-3" />
-          {clearLabel}
+          {clearLabelText}
         </Button>
       ) : null}
 
