@@ -59,7 +59,7 @@ export function InferenceParamsCard({
               min={0}
               max={2}
               step={0.1}
-              aria-label="Temperature"
+              aria-label={t("settings.temperature", { value: temperature.toFixed(1) })}
             />
             <FieldDescription>{t("settings.temperatureHint")}</FieldDescription>
           </Field>
@@ -73,7 +73,7 @@ export function InferenceParamsCard({
               min={0}
               max={1}
               step={0.05}
-              aria-label="Top P"
+              aria-label={t("settings.topP", { value: topP.toFixed(2) })}
             />
             <FieldDescription>{t("settings.topPHint")}</FieldDescription>
           </Field>
@@ -89,7 +89,9 @@ export function InferenceParamsCard({
               min={-2}
               max={2}
               step={0.1}
-              aria-label="Frequency Penalty"
+              aria-label={t("settings.frequencyPenalty", {
+                value: frequencyPenalty.toFixed(1),
+              })}
             />
             <FieldDescription>{t("settings.frequencyPenaltyHint")}</FieldDescription>
           </Field>
@@ -105,7 +107,9 @@ export function InferenceParamsCard({
               min={-2}
               max={2}
               step={0.1}
-              aria-label="Presence Penalty"
+              aria-label={t("settings.presencePenalty", {
+                value: presencePenalty.toFixed(1),
+              })}
             />
             <FieldDescription>{t("settings.presencePenaltyHint")}</FieldDescription>
           </Field>

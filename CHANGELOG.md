@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.17.1] - 2026-08-12
+
+### Fixed
+
+- Hardcoded accessibility labels now follow the UI language: the persona selector in the chat settings and the inference parameter sliders no longer announce Spanish/English fixed labels regardless of the selected language.
+
 ## [1.17.0] - 2026-08-12
 
 ### Added

@@ -99,7 +99,7 @@ export function PlayerCharacterCard({
         }}
         disabled={loading}
       >
-        <SelectTrigger className="w-full" aria-label="Persona">
+        <SelectTrigger className="w-full" aria-label={t("settings.personaTitle")}>
           <SelectValue>{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
