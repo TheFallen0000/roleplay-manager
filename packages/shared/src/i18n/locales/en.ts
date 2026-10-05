@@ -40,6 +40,15 @@ export const en = {
     en: "English",
     es: "Spanish",
   },
+  welcome: {
+    title: "Welcome to Roleplay Manager",
+    description:
+      "Pick your language and look before you start. You can change both later from the top bar.",
+    language: "Language",
+    theme: "Theme",
+    mode: "Mode",
+    continue: "Continue",
+  },
   players: {
     title: "Player characters",
     subtitle:

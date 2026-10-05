@@ -12,6 +12,7 @@ import {
   LANGUAGE_COOKIE_NAME,
   LANGUAGE_STORAGE_KEY,
   TranslationContext,
+  type SetLocaleOptions,
   type TranslationContextValue,
 } from "./use-translation"
 import { setRequestLocale } from "../locale"
@@ -28,7 +29,7 @@ export function I18nProvider({ initialLocale, children }: I18nProviderProps) {
   // requests already send the right `Accept-Language` header.
   setRequestLocale(locale)
 
-  const setLocale = useCallback((next: Locale) => {
+  const setLocale = useCallback((next: Locale, options?: SetLocaleOptions) => {
     setLocaleState(next)
     try {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, next)
@@ -41,6 +42,7 @@ export function I18nProvider({ initialLocale, children }: I18nProviderProps) {
       // cookies unavailable
     }
     document.documentElement.lang = next
+    if (options?.reload === false) return
     // Islands are separate React trees: a reload re-renders every one of them
     // with the new locale (the server reads it from the cookie).
     try {

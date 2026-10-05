@@ -37,6 +37,15 @@ export const es: Dictionary = {
     en: "Inglés",
     es: "Español",
   },
+  welcome: {
+    title: "Bienvenido a Roleplay Manager",
+    description:
+      "Elige tu idioma y aspecto antes de empezar. Podrás cambiarlos luego desde la barra superior.",
+    language: "Idioma",
+    theme: "Tema",
+    mode: "Modo",
+    continue: "Continuar",
+  },
   players: {
     title: "Personajes jugados",
     subtitle:

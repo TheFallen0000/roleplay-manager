@@ -1,7 +1,9 @@
 ---
 import "@workspace/ui/globals.css"
 import { AppShell } from "@/components/layout/app-shell"
+import { Welcome } from "@/components/layout/welcome"
 import { resolveLocale } from "@/lib/locale"
+import { ONBOARDED_COOKIE_NAME, isOnboarded } from "@/lib/onboarding"
 
 export interface Props {
   title?: string
@@ -10,6 +12,9 @@ export interface Props {
 const { title = "Roleplay Manager" } = Astro.props
 
 const locale = resolveLocale(Astro.cookies.get("language")?.value)
+const onboarded = isOnboarded(
+  Astro.cookies.get(ONBOARDED_COOKIE_NAME)?.value,
+)
 ---
 
 <html lang={locale}>
@@ -37,8 +42,14 @@ const locale = resolveLocale(Astro.cookies.get("language")?.value)
     </script>
   </head>
   <body class="bg-background text-foreground min-h-svh">
-    <AppShell locale={locale} client:load>
-      <slot />
-    </AppShell>
+    {
+      onboarded ? (
+        <AppShell locale={locale} client:load>
+          <slot />
+        </AppShell>
+      ) : (
+        <Welcome locale={locale} client:load />
+      )
+    }
   </body>
 </html>
