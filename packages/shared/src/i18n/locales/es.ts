@@ -207,4 +207,45 @@ export const es: Dictionary = {
     personaSavedDescription: "Se aplicará en la próxima respuesta.",
     personaSaveFailed: "No se pudo guardar la persona",
   },
+  prompt: {
+    intro: "Eres {name}. {description}",
+    personality: "## Personalidad",
+    name: "Nombre: {name}",
+    subtitle: "Subtítulo: {subtitle}",
+    userCharacter: "## Personaje del usuario",
+    userCharacterLine: "El usuario interpreta a {name}. {description}",
+    instructions: "## Instrucciones",
+    knowledge: "## Conocimiento",
+    knowledgeHint:
+      "Las siguientes fichas están ordenadas por importancia (la primera es la más relevante). Úsalas para guiar tus respuestas según el contexto.",
+    memory: "## Memoria dinámica",
+    memoryHint:
+      "Los siguientes hechos sobre la historia o los personajes se han almacenado previamente. Úsalos para mantener coherencia.",
+    memoryLine:
+      "- [{id}] {actor} → {title}: {description} (prioridad {priority})",
+    summary: "## Resumen de la conversación",
+    proposals: "## Propuestas de modificación de memoria",
+    proposalsHint:
+      "Si en tu respuesta introduces hechos nuevos relevantes o modificas algunos existentes, puedes proponer cambios sobre la memoria dinámica al final de tu mensaje. Usa este formato exacto:",
+    proposalsValidOps:
+      'Operaciones válidas: CREATE, UPDATE, DELETE. Para UPDATE o DELETE debes incluir el id de la memoria existente como "targetMemoryId". Si no hay cambios que proponer, no incluyas el bloque.',
+    proposalsAlt: "## Propuestas de memoria (alternativa)",
+    proposalsAltHint:
+      "Si no puedes llamar a la herramienta `propose_memory_changes`, también puedes proponer cambios sobre la memoria dinámica al final de tu mensaje usando este formato:",
+    proposalsAltValidOps:
+      'Operaciones válidas: CREATE, UPDATE, DELETE. Para UPDATE o DELETE debes incluir el id de la memoria existente como "targetMemoryId".',
+    style: "## Estilo de respuesta",
+    styleLine:
+      "Debes responder siempre en el tono y estilo de {name}, manteniendo la personalidad descrita arriba. Escribe de forma narrativa y detallada, como si estuvieras interpretando al personaje en una historia.",
+    styleExample: "Ejemplo del estilo de {name}:",
+    ooc: "## Meta-instrucciones del usuario (OOC)",
+    oocHint:
+      "El usuario puede incluir meta-instrucciones entre `//...//` (out-of-character) en sus mensajes, normalmente al final. Estas son instrucciones para ti, no parte del roleplay.",
+    oocBullet1:
+      "- Cuando el último mensaje del usuario contenga una meta-instrucción, ejecútala (por ejemplo, `//crea memorias con lo que sabes//` significa que debes llamar a la herramienta `propose_memory_changes`).",
+    oocBullet2:
+      "- No respondas a las meta-instrucciones en personaje: no narres que el personaje 'asintió' o 'leyó la nota'. Ejecuta la instrucción silenciosamente y, si tiene sentido narrativo, continúa el roleplay después.",
+    oocBullet3:
+      "- Las meta-instrucciones de mensajes anteriores ya fueron filtradas; solo verás OOC en el último mensaje del usuario.",
+  },
 }

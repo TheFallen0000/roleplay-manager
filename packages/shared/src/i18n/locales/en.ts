@@ -209,4 +209,45 @@ export const en = {
     personaSavedDescription: "It will apply on the next reply.",
     personaSaveFailed: "The persona could not be saved",
   },
+  prompt: {
+    intro: "You are {name}. {description}",
+    personality: "## Personality",
+    name: "Name: {name}",
+    subtitle: "Subtitle: {subtitle}",
+    userCharacter: "## User character",
+    userCharacterLine: "The user plays {name}. {description}",
+    instructions: "## Instructions",
+    knowledge: "## Knowledge",
+    knowledgeHint:
+      "The following cards are ordered by importance (the first is the most relevant). Use them to guide your replies according to the context.",
+    memory: "## Dynamic memory",
+    memoryHint:
+      "The following facts about the story or the characters were stored earlier. Use them to stay consistent.",
+    memoryLine:
+      "- [{id}] {actor} → {title}: {description} (priority {priority})",
+    summary: "## Conversation summary",
+    proposals: "## Memory change proposals",
+    proposalsHint:
+      "If your reply introduces relevant new facts or changes existing ones, you can propose changes to the dynamic memory at the end of your message. Use this exact format:",
+    proposalsValidOps:
+      'Valid operations: CREATE, UPDATE, DELETE. For UPDATE or DELETE you must include the id of the existing memory as "targetMemoryId". If there are no changes to propose, do not include the block.',
+    proposalsAlt: "## Memory proposals (alternative)",
+    proposalsAltHint:
+      "If you cannot call the `propose_memory_changes` tool, you can also propose changes to the dynamic memory at the end of your message using this format:",
+    proposalsAltValidOps:
+      'Valid operations: CREATE, UPDATE, DELETE. For UPDATE or DELETE you must include the id of the existing memory as "targetMemoryId".',
+    style: "## Reply style",
+    styleLine:
+      "You must always reply in the tone and style of {name}, keeping the personality described above. Write in a narrative and detailed way, as if you were playing the character in a story.",
+    styleExample: "Example of {name}'s style:",
+    ooc: "## User meta-instructions (OOC)",
+    oocHint:
+      "The user may include meta-instructions between `//...//` (out-of-character) in their messages, usually at the end. These are instructions for you, not part of the roleplay.",
+    oocBullet1:
+      "- When the user's last message contains a meta-instruction, execute it (for example, `//create memories with what you know//` means you must call the `propose_memory_changes` tool).",
+    oocBullet2:
+      "- Do not reply to meta-instructions in character: do not narrate that the character 'nodded' or 'read the note'. Execute the instruction silently and, if it makes narrative sense, continue the roleplay afterwards.",
+    oocBullet3:
+      "- Meta-instructions from previous messages were already filtered out; you will only see OOC in the user's last message.",
+  },
 } as const
