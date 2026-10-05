@@ -21,8 +21,7 @@ import { useTheme } from "@/lib/hooks/use-theme"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import type { Locale } from "@workspace/shared/i18n"
-import { ThemeSwitcher } from "./theme-switcher"
-import { LanguageSwitcher } from "./language-switcher"
+import { AppMenubar } from "./app-menubar"
 
 function SidebarLogo() {
   const { state } = useSidebar()
@@ -109,10 +108,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <header className="flex h-12 items-center gap-2 border-b px-4">
           <SidebarTrigger />
-          <div className="ml-auto flex items-center gap-1">
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-          </div>
+          <AppMenubar />
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </SidebarInset>
