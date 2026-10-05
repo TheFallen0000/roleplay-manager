@@ -32,18 +32,30 @@ import { ApiClientError } from "@/lib/api/client"
 import { ProviderCard, type CardStatus } from "./provider-card"
 import { InstanceFormDialog } from "./instance-form-dialog"
 import { useInstanceDialog } from "./use-instance-dialog"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import { I18nProvider } from "@/lib/hooks/i18n-provider"
+import type { Locale } from "@workspace/shared/i18n"
 
 function isError(e: unknown): e is ApiClientError {
   return e instanceof ApiClientError
 }
 
-function formatError(e: unknown): string {
+function formatError(e: unknown, fallback: string): string {
   if (isError(e)) return `[${e.code}] ${e.message}`
   if (e instanceof Error) return e.message
-  return "Error desconocido"
+  return fallback
 }
 
-export function ProviderManager() {
+export function ProviderManager({ locale }: { locale: Locale }) {
+  return (
+    <I18nProvider initialLocale={locale}>
+      <ProviderManagerContent />
+    </I18nProvider>
+  )
+}
+
+function ProviderManagerContent() {
+  const { t } = useTranslation()
   const [registeredIds, setRegisteredIds] = useState<ProviderId[]>([])
   const [defaultConfig, setDefaultConfig] =
     useState<DefaultProviderConfig>({ provider: null, providerInstanceId: null, models: {} })
@@ -88,22 +100,22 @@ export function ProviderManager() {
           const r = await listProviderModels("ollama")
           setOllamaModels(r.models)
         } catch (e) {
-          toast.warning("No se pudieron listar los modelos", {
-            description: formatError(e),
+          toast.warning(t("providers.modelsListFailed"), {
+            description: formatError(e, t("common.unknownError")),
           })
           setOllamaModels([])
         } finally {
           setOllamaModelsLoading(false)
         }
-        toast.success("Conexión exitosa", { description: "Modelos cargados" })
+        toast.success(t("providers.connectionOk"), { description: t("providers.modelsLoaded") })
       }
     } catch (e) {
       setOllamaStatus("unavailable")
-      setOllamaMessage(formatError(e))
+      setOllamaMessage(formatError(e, t("common.unknownError")))
     } finally {
       setOllamaVerifying(false)
     }
-  }, [])
+  }, [t])
 
   const verifyOpenAIForInstance = useCallback(async (instanceId: string) => {
     setOpenaiVerifying(true)
@@ -120,22 +132,22 @@ export function ProviderManager() {
           const r = await listProviderModels("openai-compatible", instanceId)
           setOpenaiModels(r.models)
         } catch (e) {
-          toast.warning("No se pudieron listar los modelos", {
-            description: formatError(e),
+          toast.warning(t("providers.modelsListFailed"), {
+            description: formatError(e, t("common.unknownError")),
           })
           setOpenaiModels([])
         } finally {
           setOpenaiModelsLoading(false)
         }
-        toast.success("Conexión exitosa", { description: "Modelos cargados" })
+        toast.success(t("providers.connectionOk"), { description: t("providers.modelsLoaded") })
       }
     } catch (e) {
       setOpenaiStatus("unavailable")
-      setOpenaiMessage(formatError(e))
+      setOpenaiMessage(formatError(e, t("common.unknownError")))
     } finally {
       setOpenaiVerifying(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     ;(async () => {
@@ -161,12 +173,12 @@ export function ProviderManager() {
           if (def.providerInstanceId) void verifyOpenAIForInstance(def.providerInstanceId)
         }
       } catch (e) {
-        toast.error("No se pudo cargar la configuración inicial", {
-          description: formatError(e),
+        toast.error(t("providers.configLoadFailed"), {
+          description: formatError(e, t("common.unknownError")),
         })
       }
     })()
-  }, [verifyOllama, verifyOpenAIForInstance])
+  }, [verifyOllama, verifyOpenAIForInstance, t])
 
   const handleSelectInstance = useCallback((id: string) => {
     if (id === selectedInstanceId) return
@@ -190,12 +202,12 @@ export function ProviderManager() {
         setSelectedInstanceId(instance.id)
         void verifyOpenAIForInstance(instance.id)
         dialog.close()
-        toast.success("Instancia creada", { description: instance.name })
+        toast.success(t("providers.instanceCreated"), { description: instance.name })
       } catch (e) {
-        toast.error("No se pudo crear la instancia", { description: formatError(e) })
+        toast.error(t("providers.instanceCreateFailed"), { description: formatError(e, t("common.unknownError")) })
       }
     },
-    [dialog, verifyOpenAIForInstance]
+    [dialog, verifyOpenAIForInstance, t]
   )
 
   const handleUpdateInstance = useCallback(
@@ -208,12 +220,12 @@ export function ProviderManager() {
         })
         setInstances((prev) => prev.map((i) => (i.id === id ? updated : i)))
         dialog.close()
-        toast.success("Instancia actualizada")
+        toast.success(t("providers.instanceUpdated"))
       } catch (e) {
-        toast.error("No se pudo actualizar la instancia", { description: formatError(e) })
+        toast.error(t("providers.instanceUpdateFailed"), { description: formatError(e, t("common.unknownError")) })
       }
     },
-    [dialog]
+    [dialog, t]
   )
 
   const handleDeleteInstance = useCallback(
@@ -222,12 +234,12 @@ export function ProviderManager() {
         await deleteProviderInstance(id)
         setInstances((prev) => prev.filter((i) => i.id !== id))
         if (selectedInstanceId === id) setSelectedInstanceId(null)
-        toast.success("Instancia eliminada")
+        toast.success(t("providers.instanceDeleted"))
       } catch (e) {
-        toast.error("No se pudo eliminar la instancia", { description: formatError(e) })
+        toast.error(t("providers.instanceDeleteFailed"), { description: formatError(e, t("common.unknownError")) })
       }
     },
-    [selectedInstanceId]
+    [selectedInstanceId, t]
   )
 
   const handleDialogSave = useCallback(
@@ -253,7 +265,7 @@ export function ProviderManager() {
         const providerInstanceId =
           provider === "openai-compatible" ? selectedInstanceId : null
         if (provider === "openai-compatible" && !providerInstanceId) {
-          toast.error("Selecciona una instancia antes de establecer como predeterminado")
+          toast.error(t("providers.selectInstanceForDefault"))
           return
         }
         const result = await configureDefaultProvider({
@@ -261,16 +273,16 @@ export function ProviderManager() {
           providerInstanceId,
         })
         setDefaultConfig(result)
-        toast.success("Proveedor por defecto actualizado")
+        toast.success(t("providers.defaultUpdated"))
       } catch (e) {
-        toast.error("No se pudo establecer como predeterminado", {
-          description: formatError(e),
+        toast.error(t("providers.defaultFailed"), {
+          description: formatError(e, t("common.unknownError")),
         })
       } finally {
         setSavingDefault(false)
       }
     },
-    [selectedInstanceId],
+    [selectedInstanceId, t],
   )
 
   const handleSetModel = useCallback(
@@ -281,31 +293,32 @@ export function ProviderManager() {
         const providerInstanceId =
           provider === "openai-compatible" ? (selectedInstanceId ?? undefined) : undefined
         if (provider === "openai-compatible" && !providerInstanceId) {
-          toast.error("Selecciona una instancia antes de guardar el modelo")
+          toast.error(t("providers.selectInstanceForModel"))
           return
         }
         await setProviderModel(provider, model, { providerInstanceId })
         const def = await getDefaultProvider()
         setDefaultConfig(def)
-        toast.success("Modelo guardado para " + (provider === "ollama" ? "Ollama" : "OpenAI-compatible"))
+        toast.success(t("providers.modelSaved", {
+          provider: provider === "ollama" ? "Ollama" : "OpenAI-compatible",
+        }))
       } catch (e) {
-        toast.error("No se pudo guardar el modelo", {
-          description: formatError(e),
+        toast.error(t("providers.modelSaveFailed"), {
+          description: formatError(e, t("common.unknownError")),
         })
       } finally {
         setSaving(false)
       }
     },
-    [selectedInstanceId],
+    [selectedInstanceId, t],
   )
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 sm:gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold">Proveedor por defecto</h1>
+        <h1 className="text-2xl font-semibold">{t("providers.defaultTitle")}</h1>
         <p className="text-muted-foreground text-sm">
-          Configura qué modelo de IA usará la aplicación por defecto. Los
-          proveedores se validan al pulsar Probar.
+          {t("providers.defaultDescription")}
         </p>
         <CurrentConfigPill
           provider={defaultConfig.provider}
@@ -383,25 +396,27 @@ function CurrentConfigPill({
   instanceName: string | null
   models: Partial<Record<ProviderId, string>>
 }) {
+  const { t } = useTranslation()
+
   if (provider === null) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant="outline">Sin configurar</Badge>
-        <span>Selecciona un proveedor y guarda el modelo para empezar.</span>
+        <Badge variant="outline">{t("providers.unconfigured")}</Badge>
+        <span>{t("providers.unconfiguredHint")}</span>
       </div>
     )
   }
   const currentModel = provider ? models[provider] : null
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="text-muted-foreground">Proveedor actual:</span>
+      <span className="text-muted-foreground">{t("providers.currentProvider")}</span>
       <Badge variant="secondary">
         {provider === "ollama" ? "Ollama" : instanceName ?? "OpenAI-compatible"}
       </Badge>
       {currentModel ? (
         <code className="bg-muted rounded px-1.5 py-0.5 text-xs">{currentModel}</code>
       ) : (
-        <Badge variant="outline">Sin modelo</Badge>
+        <Badge variant="outline">{t("providers.noModel")}</Badge>
       )}
     </div>
   )

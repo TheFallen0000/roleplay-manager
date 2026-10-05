@@ -12,6 +12,8 @@ import type { ConversationDetail, MemoryDecayMode } from "@workspace/shared/type
 import { updateConversationSettings } from "@/lib/api/conversations"
 import { ApiClientError } from "@/lib/api/client"
 import { useMemoryStore } from "@/lib/stores/memory.store"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import type { TranslationKey } from "@workspace/shared/i18n"
 
 interface MemoryDecayCardProps {
   conversationId: string
@@ -19,18 +21,21 @@ interface MemoryDecayCardProps {
   onSettingsChanged: (updated: ConversationDetail) => void
 }
 
-const MODE_LABELS: Record<MemoryDecayMode, { title: string; description: string }> = {
+const MODE_LABEL_KEYS: Record<
+  MemoryDecayMode,
+  { title: TranslationKey; description: TranslationKey }
+> = {
   silent: {
-    title: "Silencioso",
-    description: "Las memorias que pierden relevancia se eliminan automáticamente después de cada mensaje",
+    title: "memory.decaySilent",
+    description: "memory.decaySilentDescription",
   },
   manual: {
-    title: "Manual",
-    description: "Tú decides cuándo limpiar: elimina todas las candidatas con el botón o borra las que consideres necesarias",
+    title: "memory.decayManual",
+    description: "memory.decayManualDescription",
   },
   off: {
-    title: "Desactivado",
-    description: "No se elimina ninguna memoria, pero las de baja importancia siguen excluidas del prompt",
+    title: "memory.decayOff",
+    description: "memory.decayOffDescription",
   },
 }
 
@@ -39,6 +44,7 @@ export function MemoryDecayCard({
   current,
   onSettingsChanged,
 }: MemoryDecayCardProps) {
+  const { t } = useTranslation()
   const runDecay = useMemoryStore((s) => s.runDecay)
 
   const [mode, setMode] = useState<MemoryDecayMode>(current.memoryDecayMode)
@@ -56,15 +62,15 @@ export function MemoryDecayCard({
 
   const handleSave = async () => {
     if (threshold < 1 || threshold > 10) {
-      toast.error("El umbral de importancia debe estar entre 1 y 10")
+      toast.error(t("memory.decayThresholdError"))
       return
     }
     if (ageThreshold < 1) {
-      toast.error("Los turnos para borrar deben ser al menos 1")
+      toast.error(t("memory.decayAgeError"))
       return
     }
     if (decaySpeed < 1) {
-      toast.error("Los turnos por -1 de prioridad deben ser al menos 1")
+      toast.error(t("memory.decaySpeedError"))
       return
     }
     setSaving(true)
@@ -76,10 +82,10 @@ export function MemoryDecayCard({
         memoryDecaySpeed: decaySpeed,
       })
       onSettingsChanged(updated)
-      toast.success("Configuración de auto-degradación guardada")
+      toast.success(t("memory.decaySaved"))
     } catch (e) {
-      const message = e instanceof ApiClientError ? `[${e.code}] ${e.message}` : "Error desconocido"
-      toast.error("No se pudo guardar la configuración", { description: message })
+      const message = e instanceof ApiClientError ? `[${e.code}] ${e.message}` : t("common.unknownError")
+      toast.error(t("memory.decaySaveFailed"), { description: message })
     } finally {
       setSaving(false)
     }
@@ -90,12 +96,12 @@ export function MemoryDecayCard({
     try {
       const result = await runDecay(conversationId)
       if (result.deleted > 0) {
-        toast.success(`Limpieza completada: ${result.deleted} memoria(s) eliminada(s).`)
+        toast.success(t("memory.decayDone", { count: result.deleted }))
       } else {
-        toast.info("No hay memorias candidatas para eliminar.")
+        toast.info(t("memory.decayNone"))
       }
     } catch {
-      toast.error("No se pudo ejecutar la limpieza.")
+      toast.error(t("memory.decayFailed"))
     } finally {
       setDecaying(false)
     }
@@ -105,15 +111,15 @@ export function MemoryDecayCard({
     <FieldGroup>
       <FieldSet>
         <FieldDescription>
-          Las memorias pierden -1 de importancia cada {decaySpeed} mensaje(s) tuyo(s) sin actualizarse. Las que caen bajo el umbral de ({threshold}) se excluyen del prompt y son candidatas a eliminación.
+          {t("memory.decayIntro", { speed: decaySpeed, threshold })}
         </FieldDescription>
         <RadioGroup value={mode} onValueChange={(value) => setMode(value as MemoryDecayMode)}>
-          {(Object.keys(MODE_LABELS) as MemoryDecayMode[]).map((m) => (
+          {(Object.keys(MODE_LABEL_KEYS) as MemoryDecayMode[]).map((m) => (
             <FieldLabel key={m} htmlFor={`decay-${m}`}>
               <Field orientation="horizontal">
                 <FieldContent>
-                  <FieldTitle>{MODE_LABELS[m].title}</FieldTitle>
-                  <FieldDescription>{MODE_LABELS[m].description}</FieldDescription>
+                  <FieldTitle>{t(MODE_LABEL_KEYS[m].title)}</FieldTitle>
+                  <FieldDescription>{t(MODE_LABEL_KEYS[m].description)}</FieldDescription>
                 </FieldContent>
                 <RadioGroupItem value={m} id={`decay-${m}`} />
               </Field>
@@ -124,7 +130,7 @@ export function MemoryDecayCard({
 
       <div className="flex flex-col gap-3 p-1">
         <Field>
-          <FieldLabel htmlFor="decay-threshold">Umbral (1-10)</FieldLabel>
+          <FieldLabel htmlFor="decay-threshold">{t("memory.decayThresholdLabel")}</FieldLabel>
           <Input
             id="decay-threshold"
             type="number"
@@ -135,7 +141,7 @@ export function MemoryDecayCard({
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="decay-age">Turnos para borrar</FieldLabel>
+          <FieldLabel htmlFor="decay-age">{t("memory.decayAgeLabel")}</FieldLabel>
           <Input
             id="decay-age"
             type="number"
@@ -145,7 +151,7 @@ export function MemoryDecayCard({
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="decay-speed">Turnos para -1</FieldLabel>
+          <FieldLabel htmlFor="decay-speed">{t("memory.decaySpeedLabel")}</FieldLabel>
           <Input
             id="decay-speed"
             type="number"
@@ -159,7 +165,7 @@ export function MemoryDecayCard({
       <div className="flex flex-col gap-2">
         <Button onClick={handleSave} disabled={!hasChanges || saving}>
           {saving ? <Spinner /> : null}
-          Guardar configuración
+          {t("memory.decaySave")}
         </Button>
         <Button
           variant="outline"
@@ -167,7 +173,7 @@ export function MemoryDecayCard({
           disabled={mode === "off" || decaying}
         >
           {decaying ? <Spinner /> : null}
-          Ejecutar limpieza ahora
+          {t("memory.decayRun")}
         </Button>
       </div>
     </FieldGroup>

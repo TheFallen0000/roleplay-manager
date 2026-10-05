@@ -20,6 +20,7 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { Label } from "@workspace/ui/components/label"
 import { toast } from "@workspace/ui/components/sonner"
 import { useMemoryStore } from "@/lib/stores/memory.store"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import type { MemoryChangeProposalDTO } from "@workspace/shared/types/memory-change-proposal"
 
 interface ProposalListProps {
@@ -33,6 +34,7 @@ const operationBadgeClass: Record<string, string> = {
 }
 
 export function ProposalList({ conversationId }: ProposalListProps) {
+  const { t } = useTranslation()
   const proposals = useMemoryStore((s) => s.proposals)
   const loading = useMemoryStore((s) => s.loading)
   const applyProposals = useMemoryStore((s) => s.applyProposals)
@@ -59,9 +61,9 @@ export function ProposalList({ conversationId }: ProposalListProps) {
       }))
       await applyProposals(conversationId, decisions)
       await loadMemories(conversationId)
-      toast.success("Todas las propuestas aplicadas")
+      toast.success(t("memory.appliedAll"))
     } catch {
-      toast.error("Error al aplicar todas las propuestas")
+      toast.error(t("memory.applyAllFailed"))
     }
   }
 
@@ -69,18 +71,18 @@ export function ProposalList({ conversationId }: ProposalListProps) {
     try {
       await applyProposals(conversationId, [{ proposalId: proposal.id, action: "apply" }])
       await loadMemories(conversationId)
-      toast.success("Propuesta aplicada")
+      toast.success(t("memory.applied"))
     } catch {
-      toast.error("Error al aplicar la propuesta")
+      toast.error(t("memory.applyFailed"))
     }
   }
 
   const handleDiscard = async (proposal: MemoryChangeProposalDTO) => {
     try {
       await applyProposals(conversationId, [{ proposalId: proposal.id, action: "discard" }])
-      toast.success("Propuesta descartada")
+      toast.success(t("memory.discarded"))
     } catch {
-      toast.error("Error al descartar la propuesta")
+      toast.error(t("memory.discardFailed"))
     }
   }
 
@@ -103,10 +105,10 @@ export function ProposalList({ conversationId }: ProposalListProps) {
         },
       ])
       await loadMemories(conversationId)
-      toast.success("Propuesta aplicada con cambios")
+      toast.success(t("memory.appliedWithChanges"))
       setEditingProposal(null)
     } catch {
-      toast.error("Error al aplicar la propuesta")
+      toast.error(t("memory.applyFailed"))
     }
   }
 
@@ -122,7 +124,7 @@ export function ProposalList({ conversationId }: ProposalListProps) {
     return (
       <Empty>
         <EmptyHeader>
-          <EmptyTitle>No hay propuestas pendientes.</EmptyTitle>
+          <EmptyTitle>{t("memory.proposalsEmpty")}</EmptyTitle>
         </EmptyHeader>
       </Empty>
     )
@@ -131,9 +133,9 @@ export function ProposalList({ conversationId }: ProposalListProps) {
   return (
     <>
       <FieldSet>
-        <FieldLegend>Propuestas pendientes</FieldLegend>
+        <FieldLegend>{t("memory.proposalsTitle")}</FieldLegend>
         {pendingProposals.length > 1 && (
-          <Button onClick={handleApplyAll} className="self-start">Aceptar todo</Button>
+          <Button onClick={handleApplyAll} className="self-start">{t("memory.acceptAll")}</Button>
         )}
         <div className="flex flex-col gap-3">
           {pendingProposals.map((proposal) => (
@@ -148,11 +150,11 @@ export function ProposalList({ conversationId }: ProposalListProps) {
               <span className="text-sm font-semibold">{proposal.title}</span>
               <p className="text-sm text-muted-foreground">{proposal.description}</p>
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => handleApply(proposal)}>Aceptar</Button>
+                <Button size="sm" onClick={() => handleApply(proposal)}>{t("memory.accept")}</Button>
                 <Button size="sm" variant="outline" onClick={() => openEditDialog(proposal)}>
-                  Editar y aceptar
+                  {t("memory.editAndAccept")}
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => handleDiscard(proposal)}>Descartar</Button>
+                <Button size="sm" variant="ghost" onClick={() => handleDiscard(proposal)}>{t("memory.discard")}</Button>
               </div>
             </div>
           ))}
@@ -162,32 +164,32 @@ export function ProposalList({ conversationId }: ProposalListProps) {
       <Dialog open={!!editingProposal} onOpenChange={(open) => { if (!open) setEditingProposal(null) }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar y aceptar propuesta</DialogTitle>
+            <DialogTitle>{t("memory.editProposalTitle")}</DialogTitle>
             <DialogDescription>
-              Revisa y modifica los campos antes de aceptar la propuesta.
+              {t("memory.editProposalDescription")}
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
             <Field>
-              <Label htmlFor="edit-actor">Actor</Label>
+              <Label htmlFor="edit-actor">{t("memory.actor")}</Label>
               <Input id="edit-actor" value={actor} onChange={(e) => setActor(e.target.value)} />
             </Field>
             <Field>
-              <Label htmlFor="edit-title">Título</Label>
+              <Label htmlFor="edit-title">{t("memory.title")}</Label>
               <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} />
             </Field>
             <Field>
-              <Label htmlFor="edit-description">Descripción</Label>
+              <Label htmlFor="edit-description">{t("memory.description")}</Label>
               <Textarea id="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} />
             </Field>
             <Field>
-              <Label htmlFor="edit-priority">Prioridad (1-10)</Label>
+              <Label htmlFor="edit-priority">{t("memory.priorityLabel")}</Label>
               <Input id="edit-priority" type="number" min={1} max={10} value={priority} onChange={(e) => setPriority(Number(e.target.value))} />
             </Field>
           </FieldGroup>
           <div className="flex justify-end gap-2">
-            <DialogClose render={<Button variant="outline">Cancelar</Button>} />
-            <Button onClick={handleEditSubmit}>Aceptar cambios</Button>
+            <DialogClose render={<Button variant="outline">{t("common.cancel")}</Button>} />
+            <Button onClick={handleEditSubmit}>{t("memory.acceptChanges")}</Button>
           </div>
         </DialogContent>
       </Dialog>

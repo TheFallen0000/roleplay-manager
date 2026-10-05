@@ -18,15 +18,17 @@ import type { ProviderId, ProviderModel, ProviderStatus } from "@workspace/share
 import { ModelCombobox } from "./model-combobox"
 import { InstanceList } from "./instance-list"
 import type { ProviderInstance } from "@workspace/shared/types/provider-instance"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import type { TranslationKey } from "@workspace/shared/i18n"
 
 export type CardStatus = ProviderStatus | "loading" | "unknown"
 
-const STATUS_LABELS: Record<CardStatus, string> = {
-  available: "Disponible",
-  unavailable: "No disponible",
-  unconfigured: "Sin configurar",
-  unknown: "Sin verificar",
-  loading: "Verificando…",
+const STATUS_LABEL_KEYS: Record<CardStatus, TranslationKey> = {
+  available: "providers.statusAvailable",
+  unavailable: "providers.statusUnavailable",
+  unconfigured: "providers.statusUnconfigured",
+  unknown: "providers.statusUnknown",
+  loading: "providers.statusLoading",
 }
 
 const STATUS_VARIANT: Record<
@@ -80,11 +82,12 @@ interface OpenAIProps extends BaseProps {
 type ProviderCardProps = OllamaProps | OpenAIProps
 
 export function ProviderCard(props: ProviderCardProps) {
+  const { t } = useTranslation()
   const title = props.providerId === "ollama" ? "Ollama (local)" : "OpenAI-compatible"
   const description =
     props.providerId === "ollama"
-      ? "Ejecuta modelos localmente con Ollama."
-      : "Conecta con cualquier proveedor compatible con la API de OpenAI."
+      ? t("providers.ollamaDescription")
+      : t("providers.openaiDescription")
 
   return (
     <Card>
@@ -104,7 +107,7 @@ export function ProviderCard(props: ProviderCardProps) {
         {props.statusMessage && props.status !== "available" ? (
           <Alert variant={props.status === "unavailable" ? "destructive" : "default"}>
             {props.status === "unavailable" ? <AlertCircleIcon /> : <CircleDotIcon />}
-            <AlertTitle>{STATUS_LABELS[props.status]}</AlertTitle>
+            <AlertTitle>{t(STATUS_LABEL_KEYS[props.status])}</AlertTitle>
             <AlertDescription>{props.statusMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -122,10 +125,10 @@ export function ProviderCard(props: ProviderCardProps) {
 
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor={`${props.providerId}-model`}>Modelo</FieldLabel>
+            <FieldLabel htmlFor={`${props.providerId}-model`}>{t("providers.modelLabel")}</FieldLabel>
             {props.modelsLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Spinner /> Cargando modelos…
+                <Spinner /> {t("providers.modelsLoading")}
               </div>
             ) : (
               <ModelCombobox
@@ -134,15 +137,15 @@ export function ProviderCard(props: ProviderCardProps) {
                 onChange={props.onModelChange}
                 placeholder={
                   props.models.length === 0
-                    ? "Pulsa Probar para listar modelos"
-                    : "Selecciona o escribe un modelo"
+                    ? t("providers.modelPlaceholderEmpty")
+                    : t("providers.modelPlaceholder")
                 }
               />
             )}
             <FieldDescription>
               {props.models.length > 0
-                ? `${props.models.length} modelos disponibles. Puedes escribir un identificador manualmente.`
-                : "Pulsa Probar para descubrir los modelos disponibles."}
+                ? t("providers.modelsAvailable", { count: props.models.length })
+                : t("providers.modelsHint")}
             </FieldDescription>
           </Field>
         </FieldGroup>
@@ -159,7 +162,7 @@ export function ProviderCard(props: ProviderCardProps) {
             }
           >
             {props.verifying ? <Spinner /> : <RefreshCwIcon />}
-            Probar conexión
+            {t("providers.testConnection")}
           </Button>
         </div>
 
@@ -176,7 +179,7 @@ export function ProviderCard(props: ProviderCardProps) {
                 disabled={props.savingDefault || props.status !== "available"}
               >
                 {props.savingDefault ? <Spinner /> : <StarIcon className="size-3.5" />}
-                {props.isCurrentDefault ? "Predeterminado" : "Establecer como predeterminado"}
+                {props.isCurrentDefault ? t("providers.isDefault") : t("providers.setDefault")}
               </Button>
               <Button
                 type="button"
@@ -186,7 +189,7 @@ export function ProviderCard(props: ProviderCardProps) {
                 disabled={props.savingModel || !props.model.trim() || props.status !== "available"}
               >
                 {props.savingModel ? <Spinner /> : null}
-                {props.hasModel ? "Actualizar modelo" : "Establecer modelo"}
+                {props.hasModel ? t("providers.updateModel") : t("providers.setModel")}
               </Button>
             </div>
           </>
@@ -197,22 +200,23 @@ export function ProviderCard(props: ProviderCardProps) {
 }
 
 function StatusBadge({ status }: { status: CardStatus }) {
+  const { t } = useTranslation()
   if (status === "loading") {
     return (
       <Badge variant="secondary" className="gap-1">
-        <Spinner /> {STATUS_LABELS.loading}
+        <Spinner /> {t(STATUS_LABEL_KEYS.loading)}
       </Badge>
     )
   }
   if (status === "available") {
     return (
       <Badge variant="default" className="gap-1">
-        <CheckCircle2Icon className="size-3" /> {STATUS_LABELS.available}
+        <CheckCircle2Icon className="size-3" /> {t(STATUS_LABEL_KEYS.available)}
       </Badge>
     )
   }
   return (
-    <Badge variant={STATUS_VARIANT[status]}>{STATUS_LABELS[status]}</Badge>
+    <Badge variant={STATUS_VARIANT[status]}>{t(STATUS_LABEL_KEYS[status])}</Badge>
   )
 }
 

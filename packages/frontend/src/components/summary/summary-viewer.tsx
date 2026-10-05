@@ -11,6 +11,8 @@ import { toast } from "@workspace/ui/components/sonner"
 import { EyeIcon } from "lucide-react"
 import { FieldSet } from "@workspace/ui/components/field"
 import { useSummaryStore } from "@/lib/stores/summary.store"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import { dateLocale } from "@/lib/locale"
 import type { SummaryDTO } from "@workspace/shared/types/summary"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
@@ -22,6 +24,7 @@ interface SummaryViewerProps {
 type DialogMode = null | "view" | "edit" | "delete"
 
 export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewerProps) {
+  const { t, locale } = useTranslation()
   const summaries = useSummaryStore((s) => s.summaries)
   const loading = useSummaryStore((s) => s.loading)
   const loadSummaries = useSummaryStore((s) => s.loadSummaries)
@@ -63,12 +66,12 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
     try {
       const result = await generateSummary(conversationId)
       if (result) {
-        toast.success("Resumen generado")
+        toast.success(t("summaries.generated"))
       } else {
-        toast.error("No se pudo generar el resumen")
+        toast.error(t("summaries.generateFailed"))
       }
     } catch {
-      toast.error("Error al generar el resumen")
+      toast.error(t("summaries.generateError"))
     } finally {
       setGenerating(false)
     }
@@ -77,17 +80,17 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
   const handleSaveEdit = async () => {
     if (!target) return
     if (!editContent.trim()) {
-      toast.error("El contenido no puede estar vacío")
+      toast.error(t("summaries.emptyContent"))
       return
     }
     try {
       await updateSummary(conversationId, target.id, editContent)
-      toast.success("Resumen actualizado")
+      toast.success(t("summaries.updated"))
       setDialogMode(null)
       setTarget(null)
       setEditContent("")
     } catch {
-      toast.error("Error al actualizar el resumen")
+      toast.error(t("summaries.updateFailed"))
     }
   }
 
@@ -95,11 +98,11 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
     if (!target) return
     try {
       await deleteSummary(conversationId, target.id)
-      toast.success("Resumen eliminado")
+      toast.success(t("summaries.deleted"))
       setDialogMode(null)
       setTarget(null)
     } catch {
-      toast.error("Error al eliminar el resumen")
+      toast.error(t("summaries.deleteFailed"))
     }
   }
 
@@ -116,15 +119,15 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
       <FieldSet>
         <Button onClick={handleGenerate} disabled={generating} className="self-end">
           {generating ? <Spinner /> : null}
-          Generar resumen ahora
+          {t("summaries.generateNow")}
         </Button>
         <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
           {summaries.length === 0 ? (
             <Empty className="p-2">
               <EmptyHeader>
-                <EmptyTitle>No hay resúmenes todavía</EmptyTitle>
+                <EmptyTitle>{t("summaries.emptyTitle")}</EmptyTitle>
                 <EmptyDescription>
-                  Los resúmenes se generan automáticamente cada {summaryFrequency} mensajes o puedes generarlos manualmente.
+                  {t("summaries.emptyDescription", { count: summaryFrequency })}
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
@@ -133,7 +136,7 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
               <div key={summary.id} className="flex flex-col gap-2 rounded-lg border p-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
-                    {new Date(summary.createdAt).toLocaleDateString("es-ES", {
+                    {new Date(summary.createdAt).toLocaleDateString(dateLocale(locale), {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
@@ -148,16 +151,16 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
                 <p className="text-sm whitespace-pre-wrap line-clamp-2">{summary.content}</p>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => openEdit(summary)}>
-                    Editar
+                    {t("common.edit")}
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => openDelete(summary)}>
-                    Eliminar
+                    {t("common.delete")}
                   </Button>
                   <Button
                     size="icon"
                     variant="ghost"
                     onClick={() => openView(summary)}
-                    aria-label="Ver resumen completo"
+                    aria-label={t("summaries.viewFull")}
                     className="ml-auto"
                   >
                     <EyeIcon />
@@ -172,10 +175,10 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
       <Dialog open={dialogMode === "view"} onOpenChange={(open) => { if (!open) { setDialogMode(null); setTarget(null) } }}>
         <DialogContent className="max-h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Resumen</DialogTitle>
+            <DialogTitle>{t("summaries.title")}</DialogTitle>
             {target ? (
               <DialogDescription>
-                {new Date(target.createdAt).toLocaleDateString("es-ES", {
+                {new Date(target.createdAt).toLocaleDateString(dateLocale(locale), {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -198,9 +201,9 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
                 }
               }}
             >
-              Editar
+              {t("common.edit")}
             </Button>
-            <DialogClose render={<Button variant="outline">Cerrar</Button>} />
+            <DialogClose render={<Button variant="outline">{t("summaries.close")}</Button>} />
           </div>
         </DialogContent>
       </Dialog>
@@ -208,9 +211,9 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
       <Dialog open={dialogMode === "edit"} onOpenChange={(open) => { if (!open) { setDialogMode(null); setTarget(null) } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar resumen</DialogTitle>
+            <DialogTitle>{t("summaries.editTitle")}</DialogTitle>
             <DialogDescription>
-              Modifica el contenido del resumen.
+              {t("summaries.editDescription")}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className={"max-h-[55vh] "}>
@@ -221,8 +224,8 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
           />
           </ScrollArea>
           <div className="flex justify-end gap-2">
-            <DialogClose render={<Button variant="outline">Cancelar</Button>} />
-            <Button onClick={handleSaveEdit}>Guardar cambios</Button>
+            <DialogClose render={<Button variant="outline">{t("common.cancel")}</Button>} />
+            <Button onClick={handleSaveEdit}>{t("common.saveChanges")}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -230,14 +233,14 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
       <Dialog open={dialogMode === "delete"} onOpenChange={(open) => { if (!open) { setDialogMode(null); setTarget(null) } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Eliminar resumen</DialogTitle>
+            <DialogTitle>{t("summaries.deleteTitle")}</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que deseas eliminar este resumen? Esta acción no se puede deshacer.
+              {t("summaries.deleteDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <DialogClose render={<Button variant="outline">Cancelar</Button>} />
-            <Button variant="destructive" onClick={handleDelete}>Eliminar</Button>
+            <DialogClose render={<Button variant="outline">{t("common.cancel")}</Button>} />
+            <Button variant="destructive" onClick={handleDelete}>{t("common.delete")}</Button>
           </div>
         </DialogContent>
       </Dialog>

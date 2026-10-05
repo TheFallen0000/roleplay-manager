@@ -21,6 +21,7 @@ import { Label } from "@workspace/ui/components/label"
 import { toast } from "@workspace/ui/components/sonner"
 import { useMemoryStore } from "@/lib/stores/memory.store"
 import { useChatStore } from "@/lib/stores/chat.store"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { memoryDecayInfo } from "@/lib/format-memory"
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 import type { MemoryDTO } from "@workspace/shared/types/memory"
@@ -33,6 +34,7 @@ interface MemoryListProps {
 type DialogMode = null | "create" | "edit" | "delete"
 
 export function MemoryList({ conversationId, conversation }: MemoryListProps) {
+  const { t } = useTranslation()
   const memories = useMemoryStore((s) => s.memories)
   const loading = useMemoryStore((s) => s.loading)
   const lastDecay = useMemoryStore((s) => s.lastDecay)
@@ -83,16 +85,16 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
 
   const handleCreate = async () => {
     if (!actor.trim() || !title.trim() || !description.trim()) {
-      toast.error("Actor, título y descripción son requeridos")
+      toast.error(t("memory.requiredFields"))
       return
     }
     try {
       await createMemory(conversationId, { actor, title, description, priority })
-      toast.success("Memoria creada")
+      toast.success(t("memory.created"))
       setDialogMode(null)
       resetForm()
     } catch {
-      toast.error("Error al crear la memoria")
+      toast.error(t("memory.createFailed"))
     }
   }
 
@@ -100,11 +102,11 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
     if (!target) return
     try {
       await updateMemory(conversationId, target.id, { actor, title, description, priority })
-      toast.success("Memoria actualizada")
+      toast.success(t("memory.updated"))
       setDialogMode(null)
       resetForm()
     } catch {
-      toast.error("Error al actualizar la memoria")
+      toast.error(t("memory.updateFailed"))
     }
   }
 
@@ -112,11 +114,11 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
     if (!target) return
     try {
       await deleteMemory(conversationId, target.id)
-      toast.success("Memoria eliminada")
+      toast.success(t("memory.deleted"))
       setDialogMode(null)
       resetForm()
     } catch {
-      toast.error("Error al eliminar la memoria")
+      toast.error(t("memory.deleteFailed"))
     }
   }
 
@@ -131,20 +133,22 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
   return (
     <>
       <FieldSet>
-        <Button onClick={openCreate} className="self-end mt-2">Crear memoria</Button>
+        <Button onClick={openCreate} className="self-end mt-2">{t("memory.create")}</Button>
         {lastDecay ? (
           <p className="text-xs text-muted-foreground">
-            Última limpieza: {new Date(lastDecay.at).toLocaleString()} — {lastDecay.deleted}{" "}
-            memoria(s) eliminada(s).
+            {t("memory.lastDecay", {
+              date: new Date(lastDecay.at).toLocaleString(),
+              count: lastDecay.deleted,
+            })}
           </p>
         ) : null}
         <div className="flex flex-col gap-3">
           {memories.length === 0 ? (
             <Empty className="p-2">
               <EmptyHeader>
-                <EmptyTitle>No hay memorias todavía</EmptyTitle>
+                <EmptyTitle>{t("memory.emptyTitle")}</EmptyTitle>
                 <EmptyDescription>
-                  Las memorias se generan automáticamente durante la conversación o puedes crearlas manualmente.
+                  {t("memory.emptyDescription")}
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
@@ -158,8 +162,12 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
                     ? "outline"
                     : "secondary"
               const badgeTitle = info.hasDecayed
-                ? `Importancia almacenada: ${memory.priority} — cae a ${info.effectivePriority} tras ${info.turns} turno(s)`
-                : `Importancia: ${info.effectivePriority}`
+                ? t("memory.priorityDecayed", {
+                    stored: memory.priority,
+                    effective: info.effectivePriority,
+                    count: info.turns,
+                  })
+                : t("memory.priority", { priority: info.effectivePriority })
               return (
                 <div key={memory.id} className="flex flex-col gap-2 rounded-lg border p-3">
                   <div className="flex items-center gap-2">
@@ -171,8 +179,8 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
                   <span className="text-sm font-semibold">{memory.title}</span>
                   <p className="text-sm text-muted-foreground">{memory.description}</p>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(memory)}>Editar</Button>
-                    <Button size="sm" variant="destructive" onClick={() => openDelete(memory)}>Eliminar</Button>
+                    <Button size="sm" variant="outline" onClick={() => openEdit(memory)}>{t("common.edit")}</Button>
+                    <Button size="sm" variant="destructive" onClick={() => openDelete(memory)}>{t("common.delete")}</Button>
                   </div>
                 </div>
               )
@@ -184,35 +192,35 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
       <Dialog open={dialogMode === "create" || dialogMode === "edit"} onOpenChange={(open) => { if (!open) { setDialogMode(null); resetForm() } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{dialogMode === "create" ? "Crear memoria" : "Editar memoria"}</DialogTitle>
+            <DialogTitle>{dialogMode === "create" ? t("memory.createTitle") : t("memory.editTitle")}</DialogTitle>
             <DialogDescription>
               {dialogMode === "create"
-                ? "Añade una nueva memoria para esta conversación."
-                : "Modifica los campos de la memoria."}
+                ? t("memory.createDescription")
+                : t("memory.editDescription")}
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
             <Field>
-              <Label htmlFor="memory-actor">Actor</Label>
-              <Input id="memory-actor" value={actor} onChange={(e) => setActor(e.target.value)} placeholder="Nombre del actor" />
+              <Label htmlFor="memory-actor">{t("memory.actor")}</Label>
+              <Input id="memory-actor" value={actor} onChange={(e) => setActor(e.target.value)} placeholder={t("memory.actorPlaceholder")} />
             </Field>
             <Field>
-              <Label htmlFor="memory-title">Título</Label>
-              <Input id="memory-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título de la memoria" />
+              <Label htmlFor="memory-title">{t("memory.title")}</Label>
+              <Input id="memory-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("memory.titlePlaceholder")} />
             </Field>
             <Field>
-              <Label htmlFor="memory-description">Descripción</Label>
-              <Textarea id="memory-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Contenido de la memoria" />
+              <Label htmlFor="memory-description">{t("memory.description")}</Label>
+              <Textarea id="memory-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("memory.descriptionPlaceholder")} />
             </Field>
             <Field>
-              <Label htmlFor="memory-priority">Prioridad (1-10)</Label>
+              <Label htmlFor="memory-priority">{t("memory.priorityLabel")}</Label>
               <Input id="memory-priority" type="number" min={1} max={10} value={priority} onChange={(e) => setPriority(Number(e.target.value))} />
             </Field>
           </FieldGroup>
           <div className="flex justify-end gap-2">
-            <DialogClose render={<Button variant="outline">Cancelar</Button>} />
+            <DialogClose render={<Button variant="outline">{t("common.cancel")}</Button>} />
             <Button onClick={dialogMode === "create" ? handleCreate : handleEdit}>
-              {dialogMode === "create" ? "Crear" : "Guardar cambios"}
+              {dialogMode === "create" ? t("common.create") : t("common.saveChanges")}
             </Button>
           </div>
         </DialogContent>
@@ -221,9 +229,9 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
       <Dialog open={dialogMode === "delete"} onOpenChange={(open) => { if (!open) { setDialogMode(null); resetForm() } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Eliminar memoria</DialogTitle>
+            <DialogTitle>{t("memory.deleteTitle")}</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que deseas eliminar esta memoria? Esta acción no se puede deshacer.
+              {t("memory.deleteDescription")}
             </DialogDescription>
           </DialogHeader>
           {target && (
@@ -232,8 +240,8 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
             </div>
           )}
           <div className="flex justify-end gap-2">
-            <DialogClose render={<Button variant="outline">Cancelar</Button>} />
-            <Button variant="destructive" onClick={handleDelete}>Eliminar</Button>
+            <DialogClose render={<Button variant="outline">{t("common.cancel")}</Button>} />
+            <Button variant="destructive" onClick={handleDelete}>{t("common.delete")}</Button>
           </div>
         </DialogContent>
       </Dialog>

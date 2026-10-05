@@ -19,3 +19,8 @@ export function setRequestLocale(locale: Locale): void {
 export function getRequestLocale(): Locale {
   return requestLocale
 }
+
+/** BCP-47 tag used for `toLocaleDateString`-style formatting. */
+export function dateLocale(locale: Locale): string {
+  return locale === "es" ? "es-ES" : "en-US"
+}

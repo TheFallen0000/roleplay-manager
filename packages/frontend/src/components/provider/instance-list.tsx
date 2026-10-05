@@ -16,6 +16,7 @@ import {
 import { PlusIcon, PencilIcon, Trash2Icon, CheckIcon } from "lucide-react"
 
 import type { ProviderInstance } from "@workspace/shared/types/provider-instance"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 interface InstanceListProps {
   instances: ProviderInstance[]
@@ -34,21 +35,23 @@ export function InstanceList({
   onDelete,
   onCreateNew,
 }: InstanceListProps) {
+  const { t } = useTranslation()
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Instancias</CardTitle>
+        <CardTitle className="text-base">{t("providers.instancesTitle")}</CardTitle>
         <CardDescription>
-          Conexiones a proveedores compatibles con OpenAI.
+          {t("providers.instancesDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {instances.length === 0 ? (
           <Empty className="border">
             <EmptyHeader>
-              <EmptyTitle>Sin instancias</EmptyTitle>
+              <EmptyTitle>{t("providers.instancesEmptyTitle")}</EmptyTitle>
               <EmptyDescription>
-                Crea una instancia para conectar con un proveedor.
+                {t("providers.instancesEmptyDescription")}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -74,12 +77,12 @@ export function InstanceList({
                       {inst.name}
                       {selected ? (
                         <Badge variant="secondary" className="gap-1">
-                          <CheckIcon className="size-3" /> Seleccionada
+                          <CheckIcon className="size-3" /> {t("providers.selected")}
                         </Badge>
                       ) : null}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {inst.url || "Sin URL"}
+                      {inst.url || t("providers.noUrl")}
                     </span>
                   </button>
                   <div className="flex items-center gap-1">
@@ -89,7 +92,7 @@ export function InstanceList({
                       size="icon"
                       className="size-7"
                       onClick={() => onEdit(inst)}
-                      aria-label={`Editar ${inst.name}`}
+                      aria-label={t("providers.editInstanceAria", { name: inst.name })}
                     >
                       <PencilIcon className="size-3" />
                     </Button>
@@ -99,7 +102,7 @@ export function InstanceList({
                       size="icon"
                       className="size-7 text-destructive"
                       onClick={() => onDelete(inst.id)}
-                      aria-label={`Eliminar ${inst.name}`}
+                      aria-label={t("providers.deleteInstanceAria", { name: inst.name })}
                     >
                       <Trash2Icon className="size-3" />
                     </Button>
@@ -110,7 +113,7 @@ export function InstanceList({
           </div>
         )}
         <Button type="button" variant="outline" size="sm" onClick={onCreateNew}>
-          <PlusIcon /> Nueva instancia
+          <PlusIcon /> {t("providers.newInstance")}
         </Button>
       </CardContent>
     </Card>

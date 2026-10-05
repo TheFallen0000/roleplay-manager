@@ -9,6 +9,7 @@ import {
 } from "@workspace/ui/components/combobox"
 
 import type { ProviderModel } from "@workspace/shared/types/provider"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 interface ModelComboboxProps {
   value: string
@@ -22,9 +23,10 @@ export function ModelCombobox({
   value,
   models,
   disabled = false,
-  placeholder = "Selecciona un modelo",
+  placeholder,
   onChange,
 }: ModelComboboxProps) {
+  const { t } = useTranslation()
   const displayValue = useMemo(() => {
     if (!value) return value
     const item = models.find((m) => m.id === value)
@@ -43,7 +45,7 @@ export function ModelCombobox({
     >
       <ComboboxInput
         disabled={disabled}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t("providers.selectModel")}
         className="w-full"
       />
       <ComboboxContent>
@@ -54,7 +56,7 @@ export function ModelCombobox({
             </ComboboxItem>
           )}
         </ComboboxList>
-        <ComboboxEmpty>No se encontraron modelos.</ComboboxEmpty>
+        <ComboboxEmpty>{t("providers.noModelsFound")}</ComboboxEmpty>
       </ComboboxContent>
     </Combobox>
   )

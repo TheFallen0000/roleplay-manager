@@ -3,6 +3,7 @@
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@workspace/ui/components/field"
 import { RadioGroup, RadioGroupItem } from "@workspace/ui/components/radio-group"
 import type { MemoryProposalMode } from "@workspace/shared/types/conversation"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 interface MemoryModeCardProps {
   current: MemoryProposalMode
@@ -10,20 +11,22 @@ interface MemoryModeCardProps {
 }
 
 export function MemoryModeCard({ current, onChange }: MemoryModeCardProps) {
+  const { t } = useTranslation()
+
   return (
     <FieldGroup>
       <FieldSet>
-        <FieldLegend variant="label">Modo de memorias</FieldLegend>
+        <FieldLegend variant="label">{t("memory.modeTitle")}</FieldLegend>
         <FieldDescription>
-          Controla cómo se gestionan las propuestas de memorias.
+          {t("memory.modeDescription")}
         </FieldDescription>
         <RadioGroup value={current} onValueChange={(value) => onChange(value as MemoryProposalMode)}>
           <FieldLabel htmlFor="mode-auto">
             <Field orientation="horizontal">
               <FieldContent>
-                <FieldTitle>Auto</FieldTitle>
+                <FieldTitle>{t("memory.modeAuto")}</FieldTitle>
                 <FieldDescription>
-                  El sistema acepta y aplica automáticamente las propuestas de memorias después de cada mensaje
+                  {t("memory.modeAutoDescription")}
                 </FieldDescription>
               </FieldContent>
               <RadioGroupItem value="auto" id="mode-auto" />
@@ -32,9 +35,9 @@ export function MemoryModeCard({ current, onChange }: MemoryModeCardProps) {
           <FieldLabel htmlFor="mode-manual">
             <Field orientation="horizontal">
               <FieldContent>
-                <FieldTitle>Manual</FieldTitle>
+                <FieldTitle>{t("memory.modeManual")}</FieldTitle>
                 <FieldDescription>
-                  Tú revisas y decides aceptar, editar o descartar cada propuesta
+                  {t("memory.modeManualDescription")}
                 </FieldDescription>
               </FieldContent>
               <RadioGroupItem value="manual" id="mode-manual" />

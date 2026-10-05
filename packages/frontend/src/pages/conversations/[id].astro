@@ -3,6 +3,7 @@ import { Chat } from "@/components/conversation/chat"
 import { getConversation } from "@/lib/api/conversations"
 import BaseLayout from "@/layouts/base.astro"
 import { resolveLocale } from "@/lib/locale"
+import { translate } from "@workspace/shared/i18n"
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 
 export const prerender = false
@@ -17,7 +18,7 @@ if (id) {
   try {
     conversation = await getConversation(id)
   } catch (e) {
-    error = e instanceof Error ? e.message : "Error desconocido"
+    error = e instanceof Error ? e.message : translate(locale, "common.unknownError")
   }
 }
 ---
@@ -26,7 +27,7 @@ if (id) {
   title={
     conversation
       ? `${conversation.title ?? conversation.characterName} - Roleplay Manager`
-      : "Conversación no encontrada"
+      : translate(locale, "pages.conversationNotFound")
   }
 >
   {
