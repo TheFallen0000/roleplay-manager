@@ -1,4 +1,5 @@
 import { usePersistedValue } from "@/lib/hooks/use-persisted-value"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { Button } from "@workspace/ui/components/button"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
@@ -28,6 +29,8 @@ export function MessageInput({
     defaultValue: "",
   })
 
+  const { t } = useTranslation()
+
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     const trimmed = content.trim()
@@ -48,7 +51,7 @@ export function MessageInput({
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Escribe un mensaje..."
+        placeholder={t("chat.inputPlaceholder")}
         className="min-h-11 max-h-50 resize-none"
         rows={1}
         onKeyDown={(e) => {
@@ -74,7 +77,7 @@ export function MessageInput({
           <ContextMenuContent>
             <ContextMenuItem onClick={() => onPreview?.(content.trim())}>
               <Eye className="size-4" />
-              Previsualizar contexto
+              {t("chat.previewContext")}
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
@@ -95,7 +98,7 @@ export function MessageInput({
           <ContextMenuContent>
             <ContextMenuItem onClick={() => onPreview?.()}>
               <Eye className="size-4" />
-              Previsualizar contexto
+              {t("chat.previewContext")}
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>

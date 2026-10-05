@@ -10,6 +10,8 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { FileText, User, Bot, Info } from "lucide-react"
 
+import { useTranslation } from "@/lib/hooks/use-translation"
+
 interface ContextPreviewDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -25,11 +27,13 @@ export function ContextPreviewDialog({
   onSend,
   loading = false,
 }: ContextPreviewDialogProps) {
+  const { t } = useTranslation()
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Vista previa del contexto</DialogTitle>
+          <DialogTitle>{t("chat.previewTitle")}</DialogTitle>
         </DialogHeader>
 
         {context && (
@@ -42,16 +46,25 @@ export function ContextPreviewDialog({
               </span>
               <span className="text-muted-foreground/40">|</span>
               <span>
-                {context.metadata.totalContextMessages} mensajes ·{" "}
-                {context.metadata.totalCharacters} caracteres
+                {t("chat.previewMetaMessages", {
+                  count: context.metadata.totalContextMessages,
+                })}{" "}
+                ·{" "}
+                {t("chat.previewMetaCharacters", {
+                  count: context.metadata.totalCharacters,
+                })}
               </span>
               <span className="text-muted-foreground/40">|</span>
-              <span>{context.metadata.recentMessageCount} recientes</span>
+              <span>
+                {t("chat.previewMetaRecent", {
+                  count: context.metadata.recentMessageCount,
+                })}
+              </span>
               {context.metadata.summaryId && (
                 <>
                   <span className="text-muted-foreground/40">|</span>
                   <Badge variant="secondary" className="text-[10px]">
-                    Con resumen
+                    {t("chat.previewWithSummary")}
                   </Badge>
                 </>
               )}
@@ -59,7 +72,9 @@ export function ContextPreviewDialog({
                 <>
                   <span className="text-muted-foreground/40">|</span>
                   <Badge variant="secondary" className="text-[10px]">
-                    {context.metadata.memoryCount} memoria(s)
+                    {t("chat.previewMemories", {
+                      count: context.metadata.memoryCount,
+                    })}
                   </Badge>
                 </>
               )}
@@ -80,7 +95,9 @@ export function ContextPreviewDialog({
 
               <div>
                 <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  Mensajes ({context.messages.length})
+                  {t("chat.previewMessagesTitle", {
+                    count: context.messages.length,
+                  })}
                 </h4>
                 <div className="space-y-2">
                   {context.messages.map((msg, i) => (
@@ -121,10 +138,10 @@ export function ContextPreviewDialog({
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
+                {t("common.cancel")}
               </Button>
               <Button onClick={onSend} disabled={loading}>
-                {loading ? "Enviando..." : "Enviar"}
+                {loading ? t("chat.previewSending") : t("chat.previewSend")}
               </Button>
             </div>
           </div>
@@ -132,7 +149,7 @@ export function ContextPreviewDialog({
 
         {!context && (
           <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-            {loading ? "Cargando contexto..." : "No hay contexto disponible."}
+            {loading ? t("chat.previewLoading") : t("chat.previewEmpty")}
           </div>
         )}
       </DialogContent>

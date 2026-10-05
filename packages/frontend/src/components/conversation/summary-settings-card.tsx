@@ -1,6 +1,8 @@
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
+import { useTranslation } from "@/lib/hooks/use-translation"
+
 interface SummarySettingsCardProps {
   recentMessageCount: number
   summaryFrequency: number
@@ -14,6 +16,8 @@ export function SummarySettingsCard({
   onRecentMessageCountChange,
   onSummaryFrequencyChange,
 }: SummarySettingsCardProps) {
+  const { t } = useTranslation()
+
   const handleSummaryFrequencyChange = (raw: number) => {
     const next = Math.max(1, Math.floor(raw) || 1)
     onSummaryFrequencyChange(next)
@@ -27,7 +31,7 @@ export function SummarySettingsCard({
   return (
         <FieldGroup className="p-1">
           <Field>
-            <FieldLabel htmlFor="summary-freq">Frecuencia de resumen</FieldLabel>
+            <FieldLabel htmlFor="summary-freq">{t("settings.summaryFrequency")}</FieldLabel>
             <Input
               id="summary-freq"
               type="number"
@@ -36,11 +40,11 @@ export function SummarySettingsCard({
               onChange={(e) => handleSummaryFrequencyChange(Number(e.target.value))}
             />
             <FieldDescription>
-              Cada cuántos mensajes nuevos se regenera el resumen acumulativo.
+              {t("settings.summaryFrequencyHint")}
             </FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor="recent-count">Mensajes recientes</FieldLabel>
+            <FieldLabel htmlFor="recent-count">{t("settings.recentMessages")}</FieldLabel>
             <Input
               id="recent-count"
               type="number"
@@ -50,8 +54,7 @@ export function SummarySettingsCard({
               onChange={(e) => onRecentMessageCountChange(Math.max(1, Math.floor(Number(e.target.value)) || 1))}
             />
             <FieldDescription>
-              Mensajes recientes que se envían verbatim. Debe ser menor que la
-              frecuencia de resumen (máx. {recentMax}).
+              {t("settings.recentMessagesHint", { max: recentMax })}
             </FieldDescription>
           </Field>
         </FieldGroup>

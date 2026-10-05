@@ -8,6 +8,8 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Button } from "@workspace/ui/components/button"
 
+import { useTranslation } from "@/lib/hooks/use-translation"
+
 interface ChatConfirmDialogsProps {
   confirmDelete: string | null
   confirmRewind: string | null
@@ -27,22 +29,24 @@ export function ChatConfirmDialogs({
   onConfirmDelete,
   onConfirmRewind,
 }: ChatConfirmDialogsProps) {
+  const { t } = useTranslation()
+
   return (
     <>
       <Dialog open={confirmDelete !== null} onOpenChange={onCloseDelete}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Eliminar mensaje</DialogTitle>
+            <DialogTitle>{t("chat.confirmDeleteTitle")}</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que quieres eliminar este mensaje? Esta acción no se puede deshacer.
+              {t("chat.confirmDeleteDescription")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={onCloseDelete}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button variant="destructive" onClick={onConfirmDelete}>
-              Eliminar
+              {t("common.delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -51,23 +55,24 @@ export function ChatConfirmDialogs({
       <Dialog open={confirmRewind !== null} onOpenChange={onCloseRewind}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Retroceder conversación</DialogTitle>
+            <DialogTitle>{t("chat.confirmRewindTitle")}</DialogTitle>
             <DialogDescription>
-              Se eliminarán todos los mensajes posteriores a este punto. Esta acción no se puede deshacer.
+              {t("chat.confirmRewindDescription")}
             </DialogDescription>
             {affectedSummariesCount > 0 && (
               <p className="text-sm text-muted-foreground">
-                También se eliminará{affectedSummariesCount === 1 ? "" : "n"}{" "}
-                {affectedSummariesCount} resumen{affectedSummariesCount === 1 ? "" : "es"} cuyo rango queda afectado.
+                {t("chat.confirmRewindSummaries", {
+                  count: affectedSummariesCount,
+                })}
               </p>
             )}
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={onCloseRewind}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button variant="destructive" onClick={onConfirmRewind}>
-              Retroceder
+              {t("chat.confirmRewind")}
             </Button>
           </DialogFooter>
         </DialogContent>

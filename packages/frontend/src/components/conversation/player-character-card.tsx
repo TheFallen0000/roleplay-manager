@@ -16,6 +16,7 @@ import {
 import { listPlayerCharacters } from "@/lib/api/player-characters"
 import { updateConversationSettings } from "@/lib/api/conversations"
 import { ApiClientError } from "@/lib/api/client"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 const NONE = "none"
 
@@ -28,6 +29,7 @@ export function PlayerCharacterCard({
   conversation,
   onSettingsChanged,
 }: PlayerCharacterCardProps) {
+  const { t } = useTranslation()
   const [playerCharacters, setPlayerCharacters] = useState<PlayerCharacterDTO[]>(
     [],
   )
@@ -44,7 +46,7 @@ export function PlayerCharacterCard({
         const items = await listPlayerCharacters()
         if (active) setPlayerCharacters(items)
       } catch {
-        if (active) toast.error("No se pudieron cargar los personajes jugados")
+        if (active) toast.error(t("settings.personaLoadFailed"))
       } finally {
         if (active) setLoading(false)
       }
@@ -52,15 +54,15 @@ export function PlayerCharacterCard({
     return () => {
       active = false
     }
-  }, [])
+  }, [t])
 
   const current = conversation.playerCharacterId ?? NONE
   const selectedPlayerCharacter = playerCharacters.find(
     (playerCharacter) => playerCharacter.id === selected,
   )
   const selectedLabel = loading
-    ? "Cargando…"
-    : (selectedPlayerCharacter?.name ?? "Ninguna")
+    ? t("settings.personaLoading")
+    : (selectedPlayerCharacter?.name ?? t("settings.personaNone"))
 
   const handleSave = async () => {
     setSaving(true)
@@ -69,11 +71,11 @@ export function PlayerCharacterCard({
         playerCharacterId: selected === NONE ? null : selected,
       })
       onSettingsChanged(updated)
-      toast.success("Persona actualizada", {
-        description: "Se aplicará en la próxima respuesta.",
+      toast.success(t("players.saved"), {
+        description: t("settings.personaSavedDescription"),
       })
     } catch (error) {
-      toast.error("No se pudo guardar la persona", {
+      toast.error(t("settings.personaSaveFailed"), {
         description:
           error instanceof ApiClientError
             ? `[${error.code}] ${error.message}`
@@ -87,8 +89,7 @@ export function PlayerCharacterCard({
   return (
     <div className="flex flex-col gap-4">
       <p className="text-muted-foreground text-sm">
-        Elige a quién interpretas en esta conversación. La IA lo incluirá en el
-        contexto y se dirigirá a ti en consecuencia.
+        {t("settings.personaHint")}
       </p>
 
       <Select
@@ -102,7 +103,7 @@ export function PlayerCharacterCard({
           <SelectValue>{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={NONE}>Ninguna</SelectItem>
+          <SelectItem value={NONE}>{t("settings.personaNone")}</SelectItem>
           {playerCharacters.map((playerCharacter) => (
             <SelectItem key={playerCharacter.id} value={playerCharacter.id}>
               {playerCharacter.name}
@@ -122,14 +123,14 @@ export function PlayerCharacterCard({
           href="/player-characters"
           className="text-muted-foreground text-xs underline underline-offset-4"
         >
-          Gestionar personajes jugados
+          {t("settings.personaManage")}
         </a>
         <Button
           onClick={handleSave}
           disabled={saving || loading || selected === current}
         >
           {saving ? <Spinner /> : null}
-          Aplicar
+          {t("common.apply")}
         </Button>
       </div>
     </div>

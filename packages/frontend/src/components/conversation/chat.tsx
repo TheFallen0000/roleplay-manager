@@ -38,8 +38,26 @@ import { SettingsPanel } from "./settings-panel"
 import { ChatConfirmDialogs } from "./chat-confirm-dialogs"
 import { useMemoryStore } from "@/lib/stores/memory.store"
 import { useSummaryStore } from "@/lib/stores/summary.store"
+import { useTranslation } from "@/lib/hooks/use-translation"
+import { I18nProvider } from "@/lib/hooks/i18n-provider"
+import type { Locale } from "@workspace/shared/i18n"
 
-export function Chat({ conversation }: { conversation: ConversationDetail }) {
+export function Chat({
+  conversation,
+  locale,
+}: {
+  conversation: ConversationDetail
+  locale: Locale
+}) {
+  return (
+    <I18nProvider initialLocale={locale}>
+      <ChatContent conversation={conversation} />
+    </I18nProvider>
+  )
+}
+
+function ChatContent({ conversation }: { conversation: ConversationDetail }) {
+  const { t } = useTranslation()
   const [conv, setConv] = useState(conversation)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [confirmRewind, setConfirmRewind] = useState<string | null>(null)
@@ -287,11 +305,11 @@ export function Chat({ conversation }: { conversation: ConversationDetail }) {
                   }}
                 >
                   <Pencil className="size-4" />
-                  Editar manualmente
+                  {t("chat.titleEditManually")}
                 </ContextMenuItem>
                 <ContextMenuItem onClick={handleRegenerateTitle}>
                   <RefreshCw className="size-4" />
-                  Regenerar automáticamente
+                  {t("chat.titleRegenerate")}
                 </ContextMenuItem>
               </ContextMenuContent>
             </ContextMenu>
@@ -319,7 +337,7 @@ export function Chat({ conversation }: { conversation: ConversationDetail }) {
             <MessageScrollerContent>
               {messages.length === 0 && !streamingContent ? (
                 <div className="flex flex-1 items-center justify-center p-12 text-center text-sm text-muted-foreground">
-                  No hay mensajes en esta conversación.
+                  {t("chat.noMessages")}
                 </div>
               ) : (
                 <>

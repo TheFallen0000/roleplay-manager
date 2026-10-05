@@ -30,6 +30,7 @@ import {
 } from "lucide-react"
 import { TypingIndicator } from "@workspace/ui/components/typing-indicator"
 import { parseMessage } from "../../lib/format-message"
+import { useTranslation } from "../../lib/hooks/use-translation"
 import { useSwipeNavigation } from "../../lib/hooks/use-swipe-navigation"
 
 export function MessageBubble({
@@ -67,6 +68,7 @@ export function MessageBubble({
 }) {
   const isUser = message.role === "user"
   const segments = parseMessage(message.content)
+  const { t } = useTranslation()
   const totalAlternatives = 1 + (message.alternatives?.length ?? 0)
   const currentIndex = message.alternativesCursor ?? 0
   const canCyclePrev = currentIndex < totalAlternatives - 1
@@ -191,33 +193,33 @@ export function MessageBubble({
                 {!isUser && isLastMessage && (
                   <ContextMenuItem onClick={() => onRegenerate?.(message.id)}>
                     <RefreshCcw className="size-4" />
-                    Regenerar
+                    {t("chat.messageRegenerate")}
                   </ContextMenuItem>
                 )}
                 <ContextMenuItem onClick={() => onStartEdit?.(message.id, message.content)}>
                   <Pencil className="size-4" />
-                  Editar
+                  {t("chat.messageEdit")}
                 </ContextMenuItem>
                 {!isLastMessage && (
                   <ContextMenuItem onClick={() => onRewind?.(message.id)}>
                     <History className="size-4" />
-                    Rebobinar
+                    {t("chat.messageRewind")}
                   </ContextMenuItem>
                 )}
                 <ContextMenuItem onClick={() => navigator.clipboard.writeText(message.content)}>
                   <Copy className="size-4" />
-                  Copiar
+                  {t("chat.messageCopy")}
                 </ContextMenuItem>
                 {message.position > 0 && (
                   <>
                     <ContextMenuItem onClick={() => onBranch?.(message.id)}>
                       <Split className="size-4" />
-                      Crear rama
+                      {t("chat.messageBranch")}
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem variant="destructive" onClick={() => onDelete?.(message.id)}>
                       <Trash2 className="size-4" />
-                      Eliminar
+                      {t("chat.messageDelete")}
                     </ContextMenuItem>
                   </>
                 )}

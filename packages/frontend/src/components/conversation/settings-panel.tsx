@@ -40,6 +40,7 @@ import { MemoryDecayCard } from "../memory/memory-decay-card"
 import { ProposalList } from "../memory/proposal-list"
 import { MemoryList } from "../memory/memory-list"
 import { usePersistedStringList } from "@/lib/hooks/use-persisted-string-list"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { ModelSelector } from "./model-selector"
 import { CustomizationTab } from "./customization-tab"
 import { PlayerCharacterCard } from "./player-character-card"
@@ -61,14 +62,16 @@ interface ActionsFooterProps {
 }
 
 function ActionsFooter({ hasChanges, saving, onSave, onReset }: ActionsFooterProps) {
+  const { t } = useTranslation()
+
   return (
     <DialogFooter>
       <Button variant="outline" onClick={onReset} disabled={saving}>
-        Restablecer valores
+        {t("settings.resetFooter")}
       </Button>
       <Button onClick={onSave} disabled={!hasChanges || saving}>
         {saving ? <Spinner /> : null}
-        Aplicar cambios
+        {t("settings.apply")}
       </Button>
     </DialogFooter>
   )
@@ -80,6 +83,7 @@ export function SettingsPanel({
   onSettingsChanged,
   children,
 }: SettingsPanelProps) {
+  const { t } = useTranslation()
   const [section, setSection] = useState<SettingsSection | null>(null)
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   const [resetTarget, setResetTarget] = useState<SettingsSection | null>(null)
@@ -142,12 +146,12 @@ export function SettingsPanel({
     try {
       const updated = await updateConversationSettings(conversationId, settings)
       onSettingsChanged(updated)
-      toast.success("Configuración guardada", {
-        description: "Los cambios se aplicarán en la próxima respuesta.",
+      toast.success(t("settings.saved"), {
+        description: t("settings.savedDescription"),
       })
     } catch (error) {
-      const message = error instanceof ApiClientError ? `[${error.code}] ${error.message}` : "Error desconocido"
-      toast.error("No se pudo guardar la configuración", { description: message })
+      const message = error instanceof ApiClientError ? `[${error.code}] ${error.message}` : t("common.unknownError")
+      toast.error(t("settings.saveFailed"), { description: message })
     } finally {
       setSaving(false)
     }
@@ -230,10 +234,10 @@ export function SettingsPanel({
         memoryProposalMode: mode,
       })
       onSettingsChanged(updated)
-      toast.success("Modo de memorias actualizado")
+      toast.success(t("settings.memoryModeUpdated"))
     } catch (error) {
-      const message = error instanceof ApiClientError ? `[${error.code}] ${error.message}` : "Error desconocido"
-      toast.error("No se pudo cambiar el modo", { description: message })
+      const message = error instanceof ApiClientError ? `[${error.code}] ${error.message}` : t("common.unknownError")
+      toast.error(t("settings.memoryModeFailed"), { description: message })
     }
   }
 
@@ -250,19 +254,19 @@ export function SettingsPanel({
         <DropdownMenuContent align="end" className="w-36">
           <DropdownMenuItem onClick={() => setSection("historia")}>
             <BookOpenTextIcon />
-            Historia
+            {t("settings.menuHistory")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setSection("modelo")}>
             <CpuIcon />
-            Modelo
+            {t("settings.menuModel")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setSection("personalizacion")}>
             <PaletteIcon />
-            Personalización
+            {t("settings.menuCustomization")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setSection("persona")}>
             <UserRoundIcon />
-            Persona
+            {t("settings.menuPersona")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -270,15 +274,15 @@ export function SettingsPanel({
       <Dialog open={section === "historia"} onOpenChange={(open) => setSection(open ? "historia" : null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader className="pr-8">
-            <DialogTitle>Historia del chat</DialogTitle>
+            <DialogTitle>{t("settings.historyTitle")}</DialogTitle>
             <DialogDescription>
-              Memorias, propuestas, resúmenes y auto-degradación.
+              {t("settings.historyDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="-mx-4 max-h-[60vh] overflow-y-auto px-4">
             <Accordion value={openSections} onValueChange={setOpenSections} multiple>
               <AccordionItem value="mode">
-                <AccordionTrigger>Modo de gestión de memorias</AccordionTrigger>
+                <AccordionTrigger>{t("settings.memoryMode")}</AccordionTrigger>
                 <AccordionContent>
                   <MemoryModeCard
                     current={current.memoryProposalMode}
@@ -288,7 +292,7 @@ export function SettingsPanel({
               </AccordionItem>
               <AccordionItem value="proposals">
                 <AccordionTrigger className="flex items-center gap-2">
-                  Propuestas pendientes
+                  {t("settings.proposals")}
                   {pendingCount > 0 ? (
                     <Badge>{pendingCount}</Badge>
                   ) : null}
@@ -299,7 +303,7 @@ export function SettingsPanel({
               </AccordionItem>
               <AccordionItem value="summaries">
                 <AccordionTrigger className="flex items-center gap-2">
-                  Resúmenes
+                  {t("settings.summaries")}
                   {summaryCount > 0 ? (
                     <Badge>{summaryCount}</Badge>
                   ) : null}
@@ -315,7 +319,7 @@ export function SettingsPanel({
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="decay">
-                <AccordionTrigger>Auto-degradación de memorias</AccordionTrigger>
+                <AccordionTrigger>{t("settings.decay")}</AccordionTrigger>
                 <AccordionContent>
                   <MemoryDecayCard
                     conversationId={conversationId}
@@ -325,7 +329,7 @@ export function SettingsPanel({
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="memories">
-                <AccordionTrigger>Memoria dinámica</AccordionTrigger>
+                <AccordionTrigger>{t("settings.memories")}</AccordionTrigger>
                 <AccordionContent>
                   <MemoryList conversationId={conversationId} conversation={current} />
                 </AccordionContent>
@@ -344,9 +348,9 @@ export function SettingsPanel({
       <Dialog open={section === "modelo"} onOpenChange={(open) => setSection(open ? "modelo" : null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader className="pr-8">
-            <DialogTitle>Modelo</DialogTitle>
+            <DialogTitle>{t("settings.modelTitle")}</DialogTitle>
             <DialogDescription>
-              Proveedor, modelo e hiperparámetros de inferencia.
+              {t("settings.modelDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="-mx-4 max-h-[60vh] overflow-y-auto px-4 pb-0.5">
@@ -382,9 +386,9 @@ export function SettingsPanel({
       <Dialog open={section === "personalizacion"} onOpenChange={(open) => setSection(open ? "personalizacion" : null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader className="pr-8">
-            <DialogTitle>Personalización</DialogTitle>
+            <DialogTitle>{t("settings.customizationTitle")}</DialogTitle>
             <DialogDescription>
-              Imagen de perfil exclusiva para este chat.
+              {t("settings.customizationDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="-mx-4 max-h-[60vh] overflow-y-auto px-4">
@@ -399,9 +403,9 @@ export function SettingsPanel({
       <Dialog open={section === "persona"} onOpenChange={(open) => setSection(open ? "persona" : null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader className="pr-8">
-            <DialogTitle>Persona</DialogTitle>
+            <DialogTitle>{t("settings.personaTitle")}</DialogTitle>
             <DialogDescription>
-              Quién interpretas tú en esta conversación.
+              {t("settings.personaDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="-mx-4 max-h-[60vh] overflow-y-auto px-4">
@@ -416,14 +420,14 @@ export function SettingsPanel({
       <Dialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Restablecer valores</DialogTitle>
+            <DialogTitle>{t("settings.resetTitle")}</DialogTitle>
             <DialogDescription>
-              Se perderán los cambios sin guardar. Esta acción no afecta los datos guardados en el servidor.
+              {t("settings.resetDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setResetConfirmOpen(false)}>Cancelar</Button>
-            <Button onClick={doReset}>Restablecer</Button>
+            <Button variant="outline" onClick={() => setResetConfirmOpen(false)}>{t("common.cancel")}</Button>
+            <Button onClick={doReset}>{t("settings.reset")}</Button>
           </div>
         </DialogContent>
       </Dialog>

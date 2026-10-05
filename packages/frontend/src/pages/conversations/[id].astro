@@ -2,11 +2,13 @@
 import { Chat } from "@/components/conversation/chat"
 import { getConversation } from "@/lib/api/conversations"
 import BaseLayout from "@/layouts/base.astro"
+import { resolveLocale } from "@/lib/locale"
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 
 export const prerender = false
 
 const { id } = Astro.params
+const locale = resolveLocale(Astro.cookies.get("language")?.value)
 
 let conversation: ConversationDetail | null = null
 let error: string | null = null
@@ -30,7 +32,7 @@ if (id) {
   {
     conversation ? (
       <div class="flex h-[calc(100vh-8rem)] flex-col rounded-lg border">
-        <Chat client:load conversation={conversation} />
+        <Chat locale={locale} client:load conversation={conversation} />
       </div>
     ) : (
       <div class="flex items-center justify-center p-12 text-sm text-muted-foreground">

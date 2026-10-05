@@ -3,6 +3,8 @@ import { Slider } from "@workspace/ui/components/slider"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
+import { useTranslation } from "@/lib/hooks/use-translation"
+
 interface InferenceParamsCardProps {
   temperature: number
   topP: number
@@ -32,21 +34,25 @@ export function InferenceParamsCard({
   onMaxTokensChange,
   onStopSequencesChange,
 }: InferenceParamsCardProps) {
+  const { t } = useTranslation()
+
   const sliderHandler = (setter: (v: number) => void) => (v: number | readonly number[]) =>
     setter(Array.isArray(v) ? v[0] : v)
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Parámetros de inferencia</CardTitle>
+        <CardTitle>{t("settings.inferenceTitle")}</CardTitle>
         <CardDescription>
-          Ajusta como el modelo genera las respuestas.
+          {t("settings.inferenceDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <FieldGroup>
           <Field>
-            <FieldLabel>Temperatura ({temperature.toFixed(1)})</FieldLabel>
+            <FieldLabel>
+              {t("settings.temperature", { value: temperature.toFixed(1) })}
+            </FieldLabel>
             <Slider
               value={[temperature]}
               onValueChange={sliderHandler(onTemperatureChange)}
@@ -55,10 +61,12 @@ export function InferenceParamsCard({
               step={0.1}
               aria-label="Temperature"
             />
-            <FieldDescription>Controla la creatividad (0 = determinístico, 2 = muy creativo)</FieldDescription>
+            <FieldDescription>{t("settings.temperatureHint")}</FieldDescription>
           </Field>
           <Field>
-            <FieldLabel>Top P ({topP.toFixed(2)})</FieldLabel>
+            <FieldLabel>
+              {t("settings.topP", { value: topP.toFixed(2) })}
+            </FieldLabel>
             <Slider
               value={[topP]}
               onValueChange={sliderHandler(onTopPChange)}
@@ -67,10 +75,14 @@ export function InferenceParamsCard({
               step={0.05}
               aria-label="Top P"
             />
-            <FieldDescription>Muestreo por núcleo de probabilidad</FieldDescription>
+            <FieldDescription>{t("settings.topPHint")}</FieldDescription>
           </Field>
           <Field>
-            <FieldLabel>Freq. Penalty ({frequencyPenalty.toFixed(1)})</FieldLabel>
+            <FieldLabel>
+              {t("settings.frequencyPenalty", {
+                value: frequencyPenalty.toFixed(1),
+              })}
+            </FieldLabel>
             <Slider
               value={[frequencyPenalty]}
               onValueChange={sliderHandler(onFrequencyPenaltyChange)}
@@ -79,10 +91,14 @@ export function InferenceParamsCard({
               step={0.1}
               aria-label="Frequency Penalty"
             />
-            <FieldDescription>Penaliza tokens repetidos</FieldDescription>
+            <FieldDescription>{t("settings.frequencyPenaltyHint")}</FieldDescription>
           </Field>
           <Field>
-            <FieldLabel>Pres. Penalty ({presencePenalty.toFixed(1)})</FieldLabel>
+            <FieldLabel>
+              {t("settings.presencePenalty", {
+                value: presencePenalty.toFixed(1),
+              })}
+            </FieldLabel>
             <Slider
               value={[presencePenalty]}
               onValueChange={sliderHandler(onPresencePenaltyChange)}
@@ -91,10 +107,10 @@ export function InferenceParamsCard({
               step={0.1}
               aria-label="Presence Penalty"
             />
-            <FieldDescription>Penaliza introducir nuevos tokens</FieldDescription>
+            <FieldDescription>{t("settings.presencePenaltyHint")}</FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor="max-tokens">Max tokens</FieldLabel>
+            <FieldLabel htmlFor="max-tokens">{t("settings.maxTokens")}</FieldLabel>
             <Input
               id="max-tokens"
               type="number"
@@ -102,17 +118,17 @@ export function InferenceParamsCard({
               value={maxTokens}
               onChange={(e) => onMaxTokensChange(Number(e.target.value))}
             />
-            <FieldDescription>Límite máximo de tokens en la respuesta.</FieldDescription>
+            <FieldDescription>{t("settings.maxTokensHint")}</FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor="stop-sequences">Stop sequences</FieldLabel>
+            <FieldLabel htmlFor="stop-sequences">{t("settings.stopSequences")}</FieldLabel>
             <Input
               id="stop-sequences"
               value={stopSequences}
               onChange={(e) => onStopSequencesChange(e.target.value)}
-              placeholder="coma, separada, ..."
+              placeholder={t("settings.stopSequencesPlaceholder")}
             />
-            <FieldDescription>Separadas por coma</FieldDescription>
+            <FieldDescription>{t("settings.stopSequencesHint")}</FieldDescription>
           </Field>
         </FieldGroup>
       </CardContent>

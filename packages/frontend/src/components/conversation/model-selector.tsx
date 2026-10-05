@@ -19,6 +19,7 @@ import {
   validateProviderInstance,
 } from "@/lib/api/provider-instances"
 import { ApiClientError } from "@/lib/api/client"
+import { useTranslation } from "@/lib/hooks/use-translation"
 
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 import type { ProviderId, ProviderModel } from "@workspace/shared/types/provider"
@@ -44,6 +45,7 @@ function formatError(e: unknown): string {
 }
 
 export function ModelSelector({ current, onChange }: ModelSelectorProps) {
+  const { t } = useTranslation()
   const [provider, setProvider] = useState<ProviderId | string | null>(current.provider ?? "ollama")
   const [providerInstanceId, setProviderInstanceId] = useState<string | null>(current.providerInstanceId ?? null)
   const [model, setModel] = useState<string | null>(current.model)
@@ -139,10 +141,10 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
           void verifyOpenAIForInstance(current.providerInstanceId)
         }
       } catch {
-        toast.error("No se pudieron cargar los proveedores")
+        toast.error(t("settings.providersLoadFailed"))
       }
     })()
-  }, [current.provider, current.providerInstanceId, verifyOllama, verifyOpenAIForInstance])
+  }, [current.provider, current.providerInstanceId, verifyOllama, verifyOpenAIForInstance, t])
 
   const handleSelectProvider = useCallback((id: ProviderId | string) => {
     if (id === provider) return
@@ -194,12 +196,12 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         setModel(null)
         void verifyOpenAIForInstance(instance.id)
         dialog.close()
-        toast.success("Instancia creada", { description: instance.name })
+        toast.success(t("settings.instanceCreated"), { description: instance.name })
       } catch (e) {
-        toast.error("No se pudo crear la instancia", { description: formatError(e) })
+        toast.error(t("settings.instanceCreateFailed"), { description: formatError(e) })
       }
     },
-    [dialog, verifyOpenAIForInstance],
+    [dialog, verifyOpenAIForInstance, t],
   )
 
   const handleUpdateInstance = useCallback(
@@ -212,12 +214,12 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         })
         setInstances((prev) => prev.map((i) => (i.id === id ? updated : i)))
         dialog.close()
-        toast.success("Instancia actualizada")
+        toast.success(t("settings.instanceUpdated"))
       } catch (e) {
-        toast.error("No se pudo actualizar la instancia", { description: formatError(e) })
+        toast.error(t("settings.instanceUpdateFailed"), { description: formatError(e) })
       }
     },
-    [dialog],
+    [dialog, t],
   )
 
   const handleDeleteInstance = useCallback(
@@ -229,12 +231,12 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
           setSelectedInstanceId(null)
           setProviderInstanceId(null)
         }
-        toast.success("Instancia eliminada")
+        toast.success(t("settings.instanceDeleted"))
       } catch (e) {
-        toast.error("No se pudo eliminar la instancia", { description: formatError(e) })
+        toast.error(t("settings.instanceDeleteFailed"), { description: formatError(e) })
       }
     },
-    [selectedInstanceId],
+    [selectedInstanceId, t],
   )
 
   const handleDialogSave = useCallback(
@@ -255,7 +257,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Proveedor:</span>
+        <span className="text-sm text-muted-foreground">{t("settings.providerLabel")}</span>
         <div className="flex gap-1">
           <Button
             type="button"
