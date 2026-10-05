@@ -1,0 +1,97 @@
+import type { Dictionary } from "../types"
+
+export const es: Dictionary = {
+  common: {
+    cancel: "Cancelar",
+    save: "Guardar",
+    delete: "Eliminar",
+    edit: "Editar",
+    create: "Crear",
+    apply: "Aplicar",
+    loading: "Cargando…",
+    unknownError: "Error desconocido",
+  },
+  nav: {
+    characters: "Mis personajes",
+    players: "Personajes jugados",
+    providers: "Proveedores",
+    groupCharacters: "Personajes",
+    groupSystem: "Sistema",
+  },
+  theme: {
+    label: "Tema y apariencia",
+    theme: "Tema",
+    mode: "Modo",
+    default: "Predeterminado",
+    forest: "Bosque",
+    ocean: "Océano",
+    light: "Claro",
+    dark: "Oscuro",
+    system: "Sistema",
+  },
+  language: {
+    label: "Idioma",
+    en: "Inglés",
+    es: "Español",
+  },
+  characters: {
+    title: "Mis personajes",
+    count: { one: "1 personaje", other: "{count} personajes" },
+    create: "Crear personaje",
+    import: "Importar personaje",
+    searchLabel: "Buscar personaje",
+    searchPlaceholder: "Buscar personaje…",
+    sortLabel: "Ordenar por",
+    sortRecencyDesc: "Más recientes",
+    sortRecencyAsc: "Más antiguos",
+    sortActivityDesc: "Última actividad: recientes",
+    sortActivityAsc: "Última actividad: antiguos",
+    results: { one: "1 resultado", other: "{count} resultados" },
+    noResults: 'No hay personajes que coincidan con "{term}".',
+    emptyTitle: "No tienes personajes",
+    emptyDescription: "Crea tu primer personaje para empezar una conversación.",
+    deleted: "Personaje eliminado.",
+    deleteFailed: "No se pudo eliminar el personaje.",
+    conversationExists:
+      "Ya existe una conversación para este personaje y versión.",
+    conversationCreateFailed: "No se pudo crear la conversación.",
+    providerUnavailable:
+      "No hay un proveedor de IA configurado. La conversación se creó, pero no podrá responder hasta que configures uno.",
+    imported: 'Personaje "{name}" importado.',
+    importFailed: "No se pudo importar el personaje.",
+  },
+  players: {
+    title: "Personajes jugados",
+    subtitle:
+      "A quién interpretas tú. La IA lo sabrá en las conversaciones donde lo elijas.",
+    create: "Crear persona",
+    emptyTitle:
+      "Todavía no has creado ninguna persona. Crea una para que la IA sepa quién eres.",
+    edit: "Editar",
+    delete: "Eliminar",
+    editTitle: "Editar persona",
+    createTitle: "Nueva persona",
+    formDescription:
+      "Nombre y descripción de tu personaje jugado. Sin versiones.",
+    namePlaceholder: "Nombre",
+    descriptionPlaceholder: "Descripción",
+    required: "Nombre y descripción son obligatorios",
+    saved: "Persona actualizada",
+    created: "Persona creada",
+    saveFailed: "No se pudo guardar",
+    deleted: "Persona eliminada",
+    deleteFailed: "No se pudo eliminar",
+    loadFailed: "No se pudieron cargar",
+    deleteTitle: "¿Eliminar persona?",
+    deleteDescription:
+      'Se eliminará "{name}". Las conversaciones que la usaban se quedarán sin persona asignada.',
+  },
+  errors: {
+    PLAYER_CHARACTER_NOT_FOUND: "La persona seleccionada ya no existe.",
+    CHARACTER_NOT_FOUND: "El personaje ya no existe.",
+    CONVERSATION_NOT_FOUND: "La conversación ya no existe.",
+    CONVERSATION_ALREADY_EXISTS:
+      "Ya existe una conversación para este personaje y versión.",
+    INVALID_IMPORT_FILE: "El archivo no es una exportación de personaje válida.",
+  },
+}
