@@ -30,6 +30,13 @@ export class CharacterVersionNotFoundError extends NotFoundError {
   }
 }
 
+export class PlayerCharacterNotFoundError extends NotFoundError {
+  constructor(id: string) {
+    super("PLAYER_CHARACTER_NOT_FOUND", `Player character with id '${id}' not found.`)
+    this.name = "PlayerCharacterNotFoundError"
+  }
+}
+
 export class NoChangesDetectedError extends DomainError {
   constructor(message = "No changes detected for the character.") {
     super("NO_CHANGES_DETECTED", message)
