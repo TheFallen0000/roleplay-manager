@@ -116,8 +116,17 @@ Last updated: 2026-08-12
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.15 | User-played characters (name and description, no version required). | — |
+| PM.15 | User-played characters (name and description, no version required). <br>*Done as S23 (v1.14.0) — see `S23-progress.md`.* | — |
 | PM.16 | Swipe the message bubble left/right to navigate the regeneration history (mobile). <br>*Done as S20 (v1.11.0); swipe-to-regenerate added in S21 (v1.12.0) — see `S21-progress.md`.* | S9.16 |
+
+> **PM.15 (S23) — done (2026-08-12, v1.14.0):** A "Personajes jugados" settings
+> screen manages personas (name + description, no versions) and each conversation
+> picks one from its settings. The chosen persona is added to the system prompt
+> (`## Personaje del usuario`) so the AI knows who the user is playing; branches
+> inherit it. `conversations.player_character_id` is a `SET NULL` foreign key, so
+> deleting a persona never breaks a conversation. Exporting/importing personas is
+> out of scope (they are user-level, not part of a character). See
+> `S23-progress.md`.
 
 ## UI polish
 
