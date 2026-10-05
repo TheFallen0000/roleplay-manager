@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.14.1] - 2026-08-12
+
+### Fixed
+
+- The player character selected in a conversation was never saved: the `PATCH /api/conversations/:id/settings` validation schema did not accept `playerCharacterId`, so the field was silently dropped and the AI never received the persona. The schema now accepts it (set/clear); verified end-to-end (the conversation stores it and the prompt context includes the `## Personaje del usuario` section).
+- Chat bubbles collapsed line breaks, rendering multi-paragraph messages as a single line. `BubbleContent` now uses `whitespace-pre-wrap`, so newlines are preserved.
+
+### Changed
+
+- The "Personajes jugados" screen moved from `/settings/player-characters` to `/player-characters`, and its sidebar entry now lives under "Personajes" instead of "Sistema" (it is not a system setting).
+
 ## [1.14.0] - 2026-08-12
 
 ### Added
