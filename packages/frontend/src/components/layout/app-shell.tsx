@@ -69,6 +69,12 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                       <span>Mis personajes</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton render={<a href="/player-characters" />} tooltip="Personajes jugados">
+                      <UserRoundIcon />
+                      <span>Personajes jugados</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -80,12 +86,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                   <SidebarMenuButton render={<a href="/settings/providers" />} tooltip="Proveedores">
                       <CogIcon />
                       <span>Proveedores</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton render={<a href="/settings/player-characters" />} tooltip="Personajes jugados">
-                      <UserRoundIcon />
-                      <span>Personajes jugados</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>

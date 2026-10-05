@@ -119,7 +119,7 @@ export function PlayerCharacterCard({
 
       <div className="flex items-center justify-between gap-2">
         <a
-          href="/settings/player-characters"
+          href="/player-characters"
           className="text-muted-foreground text-xs underline underline-offset-4"
         >
           Gestionar personajes jugados
