@@ -14,6 +14,8 @@ import type { MemoryChangeProposalRepository } from "../../../domain/ports/memor
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { GenerateSummaryUseCase } from "../summary/generate-summary.use-case"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
+import { resolvePlayerCharacterPrompt } from "./resolve-player-character"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { ProviderRegistry } from "../../../domain/ports/provider.port"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
@@ -69,6 +71,7 @@ export class ContinueConversationUseCase {
     private readonly memoryRepository: MemoryRepository,
     private readonly memoryChangeProposalRepository: MemoryChangeProposalRepository,
     private readonly promptContextBuilder: PromptContextBuilder,
+    private readonly playerCharacterRepository: PlayerCharacterRepository,
     private readonly providerRegistry: ProviderRegistry,
     private readonly logger: Logger,
     private readonly getDefaultProvider: GetDefaultProviderUseCase,
@@ -135,6 +138,10 @@ export class ContinueConversationUseCase {
     const latestSummary = await this.summaryRepository.findLatestByConversationId(
       input.conversationId,
     )
+    const playerCharacter = await resolvePlayerCharacterPrompt(
+      this.playerCharacterRepository,
+      conversation,
+    )
 
     const context = await this.promptContextBuilder.build({
       characterVersion: characterResult.currentVersion,
@@ -142,6 +149,7 @@ export class ContinueConversationUseCase {
       recentMessageCount: conversation.recentMessageCount,
       memories: filterMemoriesForPrompt(conversation, memories, allMessages),
       summary: latestSummary ?? undefined,
+      playerCharacter,
       enableMemoryProposalTool: true,
       filterOocFromHistory: true,
     })

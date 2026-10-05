@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm"
 
 import { characterVersions } from "./character-versions.schema"
 import { providerInstances } from "./provider-instances.schema"
+import { playerCharacters } from "./player-characters.schema"
 
 export const conversations = sqliteTable("conversations", {
   id: text("id").primaryKey(),
@@ -33,6 +34,10 @@ export const conversations = sqliteTable("conversations", {
     .notNull()
     .default("auto"),
   customProfileImageAssetId: text("custom_profile_image_asset_id"),
+  playerCharacterId: text("player_character_id").references(
+    () => playerCharacters.id,
+    { onDelete: "set null" },
+  ),
   memoryDecayMode: text("memory_decay_mode", {
     enum: ["silent", "manual", "off"],
   })

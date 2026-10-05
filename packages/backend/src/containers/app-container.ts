@@ -9,6 +9,7 @@ import { GetDefaultProviderUseCase } from "../application/use-cases/provider/get
 import { ConfigureDefaultProviderUseCase } from "../application/use-cases/provider/configure-default-provider.use-case"
 import { DrizzleSettingsRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-settings.repository"
 import { DrizzleCharacterRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-character.repository"
+import { DrizzlePlayerCharacterRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-player-character.repository"
 import { DrizzleCharacterAssetRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-character-asset.repository"
 import { FilesystemCharacterAssetStorage } from "../infrastructure/adapters/secondary/filesystem/filesystem-character-asset-storage"
 import { DrizzleConversationRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-conversation.repository"
@@ -23,6 +24,7 @@ import { PromptContextBuilderImpl } from "../infrastructure/adapters/secondary/p
 import type { ProviderRegistry } from "../domain/ports/provider.port"
 import type { SettingsRepository } from "../domain/ports/settings.repository"
 import type { CharacterRepository } from "../domain/ports/character.repository"
+import type { PlayerCharacterRepository } from "../domain/ports/player-character.repository"
 import type { CharacterAssetRepository, CharacterAssetStorage } from "../domain/ports/character-asset.repository"
 import type { ConversationRepository } from "../domain/ports/conversation.repository"
 import type { MessageRepository } from "../domain/ports/message.repository"
@@ -32,6 +34,10 @@ import type { ProviderInstanceRepository } from "../domain/ports/provider-instan
 import type { SummaryRepository } from "../domain/ports/summary.repository"
 import type { PromptContextBuilder } from "../domain/ports/prompt-context-builder"
 import { CreateCharacterUseCase } from "../application/use-cases/character/create-character.use-case"
+import { CreatePlayerCharacterUseCase } from "../application/use-cases/player-character/create-player-character.use-case"
+import { ListPlayerCharactersUseCase } from "../application/use-cases/player-character/list-player-characters.use-case"
+import { UpdatePlayerCharacterUseCase } from "../application/use-cases/player-character/update-player-character.use-case"
+import { DeletePlayerCharacterUseCase } from "../application/use-cases/player-character/delete-player-character.use-case"
 import { GetCharacterUseCase } from "../application/use-cases/character/get-character.use-case"
 import { ListCharactersUseCase } from "../application/use-cases/character/list-characters.use-case"
 import { UpdateCharacterUseCase } from "../application/use-cases/character/update-character.use-case"
@@ -90,6 +96,7 @@ export interface AppContainer {
   providerRegistry: ProviderRegistry
   providerInstanceRepository: ProviderInstanceRepository
   characterRepository: CharacterRepository
+  playerCharacterRepository: PlayerCharacterRepository
   characterAssetRepository: CharacterAssetRepository
   characterAssetStorage: CharacterAssetStorage
   conversationRepository: ConversationRepository
@@ -98,6 +105,10 @@ export interface AppContainer {
   memoryChangeProposalRepository: MemoryChangeProposalRepository
   promptContextBuilder: PromptContextBuilder
   createCharacter: CreateCharacterUseCase
+  createPlayerCharacter: CreatePlayerCharacterUseCase
+  listPlayerCharacters: ListPlayerCharactersUseCase
+  updatePlayerCharacter: UpdatePlayerCharacterUseCase
+  deletePlayerCharacter: DeletePlayerCharacterUseCase
   getCharacter: GetCharacterUseCase
   listCharacters: ListCharactersUseCase
   updateCharacter: UpdateCharacterUseCase
@@ -180,6 +191,7 @@ export const buildContainer = ({
     logger,
   })
   const characterRepository: CharacterRepository = new DrizzleCharacterRepository(database)
+  const playerCharacterRepository: PlayerCharacterRepository = new DrizzlePlayerCharacterRepository(database)
   const characterAssetRepository: CharacterAssetRepository = new DrizzleCharacterAssetRepository(database)
   const characterAssetStorage: CharacterAssetStorage = new FilesystemCharacterAssetStorage(dataDir)
   const conversationRepository: ConversationRepository = new DrizzleConversationRepository(database)
@@ -236,6 +248,7 @@ export const buildContainer = ({
     memoryRepository,
     memoryChangeProposalRepository,
     promptContextBuilder,
+    playerCharacterRepository,
     providerRegistry,
     logger,
     getDefaultProvider,
@@ -254,6 +267,7 @@ export const buildContainer = ({
     memoryRepository,
     memoryChangeProposalRepository,
     promptContextBuilder,
+    playerCharacterRepository,
     providerRegistry,
     logger,
     getDefaultProvider,
@@ -270,6 +284,7 @@ export const buildContainer = ({
     memoryRepository,
     memoryChangeProposalRepository,
     promptContextBuilder,
+    playerCharacterRepository,
     providerRegistry,
     logger,
     getDefaultProvider,
@@ -311,6 +326,7 @@ export const buildContainer = ({
     providerRegistry,
     providerInstanceRepository,
     characterRepository,
+    playerCharacterRepository,
     characterAssetRepository,
     characterAssetStorage,
     conversationRepository,
@@ -350,6 +366,10 @@ export const buildContainer = ({
       characterAssetStorage,
       maxProfileImageBytes,
     ),
+    createPlayerCharacter: new CreatePlayerCharacterUseCase(playerCharacterRepository),
+    listPlayerCharacters: new ListPlayerCharactersUseCase(playerCharacterRepository),
+    updatePlayerCharacter: new UpdatePlayerCharacterUseCase(playerCharacterRepository),
+    deletePlayerCharacter: new DeletePlayerCharacterUseCase(playerCharacterRepository),
     deleteCharacter: new DeleteCharacterUseCase(characterRepository),
     listCharacterVersions: new ListCharacterVersionsUseCase(characterRepository),
     uploadCharacterAsset: new UploadCharacterAssetUseCase(
@@ -407,6 +427,7 @@ export const buildContainer = ({
       memoryRepository,
       summaryRepository,
       promptContextBuilder,
+      playerCharacterRepository,
     ),
     rewindConversation: new RewindConversationUseCase(
       conversationRepository,
@@ -428,6 +449,7 @@ export const buildContainer = ({
       logger,
       characterAssetRepository,
       characterAssetStorage,
+      playerCharacterRepository,
     ),
     uploadConversationCustomImage: new UploadConversationCustomImageUseCase(
       conversationRepository,

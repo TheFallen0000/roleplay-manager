@@ -52,6 +52,7 @@ export class GetConversationUseCase {
       stopSequences: convWithMessages.conversation.stopSequences,
       memoryProposalMode: convWithMessages.conversation.memoryProposalMode,
       customProfileImageAssetId: convWithMessages.conversation.customProfileImageAssetId,
+      playerCharacterId: convWithMessages.conversation.playerCharacterId,
       memoryDecayMode: convWithMessages.conversation.memoryDecayMode,
       memoryDecayThreshold: convWithMessages.conversation.memoryDecayThreshold,
       memoryDecayAgeThreshold: convWithMessages.conversation.memoryDecayAgeThreshold,

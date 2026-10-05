@@ -5,6 +5,11 @@ import type { PromptContext } from "../value-objects/prompt-context"
 
 import type { Summary } from "../entities/summary.entity"
 
+export interface PromptContextPlayerCharacter {
+  name: string
+  description: string
+}
+
 export interface PromptContextBuilder {
   build(params: {
     characterVersion: CharacterVersion
@@ -12,6 +17,7 @@ export interface PromptContextBuilder {
     recentMessageCount: number
     memories?: Memory[]
     summary?: Summary
+    playerCharacter?: PromptContextPlayerCharacter
     enableMemoryProposalTool?: boolean
     filterOocFromHistory?: boolean
   }): Promise<PromptContext>

@@ -37,6 +37,7 @@ const toConversation = (row: ConversationRow): Conversation =>
     stopSequences: row.stopSequences ?? [],
     memoryProposalMode: (row.memoryProposalMode ?? "auto") as MemoryProposalMode,
     customProfileImageAssetId: row.customProfileImageAssetId ?? null,
+    playerCharacterId: row.playerCharacterId ?? null,
     memoryDecayMode: (row.memoryDecayMode ?? "silent") as MemoryDecayMode,
     memoryDecayThreshold: row.memoryDecayThreshold ?? 3,
     memoryDecayAgeThreshold: row.memoryDecayAgeThreshold ?? 30,
@@ -78,6 +79,7 @@ export class DrizzleConversationRepository implements ConversationRepository {
       presencePenalty: conversation.presencePenalty,
       stopSequences: conversation.stopSequences,
       customProfileImageAssetId: conversation.customProfileImageAssetId,
+      playerCharacterId: conversation.playerCharacterId,
       memoryDecayMode: conversation.memoryDecayMode,
       memoryDecayThreshold: conversation.memoryDecayThreshold,
       memoryDecayAgeThreshold: conversation.memoryDecayAgeThreshold,
@@ -176,6 +178,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
       values.memoryProposalMode = settings.memoryProposalMode
     if (settings.customProfileImageAssetId !== undefined)
       values.customProfileImageAssetId = settings.customProfileImageAssetId
+    if (settings.playerCharacterId !== undefined)
+      values.playerCharacterId = settings.playerCharacterId
     if (settings.memoryDecayMode !== undefined)
       values.memoryDecayMode = settings.memoryDecayMode
     if (settings.memoryDecayThreshold !== undefined)

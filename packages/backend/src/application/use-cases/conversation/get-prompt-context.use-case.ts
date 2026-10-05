@@ -4,6 +4,8 @@ import type { MessageRepository } from "../../../domain/ports/message.repository
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
+import { resolvePlayerCharacterPrompt } from "./resolve-player-character"
 import type { PromptContextDTO, PromptContextMetadataDTO } from "@workspace/shared/types/context"
 import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
 import {
@@ -18,6 +20,7 @@ export class GetPromptContextUseCase {
     private readonly memoryRepository: MemoryRepository,
     private readonly summaryRepository: SummaryRepository,
     private readonly promptContextBuilder: PromptContextBuilder,
+    private readonly playerCharacterRepository: PlayerCharacterRepository,
   ) {}
 
   async execute(
@@ -37,12 +40,18 @@ export class GetPromptContextUseCase {
     const recentMessages = allMessages.slice(-conv.recentMessageCount)
     const promptMemories = filterMemoriesForPrompt(conv, memories, allMessages)
 
+    const playerCharacter = await resolvePlayerCharacterPrompt(
+      this.playerCharacterRepository,
+      conv,
+    )
+
     const context = await this.promptContextBuilder.build({
       characterVersion: characterVersion!,
       messages: recentMessages,
       recentMessageCount: conv.recentMessageCount,
       memories: promptMemories,
       summary: summary ?? undefined,
+      playerCharacter,
       enableMemoryProposalTool: true,
       filterOocFromHistory: true,
     })

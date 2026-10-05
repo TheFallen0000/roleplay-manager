@@ -5,6 +5,7 @@ import pinoHttp from "pino-http"
 import type { AppContainer } from "../../../containers/app-container"
 import { buildErrorHandler } from "./middlewares/error-handler"
 import { buildCharacterRouter } from "./routes/character.routes"
+import { buildPlayerCharacterRouter } from "./routes/player-character.routes"
 import { buildConversationRouter } from "./routes/conversation.routes"
 import { buildHealthRouter } from "./routes/health.routes"
 import { buildProviderRouter } from "./routes/provider.routes"
@@ -64,6 +65,7 @@ export const buildServer = ({
   )
   app.use("/api", buildProviderInstanceRouter(container))
   app.use("/api", buildCharacterRouter(container))
+  app.use("/api", buildPlayerCharacterRouter(container))
   app.use(
     "/api",
     buildConversationRouter({

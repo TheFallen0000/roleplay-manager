@@ -8,11 +8,13 @@ import type { ConversationRepository } from "../../../domain/ports/conversation.
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 import type { CharacterAssetRepository, CharacterAssetStorage } from "../../../domain/ports/character-asset.repository"
 import type { ProviderRegistry } from "../../../domain/ports/provider.port"
 import {
   ConversationNotFoundError,
   CharacterAssetNotFoundError,
+  PlayerCharacterNotFoundError,
   DomainError,
 } from "../../../domain/errors"
 import { resolveEffectiveProfileImageAssetId } from "../../../domain/value-objects/effective-profile-image"
@@ -32,6 +34,7 @@ export class UpdateConversationSettingsUseCase {
     private readonly logger: Logger,
     private readonly assetRepository: CharacterAssetRepository,
     private readonly assetStorage: CharacterAssetStorage,
+    private readonly playerCharacterRepository: PlayerCharacterRepository,
   ) {}
 
   async execute(
@@ -51,6 +54,15 @@ export class UpdateConversationSettingsUseCase {
         if (!asset) {
           throw new CharacterAssetNotFoundError(input.customProfileImageAssetId)
         }
+      }
+    }
+
+    if (input.playerCharacterId !== undefined && input.playerCharacterId !== null) {
+      const playerCharacter = await this.playerCharacterRepository.findById(
+        input.playerCharacterId,
+      )
+      if (!playerCharacter) {
+        throw new PlayerCharacterNotFoundError(input.playerCharacterId)
       }
     }
 
@@ -193,6 +205,7 @@ export class UpdateConversationSettingsUseCase {
       stopSequences: updated.stopSequences,
       memoryProposalMode: updated.memoryProposalMode,
       customProfileImageAssetId: updated.customProfileImageAssetId,
+      playerCharacterId: updated.playerCharacterId,
       memoryDecayMode: updated.memoryDecayMode,
       memoryDecayThreshold: updated.memoryDecayThreshold,
       memoryDecayAgeThreshold: updated.memoryDecayAgeThreshold,

@@ -14,6 +14,7 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
     recentMessageCount: number
     memories?: Memory[]
     summary?: Summary
+    playerCharacter?: { name: string; description: string }
     enableMemoryProposalTool?: boolean
     filterOocFromHistory?: boolean
   }): Promise<PromptContext> {
@@ -23,6 +24,7 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
       recentMessageCount,
       memories,
       summary,
+      playerCharacter,
       enableMemoryProposalTool = false,
       filterOocFromHistory = false,
     } = params
@@ -58,6 +60,14 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
       for (const card of activeCards) {
         systemParts.push(`[${card.title}]: ${card.content}`)
       }
+    }
+
+    if (playerCharacter) {
+      systemParts.push("")
+      systemParts.push("## Personaje del usuario")
+      systemParts.push(
+        `El usuario interpreta a ${playerCharacter.name}. ${playerCharacter.description}`,
+      )
     }
 
     if (memories && memories.length > 0) {

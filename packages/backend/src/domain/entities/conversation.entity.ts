@@ -23,6 +23,7 @@ export interface ConversationProps {
   stopSequences: string[]
   memoryProposalMode: MemoryProposalMode
   customProfileImageAssetId?: string | null
+  playerCharacterId?: string | null
   memoryDecayMode?: MemoryDecayMode
   memoryDecayThreshold?: number
   memoryDecayAgeThreshold?: number
@@ -45,6 +46,7 @@ export class Conversation {
     return new Conversation({
       ...props,
       customProfileImageAssetId: props.customProfileImageAssetId ?? null,
+      playerCharacterId: props.playerCharacterId ?? null,
       memoryDecayMode: props.memoryDecayMode ?? DEFAULT_MEMORY_DECAY.mode,
       memoryDecayThreshold: props.memoryDecayThreshold ?? DEFAULT_MEMORY_DECAY.threshold,
       memoryDecayAgeThreshold: props.memoryDecayAgeThreshold ?? DEFAULT_MEMORY_DECAY.ageThreshold,
@@ -69,6 +71,7 @@ export class Conversation {
   get stopSequences(): string[] { return this.props.stopSequences }
   get memoryProposalMode(): MemoryProposalMode { return this.props.memoryProposalMode }
   get customProfileImageAssetId(): string | null { return this.props.customProfileImageAssetId ?? null }
+  get playerCharacterId(): string | null { return this.props.playerCharacterId ?? null }
   get memoryDecayMode(): MemoryDecayMode { return this.props.memoryDecayMode as MemoryDecayMode }
   get memoryDecayThreshold(): number { return this.props.memoryDecayThreshold as number }
   get memoryDecayAgeThreshold(): number { return this.props.memoryDecayAgeThreshold as number }

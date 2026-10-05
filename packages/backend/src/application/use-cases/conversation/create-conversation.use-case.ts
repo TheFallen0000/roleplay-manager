@@ -133,6 +133,7 @@ export class CreateConversationUseCase {
       stopSequences: conversation.stopSequences,
       memoryProposalMode: conversation.memoryProposalMode,
       customProfileImageAssetId: conversation.customProfileImageAssetId,
+      playerCharacterId: conversation.playerCharacterId,
       memoryDecayMode: conversation.memoryDecayMode,
       memoryDecayThreshold: conversation.memoryDecayThreshold,
       memoryDecayAgeThreshold: conversation.memoryDecayAgeThreshold,

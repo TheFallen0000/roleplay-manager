@@ -38,6 +38,7 @@ export interface ConversationDetail {
   stopSequences: string[]
   memoryProposalMode: MemoryProposalMode
   customProfileImageAssetId: string | null
+  playerCharacterId: string | null
   memoryDecayMode: MemoryDecayMode
   memoryDecayThreshold: number
   memoryDecayAgeThreshold: number
@@ -61,6 +62,7 @@ export interface ConversationSettingsUpdate {
   stopSequences?: string[]
   memoryProposalMode?: MemoryProposalMode
   customProfileImageAssetId?: string | null
+  playerCharacterId?: string | null
   memoryDecayMode?: MemoryDecayMode
   memoryDecayThreshold?: number
   memoryDecayAgeThreshold?: number
