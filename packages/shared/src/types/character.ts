@@ -1,3 +1,5 @@
+import type { ImageDimensions } from "./image"
+
 export interface CharacterAssetDTO {
   id: string
   characterId: string
@@ -11,6 +13,8 @@ export interface CharacterSummary {
   name: string
   subtitle: string | null
   profileImageAssetId: string | null
+  profileImageDimensions?: ImageDimensions | null
+  profileImageMimeType?: string | null
   versionNumber: number
   createdAt: string
   updatedAt: string
