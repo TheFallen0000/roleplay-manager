@@ -7,7 +7,7 @@ See `S9-plan.md` for the v1.0 polish tasks and the rationale for deferring
 these. The dependency graph below reflects which PMs must land together or in
 sequence.
 
-Last updated: 2026-08-12
+Last updated: 2026-10-05
 
 ## Images & media
 
@@ -18,6 +18,7 @@ Last updated: 2026-08-12
 | PM.3 | Image compressor for the background image and square-section cropper. <br>*Deferred — revisit with PM.5 (see note below).* | PM.1 |
 | PM.4 | Modify the profile image without creating a new character version. <br>*Done as S13 (v1.4.0) — see `S13-progress.md`.* | PM.1 |
 | PM.5 | Allow choosing a background image for the chat (default: profile photo), with fit modes (fill, crop, etc.). <br>*Deferred — requires a totally new image flow (see note below).* | PM.1 |
+| PM.19 | Generate and serve responsive local variants of existing profile images for character cards and chat avatars, without changing the original asset. <br>*Done as S28 (v1.19.0) — see `S28-progress.md`.* | PM.1 |
 
 > **PM.3 + PM.5 (image flow) — deferred (2026-08-12):** Both form a single, entirely new
 > functionality that is too large for the current cycle: image compressors backed by
@@ -26,7 +27,16 @@ Last updated: 2026-08-12
 > backlog moves to the smaller, high-value tasks (PM.6 → PM.16) first. When PM.5 is picked
 > up, a **new image flow must be defined first** (upload → compress → crop → store → fit
 > modes for background and avatar), reusing what S13 built for the profile image but
-> designed for arbitrary sizes and aspect ratios.
+> designed for arbitrary sizes and aspect ratios. S28/PM.19 optimizes delivery of
+> existing profile images only; it does not implement the background flow.
+
+> **PM.19 (S28) — done (2026-10-05, v1.19.0):** Profile image originals remain unchanged;
+> local WebP variants are generated for uploads/imports, and existing assets can be
+> backfilled with the idempotent `pnpm --filter @workspace/backend
+> assets:backfill-variants` command. Character cards use bounded `srcset` candidates,
+> chat avatars use the thumbnail, and GIFs continue to use their original animated file.
+> This optimizes the existing profile-image flow only; it does **not** complete PM.3 or
+> PM.5 (background image selection/compression/cropping), which remain deferred.
 
 ## Grouping & navigation
 
