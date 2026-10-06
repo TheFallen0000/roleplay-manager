@@ -145,6 +145,7 @@ describe("ExportDialog", () => {
         "conversations.memories",
         "conversations.summaries",
         "conversations.settings",
+        "conversations.images",
       ]),
     )
     expect(sections).not.toContain("standaloneSettings")

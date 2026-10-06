@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest"
 
 import type { CharacterExport } from "@workspace/shared/types/export"
+import { DEFAULT_EXPORT_SETTINGS } from "@workspace/shared/types/export"
 import type { CharacterVersionDTO } from "@workspace/shared/types/character"
 import { ImportCharacterUseCase } from "./import-character.use-case"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
@@ -339,5 +340,104 @@ describe("ImportCharacterUseCase", () => {
     await expect(buildUseCase(repos).execute({ payload })).rejects.toThrow(
       "El archivo no contiene la definición del personaje",
     )
+  })
+
+  const exportConversation = (overrides: Record<string, unknown> = {}) => ({
+    id: "old-conv-1",
+    title: null,
+    versionId: "old-ver-1",
+    createdAt: "2026-08-03T10:00:00.000Z",
+    updatedAt: "2026-08-04T10:00:00.000Z",
+    ...overrides,
+  })
+
+  it("importa cada imagen compartida una sola vez y remapea las referencias", async () => {
+    const repos = buildRepos()
+    const payload = buildPayload({
+      conversations: [
+        exportConversation({ customProfileImageAssetId: "old-shared" }),
+        exportConversation({
+          id: "old-conv-2",
+          backgroundImageAssetId: "old-shared",
+          backgroundFit: "contain",
+          backgroundScrim: 30,
+        }),
+      ],
+      conversationImages: [
+        {
+          assetId: "old-shared",
+          mimeType: "image/png",
+          base64: pngBytes.toString("base64"),
+        },
+      ],
+    })
+
+    await buildUseCase(repos).execute({ payload })
+
+    expect(repos.storeCharacterAsset.store).toHaveBeenCalledTimes(1)
+    expect(repos.storeCharacterAsset.store).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mimeType: "image/png",
+        usage: ["profile", "background"],
+      }),
+    )
+
+    const created = (
+      repos.conversationRepository.create as ReturnType<typeof vi.fn>
+    ).mock.calls.map((call) => call[0])
+    expect(created).toHaveLength(2)
+    expect(created[0].customProfileImageAssetId).toBe("new-asset-id")
+    expect(created[1].backgroundImageAssetId).toBe("new-asset-id")
+    expect(created[1].backgroundFit).toBe("contain")
+    expect(created[1].backgroundScrim).toBe(30)
+  })
+
+  it("remapea la imagen personalizada de exportaciones antiguas", async () => {
+    const repos = buildRepos()
+    const payload = buildPayload({
+      conversations: [
+        exportConversation({
+          settings: {
+            ...DEFAULT_EXPORT_SETTINGS,
+            customProfileImageAssetId: "old-shared",
+          },
+        }),
+      ],
+      conversationImages: [
+        {
+          assetId: "old-shared",
+          mimeType: "image/png",
+          base64: pngBytes.toString("base64"),
+        },
+      ],
+    })
+
+    await buildUseCase(repos).execute({ payload })
+
+    const created = (
+      repos.conversationRepository.create as ReturnType<typeof vi.fn>
+    ).mock.calls[0][0]
+    expect(created.customProfileImageAssetId).toBe("new-asset-id")
+  })
+
+  it("limpia las referencias de imagen sin binario en la exportación", async () => {
+    const repos = buildRepos()
+    const payload = buildPayload({
+      conversations: [
+        exportConversation({
+          customProfileImageAssetId: "old-missing",
+          backgroundImageAssetId: "old-missing-bg",
+        }),
+      ],
+    })
+
+    await buildUseCase(repos).execute({ payload })
+
+    const created = (
+      repos.conversationRepository.create as ReturnType<typeof vi.fn>
+    ).mock.calls[0][0]
+    expect(created.customProfileImageAssetId).toBeNull()
+    expect(created.backgroundImageAssetId).toBeNull()
+    expect(repos.storeCharacterAsset.store).not.toHaveBeenCalled()
   })
 })

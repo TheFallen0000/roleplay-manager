@@ -55,11 +55,11 @@ const otherVersion = CharacterVersion.create({
   cards: [],
 })
 
-const conversation = Conversation.create({
+const conversationProps = {
   id: "conv-1",
   versionId: "ver-1",
   title: "Chat principal",
-  titleSource: "manual",
+  titleSource: "manual" as const,
   model: "gpt-4o-mini",
   provider: "openai-compatible",
   providerInstanceId: "inst-1",
@@ -71,15 +71,17 @@ const conversation = Conversation.create({
   frequencyPenalty: 0.1,
   presencePenalty: 0.2,
   stopSequences: ["###"],
-  memoryProposalMode: "manual",
+  memoryProposalMode: "manual" as const,
   customProfileImageAssetId: "asset-9",
-  memoryDecayMode: "manual",
+  memoryDecayMode: "manual" as const,
   memoryDecayThreshold: 4,
   memoryDecayAgeThreshold: 40,
   memoryDecaySpeed: 5,
   createdAt: now,
   updatedAt: new Date(now.getTime() + 1000),
-})
+}
+
+const conversation = Conversation.create(conversationProps)
 
 const otherCharacterConversation = Conversation.create({
   id: "conv-2",
@@ -153,11 +155,13 @@ const buildCharacterRepo = (): CharacterRepository => ({
   updateProfileImageAssetId: async () => {},
 })
 
-const buildConversationRepo = (): ConversationRepository => ({
+const buildConversationRepo = (
+  list: Conversation[] = [conversation, otherCharacterConversation],
+): ConversationRepository => ({
   create: async (c) => c,
   findById: async () => conversation,
   findByIdWithMessages: async () => null,
-  list: async () => [conversation, otherCharacterConversation],
+  list: async () => list,
   update: async (c) => c,
   updateSettings: async () => conversation,
   clearProviderInstanceId: async () => {},
@@ -194,8 +198,8 @@ const buildSummaryRepo = (): SummaryRepository => ({
 
 const buildAssetRepo = (): CharacterAssetRepository => ({
   create: async () => {},
-  findById: async () => ({
-    id: "asset-1",
+  findById: async (id) => ({
+    id,
     characterId: "char-1",
     mimeType: "image/png",
     sizeBytes: 11,
@@ -214,10 +218,12 @@ const buildAssetStorage = (): CharacterAssetStorage => ({
   delete: async () => {},
 })
 
-const buildUseCase = () =>
+const buildUseCase = (
+  conversationRepo: ConversationRepository = buildConversationRepo(),
+) =>
   new ExportCharacterUseCase(
     buildCharacterRepo(),
-    buildConversationRepo(),
+    conversationRepo,
     buildMessageRepo(),
     buildMemoryRepo(),
     buildSummaryRepo(),
@@ -238,6 +244,7 @@ describe("ExportCharacterUseCase", () => {
         "conversations.memories",
         "conversations.summaries",
         "conversations.settings",
+        "conversations.images",
         "standaloneSettings",
       ],
     })
@@ -259,8 +266,15 @@ describe("ExportCharacterUseCase", () => {
     expect(exported?.memories).toHaveLength(1)
     expect(exported?.summaries).toHaveLength(1)
     expect(exported?.settings?.model).toBe("gpt-4o-mini")
-    expect(exported?.settings?.customProfileImageAssetId).toBe("asset-9")
     expect(exported?.settings?.memoryDecayMode).toBe("manual")
+    expect(exported?.customProfileImageAssetId).toBe("asset-9")
+    expect(exported?.backgroundImageAssetId).toBeNull()
+
+    expect(result.conversationImages).toHaveLength(1)
+    expect(result.conversationImages?.[0].assetId).toBe("asset-9")
+    expect(result.conversationImages?.[0].base64).toBe(
+      Buffer.from("image-bytes").toString("base64"),
+    )
 
     expect(result.standaloneSettings?.temperature).toBe(0.9)
     expect(result.standaloneSettings?.memoryDecayThreshold).toBe(4)
@@ -270,6 +284,48 @@ describe("ExportCharacterUseCase", () => {
         "customProfileImageAssetId",
       ),
     ).toBe(false)
+  })
+
+  it("deduplica imágenes compartidas entre ramas y exporta ajuste y velo", async () => {
+    const branch = Conversation.create({
+      ...conversationProps,
+      id: "conv-branch",
+      customProfileImageAssetId: null,
+      backgroundImageAssetId: "asset-9",
+      backgroundFit: "contain",
+      backgroundScrim: 30,
+    })
+    const result = await buildUseCase(
+      buildConversationRepo([conversation, branch]),
+    ).execute({
+      characterId: "char-1",
+      sections: ["conversations", "conversations.images"],
+    })
+
+    expect(result.conversations).toHaveLength(2)
+    // The asset shared by both conversations travels exactly once.
+    expect(result.conversationImages).toHaveLength(1)
+    expect(result.conversationImages?.[0].assetId).toBe("asset-9")
+
+    const exportedBranch = result.conversations?.find(
+      (item) => item.id === "conv-branch",
+    )
+    expect(exportedBranch?.backgroundImageAssetId).toBe("asset-9")
+    expect(exportedBranch?.backgroundFit).toBe("contain")
+    expect(exportedBranch?.backgroundScrim).toBe(30)
+  })
+
+  it("no exporta imágenes de conversación si la sección no está seleccionada", async () => {
+    const result = await buildUseCase().execute({
+      characterId: "char-1",
+      sections: ["conversations", "conversations.settings"],
+    })
+
+    expect(result.conversationImages).toBeUndefined()
+    expect(result.conversations?.[0].customProfileImageAssetId).toBeUndefined()
+    expect(
+      result.conversations?.[0].settings?.customProfileImageAssetId,
+    ).toBeUndefined()
   })
 
   it("permite exportar solo la configuración standalone (plantilla)", async () => {
