@@ -32,7 +32,7 @@ if (id) {
 >
   {
     conversation ? (
-      <div class="flex h-[calc(100vh-8rem)] flex-col rounded-lg border">
+      <div class="flex h-[calc(100dvh-5rem)] flex-col rounded-lg border sm:h-[calc(100dvh-6rem)]">
         <Chat locale={locale} client:load conversation={conversation} />
       </div>
     ) : (
