@@ -152,6 +152,7 @@ Last updated: 2026-10-06
 | # | Proposal | Dependencies |
 |---|----------|--------------|
 | PM.21 | Access the app from a phone anywhere while it keeps running on the user's computer, without deploying to a server or exposing ports. <br>*Done as S33 (v1.25.0): **Tailscale + Serve** (private, no domain), toggled from the app's Phone menu with a QR. See `S33-progress.md`.* | — |
+| PM.22 | Quick phone connection over the home network (same Wi-Fi): a "Home network" tab in the Phone dialog with its own URL and QR, alongside the Tailscale one. <br>*Feasibility confirmed (2026-10-06); design decisions open (see note below).* | PM.21 |
 
 > **PM.21 (S32 + S33) — done (2026-10-06, v1.24.0 / v1.25.0):** **Tailscale + Serve** was
 > chosen (private tailnet, nothing exposed to the internet, no domain, phone installs the
@@ -161,6 +162,20 @@ Last updated: 2026-10-06
 > copy link and a first-run guide, driven by the backend through the Tailscale CLI. Deferred:
 > auto-enable/auto-disable options and the PWA manifest. See `S32-progress.md`,
 > `S33-progress.md` and `remote-access-opt.md`.
+
+> **PM.22 — research (2026-10-06):** Feasible. Thanks to the same-origin `/api` proxy (S32), a
+> LAN URL (`http://<pc-ip>:4321`) works as-is: Vite always allows IP hosts (verified in its
+> host-check code), Astro's origin check passes because the origin matches the host, and the
+> browser only talks to one origin. It needs the server to bind beyond localhost
+> (`server.host: true`, which also covers the standalone build) and a Windows Firewall
+> allowance on private networks. The dialog would gain a **Home network** tab with the detected
+> LAN IP (from the backend's network interfaces) and its own QR. Open decisions:
+> (a) expose the LAN **always-on** while the server runs (simple, but any device on the Wi-Fi
+> could open the app, which has no auth — risky on untrusted networks) or add a **toggle**
+> backed by a small LAN reverse proxy in the backend (safer default, more moving parts);
+> (b) how to pick among several interfaces (Wi-Fi/Ethernet/virtual adapters). Notes: LAN is
+> plain HTTP, so the clipboard API (copy link) is unavailable and PWA/service workers are out;
+> cookies and the API work.
 
 ## UI polish
 
