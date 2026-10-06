@@ -74,6 +74,30 @@ export const en = {
     deleteDescription:
       'This will delete "{name}". Conversations using it will be left without a persona.',
   },
+  tunnel: {
+    menuLabel: "Phone",
+    menuOpen: "Open phone access…",
+    title: "Phone access",
+    description:
+      "Open the app on your phone from anywhere. Nothing is exposed to the internet: your devices connect through your private Tailscale network.",
+    loading: "Checking the connection…",
+    toggleLabel: "Share on my private network",
+    statusActive: "Active — reachable from your devices",
+    statusInactive: "Inactive",
+    statusUnavailable: "Tailscale is not installed",
+    statusDisconnected: "Tailscale is not running or signed in",
+    installGuide: "Install Tailscale on this computer to continue:",
+    installLink: "Download Tailscale",
+    signInGuide:
+      "Open Tailscale on this computer and sign in with your account.",
+    scanHint:
+      "Scan with your phone camera. The Tailscale app must be installed and connected with the same account.",
+    copy: "Copy link",
+    copied: "Link copied to the clipboard.",
+    copyFailed: "Could not copy the link.",
+    checkFailed: "Could not check the connection.",
+    actionFailed: "Could not change the connection.",
+  },
   errors: {
     PLAYER_CHARACTER_NOT_FOUND: "The selected persona no longer exists.",
     CHARACTER_NOT_FOUND: "The character no longer exists.",
@@ -81,6 +105,11 @@ export const en = {
     CONVERSATION_ALREADY_EXISTS:
       "A conversation already exists for this character and version.",
     INVALID_IMPORT_FILE: "The file is not a valid character export.",
+    TUNNEL_NOT_AVAILABLE: "Tailscale is not installed on this computer.",
+    TUNNEL_NOT_CONNECTED:
+      "Tailscale is not running or is signed out on this computer.",
+    TUNNEL_COMMAND_FAILED:
+      "Could not change the connection. Check that Tailscale is running and that HTTPS is enabled in your tailnet.",
   },
   chat: {
     noMessages: "There are no messages in this conversation.",

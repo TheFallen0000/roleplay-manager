@@ -72,6 +72,30 @@ export const es: Dictionary = {
     deleteDescription:
       'Se eliminará "{name}". Las conversaciones que la usaban se quedarán sin persona asignada.',
   },
+  tunnel: {
+    menuLabel: "Teléfono",
+    menuOpen: "Abrir acceso desde el teléfono…",
+    title: "Acceso desde el teléfono",
+    description:
+      "Abre la app en tu teléfono desde cualquier lugar. Nada se expone a internet: tus dispositivos se conectan por tu red privada de Tailscale.",
+    loading: "Comprobando la conexión…",
+    toggleLabel: "Compartir en mi red privada",
+    statusActive: "Activo — accesible desde tus dispositivos",
+    statusInactive: "Inactivo",
+    statusUnavailable: "Tailscale no está instalado",
+    statusDisconnected: "Tailscale no está en ejecución o sin sesión",
+    installGuide: "Instala Tailscale en esta computadora para continuar:",
+    installLink: "Descargar Tailscale",
+    signInGuide:
+      "Abre Tailscale en esta computadora e inicia sesión con tu cuenta.",
+    scanHint:
+      "Escanea con la cámara del teléfono. La app de Tailscale debe estar instalada y conectada con la misma cuenta.",
+    copy: "Copiar enlace",
+    copied: "Enlace copiado al portapapeles.",
+    copyFailed: "No se pudo copiar el enlace.",
+    checkFailed: "No se pudo comprobar la conexión.",
+    actionFailed: "No se pudo cambiar la conexión.",
+  },
   errors: {
     PLAYER_CHARACTER_NOT_FOUND: "La persona seleccionada ya no existe.",
     CHARACTER_NOT_FOUND: "El personaje ya no existe.",
@@ -79,6 +103,11 @@ export const es: Dictionary = {
     CONVERSATION_ALREADY_EXISTS:
       "Ya existe una conversación para este personaje y versión.",
     INVALID_IMPORT_FILE: "El archivo no es una exportación de personaje válida.",
+    TUNNEL_NOT_AVAILABLE: "Tailscale no está instalado en esta computadora.",
+    TUNNEL_NOT_CONNECTED:
+      "Tailscale no está en ejecución o no tiene sesión iniciada en esta computadora.",
+    TUNNEL_COMMAND_FAILED:
+      "No se pudo cambiar la conexión. Comprueba que Tailscale esté en ejecución y que HTTPS esté habilitado en tu tailnet.",
   },
   chat: {
     noMessages: "No hay mensajes en esta conversación.",
