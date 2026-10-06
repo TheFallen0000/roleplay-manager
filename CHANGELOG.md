@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.25.3] - 2026-10-06
+
+### Fixed
+
+- Running `pnpm build` while `pnpm dev` is up no longer breaks the running dev server: the dev and build dependency-optimizer caches are now separate (`node_modules/.vite-dev` and `node_modules/.vite-build`). Previously the build clobbered the dev server's optimized deps, so pages loaded without hydration (504 "Outdated Optimize Dep") until the dev server was restarted.
+
 ## [1.25.2] - 2026-10-06
 
 ### Fixed
