@@ -28,9 +28,10 @@ la app para uso remoto/móvil sin añadir almacenamiento externo.
 - **MIME**: Sharp vive únicamente en infraestructura. PNG/JPEG/WebP producen
   variantes WebP; GIF conserva animación y se sirve desde el original sin
   conversiones.
-- **Seguridad de decodificación**: además del límite actual de 3 MB, se limita
-  por defecto la imagen decodificada a 40 MP (`MAX_PROFILE_IMAGE_PIXELS`,
-  configurable). Se comprueba que el contenido decodificado coincida con el MIME.
+- **Seguridad de decodificación**: además del límite de bytes por upload (3 MB
+  en S28, ampliado a 15 MB en v1.20.0), se limita por defecto la imagen
+  decodificada a 40 MP (`MAX_PROFILE_IMAGE_PIXELS`, configurable). Se comprueba
+  que el contenido decodificado coincida con el MIME.
 - **Flujo común**: un servicio de aplicación usa el puerto de procesamiento y
   almacenamiento para uploads de perfil, imágenes personalizadas de chat e
   importación. Si falla el registro en SQLite o la escritura de una variante,
@@ -83,3 +84,20 @@ la app para uso remoto/móvil sin añadir almacenamiento externo.
 5. `test(images): cover processing, delivery and backfill`
 6. `docs(backlog): add PM.19 image optimization`
 7. `release: bump to v1.19.0 and add changelog entry`
+
+## Follow-up (v1.20.0)
+
+- **Medición del ahorro**: `assets:backfill-variants -- --report` (solo lectura,
+  no escribe nada) informa por asset de los bytes del original y de cada variante
+  y de lo que descargarían hoy una card (`medium`) y un avatar (`thumbnail`), con
+  porcentajes de ahorro agregados. Es la forma recomendada de comprobar con datos
+  reales que un teléfono recibe menos bytes.
+- **Límite de subida**: de 3 MB a 15 MB, en la validación del frontend y en el
+  default de `MAX_PROFILE_IMAGE_BYTES` del backend. El guard de píxeles
+  (`MAX_PROFILE_IMAGE_PIXELS`, 40 MP) sigue protegiendo la decodificación.
+
+Commits:
+
+1. `feat(backend): report delivered image variant sizes`
+2. `chore(config): raise the profile image upload limit to 15 MB`
+3. `release: bump to v1.20.0 and add changelog entry`

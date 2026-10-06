@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.20.0] - 2026-10-06
+
+### Added
+
+- `--report` mode for the asset variants command (`pnpm --filter @workspace/backend assets:backfill-variants -- --report`): read-only per-asset byte sizes for the original and each variant, plus what a character card and a chat avatar would download today and the aggregate savings percentages.
+
+### Changed
+
+- Profile image upload limit raised from 3 MB to 15 MB, both in the frontend validation and in the backend `MAX_PROFILE_IMAGE_BYTES` default. The decoded-pixel guard (40 MP) still protects processing.
+
 ## [1.19.0] - 2026-10-05
 
 ### Added
