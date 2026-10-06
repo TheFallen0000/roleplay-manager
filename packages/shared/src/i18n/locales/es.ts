@@ -323,6 +323,7 @@ export const es: Dictionary = {
     exportMemories: "Memorias dinámicas",
     exportSummaries: "Resúmenes",
     exportSettings: "Configuraciones y personalizaciones",
+    exportConversationImages: "Imágenes de conversación",
     exportSelectSection: "Selecciona al menos una sección para exportar.",
     exportDone: "Exportación descargada",
     exportFailed: "No se pudo exportar el personaje.",

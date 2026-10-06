@@ -325,6 +325,7 @@ export const en = {
     exportMemories: "Dynamic memories",
     exportSummaries: "Summaries",
     exportSettings: "Settings and customizations",
+    exportConversationImages: "Conversation images",
     exportSelectSection: "Select at least one section to export.",
     exportDone: "Export downloaded",
     exportFailed: "The character could not be exported.",

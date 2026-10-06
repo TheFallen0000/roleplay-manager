@@ -1,4 +1,5 @@
 import type { CharacterVersionDTO } from "./character"
+import type { BackgroundFit } from "./conversation"
 import type { MemoryDTO } from "./memory"
 import type { MessageDTO } from "./message"
 import type { SummaryDTO } from "./summary"
@@ -15,6 +16,7 @@ export type ExportSection =
   | "conversations.memories"
   | "conversations.summaries"
   | "conversations.settings"
+  | "conversations.images"
   | "standaloneSettings"
 
 export const ALL_EXPORT_SECTIONS: ExportSection[] = [
@@ -26,6 +28,7 @@ export const ALL_EXPORT_SECTIONS: ExportSection[] = [
   "conversations.memories",
   "conversations.summaries",
   "conversations.settings",
+  "conversations.images",
   "standaloneSettings",
 ]
 
@@ -39,6 +42,7 @@ export const EXPORT_SECTION_PARENTS: Partial<Record<ExportSection, ExportSection
   "conversations.memories": "conversations",
   "conversations.summaries": "conversations",
   "conversations.settings": "conversations",
+  "conversations.images": "conversations",
 }
 
 export interface ExportSettings {
@@ -85,10 +89,22 @@ export interface ExportConversation {
   versionId: string
   createdAt: string
   updatedAt: string
-  settings?: ExportSettings & { customProfileImageAssetId: string | null }
+  /** Conversation-scoped image references (binaries live in `conversationImages`). */
+  customProfileImageAssetId?: string | null
+  backgroundImageAssetId?: string | null
+  backgroundFit?: BackgroundFit
+  backgroundScrim?: number
+  settings?: ExportSettings & { customProfileImageAssetId?: string | null }
   messages?: MessageDTO[]
   memories?: MemoryDTO[]
   summaries?: SummaryDTO[]
+}
+
+/** A unique conversation-scoped image, exported once even if branches share it. */
+export interface ExportConversationImage {
+  assetId: string
+  mimeType: string
+  base64: string
 }
 
 export interface CharacterExport {
@@ -109,6 +125,7 @@ export interface CharacterExport {
   }
   versions?: CharacterVersionDTO[]
   conversations?: ExportConversation[]
+  conversationImages?: ExportConversationImage[]
   standaloneSettings?: ExportSettings
 }
 
