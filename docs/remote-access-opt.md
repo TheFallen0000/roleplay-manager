@@ -239,6 +239,17 @@ es «encender → escanear → listo».
 > (S34, v1.25.1) y `server.allowedHosts` para el hostname de Tailscale
 > (S35, v1.25.2). Ver `S34-progress.md` y `S35-progress.md`.
 
+## Acceso por LAN (red doméstica) — PM.22
+
+Implementado en S38 (v1.26.0). El backend levanta un proxy en
+`0.0.0.0:<LAN_PORT>` (por defecto 4322) que reenvía al frontend local
+conservando el `Host`; el frontend sigue escuchando solo en localhost y el modo
+se enciende/apaga en caliente desde la pestaña «Red doméstica» del diálogo
+Teléfono. La URL es `http://<ip-privada>:<puerto>` (ambos dispositivos en la
+misma WiFi) y hay selector si la máquina tiene varias interfaces (se filtran
+las virtuales y la CGNAT de Tailscale). Es HTTP plano: el portapapeles usa un
+fallback clásico y no hay PWA/service workers. Ver `S38-progress.md`.
+
 ## Pendientes (opcionales)
 
 - «Activar al iniciar» / «desactivar al cerrar» y auto-desactivado por
