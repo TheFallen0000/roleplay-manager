@@ -10,6 +10,8 @@ const envSchema = z.object({
   DATA_DIR: z.string().min(1).default("./data"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("debug"),
   CORS_ORIGIN: z.string().url().default("http://localhost:4321"),
+  TUNNEL_TARGET_URL: z.string().url().default("http://localhost:4321"),
+  TAILSCALE_BIN: z.string().min(1).optional(),
   MAX_PROFILE_IMAGE_BYTES: z.coerce.number().int().positive().default(DEFAULT_MAX_PROFILE_IMAGE_BYTES),
   MAX_PROFILE_IMAGE_PIXELS: z.coerce.number().int().positive().default(40_000_000),
   PROVIDER_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),

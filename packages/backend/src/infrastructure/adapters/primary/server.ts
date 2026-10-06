@@ -14,6 +14,7 @@ import { buildProviderInstanceRouter } from "./routes/provider-instance.routes"
 import { buildMemoryRouter } from "./routes/memory.routes"
 import { buildContextRouter } from "./routes/context.routes"
 import { buildSummaryRouter } from "./routes/summary.routes"
+import { buildTunnelRouter } from "./routes/tunnel.routes"
 
 export interface BuildServerOptions {
   container: AppContainer
@@ -114,6 +115,14 @@ export const buildServer = ({
       generateSummary: container.generateSummary,
       updateSummary: container.updateSummary,
       deleteSummary: container.deleteSummary,
+    }),
+  )
+  app.use(
+    "/api",
+    buildTunnelRouter({
+      getTunnelStatus: container.getTunnelStatus,
+      enableTunnel: container.enableTunnel,
+      disableTunnel: container.disableTunnel,
     }),
   )
 

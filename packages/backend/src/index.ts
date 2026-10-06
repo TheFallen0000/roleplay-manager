@@ -38,6 +38,8 @@ const main = (): void => {
     ollamaBaseUrl: env.OLLAMA_BASE_URL,
     providerTimeoutMs: env.PROVIDER_TIMEOUT_MS,
     providerStreamingTimeoutMs: env.PROVIDER_STREAMING_TIMEOUT_MS,
+    tunnelTargetUrl: env.TUNNEL_TARGET_URL,
+    tailscaleBin: env.TAILSCALE_BIN,
   })
   const app = buildServer({
     container,

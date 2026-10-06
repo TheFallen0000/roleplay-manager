@@ -56,6 +56,10 @@ import { BackfillCharacterAssetVariantsUseCase } from "../application/use-cases/
 import { ApplySettingsTemplateUseCase } from "../application/use-cases/character/apply-settings-template.use-case"
 import { StoreCharacterAssetService } from "../application/services/store-character-asset.service"
 import { SharpCharacterAssetImageProcessor } from "../infrastructure/adapters/secondary/images/sharp-character-asset-image-processor"
+import { GetTunnelStatusUseCase } from "../application/use-cases/tunnel/get-tunnel-status.use-case"
+import { EnableTunnelUseCase } from "../application/use-cases/tunnel/enable-tunnel.use-case"
+import { DisableTunnelUseCase } from "../application/use-cases/tunnel/disable-tunnel.use-case"
+import { TailscaleServeAdapter } from "../infrastructure/adapters/secondary/tunnel/tailscale-serve.adapter"
 import { CreateConversationUseCase } from "../application/use-cases/conversation/create-conversation.use-case"
 import { BranchConversationUseCase } from "../application/use-cases/conversation/branch-conversation.use-case"
 import { GetConversationUseCase } from "../application/use-cases/conversation/get-conversation.use-case"
@@ -152,6 +156,11 @@ export interface AppContainer {
   validateProviderInstance: ValidateProviderInstanceUseCase
   setProviderModel: SetProviderModelUseCase
 
+  // Tunnel (phone access)
+  getTunnelStatus: GetTunnelStatusUseCase
+  enableTunnel: EnableTunnelUseCase
+  disableTunnel: DisableTunnelUseCase
+
   summaryRepository: SummaryRepository
 
   // Summary
@@ -181,6 +190,8 @@ export interface BuildContainerOptions {
   ollamaBaseUrl: string
   providerTimeoutMs: number
   providerStreamingTimeoutMs: number
+  tunnelTargetUrl: string
+  tailscaleBin?: string
 }
 
 export const buildContainer = ({
@@ -193,6 +204,8 @@ export const buildContainer = ({
   ollamaBaseUrl,
   providerTimeoutMs,
   providerStreamingTimeoutMs,
+  tunnelTargetUrl,
+  tailscaleBin,
 }: BuildContainerOptions): AppContainer => {
   const settings: SettingsRepository = new DrizzleSettingsRepository(database)
   const providerRegistry: ProviderRegistry = new ProviderRegistryImpl({
@@ -228,6 +241,14 @@ export const buildContainer = ({
   const providerInstanceRepository: ProviderInstanceRepository =
     new DrizzleProviderInstanceRepository(database)
   const getDefaultProvider = new GetDefaultProviderUseCase(settings, providerInstanceRepository)
+
+  const tunnelController = new TailscaleServeAdapter({
+    targetUrl: tunnelTargetUrl,
+    binPath: tailscaleBin,
+  })
+  const getTunnelStatus = new GetTunnelStatusUseCase(tunnelController)
+  const enableTunnel = new EnableTunnelUseCase(tunnelController)
+  const disableTunnel = new DisableTunnelUseCase(tunnelController)
 
   const applyAllMemoryChanges = new ApplyAllMemoryChangesUseCase(
     memoryRepository,
@@ -356,6 +377,9 @@ export const buildContainer = ({
       providerInstanceRepository,
       logger,
     ),
+    getTunnelStatus,
+    enableTunnel,
+    disableTunnel,
     settings,
     providerRegistry,
     providerInstanceRepository,

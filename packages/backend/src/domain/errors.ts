@@ -95,3 +95,32 @@ export class CharacterAssetValidationError extends DomainError {
     this.name = "CharacterAssetValidationError"
   }
 }
+
+export class TunnelNotAvailableError extends DomainError {
+  constructor() {
+    super(
+      "TUNNEL_NOT_AVAILABLE",
+      "Tailscale is not installed on this machine.",
+      409,
+    )
+    this.name = "TunnelNotAvailableError"
+  }
+}
+
+export class TunnelNotConnectedError extends DomainError {
+  constructor() {
+    super(
+      "TUNNEL_NOT_CONNECTED",
+      "Tailscale is not running or is signed out on this machine.",
+      409,
+    )
+    this.name = "TunnelNotConnectedError"
+  }
+}
+
+export class TunnelCommandError extends DomainError {
+  constructor(message: string) {
+    super("TUNNEL_COMMAND_FAILED", message, 502)
+    this.name = "TunnelCommandError"
+  }
+}
