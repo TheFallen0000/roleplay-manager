@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.25.4] - 2026-10-06
+
+### Fixed
+
+- The tunnel status dot no longer causes a React hydration mismatch: the cached status is loaded after mount instead of during the first render (which did not match the server-rendered HTML).
+- Provider instance rows keep their edit/delete actions inside the card when the "Selected" badge is shown on narrow screens: the badge now wraps and the content can shrink.
+- The chat now fills the available height on every screen: it uses `dvh` with the exact header and padding offsets, so there is no blank strip below and the message list keeps its internal scrolling.
+
 ## [1.25.3] - 2026-10-06
 
 ### Fixed
