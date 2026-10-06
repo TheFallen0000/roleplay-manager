@@ -62,7 +62,7 @@ export function InstanceList({
               return (
                 <div
                   key={inst.id}
-                  className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
+                  className={`flex items-center justify-between gap-2 rounded-lg border p-3 transition-colors ${
                     selected
                       ? "border-primary bg-primary/5"
                       : "hover:bg-muted/50"
@@ -70,22 +70,22 @@ export function InstanceList({
                 >
                   <button
                     type="button"
-                    className="flex flex-1 flex-col items-start text-left"
+                    className="flex min-w-0 flex-1 flex-col items-start text-left"
                     onClick={() => onSelect(inst.id)}
                   >
-                    <span className="flex items-center gap-2 text-sm font-medium">
+                    <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
                       {inst.name}
                       {selected ? (
-                        <Badge variant="secondary" className="gap-1">
+                        <Badge variant="secondary" className="shrink-0 gap-1">
                           <CheckIcon className="size-3" /> {t("providers.selected")}
                         </Badge>
                       ) : null}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="max-w-full truncate text-xs text-muted-foreground">
                       {inst.url || t("providers.noUrl")}
                     </span>
                   </button>
-                  <div className="flex items-center gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
                     <Button
                       type="button"
                       variant="ghost"
