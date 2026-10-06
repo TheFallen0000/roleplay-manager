@@ -1,10 +1,13 @@
 import type { ProviderStatus } from "./provider"
+import type { ImageDimensions } from "./image"
 
 export type MemoryProposalMode = "auto" | "manual"
 
 export type MemoryDecayMode = "silent" | "manual" | "off"
 
 export type TitleSource = "auto" | "manual"
+
+export type BackgroundFit = "cover" | "contain"
 
 export interface ConversationSummary {
   id: string
@@ -38,6 +41,10 @@ export interface ConversationDetail {
   stopSequences: string[]
   memoryProposalMode: MemoryProposalMode
   customProfileImageAssetId: string | null
+  backgroundImageAssetId: string | null
+  backgroundImageDimensions?: ImageDimensions | null
+  backgroundFit: BackgroundFit
+  backgroundScrim: number
   playerCharacterId: string | null
   memoryDecayMode: MemoryDecayMode
   memoryDecayThreshold: number
@@ -62,6 +69,9 @@ export interface ConversationSettingsUpdate {
   stopSequences?: string[]
   memoryProposalMode?: MemoryProposalMode
   customProfileImageAssetId?: string | null
+  backgroundImageAssetId?: string | null
+  backgroundFit?: BackgroundFit
+  backgroundScrim?: number
   playerCharacterId?: string | null
   memoryDecayMode?: MemoryDecayMode
   memoryDecayThreshold?: number

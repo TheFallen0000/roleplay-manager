@@ -2,6 +2,7 @@ export const CHARACTER_ASSET_VARIANTS = [
   "thumbnail",
   "small",
   "medium",
+  "large",
 ] as const
 
 export type CharacterAssetVariant = (typeof CHARACTER_ASSET_VARIANTS)[number]
@@ -14,6 +15,24 @@ export const CHARACTER_ASSET_VARIANT_WIDTHS: Record<
   thumbnail: 128,
   small: 384,
   medium: 768,
+  large: 1920,
+}
+
+/** How an asset is consumed; decides which variants are generated. */
+export type CharacterAssetUsage = "profile" | "background"
+
+export const CHARACTER_ASSET_VARIANTS_BY_USAGE: Record<
+  CharacterAssetUsage,
+  CharacterAssetVariant[]
+> = {
+  profile: ["thumbnail", "small", "medium"],
+  background: ["small", "medium", "large"],
+}
+
+export function isCharacterAssetUsage(
+  value: unknown,
+): value is CharacterAssetUsage {
+  return value === "profile" || value === "background"
 }
 
 export interface ImageDimensions {
