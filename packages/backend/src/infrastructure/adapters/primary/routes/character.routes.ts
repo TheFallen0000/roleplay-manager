@@ -13,9 +13,11 @@ import type { DeleteCharacterUseCase } from "../../../../application/use-cases/c
 import type { ListCharacterVersionsUseCase } from "../../../../application/use-cases/character/list-character-versions.use-case"
 import type { UploadCharacterAssetUseCase } from "../../../../application/use-cases/character/upload-character-asset.use-case"
 import type { GetCharacterAssetUseCase } from "../../../../application/use-cases/character/get-character-asset.use-case"
+import type { ApplySettingsTemplateUseCase } from "../../../../application/use-cases/character/apply-settings-template.use-case"
 import { parseMultipartBody } from "../middlewares/multipart"
 
 import type { CharacterExport } from "@workspace/shared/types/export"
+import { EXPORT_KIND, EXPORT_SCHEMA_VERSION } from "@workspace/shared/types/export"
 
 const CardSchema = z.object({
   title: z.string().min(1, "Card title is required"),
@@ -84,6 +86,33 @@ const ImportCharacterSchema = z
   })
   .passthrough()
 
+const ExportSettingsSchema = z.object({
+  model: z.string().nullable(),
+  provider: z.string().nullable(),
+  providerInstanceId: z.string().nullable(),
+  recentMessageCount: z.number(),
+  summaryFrequency: z.number(),
+  temperature: z.number(),
+  maxTokens: z.number(),
+  topP: z.number(),
+  frequencyPenalty: z.number(),
+  presencePenalty: z.number(),
+  stopSequences: z.array(z.string()),
+  memoryProposalMode: z.enum(["auto", "manual"]),
+  memoryDecayMode: z.enum(["manual", "silent", "off"]),
+  memoryDecayThreshold: z.number(),
+  memoryDecayAgeThreshold: z.number(),
+  memoryDecaySpeed: z.number(),
+})
+
+const ApplySettingsTemplateSchema = z
+  .object({
+    kind: z.literal(EXPORT_KIND),
+    schemaVersion: z.literal(EXPORT_SCHEMA_VERSION),
+    standaloneSettings: ExportSettingsSchema.partial(),
+  })
+  .passthrough()
+
 export const buildCharacterRouter = (deps: {
   createCharacter: CreateCharacterUseCase
   getCharacter: GetCharacterUseCase
@@ -96,6 +125,7 @@ export const buildCharacterRouter = (deps: {
   listCharacterVersions: ListCharacterVersionsUseCase
   uploadCharacterAsset: UploadCharacterAssetUseCase
   getCharacterAsset: GetCharacterAssetUseCase
+  applySettingsTemplate: ApplySettingsTemplateUseCase
   maxProfileImageBytes: number
 }): Router => {
   const router = Router()
@@ -172,6 +202,19 @@ export const buildCharacterRouter = (deps: {
         payload: payload as unknown as CharacterExport,
       })
       res.status(201).json(result)
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.post("/characters/:id/settings-imports", async (req, res, next) => {
+    try {
+      const input = ApplySettingsTemplateSchema.parse(req.body)
+      const result = await deps.applySettingsTemplate.execute({
+        characterId: req.params.id,
+        settings: input.standaloneSettings,
+      })
+      res.json(result)
     } catch (error) {
       next(error)
     }

@@ -34,6 +34,7 @@ import type { Message } from "../../../domain/entities/message.entity"
 import type { Memory } from "../../../domain/entities/memory.entity"
 import type { Summary } from "../../../domain/entities/summary.entity"
 import { CharacterNotFoundError, DomainError } from "../../../domain/errors"
+import { findCharacterConversations } from "../conversation/find-character-conversations"
 
 export interface ExportCharacterInput {
   characterId: string
@@ -99,7 +100,11 @@ export class ExportCharacterUseCase {
       selected.has("conversations") || selected.has("standaloneSettings")
 
     const characterConversations = needsConversations
-      ? await this.findCharacterConversations(input.characterId)
+      ? await findCharacterConversations(
+          this.conversationRepository,
+          this.characterRepository,
+          input.characterId,
+        )
       : []
 
     if (selected.has("conversations")) {
@@ -128,28 +133,6 @@ export class ExportCharacterUseCase {
         )
       }
     }
-  }
-
-  private async findCharacterConversations(
-    characterId: string,
-  ): Promise<Conversation[]> {
-    const all = await this.conversationRepository.list()
-    const matches: Conversation[] = []
-
-    for (const conversation of all) {
-      const version = await this.characterRepository.findVersionById(
-        conversation.versionId,
-      )
-      if (version?.characterId === characterId) {
-        matches.push(conversation)
-      }
-    }
-
-    matches.sort(
-      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
-    )
-
-    return matches
   }
 
   private async buildConversations(

@@ -53,6 +53,7 @@ import { ListCharacterVersionsUseCase } from "../application/use-cases/character
 import { UploadCharacterAssetUseCase } from "../application/use-cases/character/upload-character-asset.use-case"
 import { GetCharacterAssetUseCase } from "../application/use-cases/character/get-character-asset.use-case"
 import { BackfillCharacterAssetVariantsUseCase } from "../application/use-cases/character/backfill-character-asset-variants.use-case"
+import { ApplySettingsTemplateUseCase } from "../application/use-cases/character/apply-settings-template.use-case"
 import { StoreCharacterAssetService } from "../application/services/store-character-asset.service"
 import { SharpCharacterAssetImageProcessor } from "../infrastructure/adapters/secondary/images/sharp-character-asset-image-processor"
 import { CreateConversationUseCase } from "../application/use-cases/conversation/create-conversation.use-case"
@@ -127,6 +128,7 @@ export interface AppContainer {
   uploadCharacterAsset: UploadCharacterAssetUseCase
   getCharacterAsset: GetCharacterAssetUseCase
   backfillCharacterAssetVariants: BackfillCharacterAssetVariantsUseCase
+  applySettingsTemplate: ApplySettingsTemplateUseCase
   maxProfileImageBytes: number
   createConversation: CreateConversationUseCase
   branchConversation: BranchConversationUseCase
@@ -315,6 +317,17 @@ export const buildContainer = ({
     generateSummary,
   )
 
+  const updateConversationSettings = new UpdateConversationSettingsUseCase(
+    conversationRepository,
+    characterRepository,
+    providerRegistry,
+    providerInstanceRepository,
+    logger,
+    characterAssetRepository,
+    characterAssetStorage,
+    playerCharacterRepository,
+  )
+
   return {
     logger,
     pino,
@@ -466,15 +479,12 @@ export const buildContainer = ({
       conversationRepository,
       messageRepository,
     ),
-    updateConversationSettings: new UpdateConversationSettingsUseCase(
-      conversationRepository,
+    updateConversationSettings,
+    applySettingsTemplate: new ApplySettingsTemplateUseCase(
       characterRepository,
-      providerRegistry,
+      conversationRepository,
       providerInstanceRepository,
-      logger,
-      characterAssetRepository,
-      characterAssetStorage,
-      playerCharacterRepository,
+      updateConversationSettings,
     ),
     uploadConversationCustomImage: new UploadConversationCustomImageUseCase(
       conversationRepository,
