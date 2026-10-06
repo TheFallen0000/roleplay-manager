@@ -98,6 +98,20 @@ export const en = {
     checkFailed: "Could not check the connection.",
     actionFailed: "Could not change the connection.",
     enableServe: "Enable Serve in Tailscale",
+    tabLan: "Home network",
+    tabTailscale: "Tailscale",
+    lanToggleLabel: "Share on my local network",
+    lanStatusActive: "Active — available on your Wi-Fi",
+    lanStatusInactive: "Inactive",
+    lanHint:
+      "Turn it on to open the app from your phone while both are on the same Wi-Fi.",
+    lanAddressLabel: "Network address",
+    lanScanHint: "Scan with your phone camera (same Wi-Fi network).",
+    lanSecurityNote:
+      "Any device on your network could open the app; use it on trusted networks.",
+    lanFirewallHint:
+      "If it does not load, allow Node.js through the Windows firewall (private networks).",
+    lanActionFailed: "Could not change the local network mode.",
   },
   errors: {
     PLAYER_CHARACTER_NOT_FOUND: "The selected persona no longer exists.",
@@ -113,6 +127,9 @@ export const en = {
       "Could not change the connection. Check that Tailscale is running and that HTTPS is enabled in your tailnet.",
     TUNNEL_SERVE_NOT_ENABLED:
       "Tailscale Serve is not enabled on your tailnet yet. Enable it once (the link opens Tailscale).",
+    LAN_PORT_IN_USE:
+      "The local network port is already in use. Close the app using it or change LAN_PORT.",
+    LAN_ACCESS_FAILED: "Could not enable local network access.",
   },
   chat: {
     noMessages: "There are no messages in this conversation.",

@@ -96,6 +96,20 @@ export const es: Dictionary = {
     checkFailed: "No se pudo comprobar la conexión.",
     actionFailed: "No se pudo cambiar la conexión.",
     enableServe: "Activar Serve en Tailscale",
+    tabLan: "Red doméstica",
+    tabTailscale: "Tailscale",
+    lanToggleLabel: "Compartir en mi red local",
+    lanStatusActive: "Activo — disponible en tu WiFi",
+    lanStatusInactive: "Inactivo",
+    lanHint:
+      "Actívalo para abrir la app desde tu teléfono mientras ambos estén en la misma WiFi.",
+    lanAddressLabel: "Dirección de la red",
+    lanScanHint: "Escanea con la cámara del teléfono (misma red WiFi).",
+    lanSecurityNote:
+      "Cualquier dispositivo en tu red podría abrir la app; úsalo en redes de confianza.",
+    lanFirewallHint:
+      "Si no carga, permite Node.js en el firewall de Windows (redes privadas).",
+    lanActionFailed: "No se pudo cambiar el modo de red local.",
   },
   errors: {
     PLAYER_CHARACTER_NOT_FOUND: "La persona seleccionada ya no existe.",
@@ -111,6 +125,9 @@ export const es: Dictionary = {
       "No se pudo cambiar la conexión. Comprueba que Tailscale esté en ejecución y que HTTPS esté habilitado en tu tailnet.",
     TUNNEL_SERVE_NOT_ENABLED:
       "Tailscale Serve aún no está habilitado en tu tailnet. Actívalo una vez (el enlace abre Tailscale).",
+    LAN_PORT_IN_USE:
+      "El puerto de la red local está ocupado. Cierra la app que lo use o cambia LAN_PORT.",
+    LAN_ACCESS_FAILED: "No se pudo activar el acceso por red local.",
   },
   chat: {
     noMessages: "No hay mensajes en esta conversación.",
