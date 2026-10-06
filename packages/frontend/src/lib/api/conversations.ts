@@ -10,6 +10,7 @@ import type { MessageDTO } from "@workspace/shared/types/message"
 import type { SummaryDTO } from "@workspace/shared/types/summary"
 
 import { apiRequest, getBaseUrl } from "./client"
+import { getRequestLocale } from "../locale"
 
 export const listConversations = (): Promise<ConversationSummary[]> =>
   apiRequest("/api/conversations")
@@ -114,6 +115,7 @@ const streamEventSource = async (
     headers: {
       "Content-Type": "application/json",
       Accept: "text/event-stream",
+      "Accept-Language": getRequestLocale(),
     },
     body: JSON.stringify(body),
   })
