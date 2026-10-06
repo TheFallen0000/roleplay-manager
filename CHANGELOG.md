@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.25.0] - 2026-10-06
+
+### Added
+
+- New **Phone** menu to share the app with your devices through a private Tailscale network (Tailscale Serve) and open it on your phone: a connection toggle, a QR code with the private URL, a copy-link button and a first-run guide (Tailscale missing or signed out). Nothing is exposed to the internet and the user never runs commands; the backend drives the Tailscale CLI (`TUNNEL_TARGET_URL` decides what is shared, `TAILSCALE_BIN` overrides the binary path).
+- Tunnel endpoints (`GET /api/tunnel`, `POST /api/tunnel/enable|disable`) with typed domain errors translated in the UI.
+- Base UI `switch` primitive in `@workspace/ui` and `react-qr-code` for the QR.
+
+### Deferred
+
+- Auto-enable on start, auto-disable on close, inactivity auto-off and the PWA manifest.
+
 ## [1.24.0] - 2026-10-06
 
 ### Added
