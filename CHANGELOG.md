@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.25.1] - 2026-10-06
+
+### Fixed
+
+- Enabling the phone connection now detects when Tailscale Serve is not enabled on the tailnet and shows the one-time activation link right in the dialog (new `TUNNEL_SERVE_NOT_ENABLED` error) instead of a generic 502 after a 15-second wait. The `serve` command timeout is shorter (10 s) and command output is kept on failures to build actionable errors.
+
 ## [1.25.0] - 2026-10-06
 
 ### Added
