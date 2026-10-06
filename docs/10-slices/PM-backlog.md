@@ -17,16 +17,17 @@ Last updated: 2026-10-06
 | PM.2 | Add an image cropper for the profile photo. <br>*Done as S12 (v1.3.2) — see `S12-progress.md`.* | PM.1 |
 | PM.3 | Image compressor for the background image and square-section cropper. <br>*Done as S30 (v1.22.0) — see `S30-progress.md`.* | PM.1 |
 | PM.4 | Modify the profile image without creating a new character version. <br>*Done as S13 (v1.4.0) — see `S13-progress.md`.* | PM.1 |
-| PM.5 | Allow choosing a background image for the chat (default: profile photo), with fit modes (fill, crop, etc.). <br>*Done as S30 (v1.22.0) with **no default background** and Cover/Contain fit; export/import deduplication lands in S31 (phase B). See `S30-progress.md`.* | PM.1 |
+| PM.5 | Allow choosing a background image for the chat (default: profile photo), with fit modes (fill, crop, etc.). <br>*Done as S30 (v1.22.0) with **no default background** and Cover/Contain fit; export/import deduplication done as S31 (v1.23.0). See `S30-progress.md` and `S31-progress.md`.* | PM.1 |
 | PM.19 | Generate and serve responsive local variants of existing profile images for character cards and chat avatars, without changing the original asset. <br>*Done as S28 (v1.19.0) — see `S28-progress.md`.* | PM.1 |
 
-> **PM.3 + PM.5 (S30) — done (2026-10-06, v1.22.0):** The chat background is opt-in from
-> Customization (upload + 16:9 cropper), with Cover/Contain fit, a 0–100 overlay slider, live
-> preview and removal; branches inherit it. There is no default background. Delivery reuses the
-> S28 variant pipeline with a new `large` (1920 px) background variant, and shared assets are
-> only deleted when no conversation references them. Exporting/importing conversation images
-> with deduplication (including the previously broken custom profile image) is deferred to S31
-> (phase B). See `S30-progress.md`.
+> **PM.3 + PM.5 (S30 + S31) — done (2026-10-06, v1.22.0 / v1.23.0):** The chat background is
+> opt-in from Customization (upload + 16:9 cropper), with Cover/Contain fit, a 0–100 overlay
+> slider, live preview and removal; branches inherit it. There is no default background.
+> Delivery reuses the S28 variant pipeline with a new `large` (1920 px) background variant, and
+> shared assets are only deleted when no conversation references them. S31 completes the cycle:
+> conversation images (custom profile image + background) travel once per unique asset in the
+> export, are recreated once on import and remapped to every branch, with fit/overlay and
+> legacy-export compatibility. See `S30-progress.md` and `S31-progress.md`.
 
 > **PM.19 (S28) — done (2026-10-05, v1.19.0):** Profile image originals remain unchanged;
 > local WebP variants are generated for uploads/imports, and existing assets can be
