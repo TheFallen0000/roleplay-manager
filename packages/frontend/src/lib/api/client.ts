@@ -20,19 +20,40 @@ export class ApiClientError extends Error {
   }
 }
 
-export const getBaseUrl = (): string => {
+const getConfiguredBaseUrl = (): string | null => {
   if (typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_API_URL) {
     return import.meta.env.PUBLIC_API_URL
   }
-  return DEFAULT_BASE_URL
+  return null
 }
+
+/**
+ * Base URL for `fetch` calls (API requests, uploads, SSE).
+ *
+ * - In the browser it is empty (same-origin): the Astro middleware proxies
+ *   `/api/*` to the backend, so LAN and tunnel access use a single origin.
+ * - During SSR it points directly at the backend (an absolute URL is required).
+ * - `PUBLIC_API_URL` overrides both (split deployments or direct backend access).
+ */
+export const getBaseUrl = (): string => {
+  const configured = getConfiguredBaseUrl()
+  if (configured) return configured
+  return typeof window === "undefined" ? DEFAULT_BASE_URL : ""
+}
+
+/**
+ * Base URL for URLs embedded in HTML (`img src`, links). Always browser-visible:
+ * relative in the browser so it resolves against the current origin and goes
+ * through the `/api` proxy; `PUBLIC_API_URL` still overrides.
+ */
+export const getPublicBaseUrl = (): string => getConfiguredBaseUrl() ?? ""
 
 export const getCharacterAssetUrl = (
   characterId: string,
   assetId: string,
   variant?: CharacterAssetVariant,
 ): string => {
-  const url = `${getBaseUrl()}/api/characters/${characterId}/assets/${assetId}`
+  const url = `${getPublicBaseUrl()}/api/characters/${characterId}/assets/${assetId}`
   return variant ? `${url}?variant=${variant}` : url
 }
 
