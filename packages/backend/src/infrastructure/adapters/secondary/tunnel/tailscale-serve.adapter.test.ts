@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { TunnelCommandError } from "../../../../domain/errors"
+import {
+  TunnelCommandError,
+  TunnelServeNotEnabledError,
+} from "../../../../domain/errors"
 import {
   TailscaleServeAdapter,
   type CommandRunner,
@@ -106,13 +109,11 @@ describe("TailscaleServeAdapter", () => {
 
     const status = await createAdapter(run).enable()
 
-    expect(run).toHaveBeenCalledWith("tailscale", [
-      "serve",
-      "--bg",
-      "--yes",
-      "--https=443",
-      "http://localhost:4321",
-    ])
+    expect(run).toHaveBeenCalledWith(
+      "tailscale",
+      ["serve", "--bg", "--yes", "--https=443", "http://localhost:4321"],
+      expect.objectContaining({ timeoutMs: expect.any(Number) }),
+    )
     expect(status.active).toBe(true)
   })
 
@@ -179,6 +180,54 @@ describe("TailscaleServeAdapter", () => {
     expect(run).not.toHaveBeenCalledWith(
       "tailscale",
       expect.arrayContaining(["off"]),
+    )
+  })
+
+  it("reports the consent URL when Serve is not enabled on the tailnet", async () => {
+    const run = runnerFromMap({
+      "status --json": STATUS_RUNNING,
+      "serve status --json": "{}",
+    })
+    const failingRun: CommandRunner = async (command, args, options) => {
+      const key = args.join(" ")
+      if (key.startsWith("serve --bg")) {
+        const error = new Error("Command failed with exit code null") as Error & {
+          stdout?: string
+        }
+        error.stdout =
+          "Serve is not enabled on your tailnet.\nTo enable, visit:\n\n         https://login.tailscale.com/f/serve?node=ABC123\n"
+        throw error
+      }
+      return run(command, args, options)
+    }
+
+    await expect(createAdapter(failingRun).enable()).rejects.toThrow(
+      TunnelServeNotEnabledError,
+    )
+    await expect(createAdapter(failingRun).enable()).rejects.toThrow(
+      "https://login.tailscale.com/f/serve?node=ABC123",
+    )
+  })
+
+  it("falls back to the DNS admin URL when the marker has no link", async () => {
+    const run = runnerFromMap({
+      "status --json": STATUS_RUNNING,
+      "serve status --json": "{}",
+    })
+    const failingRun: CommandRunner = async (command, args, options) => {
+      const key = args.join(" ")
+      if (key.startsWith("serve --bg")) {
+        const error = new Error("Command failed with exit code null") as Error & {
+          stderr?: string
+        }
+        error.stderr = "Serve is not enabled on your tailnet."
+        throw error
+      }
+      return run(command, args, options)
+    }
+
+    await expect(createAdapter(failingRun).enable()).rejects.toThrow(
+      "https://login.tailscale.com/admin/dns",
     )
   })
 })

@@ -180,4 +180,37 @@ describe("PhoneAccessDialog", () => {
 
     expect(writeText).toHaveBeenCalledWith(URL)
   })
+
+  it("muestra el enlace de activación cuando Serve no está habilitado", async () => {
+    mocks.getTunnelStatus.mockResolvedValue({
+      available: true,
+      connected: true,
+      active: false,
+      url: URL,
+    })
+    mocks.enableTunnel.mockRejectedValue(
+      new ApiClientError(
+        409,
+        "TUNNEL_SERVE_NOT_ENABLED",
+        "Tailscale Serve is not enabled on this tailnet. Enable it at https://login.tailscale.com/f/serve?node=ABC123",
+      ),
+    )
+
+    renderDialog()
+
+    await screen.findByText("Inactivo")
+    await userEvent.click(screen.getByRole("switch"))
+
+    expect(
+      await screen.findByText(
+        "Tailscale Serve aún no está habilitado en tu tailnet. Actívalo una vez (el enlace abre Tailscale).",
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: "Activar Serve en Tailscale" }),
+    ).toHaveAttribute(
+      "href",
+      "https://login.tailscale.com/f/serve?node=ABC123",
+    )
+  })
 })
