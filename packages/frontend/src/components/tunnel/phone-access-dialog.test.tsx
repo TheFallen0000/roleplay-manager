@@ -1,4 +1,10 @@
-import { render, screen, cleanup, waitFor } from "@testing-library/react"
+import {
+  render,
+  screen,
+  cleanup,
+  waitFor,
+  within,
+} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
@@ -11,12 +17,21 @@ const mocks = vi.hoisted(() => ({
   getTunnelStatus: vi.fn(),
   enableTunnel: vi.fn(),
   disableTunnel: vi.fn(),
+  getLanStatus: vi.fn(),
+  enableLanAccess: vi.fn(),
+  disableLanAccess: vi.fn(),
 }))
 
 vi.mock("@/lib/api/tunnel", () => ({
   getTunnelStatus: mocks.getTunnelStatus,
   enableTunnel: mocks.enableTunnel,
   disableTunnel: mocks.disableTunnel,
+}))
+
+vi.mock("@/lib/api/lan", () => ({
+  getLanStatus: mocks.getLanStatus,
+  enableLanAccess: mocks.enableLanAccess,
+  disableLanAccess: mocks.disableLanAccess,
 }))
 
 vi.mock("@workspace/ui/components/sonner", () => ({
@@ -29,6 +44,17 @@ vi.mock("@workspace/ui/components/sonner", () => ({
 }))
 
 const URL = "https://desktop.tailnet-abc.ts.net"
+const LAN_URL = "http://192.168.1.10:4322"
+
+const tunnelInactive = {
+  available: true,
+  connected: true,
+  active: false,
+  url: URL,
+}
+const tunnelActive = { ...tunnelInactive, active: true }
+const lanInactive = { active: false, port: 4322, addresses: ["192.168.1.10"] }
+const lanActive = { ...lanInactive, active: true }
 
 const renderDialog = () =>
   render(
@@ -37,8 +63,15 @@ const renderDialog = () =>
     </I18nProvider>,
   )
 
+const openTailscaleTab = async () => {
+  await userEvent.click(screen.getByRole("tab", { name: "Tailscale" }))
+}
+
+const activePanel = () => within(screen.getByRole("tabpanel"))
+
 beforeEach(() => {
-  useTunnelStore.setState({ status: null })
+  useTunnelStore.setState({ status: null, lanStatus: null })
+  mocks.getLanStatus.mockResolvedValue(lanInactive)
 })
 
 afterEach(() => {
@@ -48,51 +81,87 @@ afterEach(() => {
 })
 
 describe("PhoneAccessDialog", () => {
-  it("activa la conexión desde el interruptor y muestra el QR", async () => {
-    mocks.getTunnelStatus.mockResolvedValue({
-      available: true,
-      connected: true,
-      active: false,
-      url: URL,
-    })
-    mocks.enableTunnel.mockResolvedValue({
-      available: true,
-      connected: true,
+  it("activa el modo de red local desde su pestaña y muestra el QR", async () => {
+    mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
+    mocks.enableLanAccess.mockResolvedValue(lanActive)
+
+    renderDialog()
+
+    expect(await activePanel().findByText("Inactivo")).toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Compartir en mi red local" }),
+    )
+
+    await waitFor(() => expect(mocks.enableLanAccess).toHaveBeenCalledTimes(1))
+    expect(await screen.findByText(LAN_URL)).toBeInTheDocument()
+  })
+
+  it("permite elegir la dirección de red cuando hay varias", async () => {
+    mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
+    mocks.getLanStatus.mockResolvedValue({
       active: true,
-      url: URL,
+      port: 4322,
+      addresses: ["192.168.1.10", "10.0.0.5"],
     })
 
     renderDialog()
 
-    expect(await screen.findByText("Inactivo")).toBeInTheDocument()
-    await userEvent.click(screen.getByRole("switch"))
+    expect(await screen.findByText(LAN_URL)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("combobox"))
+    await userEvent.click(await screen.findByRole("option", { name: "10.0.0.5" }))
+
+    expect(await screen.findByText("http://10.0.0.5:4322")).toBeInTheDocument()
+  })
+
+  it("copia el enlace local", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    })
+    mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
+    mocks.getLanStatus.mockResolvedValue(lanActive)
+
+    renderDialog()
+
+    await userEvent.click(
+      await activePanel().findByRole("button", { name: /Copiar enlace/ }),
+    )
+
+    expect(writeText).toHaveBeenCalledWith(LAN_URL)
+  })
+
+  it("activa la conexión de Tailscale desde su pestaña y muestra el QR", async () => {
+    mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
+    mocks.enableTunnel.mockResolvedValue(tunnelActive)
+
+    renderDialog()
+    await openTailscaleTab()
+
+    expect(await activePanel().findByText("Inactivo")).toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Compartir en mi red privada" }),
+    )
 
     await waitFor(() => expect(mocks.enableTunnel).toHaveBeenCalledTimes(1))
     expect(await screen.findByText(URL)).toBeInTheDocument()
-    expect(screen.getByText(/^Activo/)).toBeInTheDocument()
+    expect(activePanel().getByText(/^Activo/)).toBeInTheDocument()
   })
 
-  it("desactiva la conexión y oculta el QR", async () => {
-    mocks.getTunnelStatus.mockResolvedValue({
-      available: true,
-      connected: true,
-      active: true,
-      url: URL,
-    })
-    mocks.disableTunnel.mockResolvedValue({
-      available: true,
-      connected: true,
-      active: false,
-      url: URL,
-    })
+  it("desactiva la conexión de Tailscale y oculta el QR", async () => {
+    mocks.getTunnelStatus.mockResolvedValue(tunnelActive)
+    mocks.disableTunnel.mockResolvedValue(tunnelInactive)
 
     renderDialog()
+    await openTailscaleTab()
 
     expect(await screen.findByText(URL)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole("switch"))
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Compartir en mi red privada" }),
+    )
 
     await waitFor(() => expect(mocks.disableTunnel).toHaveBeenCalledTimes(1))
-    expect(await screen.findByText("Inactivo")).toBeInTheDocument()
+    expect(await activePanel().findByText("Inactivo")).toBeInTheDocument()
     expect(screen.queryByText(URL)).not.toBeInTheDocument()
   })
 
@@ -105,14 +174,17 @@ describe("PhoneAccessDialog", () => {
     })
 
     renderDialog()
+    await openTailscaleTab()
 
     expect(
-      await screen.findByText("Tailscale no está instalado"),
+      await activePanel().findByText("Tailscale no está instalado"),
     ).toBeInTheDocument()
     expect(
       screen.getByRole("link", { name: "Descargar Tailscale" }),
     ).toHaveAttribute("href", "https://tailscale.com/download")
-    expect(screen.getByRole("switch")).toHaveAttribute("data-disabled")
+    expect(
+      screen.getByRole("switch", { name: "Compartir en mi red privada" }),
+    ).toHaveAttribute("data-disabled")
   })
 
   it("muestra la guía de sesión cuando no hay conexión", async () => {
@@ -124,33 +196,36 @@ describe("PhoneAccessDialog", () => {
     })
 
     renderDialog()
+    await openTailscaleTab()
 
     expect(
-      await screen.findByText("Tailscale no está en ejecución o sin sesión"),
+      await activePanel().findByText(
+        "Tailscale no está en ejecución o sin sesión",
+      ),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(
+      activePanel().getByText(
         "Abre Tailscale en esta computadora e inicia sesión con tu cuenta.",
       ),
     ).toBeInTheDocument()
-    expect(screen.getByRole("switch")).toHaveAttribute("data-disabled")
+    expect(
+      screen.getByRole("switch", { name: "Compartir en mi red privada" }),
+    ).toHaveAttribute("data-disabled")
   })
 
-  it("traduce el error del backend al fallar la activación", async () => {
-    mocks.getTunnelStatus.mockResolvedValue({
-      available: true,
-      connected: true,
-      active: false,
-      url: URL,
-    })
+  it("traduce el error del backend al fallar la activación de Tailscale", async () => {
+    mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
     mocks.enableTunnel.mockRejectedValue(
       new ApiClientError(409, "TUNNEL_NOT_CONNECTED", "raw message"),
     )
 
     renderDialog()
+    await openTailscaleTab()
 
-    await screen.findByText("Inactivo")
-    await userEvent.click(screen.getByRole("switch"))
+    await activePanel().findByText("Inactivo")
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Compartir en mi red privada" }),
+    )
 
     expect(
       await screen.findByText(
@@ -159,35 +234,8 @@ describe("PhoneAccessDialog", () => {
     ).toBeInTheDocument()
   })
 
-  it("copia el enlace al portapapeles", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(navigator, "clipboard", {
-      value: { writeText },
-      configurable: true,
-    })
-    mocks.getTunnelStatus.mockResolvedValue({
-      available: true,
-      connected: true,
-      active: true,
-      url: URL,
-    })
-
-    renderDialog()
-
-    await userEvent.click(
-      await screen.findByRole("button", { name: /Copiar enlace/ }),
-    )
-
-    expect(writeText).toHaveBeenCalledWith(URL)
-  })
-
   it("muestra el enlace de activación cuando Serve no está habilitado", async () => {
-    mocks.getTunnelStatus.mockResolvedValue({
-      available: true,
-      connected: true,
-      active: false,
-      url: URL,
-    })
+    mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
     mocks.enableTunnel.mockRejectedValue(
       new ApiClientError(
         409,
@@ -197,9 +245,12 @@ describe("PhoneAccessDialog", () => {
     )
 
     renderDialog()
+    await openTailscaleTab()
 
-    await screen.findByText("Inactivo")
-    await userEvent.click(screen.getByRole("switch"))
+    await activePanel().findByText("Inactivo")
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Compartir en mi red privada" }),
+    )
 
     expect(
       await screen.findByText(

@@ -25,7 +25,7 @@ afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
   localStorage.clear()
-  useTunnelStore.setState({ status: null })
+  useTunnelStore.setState({ status: null, lanStatus: null })
   document.cookie = "language=; path=/; max-age=0"
 })
 
@@ -122,5 +122,20 @@ describe("AppMenubar", () => {
     renderMenubar()
 
     expect(await screen.findByTestId("tunnel-status-dot")).toBeInTheDocument()
+  })
+
+  it("muestra el punto cuando el modo de red local está activo", () => {
+    useTunnelStore.setState({
+      status: null,
+      lanStatus: {
+        active: true,
+        port: 4322,
+        addresses: ["192.168.1.10"],
+      },
+    })
+
+    renderMenubar()
+
+    expect(screen.getByTestId("tunnel-status-dot")).toBeInTheDocument()
   })
 })
