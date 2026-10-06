@@ -157,15 +157,82 @@ Red privada (mesh) entre tus dispositivos, sin exponer nada a internet.
 - **Quick tunnels de Cloudflare**: solo demos; **no sirven para el chat** por
   la falta de SSE.
 
-## Preguntas abiertas
+## Decisión (2026-10-06)
 
-1. ¿Privado (solo tus dispositivos) o público con login?
-2. ¿Instalar la app de Tailscale en el teléfono es aceptable, o se prefiere
-   solo navegador?
-3. ¿Hay (o habría) un dominio propio en Cloudflare?
-4. ¿Cómo se prefiere arrancarlo: comando integrado en el repo o pasos
-   documentados?
-5. ¿Uso continuo o puntual? (afecta a los límites de los planes gratuitos)
+Tras revisar las opciones se decide:
+
+- **Tailscale + Serve** como solución (privado, sin exponer nada a internet).
+- **Sin dominio propio** y **con app de Tailscale en el teléfono** (instalación
+  única).
+- **Control desde la propia app**: el usuario no ejecuta comandos; la app
+  enciende y apaga la conexión a voluntad desde el menú y muestra un QR para
+  abrir la interfaz en el teléfono.
+
+Esto descarta Cloudflare (Quick y Named) y ngrok para la primera versión.
+
+## UX propuesta: menú «Teléfono»
+
+La idea original del usuario era un elemento en el menubar con un QR para
+mostrar la interfaz en el teléfono y una conexión que se pueda encender y
+apagar a voluntad. **Es viable**: la app controla Tailscale internamente (CLI)
+y nadie escribe comandos.
+
+Flujo diario:
+
+1. En la computadora: menú **Teléfono** → interruptor **Compartir en mi red
+   privada** → activado.
+2. Aparece un **QR** con `https://<equipo>.<tailnet>.ts.net` (y botón «Copiar
+   enlace»).
+3. En el teléfono: escanear el QR → se abre la app en el navegador (la app de
+   Tailscale debe estar conectada; una vez instalada, es automático).
+4. Para cortar el acceso: apagar el interruptor (o cerrar la app si se activa
+   «desactivar al salir»).
+
+Detalles de la UX:
+
+- **Indicador de estado** en el menú (punto verde cuando está activo) para que
+  sea evidente que la app es accesible desde el teléfono.
+- **Guía de primera vez** dentro del mismo diálogo, detectando el estado real:
+  Tailscale no instalado → enlace de descarga; instalado sin sesión → «inicia
+  sesión»; sin HTTPS en el tailnet → aviso; todo listo → QR.
+- **Opciones**: «Activar al iniciar la app» (recordar estado) y «Desactivar al
+  cerrar la app» (privacidad; activada por defecto).
+- **Consejo PWA**: «Añadir a pantalla de inicio» en el teléfono para que se
+  sienta como una app (requiere añadir un manifest al frontend).
+
+Nota: la primera conexión del teléfono siempre requiere instalar Tailscale y
+entrar con la misma cuenta; es el precio de no exponer nada. Después, el flujo
+es «encender → escanear → listo».
+
+## Esbozo de implementación
+
+- **Prerrequisito**: proxy `/api` same-origin (ver «Hallazgo clave»), para que
+  un solo Serve (puerto 4321) sirva toda la app. Beneficia también a la LAN.
+- **Backend**:
+  - Puerto `TunnelController` (dominio): `getStatus`, `enable`, `disable`.
+  - Adaptador `TailscaleServeAdapter` (infraestructura) que invoca la CLI:
+    `tailscale status --json` (DNSName del equipo), `tailscale serve status
+    --json`, `tailscale serve --bg <target>`, `tailscale serve --https=443 off`
+    (o `reset`). Ruta configurable al binario (`TAILSCALE_BIN`).
+  - Casos de uso `get-tunnel-status`, `enable-tunnel`, `disable-tunnel` y rutas
+    `GET/POST /api/tunnel`.
+  - Los endpoints de encendido/apagado se restringen a peticiones locales
+    (loopback) para que no puedan dispararse desde el teléfono.
+- **Frontend**: elemento en el menubar + diálogo con interruptor, QR (librería
+  ligera, p. ej. `react-qr-code`), enlace copiable y guía; i18n en/es.
+- **PWA (opcional)**: manifest + iconos.
+- **Windows**: según la documentación de Tailscale, reenviar a un puerto local
+  no requiere consola de administrador (a diferencia de servir archivos);
+  verificar en la máquina de desarrollo. Requisito: HTTPS activado en el
+  tailnet (Tailscale lo ofrece en el primer `serve`).
+
+## Puntos a decidir en la slice
+
+1. ¿Activar al iniciar la app? ¿Desactivar al cerrar?
+2. ¿Auto-desactivar tras X minutos de inactividad?
+3. ¿Incluir el manifest PWA en la misma slice o después?
+4. ¿Dividir el trabajo: primero proxy `/api` y luego túnel + QR, o una sola
+   slice?
 
 ## Referencias
 

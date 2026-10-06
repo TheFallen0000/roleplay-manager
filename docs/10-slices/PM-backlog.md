@@ -151,15 +151,15 @@ Last updated: 2026-10-06
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.21 | Access the app from a phone anywhere while it keeps running on the user's computer, without deploying to a server or exposing ports (tunnel). <br>*Research/design doc: `remote-access-opt.md` (2026-10-06). Not sliced yet.* | — |
+| PM.21 | Access the app from a phone anywhere while it keeps running on the user's computer, without deploying to a server or exposing ports. <br>*Decision (2026-10-06): **Tailscale + Serve** (private, no domain), toggled from the app's menubar with a QR. Design/UX: `remote-access-opt.md`. Not sliced yet.* | — |
 
-> **PM.21 — research (2026-10-06):** The option landscape was documented (Cloudflare Tunnel
-> quick/named, Tailscale Serve/Funnel, ngrok, others) together with the app-side implications.
-> Key findings: Cloudflare **Quick Tunnels do not support SSE** (the chat streams over SSE),
-> the browser currently calls the backend at `localhost:3001` so a same-origin `/api` proxy is
-> needed before any tunnel, and the app has **no authentication**, so a public URL must be
-> gated (Cloudflare Access / ngrok policy / private tailnet). Open questions are listed in the
-> doc; awaiting the user's decisions before slicing. See `remote-access-opt.md`.
+> **PM.21 — decision (2026-10-06):** The option landscape was documented (Cloudflare Tunnel
+> quick/named, Tailscale Serve/Funnel, ngrok, others) and **Tailscale + Serve** was chosen:
+> private tailnet, nothing exposed to the internet, no domain needed, phone installs the
+> Tailscale app once. The app will toggle the connection from a menubar dialog with a QR and a
+> first-run guide (the user never runs commands; the backend drives the Tailscale CLI).
+> Prerequisite: a same-origin `/api` proxy (the browser currently calls `localhost:3001`, which
+> breaks even over LAN). Key findings and the UX flow live in `remote-access-opt.md`.
 
 ## UI polish
 
