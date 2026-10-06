@@ -42,7 +42,7 @@ Last updated: 2026-10-06
 | # | Proposal | Dependencies |
 |---|----------|--------------|
 | PM.6 | Group conversations by character in a single card. Use a ContextMenu for submenus: create a conversation choosing a version, edit the character, pick an associated conversation (sorted by most recent). "Go to most recent" option. <br>*Done as S15 (v1.6.0) — see `S15-progress.md`.* | — |
-| PM.7 | Story branches in a single conversation with a visual interface. <br>*Branching done as S16 (v1.7.0) — see `S16-progress.md`. The visual branch-tree interface is **deferred** (see note below).* | — |
+| PM.7 | Story branches in a single conversation with a visual interface. <br>*Branching done as S16 (v1.7.0) — see `S16-progress.md`. The visual branch-tree interface is **discarded** (see note below).* | — |
 
 > **PM.6 (S15) — done (2026-08-12, v1.6.0):** The separate `/conversations` screen is gone.
 > Characters and their conversations now live in a single card grid on the home screen. Each
@@ -62,12 +62,11 @@ Last updated: 2026-10-06
 > `POST /api/conversations/:id/branches`. The remaining part of PM.7 — a visual branch-tree
 > interface — is **deferred** (see note below). See `S16-progress.md`.
 
-> **PM.7 visual interface — deferred (2026-08-12):** The branching action shipped in S16
-> (v1.7.0), but the visual branch-tree interface is deferred. It would require adding
-> `@xyflow/react` (React Flow) as a new frontend dependency and generating a sizable amount of
-> UI code (canvas, layout, edges, node selection, navigation) on top of a feature whose
-> real-world usage is unproven. If picked up later, a lightweight branch navigator (e.g. a
-> list/sidebar of branches) should be evaluated before committing to a full graph canvas.
+> **PM.7 visual interface — discarded (2026-10-06):** The branching action shipped in S16
+> (v1.7.0) and covers the real use cases; after checking with users, the visual branch-tree
+> interface is rarely used and the current flow is more than enough, so it is dropped from
+> the backlog. The branch provenance columns it would have required
+> (`branchedFromConversationId` / `branchedFromMessageId`) are no longer needed either.
 
 ## Export / Import
 
@@ -147,6 +146,20 @@ Last updated: 2026-10-06
 > deleting a persona never breaks a conversation. Exporting/importing personas is
 > out of scope (they are user-level, not part of a character). See
 > `S23-progress.md`.
+
+## Remote access & mobile
+
+| # | Proposal | Dependencies |
+|---|----------|--------------|
+| PM.21 | Access the app from a phone anywhere while it keeps running on the user's computer, without deploying to a server or exposing ports (tunnel). <br>*Research/design doc: `remote-access-opt.md` (2026-10-06). Not sliced yet.* | — |
+
+> **PM.21 — research (2026-10-06):** The option landscape was documented (Cloudflare Tunnel
+> quick/named, Tailscale Serve/Funnel, ngrok, others) together with the app-side implications.
+> Key findings: Cloudflare **Quick Tunnels do not support SSE** (the chat streams over SSE),
+> the browser currently calls the backend at `localhost:3001` so a same-origin `/api` proxy is
+> needed before any tunnel, and the app has **no authentication**, so a public URL must be
+> gated (Cloudflare Access / ngrok policy / private tailnet). Open questions are listed in the
+> doc; awaiting the user's decisions before slicing. See `remote-access-opt.md`.
 
 ## UI polish
 
