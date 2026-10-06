@@ -110,7 +110,7 @@ export function AppMenubar() {
               <span
                 aria-hidden
                 data-testid="tunnel-status-dot"
-                className="size-2 shrink-0 rounded-full bg-emerald-500"
+                className="ml-1 size-2 shrink-0 rounded-full bg-emerald-500"
               />
             ) : null}
           </MenubarTrigger>

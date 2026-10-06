@@ -76,7 +76,7 @@ export const en = {
   },
   tunnel: {
     menuLabel: "Phone",
-    menuOpen: "Open phone access…",
+    menuOpen: "Open phone access",
     title: "Phone access",
     description:
       "Open the app on your phone from anywhere. Nothing is exposed to the internet: your devices connect through your private Tailscale network.",

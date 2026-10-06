@@ -25,7 +25,7 @@ export const es: Dictionary = {
     label: "Tema y apariencia",
     theme: "Tema",
     mode: "Modo",
-    default: "Predeterminado",
+    default: "Por defecto",
     forest: "Bosque",
     ocean: "Océano",
     light: "Claro",
@@ -74,7 +74,7 @@ export const es: Dictionary = {
   },
   tunnel: {
     menuLabel: "Teléfono",
-    menuOpen: "Abrir acceso desde el teléfono…",
+    menuOpen: "Abrir acceso móvil",
     title: "Acceso desde el teléfono",
     description:
       "Abre la app en tu teléfono desde cualquier lugar. Nada se expone a internet: tus dispositivos se conectan por tu red privada de Tailscale.",
