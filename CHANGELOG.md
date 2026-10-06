@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.25.2] - 2026-10-06
+
+### Fixed
+
+- The phone dialog no longer overflows horizontally: the URL row could force the grid column wider than the dialog and the content bled past the right padding. The content wrapper is now `min-w-0`, so the URL truncates properly and every edge keeps its 16 px padding.
+- The Astro dev server now allows the Tailscale hostname (`server.allowedHosts: [".ts.net"]`), so opening the app from the phone through `tailscale serve` no longer fails with "Blocked request. This host is not allowed."
+
 ## [1.25.1] - 2026-10-06
 
 ### Fixed
