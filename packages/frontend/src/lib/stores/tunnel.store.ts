@@ -32,6 +32,12 @@ const persistStatus = (status: TunnelStatusDTO): void => {
 
 export interface TunnelState {
   status: TunnelStatusDTO | null
+  /**
+   * Loads the status cached in `localStorage` once on the client. Kept out of
+   * the initial state so SSR and the first client render match (a cached dot
+   * in the initial state caused a hydration mismatch).
+   */
+  hydrateFromCache: () => void
   refresh: () => Promise<TunnelStatusDTO>
   enable: () => Promise<TunnelStatusDTO>
   disable: () => Promise<TunnelStatusDTO>
@@ -39,7 +45,12 @@ export interface TunnelState {
 }
 
 export const useTunnelStore = create<TunnelState>((set) => ({
-  status: readCachedStatus(),
+  status: null,
+
+  hydrateFromCache: () => {
+    const cached = readCachedStatus()
+    if (cached) set({ status: cached })
+  },
 
   refresh: async () => {
     const status = await tunnelApi.getTunnelStatus()

@@ -107,4 +107,20 @@ describe("AppMenubar", () => {
 
     expect(screen.queryByTestId("tunnel-status-dot")).not.toBeInTheDocument()
   })
+
+  it("muestra el punto tras hidratar cuando el estado está en caché", async () => {
+    localStorage.setItem(
+      "rm_tunnel_status",
+      JSON.stringify({
+        available: true,
+        connected: true,
+        active: true,
+        url: "https://desktop.tailnet-abc.ts.net",
+      }),
+    )
+
+    renderMenubar()
+
+    expect(await screen.findByTestId("tunnel-status-dot")).toBeInTheDocument()
+  })
 })

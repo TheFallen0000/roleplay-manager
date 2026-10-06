@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { MonitorIcon, MoonIcon, SmartphoneIcon, SunIcon } from "lucide-react"
 
 import { SUPPORTED_LOCALES, type Locale } from "@workspace/shared/i18n"
@@ -36,7 +36,12 @@ export function AppMenubar() {
   const { theme, mode, setTheme, setMode } = useTheme()
   const { locale, setLocale, t } = useTranslation()
   const tunnelStatus = useTunnelStore((state) => state.status)
+  const hydrateTunnelStatus = useTunnelStore((state) => state.hydrateFromCache)
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false)
+
+  useEffect(() => {
+    hydrateTunnelStatus()
+  }, [hydrateTunnelStatus])
 
   return (
     <>
