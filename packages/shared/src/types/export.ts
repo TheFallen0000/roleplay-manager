@@ -112,6 +112,17 @@ export interface CharacterExport {
   standaloneSettings?: ExportSettings
 }
 
+export type SettingsTemplateWarning =
+  | "PROVIDER_INSTANCE_NOT_FOUND"
+  | "PROVIDER_UNSUPPORTED"
+  | "NO_CONVERSATIONS"
+
+export interface ApplySettingsTemplateResult {
+  /** Conversations that received the template. */
+  applied: number
+  warnings: SettingsTemplateWarning[]
+}
+
 export interface ExportCharacterInput {
   sections: ExportSection[]
   includeProfileImageBase64?: boolean

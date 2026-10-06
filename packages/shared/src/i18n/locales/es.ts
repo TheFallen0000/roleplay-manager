@@ -324,6 +324,27 @@ export const es: Dictionary = {
     importMissingDefinition: "El archivo no contiene la definición del personaje.",
     importMissingName: "El archivo no incluye el nombre del personaje.",
     unknownVersion: "desconocida",
+    applySettings: "Aplicar ajustes…",
+    settingsTitle: "Aplicar plantilla de ajustes",
+    settingsDescription:
+      'Aplica los ajustes exportados a "{name}" ({count} conversaciones). Los valores existentes se sobrescriben.',
+    settingsDropHere: "Suelta aquí el JSON de ajustes",
+    settingsChooseHint: "o pulsa para elegir un archivo",
+    settingsChooseFile: "Elegir archivo",
+    settingsSummary: "Contenido de la plantilla",
+    settingsApply: "Aplicar ajustes",
+    settingsApplied: {
+      one: "Ajustes aplicados a 1 conversación.",
+      other: "Ajustes aplicados a {count} conversaciones.",
+    },
+    settingsFailed: "No se pudieron aplicar los ajustes",
+    settingsMissingTemplate:
+      "El archivo no contiene una plantilla de ajustes.",
+    settingsNoConversations: "Este personaje aún no tiene conversaciones.",
+    settingsProviderSkipped:
+      "La instancia de proveedor de la plantilla no existe en esta instalación; se conservaron el proveedor y el modelo.",
+    settingsProviderUnsupported:
+      "El proveedor de la plantilla no es compatible; se conservaron el proveedor y el modelo.",
     validationName: "El nombre es obligatorio",
     validationImage: "La imagen de perfil es obligatoria",
     validationDescription: "La descripción es obligatoria",

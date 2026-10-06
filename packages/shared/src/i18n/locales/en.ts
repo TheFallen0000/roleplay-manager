@@ -327,6 +327,27 @@ export const en = {
       "The file does not contain the character definition.",
     importMissingName: "The file does not include the character name.",
     unknownVersion: "unknown",
+    applySettings: "Apply settings…",
+    settingsTitle: "Apply settings template",
+    settingsDescription:
+      'Applies the exported settings to "{name}" ({count} conversations). Existing values are overwritten.',
+    settingsDropHere: "Drop the settings JSON here",
+    settingsChooseHint: "or click to choose a file",
+    settingsChooseFile: "Choose file",
+    settingsSummary: "Template contents",
+    settingsApply: "Apply settings",
+    settingsApplied: {
+      one: "Settings applied to 1 conversation.",
+      other: "Settings applied to {count} conversations.",
+    },
+    settingsFailed: "The settings could not be applied",
+    settingsMissingTemplate:
+      "The file does not contain a settings template.",
+    settingsNoConversations: "This character has no conversations yet.",
+    settingsProviderSkipped:
+      "The template's provider instance does not exist in this installation; provider and model were kept.",
+    settingsProviderUnsupported:
+      "The template's provider is not supported; provider and model were kept.",
     validationName: "Name is required",
     validationImage: "The profile image is required",
     validationDescription: "The description is required",
