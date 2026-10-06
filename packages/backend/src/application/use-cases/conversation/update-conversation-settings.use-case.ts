@@ -47,12 +47,22 @@ export class UpdateConversationSettingsUseCase {
     }
 
     const previousOverride = conv.customProfileImageAssetId
+    const previousBackground = conv.backgroundImageAssetId
 
     if (input.customProfileImageAssetId !== undefined) {
       if (input.customProfileImageAssetId !== null) {
         const asset = await this.assetRepository.findById(input.customProfileImageAssetId)
         if (!asset) {
           throw new CharacterAssetNotFoundError(input.customProfileImageAssetId)
+        }
+      }
+    }
+
+    if (input.backgroundImageAssetId !== undefined) {
+      if (input.backgroundImageAssetId !== null) {
+        const asset = await this.assetRepository.findById(input.backgroundImageAssetId)
+        if (!asset) {
+          throw new CharacterAssetNotFoundError(input.backgroundImageAssetId)
         }
       }
     }
@@ -160,6 +170,12 @@ export class UpdateConversationSettingsUseCase {
     if (input.memoryDecaySpeed !== undefined) {
       input.memoryDecaySpeed = Math.max(1, Math.round(input.memoryDecaySpeed))
     }
+    if (input.backgroundScrim !== undefined) {
+      input.backgroundScrim = Math.min(
+        100,
+        Math.max(0, Math.round(input.backgroundScrim)),
+      )
+    }
 
     const updated = await this.conversationRepository.updateSettings(
       conversationId,
@@ -168,7 +184,13 @@ export class UpdateConversationSettingsUseCase {
 
     if (input.customProfileImageAssetId !== undefined) {
       if (input.customProfileImageAssetId !== previousOverride) {
-        await this.deleteAssetIfExists(previousOverride)
+        await this.deleteAssetIfUnreferenced(previousOverride)
+      }
+    }
+
+    if (input.backgroundImageAssetId !== undefined) {
+      if (input.backgroundImageAssetId !== previousBackground) {
+        await this.deleteAssetIfUnreferenced(previousBackground)
       }
     }
 
@@ -184,6 +206,9 @@ export class UpdateConversationSettingsUseCase {
       result?.currentVersion.profileImageAssetId ?? null,
       this.assetRepository,
     )
+    const backgroundImage = updated.backgroundImageAssetId
+      ? await this.assetRepository.findById(updated.backgroundImageAssetId)
+      : null
 
     return {
       id: updated.id,
@@ -205,6 +230,13 @@ export class UpdateConversationSettingsUseCase {
       stopSequences: updated.stopSequences,
       memoryProposalMode: updated.memoryProposalMode,
       customProfileImageAssetId: updated.customProfileImageAssetId,
+      backgroundImageAssetId: updated.backgroundImageAssetId,
+      backgroundImageDimensions:
+        backgroundImage?.width && backgroundImage.height
+          ? { width: backgroundImage.width, height: backgroundImage.height }
+          : null,
+      backgroundFit: updated.backgroundFit,
+      backgroundScrim: updated.backgroundScrim,
       playerCharacterId: updated.playerCharacterId,
       memoryDecayMode: updated.memoryDecayMode,
       memoryDecayThreshold: updated.memoryDecayThreshold,
@@ -216,8 +248,19 @@ export class UpdateConversationSettingsUseCase {
     }
   }
 
-  private async deleteAssetIfExists(assetId: string | null): Promise<void> {
+  /**
+   * Deletes the asset only when no conversation references it: branches share
+   * conversation images, so removing one must not break the others.
+   */
+  private async deleteAssetIfUnreferenced(assetId: string | null): Promise<void> {
     if (!assetId) return
+    const conversations = await this.conversationRepository.list()
+    const referenced = conversations.some(
+      (conversation) =>
+        conversation.customProfileImageAssetId === assetId ||
+        conversation.backgroundImageAssetId === assetId,
+    )
+    if (referenced) return
     const asset = await this.assetRepository.findById(assetId)
     if (!asset) return
     await this.assetStorage.delete(asset.characterId, asset.id, asset.extension)

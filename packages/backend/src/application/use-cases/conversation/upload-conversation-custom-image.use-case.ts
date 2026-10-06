@@ -4,12 +4,15 @@ import {
   ConversationNotFoundError,
 } from "../../../domain/errors"
 import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
+import type { CharacterAssetUsage } from "@workspace/shared/types/image"
 
 export interface UploadConversationCustomImageInput {
   conversationId: string
   mimeType: string
   sizeBytes: number
   data: Buffer
+  /** `background` generates the large variant set. Defaults to `profile`. */
+  usage?: CharacterAssetUsage
 }
 
 export interface UploadConversationCustomImageResult {
@@ -44,6 +47,7 @@ export class UploadConversationCustomImageUseCase {
       characterId,
       mimeType: input.mimeType,
       data: input.data,
+      usage: input.usage,
     })
 
     return {

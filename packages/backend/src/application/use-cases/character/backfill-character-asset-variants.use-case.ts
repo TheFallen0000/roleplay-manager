@@ -1,6 +1,8 @@
 import {
   CHARACTER_ASSET_VARIANTS,
+  CHARACTER_ASSET_VARIANTS_BY_USAGE,
   getCharacterAssetVariantFallbackOrder,
+  type CharacterAssetUsage,
   type CharacterAssetVariant,
 } from "@workspace/shared/types/image"
 
@@ -10,6 +12,7 @@ import type {
   CharacterAssetVariantStorage,
 } from "../../../domain/ports/character-asset.repository"
 import type { CharacterAssetImageProcessor } from "../../../domain/ports/character-asset-image-processor"
+import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 
 export interface BackfillCharacterAssetVariantsInput {
   dryRun?: boolean
@@ -40,6 +43,9 @@ export interface AssetVariantUsageEntry {
   /** What a chat avatar would download today (requested `thumbnail`). */
   avatarVariant: CharacterAssetVariant | "original"
   avatarBytes: number
+  /** What a chat background would download today (requested `large`). */
+  backgroundVariant: CharacterAssetVariant | "original"
+  backgroundBytes: number
 }
 
 export interface BackfillCharacterAssetVariantsReport {
@@ -50,8 +56,10 @@ export interface BackfillCharacterAssetVariantsReport {
     originalBytes: number
     cardBytes: number
     avatarBytes: number
+    backgroundBytes: number
     cardSavingsPercent: number
     avatarSavingsPercent: number
+    backgroundSavingsPercent: number
   }
   assets: AssetVariantUsageEntry[]
 }
@@ -61,13 +69,54 @@ export class BackfillCharacterAssetVariantsUseCase {
     private readonly assetRepository: CharacterAssetMaintenanceRepository,
     private readonly assetStorage: CharacterAssetVariantStorage,
     private readonly imageProcessor: CharacterAssetImageProcessor,
+    private readonly conversationRepository: ConversationRepository,
   ) {}
+
+  private async resolveVariantSets(): Promise<{
+    backgroundIds: Set<string>
+    profileIds: Set<string>
+  }> {
+    const conversations = await this.conversationRepository.list()
+    const backgroundIds = new Set(
+      conversations
+        .map((conversation) => conversation.backgroundImageAssetId)
+        .filter((id): id is string => id !== null),
+    )
+    const profileIds = new Set(
+      conversations
+        .map((conversation) => conversation.customProfileImageAssetId)
+        .filter((id): id is string => id !== null),
+    )
+    return { backgroundIds, profileIds }
+  }
+
+  /**
+   * Variants an asset needs based on how conversations use it. Assets without
+   * any reference (legacy) default to the profile set.
+   */
+  private variantSetFor(
+    assetId: string,
+    backgroundIds: Set<string>,
+    profileIds: Set<string>,
+  ): CharacterAssetVariant[] {
+    const usages: CharacterAssetUsage[] = []
+    if (profileIds.has(assetId) || !backgroundIds.has(assetId)) {
+      usages.push("profile")
+    }
+    if (backgroundIds.has(assetId)) {
+      usages.push("background")
+    }
+    return [
+      ...new Set(usages.flatMap((usage) => CHARACTER_ASSET_VARIANTS_BY_USAGE[usage])),
+    ]
+  }
 
   async execute(
     input: BackfillCharacterAssetVariantsInput = {},
   ): Promise<BackfillCharacterAssetVariantsResult> {
     const dryRun = input.dryRun ?? false
     const assets = await this.assetRepository.findAll()
+    const { backgroundIds, profileIds } = await this.resolveVariantSets()
     const result: BackfillCharacterAssetVariantsResult = {
       total: assets.length,
       processed: 0,
@@ -95,6 +144,7 @@ export class BackfillCharacterAssetVariantsUseCase {
         const processed = await this.imageProcessor.process(
           original,
           asset.mimeType,
+          { variants: this.variantSetFor(asset.id, backgroundIds, profileIds) },
         )
 
         if (
@@ -146,9 +196,9 @@ export class BackfillCharacterAssetVariantsUseCase {
   }
 
   /**
-   * Measures what the API would actually deliver today for the two real
-   * consumers (card and avatar) and how it compares to the original file.
-   * It never writes files or metadata.
+   * Measures what the API would actually deliver today for the real consumers
+   * (card, avatar and chat background) and how it compares to the original
+   * file. It never writes files or metadata.
    */
   async report(): Promise<BackfillCharacterAssetVariantsReport> {
     const assets = await this.assetRepository.findAll()
@@ -160,8 +210,10 @@ export class BackfillCharacterAssetVariantsUseCase {
         originalBytes: 0,
         cardBytes: 0,
         avatarBytes: 0,
+        backgroundBytes: 0,
         cardSavingsPercent: 0,
         avatarSavingsPercent: 0,
+        backgroundSavingsPercent: 0,
       },
       assets: [],
     }
@@ -187,6 +239,7 @@ export class BackfillCharacterAssetVariantsUseCase {
 
         const card = await this.pickDeliveredBytes(asset, "medium")
         const avatar = await this.pickDeliveredBytes(asset, "thumbnail")
+        const background = await this.pickDeliveredBytes(asset, "large")
 
         report.assets.push({
           assetId: asset.id,
@@ -199,10 +252,13 @@ export class BackfillCharacterAssetVariantsUseCase {
           cardBytes: card.bytes,
           avatarVariant: avatar.variant,
           avatarBytes: avatar.bytes,
+          backgroundVariant: background.variant,
+          backgroundBytes: background.bytes,
         })
         report.totals.originalBytes += asset.sizeBytes
         report.totals.cardBytes += card.bytes
         report.totals.avatarBytes += avatar.bytes
+        report.totals.backgroundBytes += background.bytes
       } catch (error) {
         report.failures.push({
           assetId: asset.id,
@@ -218,6 +274,10 @@ export class BackfillCharacterAssetVariantsUseCase {
     report.totals.avatarSavingsPercent = savingsPercent(
       report.totals.originalBytes,
       report.totals.avatarBytes,
+    )
+    report.totals.backgroundSavingsPercent = savingsPercent(
+      report.totals.originalBytes,
+      report.totals.backgroundBytes,
     )
 
     return report

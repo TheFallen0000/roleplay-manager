@@ -419,6 +419,7 @@ export const buildContainer = ({
       characterAssetRepository,
       characterAssetStorage,
       characterAssetImageProcessor,
+      conversationRepository,
     ),
     maxProfileImageBytes,
     createConversation: new CreateConversationUseCase(

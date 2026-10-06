@@ -82,6 +82,9 @@ export class BranchConversationUseCase {
       stopSequences: origin.stopSequences,
       memoryProposalMode: origin.memoryProposalMode,
       customProfileImageAssetId: origin.customProfileImageAssetId,
+      backgroundImageAssetId: origin.backgroundImageAssetId,
+      backgroundFit: origin.backgroundFit,
+      backgroundScrim: origin.backgroundScrim,
       playerCharacterId: origin.playerCharacterId,
       memoryDecayMode: origin.memoryDecayMode,
       memoryDecayThreshold: origin.memoryDecayThreshold,
@@ -163,6 +166,10 @@ export class BranchConversationUseCase {
       ? await this.characterRepository.findById(characterId)
       : null
 
+    const backgroundImage = conversation.backgroundImageAssetId
+      ? await this.assetRepository.findById(conversation.backgroundImageAssetId)
+      : null
+
     return {
       id: conversation.id,
       characterId,
@@ -187,6 +194,13 @@ export class BranchConversationUseCase {
       stopSequences: conversation.stopSequences,
       memoryProposalMode: conversation.memoryProposalMode,
       customProfileImageAssetId: conversation.customProfileImageAssetId,
+      backgroundImageAssetId: conversation.backgroundImageAssetId,
+      backgroundImageDimensions:
+        backgroundImage?.width && backgroundImage.height
+          ? { width: backgroundImage.width, height: backgroundImage.height }
+          : null,
+      backgroundFit: conversation.backgroundFit,
+      backgroundScrim: conversation.backgroundScrim,
       playerCharacterId: conversation.playerCharacterId,
       memoryDecayMode: conversation.memoryDecayMode,
       memoryDecayThreshold: conversation.memoryDecayThreshold,

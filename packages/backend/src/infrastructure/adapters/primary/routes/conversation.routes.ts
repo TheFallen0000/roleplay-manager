@@ -56,6 +56,9 @@ const UpdateConversationSettingsSchema = z.object({
   stopSequences: z.array(z.string()).optional(),
   memoryProposalMode: z.enum(["auto", "manual"]).optional(),
   customProfileImageAssetId: z.string().nullable().optional(),
+  backgroundImageAssetId: z.string().nullable().optional(),
+  backgroundFit: z.enum(["cover", "contain"]).optional(),
+  backgroundScrim: z.number().int().min(0).max(100).optional(),
   playerCharacterId: z.string().nullable().optional(),
   memoryDecayMode: z.enum(["silent", "manual", "off"]).optional(),
   memoryDecayThreshold: z.number().int().min(1).max(10).optional(),
@@ -408,6 +411,26 @@ export const buildConversationRouter = (deps: {
           mimeType: parsed.mimeType,
           sizeBytes: parsed.data.length,
           data: parsed.data,
+        })
+        res.status(201).json(result)
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+
+  router.post(
+    "/conversations/:id/customization/background",
+    async (req, res, next) => {
+      try {
+        const { id } = req.params as { id: string }
+        const parsed = await parseMultipartBody(req, deps.maxProfileImageBytes)
+        const result = await deps.uploadConversationCustomImage.execute({
+          conversationId: id,
+          mimeType: parsed.mimeType,
+          sizeBytes: parsed.data.length,
+          data: parsed.data,
+          usage: "background",
         })
         res.status(201).json(result)
       } catch (error) {

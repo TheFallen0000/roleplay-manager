@@ -1,13 +1,14 @@
 import sharp, { type Metadata } from "sharp"
 
 import {
-  CHARACTER_ASSET_VARIANTS,
+  CHARACTER_ASSET_VARIANTS_BY_USAGE,
   CHARACTER_ASSET_VARIANT_WIDTHS,
 } from "@workspace/shared/types/image"
 
 import { CharacterAssetValidationError } from "../../../../domain/errors"
 import type {
   CharacterAssetImageProcessor,
+  ProcessCharacterAssetOptions,
   ProcessedCharacterAssetImage,
 } from "../../../../domain/ports/character-asset-image-processor"
 
@@ -30,6 +31,7 @@ export class SharpCharacterAssetImageProcessor
   async process(
     data: Buffer,
     mimeType: string,
+    options?: ProcessCharacterAssetOptions,
   ): Promise<ProcessedCharacterAssetImage> {
     const metadata = await this.readMetadata(data, mimeType)
     const { width, height } = getDisplayDimensions(metadata)
@@ -41,7 +43,8 @@ export class SharpCharacterAssetImageProcessor
     const variants: ProcessedCharacterAssetImage["variants"] = []
     const seenWidths = new Set<number>()
 
-    for (const variant of CHARACTER_ASSET_VARIANTS) {
+    for (const variant of options?.variants ??
+      CHARACTER_ASSET_VARIANTS_BY_USAGE.profile) {
       const targetWidth = Math.min(
         width,
         CHARACTER_ASSET_VARIANT_WIDTHS[variant],

@@ -34,6 +34,11 @@ export const conversations = sqliteTable("conversations", {
     .notNull()
     .default("auto"),
   customProfileImageAssetId: text("custom_profile_image_asset_id"),
+  backgroundImageAssetId: text("background_image_asset_id"),
+  backgroundFit: text("background_fit", { enum: ["cover", "contain"] })
+    .notNull()
+    .default("cover"),
+  backgroundScrim: integer("background_scrim").notNull().default(0),
   playerCharacterId: text("player_character_id").references(
     () => playerCharacters.id,
     { onDelete: "set null" },

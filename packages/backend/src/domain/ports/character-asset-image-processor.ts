@@ -13,7 +13,16 @@ export interface ProcessedCharacterAssetImage {
   variants: ProcessedCharacterAssetVariant[]
 }
 
+export interface ProcessCharacterAssetOptions {
+  /** Variant set to generate; defaults to the profile set. */
+  variants?: CharacterAssetVariant[]
+}
+
 /** Decodes an uploaded image and generates local delivery variants. */
 export interface CharacterAssetImageProcessor {
-  process(data: Buffer, mimeType: string): Promise<ProcessedCharacterAssetImage>
+  process(
+    data: Buffer,
+    mimeType: string,
+    options?: ProcessCharacterAssetOptions,
+  ): Promise<ProcessedCharacterAssetImage>
 }

@@ -8,6 +8,7 @@ import type {
 } from "../../../../../domain/ports/conversation.repository"
 import type { Database } from "../../../../config/database"
 import type {
+  BackgroundFit,
   ConversationSettingsUpdate,
   MemoryDecayMode,
   MemoryProposalMode,
@@ -37,6 +38,9 @@ const toConversation = (row: ConversationRow): Conversation =>
     stopSequences: row.stopSequences ?? [],
     memoryProposalMode: (row.memoryProposalMode ?? "auto") as MemoryProposalMode,
     customProfileImageAssetId: row.customProfileImageAssetId ?? null,
+    backgroundImageAssetId: row.backgroundImageAssetId ?? null,
+    backgroundFit: (row.backgroundFit ?? "cover") as BackgroundFit,
+    backgroundScrim: row.backgroundScrim ?? 0,
     playerCharacterId: row.playerCharacterId ?? null,
     memoryDecayMode: (row.memoryDecayMode ?? "silent") as MemoryDecayMode,
     memoryDecayThreshold: row.memoryDecayThreshold ?? 3,
@@ -79,6 +83,9 @@ export class DrizzleConversationRepository implements ConversationRepository {
       presencePenalty: conversation.presencePenalty,
       stopSequences: conversation.stopSequences,
       customProfileImageAssetId: conversation.customProfileImageAssetId,
+      backgroundImageAssetId: conversation.backgroundImageAssetId,
+      backgroundFit: conversation.backgroundFit,
+      backgroundScrim: conversation.backgroundScrim,
       playerCharacterId: conversation.playerCharacterId,
       memoryDecayMode: conversation.memoryDecayMode,
       memoryDecayThreshold: conversation.memoryDecayThreshold,
@@ -178,6 +185,12 @@ export class DrizzleConversationRepository implements ConversationRepository {
       values.memoryProposalMode = settings.memoryProposalMode
     if (settings.customProfileImageAssetId !== undefined)
       values.customProfileImageAssetId = settings.customProfileImageAssetId
+    if (settings.backgroundImageAssetId !== undefined)
+      values.backgroundImageAssetId = settings.backgroundImageAssetId
+    if (settings.backgroundFit !== undefined)
+      values.backgroundFit = settings.backgroundFit
+    if (settings.backgroundScrim !== undefined)
+      values.backgroundScrim = settings.backgroundScrim
     if (settings.playerCharacterId !== undefined)
       values.playerCharacterId = settings.playerCharacterId
     if (settings.memoryDecayMode !== undefined)

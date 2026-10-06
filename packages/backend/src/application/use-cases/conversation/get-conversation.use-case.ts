@@ -31,6 +31,11 @@ export class GetConversationUseCase {
       result?.currentVersion.profileImageAssetId ?? null,
       this.assetRepository,
     )
+    const backgroundImage = convWithMessages.conversation.backgroundImageAssetId
+      ? await this.assetRepository.findById(
+          convWithMessages.conversation.backgroundImageAssetId,
+        )
+      : null
 
     return {
       id: convWithMessages.conversation.id,
@@ -52,6 +57,13 @@ export class GetConversationUseCase {
       stopSequences: convWithMessages.conversation.stopSequences,
       memoryProposalMode: convWithMessages.conversation.memoryProposalMode,
       customProfileImageAssetId: convWithMessages.conversation.customProfileImageAssetId,
+      backgroundImageAssetId: convWithMessages.conversation.backgroundImageAssetId,
+      backgroundImageDimensions:
+        backgroundImage?.width && backgroundImage.height
+          ? { width: backgroundImage.width, height: backgroundImage.height }
+          : null,
+      backgroundFit: convWithMessages.conversation.backgroundFit,
+      backgroundScrim: convWithMessages.conversation.backgroundScrim,
       playerCharacterId: convWithMessages.conversation.playerCharacterId,
       memoryDecayMode: convWithMessages.conversation.memoryDecayMode,
       memoryDecayThreshold: convWithMessages.conversation.memoryDecayThreshold,

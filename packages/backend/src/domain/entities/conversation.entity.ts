@@ -1,4 +1,5 @@
 import type {
+  BackgroundFit,
   MemoryDecayMode,
   TitleSource,
 } from "@workspace/shared/types/conversation"
@@ -23,6 +24,9 @@ export interface ConversationProps {
   stopSequences: string[]
   memoryProposalMode: MemoryProposalMode
   customProfileImageAssetId?: string | null
+  backgroundImageAssetId?: string | null
+  backgroundFit?: BackgroundFit
+  backgroundScrim?: number
   playerCharacterId?: string | null
   memoryDecayMode?: MemoryDecayMode
   memoryDecayThreshold?: number
@@ -46,6 +50,9 @@ export class Conversation {
     return new Conversation({
       ...props,
       customProfileImageAssetId: props.customProfileImageAssetId ?? null,
+      backgroundImageAssetId: props.backgroundImageAssetId ?? null,
+      backgroundFit: props.backgroundFit ?? "cover",
+      backgroundScrim: props.backgroundScrim ?? 0,
       playerCharacterId: props.playerCharacterId ?? null,
       memoryDecayMode: props.memoryDecayMode ?? DEFAULT_MEMORY_DECAY.mode,
       memoryDecayThreshold: props.memoryDecayThreshold ?? DEFAULT_MEMORY_DECAY.threshold,
@@ -71,6 +78,9 @@ export class Conversation {
   get stopSequences(): string[] { return this.props.stopSequences }
   get memoryProposalMode(): MemoryProposalMode { return this.props.memoryProposalMode }
   get customProfileImageAssetId(): string | null { return this.props.customProfileImageAssetId ?? null }
+  get backgroundImageAssetId(): string | null { return this.props.backgroundImageAssetId ?? null }
+  get backgroundFit(): BackgroundFit { return this.props.backgroundFit as BackgroundFit }
+  get backgroundScrim(): number { return this.props.backgroundScrim as number }
   get playerCharacterId(): string | null { return this.props.playerCharacterId ?? null }
   get memoryDecayMode(): MemoryDecayMode { return this.props.memoryDecayMode as MemoryDecayMode }
   get memoryDecayThreshold(): number { return this.props.memoryDecayThreshold as number }
@@ -98,6 +108,15 @@ export class Conversation {
     return new Conversation({
       ...this.props,
       customProfileImageAssetId: assetId,
+      updatedAt: new Date(),
+    })
+  }
+
+  withBackgroundImageAssetId(assetId: string | null): Conversation {
+    if (this.props.backgroundImageAssetId === assetId) return this
+    return new Conversation({
+      ...this.props,
+      backgroundImageAssetId: assetId,
       updatedAt: new Date(),
     })
   }
