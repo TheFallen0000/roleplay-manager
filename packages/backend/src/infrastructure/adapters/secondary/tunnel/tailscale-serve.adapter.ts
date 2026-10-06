@@ -3,7 +3,7 @@ import { existsSync } from "node:fs"
 
 import type { TunnelStatusDTO } from "@workspace/shared/types/tunnel"
 
-import { TunnelCommandError } from "../../../../domain/errors"
+import { TunnelCommandError, TunnelServeNotEnabledError } from "../../../../domain/errors"
 import type { TunnelController } from "../../../../domain/ports/tunnel-controller"
 
 export interface CommandResult {
@@ -11,9 +11,15 @@ export interface CommandResult {
   stderr: string
 }
 
+export interface CommandOptions {
+  /** Overrides the default command timeout. */
+  timeoutMs?: number
+}
+
 export type CommandRunner = (
   command: string,
   args: string[],
+  options?: CommandOptions,
 ) => Promise<CommandResult>
 
 export interface TailscaleServeAdapterOptions {
@@ -27,6 +33,11 @@ export interface TailscaleServeAdapterOptions {
 
 const WINDOWS_DEFAULT_BIN = "C:\\Program Files\\Tailscale\\tailscale.exe"
 const COMMAND_TIMEOUT_MS = 15_000
+const ENABLE_TIMEOUT_MS = 10_000
+const SERVE_DISABLED_MARKER = /serve is not enabled/i
+const SERVE_CONSENT_URL_PATTERN =
+  /https:\/\/login\.tailscale\.com\/f\/serve\S*/
+const TAILNET_DNS_URL = "https://login.tailscale.com/admin/dns"
 
 const UNAVAILABLE_STATUS: TunnelStatusDTO = {
   available: false,
@@ -98,14 +109,18 @@ export class TailscaleServeAdapter implements TunnelController {
   async enable(): Promise<TunnelStatusDTO> {
     const bin = this.resolveBin()
     try {
-      await this.run(bin, [
-        "serve",
-        "--bg",
-        "--yes",
-        "--https=443",
-        this.targetUrl,
-      ])
+      await this.run(
+        bin,
+        ["serve", "--bg", "--yes", "--https=443", this.targetUrl],
+        { timeoutMs: ENABLE_TIMEOUT_MS },
+      )
     } catch (error) {
+      const output = describeOutput(error)
+      if (SERVE_DISABLED_MARKER.test(output)) {
+        throw new TunnelServeNotEnabledError(
+          extractServeConsentUrl(output) ?? TAILNET_DNS_URL,
+        )
+      }
       throw new TunnelCommandError(describeError(error))
     }
     return this.getStatus()
@@ -158,10 +173,10 @@ export class TailscaleServeAdapter implements TunnelController {
   }
 }
 
-const defaultRunner: CommandRunner = (command, args) =>
+const defaultRunner: CommandRunner = (command, args, options) =>
   new Promise((resolve, reject) => {
     const child = spawn(command, args, {
-      timeout: COMMAND_TIMEOUT_MS,
+      timeout: options?.timeoutMs ?? COMMAND_TIMEOUT_MS,
       windowsHide: true,
     })
 
@@ -180,8 +195,10 @@ const defaultRunner: CommandRunner = (command, args) =>
         return
       }
       const error = new Error(`Command failed with exit code ${code}`) as Error & {
+        stdout?: string
         stderr?: string
       }
+      error.stdout = stdout
       error.stderr = stderr
       reject(error)
     })
@@ -194,6 +211,17 @@ const describeError = (error: unknown): string => {
   const stderr = (error as { stderr?: string } | undefined)?.stderr?.trim()
   if (stderr) return stderr
   return (error as Error).message
+}
+
+const describeOutput = (error: unknown): string => {
+  const stdout = (error as { stdout?: string } | undefined)?.stdout ?? ""
+  const stderr = (error as { stderr?: string } | undefined)?.stderr ?? ""
+  return `${stdout}\n${stderr}`
+}
+
+const extractServeConsentUrl = (output: string): string | null => {
+  const match = output.match(SERVE_CONSENT_URL_PATTERN)
+  return match ? match[0] : null
 }
 
 const safeJson = <T>(raw: string): T | null => {

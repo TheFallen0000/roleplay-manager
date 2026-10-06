@@ -124,3 +124,14 @@ export class TunnelCommandError extends DomainError {
     this.name = "TunnelCommandError"
   }
 }
+
+export class TunnelServeNotEnabledError extends DomainError {
+  constructor(consentUrl: string) {
+    super(
+      "TUNNEL_SERVE_NOT_ENABLED",
+      `Tailscale Serve is not enabled on this tailnet. Enable it at ${consentUrl}`,
+      409,
+    )
+    this.name = "TunnelServeNotEnabledError"
+  }
+}
