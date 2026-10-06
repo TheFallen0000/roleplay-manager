@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.22.0] - 2026-10-06
+
+### Added
+
+- Optional per-conversation chat background (PM.3 + PM.5, phase A): set from Customization with upload + cropper (16:9), **Cover/Contain** fit, a 0–100 overlay slider with live preview and a "Remove background" action. There is no default background, and branches inherit the background, fit and overlay.
+- New `large` (1920 px) asset variant and per-usage variant sets: profile images generate `thumbnail/small/medium`, backgrounds generate `small/medium/large`. The chat renders the background behind the messages with responsive `srcset`/`sizes` and never requests the original on phones.
+- `POST /api/conversations/:id/customization/background` endpoint. The backfill and its `--report` mode now understand background usage and report background bytes/savings.
+
+### Fixed
+
+- Conversation images are only deleted when no other conversation references them, so replacing or removing an image no longer breaks branches that share it.
+- Streaming requests (`send`, `regenerate`, `continue`) now send `Accept-Language`, so the LLM prompt follows the UI language there too.
+
 ## [1.21.0] - 2026-10-06
 
 ### Added
