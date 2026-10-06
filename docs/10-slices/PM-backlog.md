@@ -7,7 +7,7 @@ See `S9-plan.md` for the v1.0 polish tasks and the rationale for deferring
 these. The dependency graph below reflects which PMs must land together or in
 sequence.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-06
 
 ## Images & media
 
@@ -77,6 +77,7 @@ Last updated: 2026-10-05
 | PM.8 | Import a character from a file (drag & drop or file picker). <br>*Done as S18 (v1.9.0) — see `S18-progress.md`.* | — |
 | PM.9 | Export conversations. <br>*Done as part of S17 (v1.8.0) — see `S17-progress.md`.* | — |
 | PM.10 | Export manager: export character definition, specific versions, associated conversations, dynamic memory, summaries, settings. Accessible from the ContextMenu of the character list. <br>*Done as S17 (v1.8.0) — see `S17-progress.md`.* | PM.8, PM.9 |
+| PM.20 | Apply an exported settings template (`standaloneSettings`) to all conversations of an existing character. <br>*Done as S29 (v1.21.0) — see `S29-progress.md`.* | PM.10 |
 
 > **PM.8 (S18) — done (2026-08-12, v1.9.0):** A JSON exported from the S17 export manager can be
 > imported by dropping it over the character list (an overlay invites you to drop the file) or
@@ -98,6 +99,14 @@ Last updated: 2026-10-05
 > child hierarchy a future import module will validate. PM.9 (export conversations) is covered by
 > the "Conversaciones y ramas" section. PM.8 (import) is still pending and is the remaining half
 > of the round-trip. See `S17-progress.md`.
+
+> **PM.20 (S29) — done (2026-10-06, v1.21.0):** The settings template produced by the export
+> manager can now be applied to an existing character from its context menu ("Aplicar
+> ajustes…"). The dialog accepts the JSON (drop or picker), summarizes it and applies it to all
+> conversations of the character through the existing settings validation. If the template's
+> provider instance does not exist locally, the destination provider and model are kept and the
+> user is warned; unsupported providers behave the same. This closes the S18 gap where the
+> template was exported but never imported. See `S29-progress.md`.
 
 ## Multi-language & themes
 
