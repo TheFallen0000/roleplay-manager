@@ -15,6 +15,7 @@ import { buildMemoryRouter } from "./routes/memory.routes"
 import { buildContextRouter } from "./routes/context.routes"
 import { buildSummaryRouter } from "./routes/summary.routes"
 import { buildTunnelRouter } from "./routes/tunnel.routes"
+import { buildLanRouter } from "./routes/lan.routes"
 
 export interface BuildServerOptions {
   container: AppContainer
@@ -123,6 +124,14 @@ export const buildServer = ({
       getTunnelStatus: container.getTunnelStatus,
       enableTunnel: container.enableTunnel,
       disableTunnel: container.disableTunnel,
+    }),
+  )
+  app.use(
+    "/api",
+    buildLanRouter({
+      getLanStatus: container.getLanStatus,
+      enableLanAccess: container.enableLanAccess,
+      disableLanAccess: container.disableLanAccess,
     }),
   )
 

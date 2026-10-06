@@ -135,3 +135,17 @@ export class TunnelServeNotEnabledError extends DomainError {
     this.name = "TunnelServeNotEnabledError"
   }
 }
+
+export class LanPortInUseError extends DomainError {
+  constructor(port: number) {
+    super("LAN_PORT_IN_USE", `Port ${port} is already in use.`, 409)
+    this.name = "LanPortInUseError"
+  }
+}
+
+export class LanAccessError extends DomainError {
+  constructor(message: string) {
+    super("LAN_ACCESS_FAILED", message, 502)
+    this.name = "LanAccessError"
+  }
+}

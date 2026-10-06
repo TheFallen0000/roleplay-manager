@@ -12,6 +12,7 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().url().default("http://localhost:4321"),
   TUNNEL_TARGET_URL: z.string().url().default("http://localhost:4321"),
   TAILSCALE_BIN: z.string().min(1).optional(),
+  LAN_PORT: z.coerce.number().int().positive().default(4322),
   MAX_PROFILE_IMAGE_BYTES: z.coerce.number().int().positive().default(DEFAULT_MAX_PROFILE_IMAGE_BYTES),
   MAX_PROFILE_IMAGE_PIXELS: z.coerce.number().int().positive().default(40_000_000),
   PROVIDER_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),

@@ -26,6 +26,7 @@ async function main(): Promise<void> {
       providerStreamingTimeoutMs: env.PROVIDER_STREAMING_TIMEOUT_MS,
       tunnelTargetUrl: env.TUNNEL_TARGET_URL,
       tailscaleBin: env.TAILSCALE_BIN,
+      lanPort: env.LAN_PORT,
     })
     const result = report
       ? await container.backfillCharacterAssetVariants.report()

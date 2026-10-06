@@ -60,6 +60,10 @@ import { GetTunnelStatusUseCase } from "../application/use-cases/tunnel/get-tunn
 import { EnableTunnelUseCase } from "../application/use-cases/tunnel/enable-tunnel.use-case"
 import { DisableTunnelUseCase } from "../application/use-cases/tunnel/disable-tunnel.use-case"
 import { TailscaleServeAdapter } from "../infrastructure/adapters/secondary/tunnel/tailscale-serve.adapter"
+import { GetLanStatusUseCase } from "../application/use-cases/lan/get-lan-status.use-case"
+import { EnableLanAccessUseCase } from "../application/use-cases/lan/enable-lan-access.use-case"
+import { DisableLanAccessUseCase } from "../application/use-cases/lan/disable-lan-access.use-case"
+import { LanProxyServerAdapter } from "../infrastructure/adapters/secondary/lan/lan-proxy-server.adapter"
 import { CreateConversationUseCase } from "../application/use-cases/conversation/create-conversation.use-case"
 import { BranchConversationUseCase } from "../application/use-cases/conversation/branch-conversation.use-case"
 import { GetConversationUseCase } from "../application/use-cases/conversation/get-conversation.use-case"
@@ -161,6 +165,11 @@ export interface AppContainer {
   enableTunnel: EnableTunnelUseCase
   disableTunnel: DisableTunnelUseCase
 
+  // LAN (home network access)
+  getLanStatus: GetLanStatusUseCase
+  enableLanAccess: EnableLanAccessUseCase
+  disableLanAccess: DisableLanAccessUseCase
+
   summaryRepository: SummaryRepository
 
   // Summary
@@ -192,6 +201,7 @@ export interface BuildContainerOptions {
   providerStreamingTimeoutMs: number
   tunnelTargetUrl: string
   tailscaleBin?: string
+  lanPort: number
 }
 
 export const buildContainer = ({
@@ -206,6 +216,7 @@ export const buildContainer = ({
   providerStreamingTimeoutMs,
   tunnelTargetUrl,
   tailscaleBin,
+  lanPort,
 }: BuildContainerOptions): AppContainer => {
   const settings: SettingsRepository = new DrizzleSettingsRepository(database)
   const providerRegistry: ProviderRegistry = new ProviderRegistryImpl({
@@ -249,6 +260,14 @@ export const buildContainer = ({
   const getTunnelStatus = new GetTunnelStatusUseCase(tunnelController)
   const enableTunnel = new EnableTunnelUseCase(tunnelController)
   const disableTunnel = new DisableTunnelUseCase(tunnelController)
+
+  const lanAccessController = new LanProxyServerAdapter({
+    targetUrl: tunnelTargetUrl,
+    port: lanPort,
+  })
+  const getLanStatus = new GetLanStatusUseCase(lanAccessController)
+  const enableLanAccess = new EnableLanAccessUseCase(lanAccessController)
+  const disableLanAccess = new DisableLanAccessUseCase(lanAccessController)
 
   const applyAllMemoryChanges = new ApplyAllMemoryChangesUseCase(
     memoryRepository,
@@ -380,6 +399,9 @@ export const buildContainer = ({
     getTunnelStatus,
     enableTunnel,
     disableTunnel,
+    getLanStatus,
+    enableLanAccess,
+    disableLanAccess,
     settings,
     providerRegistry,
     providerInstanceRepository,
