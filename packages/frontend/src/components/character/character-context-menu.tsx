@@ -30,9 +30,11 @@ import {
   MessageSquarePlusIcon,
   MessageSquareTextIcon,
   PencilIcon,
+  Settings2Icon,
   Trash2Icon,
 } from "lucide-react"
 import { ExportDialog } from "./export-dialog"
+import { ApplySettingsDialog } from "./apply-settings-dialog"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 interface CharacterContextMenuProps {
@@ -61,6 +63,7 @@ export function CharacterContextMenu({
   const [versionsLoading, setVersionsLoading] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
+  const [applySettingsOpen, setApplySettingsOpen] = useState(false)
 
   const handleVersionsOpenChange = (open: boolean) => {
     if (open && versions === null && !versionsLoading) {
@@ -152,6 +155,10 @@ export function CharacterContextMenu({
           <DownloadIcon className="size-4" />
           {t("characters.export")}
         </ContextMenuItem>
+        <ContextMenuItem onClick={() => setApplySettingsOpen(true)}>
+          <Settings2Icon className="size-4" />
+          {t("characters.applySettings")}
+        </ContextMenuItem>
         <ContextMenuItem
           variant="destructive"
           onClick={() => setDeleteOpen(true)}
@@ -166,6 +173,13 @@ export function CharacterContextMenu({
         conversationCount={conversations.length}
         open={exportOpen}
         onOpenChange={setExportOpen}
+      />
+
+      <ApplySettingsDialog
+        character={character}
+        conversationCount={conversations.length}
+        open={applySettingsOpen}
+        onOpenChange={setApplySettingsOpen}
       />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
