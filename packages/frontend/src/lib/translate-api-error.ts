@@ -14,3 +14,20 @@ export function translateApiError(
   }
   return fallback
 }
+
+const TUNNEL_SERVE_URL_PATTERN = /https:\/\/login\.tailscale\.com\/\S+/
+
+/**
+ * When the backend reports that Tailscale Serve is not enabled on the tailnet,
+ * returns the one-time activation URL included in the message.
+ */
+export function extractTunnelServeUrl(error: unknown): string | null {
+  if (
+    !(error instanceof ApiClientError) ||
+    error.code !== "TUNNEL_SERVE_NOT_ENABLED"
+  ) {
+    return null
+  }
+  const match = error.message.match(TUNNEL_SERVE_URL_PATTERN)
+  return match ? match[0] : null
+}

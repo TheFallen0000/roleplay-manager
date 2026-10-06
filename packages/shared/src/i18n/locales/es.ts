@@ -95,6 +95,7 @@ export const es: Dictionary = {
     copyFailed: "No se pudo copiar el enlace.",
     checkFailed: "No se pudo comprobar la conexión.",
     actionFailed: "No se pudo cambiar la conexión.",
+    enableServe: "Activar Serve en Tailscale",
   },
   errors: {
     PLAYER_CHARACTER_NOT_FOUND: "La persona seleccionada ya no existe.",
@@ -108,6 +109,8 @@ export const es: Dictionary = {
       "Tailscale no está en ejecución o no tiene sesión iniciada en esta computadora.",
     TUNNEL_COMMAND_FAILED:
       "No se pudo cambiar la conexión. Comprueba que Tailscale esté en ejecución y que HTTPS esté habilitado en tu tailnet.",
+    TUNNEL_SERVE_NOT_ENABLED:
+      "Tailscale Serve aún no está habilitado en tu tailnet. Actívalo una vez (el enlace abre Tailscale).",
   },
   chat: {
     noMessages: "No hay mensajes en esta conversación.",

@@ -97,6 +97,7 @@ export const en = {
     copyFailed: "Could not copy the link.",
     checkFailed: "Could not check the connection.",
     actionFailed: "Could not change the connection.",
+    enableServe: "Enable Serve in Tailscale",
   },
   errors: {
     PLAYER_CHARACTER_NOT_FOUND: "The selected persona no longer exists.",
@@ -110,6 +111,8 @@ export const en = {
       "Tailscale is not running or is signed out on this computer.",
     TUNNEL_COMMAND_FAILED:
       "Could not change the connection. Check that Tailscale is running and that HTTPS is enabled in your tailnet.",
+    TUNNEL_SERVE_NOT_ENABLED:
+      "Tailscale Serve is not enabled on your tailnet yet. Enable it once (the link opens Tailscale).",
   },
   chat: {
     noMessages: "There are no messages in this conversation.",

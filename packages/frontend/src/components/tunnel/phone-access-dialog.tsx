@@ -17,7 +17,10 @@ import { toast } from "@workspace/ui/components/sonner"
 
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { useTunnelStore } from "@/lib/stores/tunnel.store"
-import { translateApiError } from "@/lib/translate-api-error"
+import {
+  extractTunnelServeUrl,
+  translateApiError,
+} from "@/lib/translate-api-error"
 
 export interface PhoneAccessDialogProps {
   open: boolean
@@ -35,6 +38,7 @@ export function PhoneAccessDialog({
   const disable = useTunnelStore((state) => state.disable)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [consentUrl, setConsentUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -42,13 +46,17 @@ export function PhoneAccessDialog({
   }, [open, refresh, t])
 
   const handleOpenChange = (next: boolean) => {
-    if (!next) setError(null)
+    if (!next) {
+      setError(null)
+      setConsentUrl(null)
+    }
     onOpenChange(next)
   }
 
   const handleToggle = async (checked: boolean) => {
     setPending(true)
     setError(null)
+    setConsentUrl(null)
     try {
       if (checked) {
         await enable()
@@ -57,6 +65,7 @@ export function PhoneAccessDialog({
       }
     } catch (toggleError) {
       setError(translateApiError(toggleError, tRaw, t("tunnel.actionFailed")))
+      setConsentUrl(extractTunnelServeUrl(toggleError))
     } finally {
       setPending(false)
     }
@@ -125,6 +134,19 @@ export function PhoneAccessDialog({
           ) : null}
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+          {consentUrl ? (
+            <p className="text-sm">
+              <a
+                className="font-medium underline underline-offset-4"
+                href={consentUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("tunnel.enableServe")}
+              </a>
+            </p>
+          ) : null}
 
           {status?.active && status.url ? (
             <div className="space-y-3">
