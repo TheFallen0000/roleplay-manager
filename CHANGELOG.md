@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.20.1] - 2026-10-06
+
+### Changed
+
+- The profile image upload limit and the allowed MIME list now come from a single shared source (`@workspace/shared/lib/image`). The backend `.env` (`MAX_PROFILE_IMAGE_BYTES`) still overrides the runtime limit; the frontend pre-check and its helper text are derived from the shared default.
+
 ## [1.20.0] - 2026-10-06
 
 ### Added

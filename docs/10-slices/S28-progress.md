@@ -101,3 +101,22 @@ Commits:
 1. `feat(backend): report delivered image variant sizes`
 2. `chore(config): raise the profile image upload limit to 15 MB`
 3. `release: bump to v1.20.0 and add changelog entry`
+
+### v1.20.1 — fuente única del límite
+
+- El default del límite (15 MB) y la lista de MIME permitidos viven ahora en
+  `@workspace/shared/lib/image` (`DEFAULT_MAX_PROFILE_IMAGE_BYTES`,
+  `ALLOWED_IMAGE_MIMES`, `formatMegabytes`). Backend, frontend y textos i18n
+  (`{max}`) salen de ahí, así que cambiar el valor es una sola edición.
+- El `.env` del backend (`MAX_PROFILE_IMAGE_BYTES`) sigue siendo la autoridad en
+  runtime. Trade-off documentado: si se cambia **solo** el `.env`, el pre-check y
+  el texto del frontend mantienen el default compartido hasta actualizarlo.
+- Los `maxLength` de los formularios (nombre, descripción…) siguen el patrón
+  anterior (constantes locales de UX + validación autoritativa del backend); no
+  forman parte de este cambio.
+
+Commits:
+
+1. `refactor(shared): single source for image upload limits`
+2. `refactor(frontend): consume shared image limits and mime list`
+3. `release: bump to v1.20.1 and add changelog entry`
