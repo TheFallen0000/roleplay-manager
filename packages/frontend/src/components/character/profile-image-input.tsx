@@ -5,6 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/av
 import { Button } from "@workspace/ui/components/button"
 import { toast } from "@workspace/ui/components/sonner"
 import { ImagePlusIcon, XIcon } from "lucide-react"
+import {
+  ALLOWED_IMAGE_MIMES,
+  DEFAULT_MAX_PROFILE_IMAGE_BYTES,
+  formatMegabytes,
+} from "@workspace/shared/lib/image"
 import { getCharacterAssetUrl } from "@/lib/api/client"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { ImageCropperDialog } from "./image-cropper-dialog"
@@ -21,13 +26,12 @@ interface ProfileImageInputProps {
   onClear: () => void
 }
 
-const ACCEPTED_MIMES = ["image/png", "image/jpeg", "image/webp", "image/gif"]
-const MAX_SIZE_BYTES = 15 * 1024 * 1024
+const MAX_SIZE_BYTES = DEFAULT_MAX_PROFILE_IMAGE_BYTES
 
 type ValidationKey = "characters.imageInvalidType" | "characters.imageTooLarge"
 
 function validateFile(file: File): ValidationKey | null {
-  if (!ACCEPTED_MIMES.includes(file.type)) {
+  if (!ALLOWED_IMAGE_MIMES.includes(file.type)) {
     return "characters.imageInvalidType"
   }
   if (file.size > MAX_SIZE_BYTES) {
@@ -67,7 +71,7 @@ export function ProfileImageInput({
     (file: File) => {
       const errorKey = validateFile(file)
       if (errorKey) {
-        toast.error(t(errorKey))
+        toast.error(t(errorKey, { max: formatMegabytes(MAX_SIZE_BYTES) }))
         return
       }
       setCropperFile(file)
@@ -124,14 +128,16 @@ export function ProfileImageInput({
         <div className="text-sm">
           <p className="font-medium">{t("characters.imageDropHint")}</p>
           <p className="text-xs text-muted-foreground">
-            {t("characters.imageFormats")}
+            {t("characters.imageFormats", {
+              max: formatMegabytes(MAX_SIZE_BYTES),
+            })}
           </p>
         </div>
       </div>
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
+        accept={ALLOWED_IMAGE_MIMES.join(",")}
         onChange={(e) => {
           const file = e.target.files?.[0]
           if (file) handleFile(file)
