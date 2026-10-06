@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.24.0] - 2026-10-06
+
+### Added
+
+- The frontend now serves `/api/*` itself and proxies it to the backend through an Astro middleware, so the browser only talks to a single origin. This is the prerequisite for remote access (a single tunnel of the frontend port exposes the whole app) and also enables LAN access when the server binds beyond localhost. JSON, multipart uploads and SSE streaming are forwarded without buffering; the backend target can be overridden with the server-only `API_PROXY_TARGET` variable.
+- Asset URLs (`img src`) are now relative, so images load through the same origin.
+
+### Changed
+
+- Browser API calls use same-origin `/api` paths; SSR keeps calling the backend directly. `PUBLIC_API_URL` still overrides both.
+
 ## [1.23.0] - 2026-10-06
 
 ### Added
