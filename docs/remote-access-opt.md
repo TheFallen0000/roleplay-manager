@@ -221,8 +221,10 @@ es «encender → escanear → listo».
     (o `reset`). Ruta configurable al binario (`TAILSCALE_BIN`).
   - Casos de uso `get-tunnel-status`, `enable-tunnel`, `disable-tunnel` y rutas
     `GET/POST /api/tunnel`.
-  - Los endpoints de encendido/apagado se restringen a peticiones locales
-    (loopback) para que no puedan dispararse desde el teléfono.
+  - *(Hallazgo en S33: la restricción «solo loopback» no es viable — con el
+    proxy same-origin el backend siempre ve `127.0.0.1` y con Serve el frontend
+    también; la red es privada del usuario, así que los endpoints quedan
+    accesibles solo desde ella y sin restricción adicional.)*
 - **Frontend**: elemento en el menubar + diálogo con interruptor, QR (librería
   ligera, p. ej. `react-qr-code`), enlace copiable y guía; i18n en/es.
 - **PWA (opcional)**: manifest + iconos.
@@ -231,13 +233,16 @@ es «encender → escanear → listo».
   verificar en la máquina de desarrollo. Requisito: HTTPS activado en el
   tailnet (Tailscale lo ofrece en el primer `serve`).
 
-## Puntos a decidir en la slice
+> **Hecho en S33 (v1.25.0):** el menú «Teléfono» con interruptor, QR, enlace
+> copiable y guía está implementado; ver `S33-progress.md`.
 
-1. ¿Activar al iniciar la app? ¿Desactivar al cerrar?
-2. ¿Auto-desactivar tras X minutos de inactividad?
-3. ¿Incluir el manifest PWA en la misma slice o después?
-4. ¿Dividir el trabajo: primero proxy `/api` y luego túnel + QR, o una sola
-   slice?
+## Pendientes (opcionales)
+
+- «Activar al iniciar» / «desactivar al cerrar» y auto-desactivado por
+  inactividad.
+- Manifest PWA para «añadir a inicio» en el teléfono.
+- Probar el flujo real con un tailnet (requiere instalar Tailscale en la
+  computadora y en el teléfono).
 
 ## Referencias
 

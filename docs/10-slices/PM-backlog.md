@@ -151,17 +151,16 @@ Last updated: 2026-10-06
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.21 | Access the app from a phone anywhere while it keeps running on the user's computer, without deploying to a server or exposing ports. <br>*Decision (2026-10-06): **Tailscale + Serve** (private, no domain), toggled from the app's menubar with a QR. Design/UX: `remote-access-opt.md`. Not sliced yet.* | — |
+| PM.21 | Access the app from a phone anywhere while it keeps running on the user's computer, without deploying to a server or exposing ports. <br>*Done as S33 (v1.25.0): **Tailscale + Serve** (private, no domain), toggled from the app's Phone menu with a QR. See `S33-progress.md`.* | — |
 
-> **PM.21 — decision (2026-10-06):** The option landscape was documented (Cloudflare Tunnel
-> quick/named, Tailscale Serve/Funnel, ngrok, others) and **Tailscale + Serve** was chosen:
-> private tailnet, nothing exposed to the internet, no domain needed, phone installs the
-> Tailscale app once. The app will toggle the connection from a menubar dialog with a QR and a
-> first-run guide (the user never runs commands; the backend drives the Tailscale CLI).
-> Prerequisite: a same-origin `/api` proxy — **delivered as S32 (v1.24.0)**: the frontend now
-> serves `/api/*` through an Astro middleware, so a single tunnel of the frontend port exposes
-> the whole app (and LAN access works when the server binds beyond localhost). Next: S33
-> (Tailscale toggle + QR). Key findings and the UX flow live in `remote-access-opt.md`.
+> **PM.21 (S32 + S33) — done (2026-10-06, v1.24.0 / v1.25.0):** **Tailscale + Serve** was
+> chosen (private tailnet, nothing exposed to the internet, no domain, phone installs the
+> Tailscale app once). S32 delivered the prerequisite (same-origin `/api` proxy through an
+> Astro middleware, so a single tunnel of the frontend port exposes the whole app and LAN
+> access works). S33 delivered the **Phone menu**: connection toggle, QR with the private URL,
+> copy link and a first-run guide, driven by the backend through the Tailscale CLI. Deferred:
+> auto-enable/auto-disable options and the PWA manifest. See `S32-progress.md`,
+> `S33-progress.md` and `remote-access-opt.md`.
 
 ## UI polish
 
