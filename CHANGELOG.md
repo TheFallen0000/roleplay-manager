@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.26.0] - 2026-10-06
+
+### Added
+
+- The Phone dialog now has a **Home network** tab (next to Tailscale) for connecting the phone on the same Wi-Fi: a toggle, its own QR/link, an address selector when the PC has several network interfaces, a copy button that also works over plain HTTP, and notes about trusted networks and the Windows firewall. It is off by default and is served by a small backend proxy (`LAN_PORT`, default 4322) that forwards to the local app, so the frontend itself stays bound to localhost.
+- The header status dot lights up when either mode (Tailscale or Home network) is active.
+
 ## [1.25.4] - 2026-10-06
 
 ### Fixed
