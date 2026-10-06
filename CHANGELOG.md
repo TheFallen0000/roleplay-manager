@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.23.0] - 2026-10-06
+
+### Added
+
+- New `conversations.images` export section ("Conversation images", enabled by default): conversation-scoped images (custom profile image and chat background) travel once per unique asset in a top-level `conversationImages` map, while conversations reference them by id. Fit and overlay travel too.
+- On import, each unique image is recreated once with the right variant set (union when used as both profile and background) and every branch referencing it is remapped to the same new asset.
+
+### Fixed
+
+- Custom profile images are now exported with their binary (previously only the id travelled, leaving broken references on import). References whose binary is missing are cleared to `null` instead of pointing to a non-existent asset.
+
 ## [1.22.0] - 2026-10-06
 
 ### Added
