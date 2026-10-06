@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { mkdtemp, rm } from "node:fs/promises"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
@@ -189,5 +189,35 @@ describe("UploadConversationCustomImageUseCase", () => {
         data: Buffer.from("<svg></svg>"),
       }),
     ).rejects.toThrow("not allowed")
+  })
+
+  it("forwards the background usage to the variant processor", async () => {
+    const process = vi.fn(async () => ({
+      width: 100,
+      height: 100,
+      variants: [],
+    }))
+    const useCase = new UploadConversationCustomImageUseCase(
+      buildConversationRepo(buildConversation()),
+      buildCharacterRepo(),
+      new StoreCharacterAssetService(
+        buildAssetRepo(),
+        storage,
+        { process },
+        3 * 1024 * 1024,
+      ),
+    )
+
+    await useCase.execute({
+      conversationId: "conv-1",
+      mimeType: "image/png",
+      sizeBytes: pngBytes.length,
+      data: pngBytes,
+      usage: "background",
+    })
+
+    expect(process).toHaveBeenCalledWith(expect.any(Buffer), "image/png", {
+      variants: ["small", "medium", "large"],
+    })
   })
 })

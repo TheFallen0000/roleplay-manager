@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 import sharp from "sharp"
 
+import { CHARACTER_ASSET_VARIANTS_BY_USAGE } from "@workspace/shared/types/image"
+
 import { SharpCharacterAssetImageProcessor } from "./sharp-character-asset-image-processor"
 
 async function createPng(width: number, height: number): Promise<Buffer> {
@@ -39,6 +41,24 @@ describe("SharpCharacterAssetImageProcessor", () => {
       expect(variant.height).toBeLessThanOrEqual(600)
       expect(variant.width / variant.height).toBeCloseTo(2)
     }
+  })
+
+  it("generates the background variant set (no thumbnail) when requested", async () => {
+    const original = await createPng(2400, 1350)
+    const result = await new SharpCharacterAssetImageProcessor().process(
+      original,
+      "image/png",
+      { variants: CHARACTER_ASSET_VARIANTS_BY_USAGE.background },
+    )
+
+    expect(result.variants.map((item) => item.variant)).toEqual([
+      "small",
+      "medium",
+      "large",
+    ])
+    expect(
+      result.variants.find((item) => item.variant === "large")?.width,
+    ).toBe(1920)
   })
 
   it("creates only one variant when the source is smaller than all targets", async () => {

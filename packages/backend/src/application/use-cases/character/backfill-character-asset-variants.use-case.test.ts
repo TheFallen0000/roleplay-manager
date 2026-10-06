@@ -5,7 +5,9 @@ import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { CharacterAssetImageProcessor } from "../../../domain/ports/character-asset-image-processor"
+import type { ProcessedCharacterAssetImage } from "../../../domain/ports/character-asset-image-processor"
 import type { CharacterAssetMetadata } from "../../../domain/ports/character-asset.repository"
+import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import { FilesystemCharacterAssetStorage } from "../../../infrastructure/adapters/secondary/filesystem/filesystem-character-asset-storage"
 import { BackfillCharacterAssetVariantsUseCase } from "./backfill-character-asset-variants.use-case"
 
@@ -17,6 +19,8 @@ describe("BackfillCharacterAssetVariantsUseCase", () => {
   let assets: CharacterAssetMetadata[]
   let updateDimensions: ReturnType<typeof vi.fn>
   let processor: CharacterAssetImageProcessor
+  let backgroundAssetIds: Array<string | null>
+  let profileAssetIds: Array<string | null>
 
   beforeEach(async () => {
     root = await mkdtemp(join(tmpdir(), "backfill-image-"))
@@ -52,8 +56,14 @@ describe("BackfillCharacterAssetVariantsUseCase", () => {
         asset.height = height
       }
     })
+    backgroundAssetIds = []
+    profileAssetIds = []
     processor = {
-      process: async (_data, mimeType) => ({
+      process: vi.fn(
+        async (
+          _data: Buffer,
+          mimeType: string,
+        ): Promise<ProcessedCharacterAssetImage> => ({
         width: 512,
         height: 256,
         variants:
@@ -79,7 +89,7 @@ describe("BackfillCharacterAssetVariantsUseCase", () => {
                   data: Buffer.from("medium-webp"),
                 },
               ],
-      }),
+      })),
     }
   })
 
@@ -99,6 +109,13 @@ describe("BackfillCharacterAssetVariantsUseCase", () => {
       },
       storage,
       processor,
+      {
+        list: async () =>
+          backgroundAssetIds.map((backgroundImageAssetId, index) => ({
+            backgroundImageAssetId,
+            customProfileImageAssetId: profileAssetIds[index] ?? null,
+          })),
+      } as unknown as ConversationRepository,
     )
 
   it("supports dry-run without writing files or metadata", async () => {
@@ -137,24 +154,51 @@ describe("BackfillCharacterAssetVariantsUseCase", () => {
       "thumbnail",
       "small",
       "medium",
+      "large",
     ])
     expect(before.assets[0].cardVariant).toBe("original")
     expect(before.assets[0].avatarVariant).toBe("original")
+    expect(before.assets[0].backgroundVariant).toBe("original")
     expect(before.totals.cardBytes).toBe(before.totals.originalBytes)
     expect(before.totals.cardSavingsPercent).toBe(0)
 
     await useCase.execute()
     const after = await useCase.report()
 
-    expect(after.assets[0].missingVariants).toEqual([])
+    expect(after.assets[0].missingVariants).toEqual(["large"])
     expect(after.assets[0].variantBytes.thumbnail).toBeGreaterThan(0)
     expect(after.assets[0].cardVariant).toBe("medium")
     expect(after.assets[0].avatarVariant).toBe("thumbnail")
+    expect(after.assets[0].backgroundVariant).toBe("medium")
     expect(after.totals.cardBytes).toBeLessThan(after.totals.originalBytes)
     expect(after.totals.avatarBytes).toBeLessThan(after.totals.cardBytes)
     expect(after.totals.cardSavingsPercent).toBeGreaterThan(0)
     expect(after.totals.avatarSavingsPercent).toBeGreaterThan(
       after.totals.cardSavingsPercent,
+    )
+  })
+
+  it("uses the background variant set for assets referenced as backgrounds", async () => {
+    backgroundAssetIds = ["asset-png"]
+
+    await createUseCase().execute()
+
+    expect(processor.process).toHaveBeenCalledWith(
+      expect.any(Buffer),
+      "image/png",
+      { variants: ["small", "medium", "large"] },
+    )
+  })
+
+  it("keeps the profile variant set for profile-only assets", async () => {
+    profileAssetIds = ["asset-png"]
+
+    await createUseCase().execute()
+
+    expect(processor.process).toHaveBeenCalledWith(
+      expect.any(Buffer),
+      "image/png",
+      { variants: ["thumbnail", "small", "medium"] },
     )
   })
 })

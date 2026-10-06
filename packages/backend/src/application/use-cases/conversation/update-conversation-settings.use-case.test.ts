@@ -61,11 +61,14 @@ const existingConv = Conversation.create({
 
 let capturedSettings: Record<string, unknown> = {}
 
-const buildConversationRepo = (conversation: Conversation): ConversationRepository => ({
+const buildConversationRepo = (
+  conversation: Conversation,
+  others: Conversation[] = [],
+): ConversationRepository => ({
   create: async (c) => c,
   findById: async () => conversation,
   findByIdWithMessages: async () => null,
-  list: async () => [],
+  list: async () => others,
   update: async (c) => c,
   updateSettings: async (_id: string, settings: any) => {
     capturedSettings = settings
@@ -164,11 +167,14 @@ const buildAssetStorage = (): CharacterAssetStorage => ({
   delete: async () => {},
 })
 
-function buildUseCase(conv: Conversation = existingConv) {
+function buildUseCase(
+  conv: Conversation = existingConv,
+  others: Conversation[] = [],
+) {
   capturedSettings = {}
   deletedAssetIds = []
   return new UpdateConversationSettingsUseCase(
-    buildConversationRepo(conv),
+    buildConversationRepo(conv, others),
     buildCharacterRepo(),
     buildProviderRegistry(),
     buildProviderInstanceRepo(),
@@ -286,5 +292,71 @@ describe("UpdateConversationSettingsUseCase", () => {
       useCase.execute("conv-1", { playerCharacterId: "missing" }),
     ).rejects.toThrow("Player character with id 'missing' not found.")
     expect(capturedSettings.playerCharacterId).toBeUndefined()
+  })
+
+  it("acepta fondo, ajuste y capa el velo", async () => {
+    const useCase = buildUseCase()
+
+    await useCase.execute("conv-1", {
+      backgroundImageAssetId: "asset-1",
+      backgroundFit: "contain",
+      backgroundScrim: 150,
+    })
+
+    expect(capturedSettings.backgroundImageAssetId).toBe("asset-1")
+    expect(capturedSettings.backgroundFit).toBe("contain")
+    expect(capturedSettings.backgroundScrim).toBe(100)
+  })
+
+  it("capa un velo negativo a 0", async () => {
+    const useCase = buildUseCase()
+
+    await useCase.execute("conv-1", { backgroundScrim: -20 })
+
+    expect(capturedSettings.backgroundScrim).toBe(0)
+  })
+
+  it("rechaza un fondo inexistente", async () => {
+    const useCase = buildUseCase()
+
+    await expect(
+      useCase.execute("conv-1", { backgroundImageAssetId: "missing" }),
+    ).rejects.toThrow("not found")
+    expect(deletedAssetIds).toEqual([])
+  })
+
+  it("borra el fondo anterior al reemplazarlo si nadie más lo usa", async () => {
+    const conv = existingConv.withBackgroundImageAssetId("asset-1")
+    const useCase = buildUseCase(conv)
+
+    await useCase.execute("conv-1", { backgroundImageAssetId: "asset-2" })
+
+    expect(deletedAssetIds).toEqual(["asset-1"])
+  })
+
+  it("no borra el fondo anterior si otra conversación lo comparte", async () => {
+    const conv = existingConv.withBackgroundImageAssetId("asset-1")
+    const branch = {
+      backgroundImageAssetId: "asset-1",
+      customProfileImageAssetId: null,
+    } as unknown as Conversation
+    const useCase = buildUseCase(conv, [branch])
+
+    await useCase.execute("conv-1", { backgroundImageAssetId: null })
+
+    expect(deletedAssetIds).toEqual([])
+  })
+
+  it("no borra la imagen personalizada si otra rama la comparte", async () => {
+    const conv = existingConv.withCustomProfileImageAssetId("asset-1")
+    const branch = {
+      customProfileImageAssetId: "asset-1",
+      backgroundImageAssetId: null,
+    } as unknown as Conversation
+    const useCase = buildUseCase(conv, [branch])
+
+    await useCase.execute("conv-1", { customProfileImageAssetId: null })
+
+    expect(deletedAssetIds).toEqual([])
   })
 })

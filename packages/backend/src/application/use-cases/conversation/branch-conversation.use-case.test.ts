@@ -55,6 +55,9 @@ const origin = Conversation.create({
   stopSequences: ["###"],
   memoryProposalMode: "manual",
   customProfileImageAssetId: "asset-9",
+  backgroundImageAssetId: "asset-bg",
+  backgroundFit: "contain",
+  backgroundScrim: 25,
   memoryDecayMode: "manual",
   memoryDecayThreshold: 4,
   memoryDecayAgeThreshold: 40,
@@ -272,6 +275,12 @@ describe("BranchConversationUseCase", () => {
 
     expect(conversationCreate).toHaveBeenCalledTimes(1)
     expect(messageRepo.create).toHaveBeenCalledTimes(2)
+
+    const created = conversationCreate.mock.calls[0][0]
+    expect(created.customProfileImageAssetId).toBe("asset-9")
+    expect(created.backgroundImageAssetId).toBe("asset-bg")
+    expect(created.backgroundFit).toBe("contain")
+    expect(created.backgroundScrim).toBe(25)
   })
 
   it("lanza ConversationNotFoundError si el origen no existe", async () => {
