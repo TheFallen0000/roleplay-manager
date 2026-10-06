@@ -42,6 +42,12 @@ export interface CharacterAssetVariantStorage extends CharacterAssetStorage {
     assetId: string,
     variant: CharacterAssetVariant,
   ): Promise<boolean>
+  /** Size in bytes of an existing variant, or `null` when it is missing. */
+  variantSize(
+    characterId: string,
+    assetId: string,
+    variant: CharacterAssetVariant,
+  ): Promise<number | null>
   deleteVariants(characterId: string, assetId: string): Promise<void>
 }
 

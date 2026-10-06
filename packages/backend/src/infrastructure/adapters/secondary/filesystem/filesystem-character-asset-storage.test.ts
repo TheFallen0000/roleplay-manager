@@ -50,6 +50,23 @@ describe("FilesystemCharacterAssetStorage", () => {
     ).resolves.toBeNull()
   })
 
+  it("reports the size of an existing variant", async () => {
+    await expect(
+      storage.variantSize("char-1", "asset-1", "thumbnail"),
+    ).resolves.toBeNull()
+
+    await storage.writeVariant(
+      "char-1",
+      "asset-1",
+      "thumbnail",
+      Buffer.from("webp variant"),
+    )
+
+    await expect(
+      storage.variantSize("char-1", "asset-1", "thumbnail"),
+    ).resolves.toBe(Buffer.from("webp variant").length)
+  })
+
   it("deletes all variants with the original asset", async () => {
     await storage.write("char-1", "asset-1", "png", Buffer.from("original"))
     await storage.writeVariant("char-1", "asset-1", "thumbnail", Buffer.from("webp"))

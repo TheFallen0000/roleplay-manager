@@ -126,4 +126,35 @@ describe("BackfillCharacterAssetVariantsUseCase", () => {
     expect(await storage.hasVariant("char-1", "asset-png", "medium")).toBe(true)
     expect(await storage.hasVariant("char-1", "asset-gif", "thumbnail")).toBe(false)
   })
+
+  it("reports delivered bytes per consumer and pending variants", async () => {
+    const useCase = createUseCase()
+    const before = await useCase.report()
+
+    expect(before.total).toBe(2)
+    expect(before.gifsSkipped).toBe(1)
+    expect(before.assets[0].missingVariants).toEqual([
+      "thumbnail",
+      "small",
+      "medium",
+    ])
+    expect(before.assets[0].cardVariant).toBe("original")
+    expect(before.assets[0].avatarVariant).toBe("original")
+    expect(before.totals.cardBytes).toBe(before.totals.originalBytes)
+    expect(before.totals.cardSavingsPercent).toBe(0)
+
+    await useCase.execute()
+    const after = await useCase.report()
+
+    expect(after.assets[0].missingVariants).toEqual([])
+    expect(after.assets[0].variantBytes.thumbnail).toBeGreaterThan(0)
+    expect(after.assets[0].cardVariant).toBe("medium")
+    expect(after.assets[0].avatarVariant).toBe("thumbnail")
+    expect(after.totals.cardBytes).toBeLessThan(after.totals.originalBytes)
+    expect(after.totals.avatarBytes).toBeLessThan(after.totals.cardBytes)
+    expect(after.totals.cardSavingsPercent).toBeGreaterThan(0)
+    expect(after.totals.avatarSavingsPercent).toBeGreaterThan(
+      after.totals.cardSavingsPercent,
+    )
+  })
 })

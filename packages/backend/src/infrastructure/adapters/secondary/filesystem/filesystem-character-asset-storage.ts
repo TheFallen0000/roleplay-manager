@@ -1,6 +1,14 @@
 import { createReadStream } from "node:fs"
 import { randomUUID } from "node:crypto"
-import { mkdir, writeFile, unlink, access, rename, rm } from "node:fs/promises"
+import {
+  mkdir,
+  writeFile,
+  unlink,
+  access,
+  rename,
+  rm,
+  stat,
+} from "node:fs/promises"
 import { join, dirname } from "node:path"
 import { Readable } from "node:stream"
 
@@ -96,6 +104,21 @@ export class FilesystemCharacterAssetStorage implements CharacterAssetStorage {
       return true
     } catch {
       return false
+    }
+  }
+
+  async variantSize(
+    characterId: string,
+    assetId: string,
+    variant: CharacterAssetVariant,
+  ): Promise<number | null> {
+    try {
+      const info = await stat(
+        this.resolveVariantPath(characterId, assetId, variant),
+      )
+      return info.size
+    } catch {
+      return null
     }
   }
 

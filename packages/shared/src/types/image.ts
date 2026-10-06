@@ -37,3 +37,14 @@ export function getCharacterAssetVariantWidth(
 ): number {
   return Math.min(originalWidth, CHARACTER_ASSET_VARIANT_WIDTHS[variant])
 }
+
+/**
+ * Variants to try for a requested size, from the requested one down to the
+ * smallest. The caller falls back to the original when none exists.
+ */
+export function getCharacterAssetVariantFallbackOrder(
+  requested: CharacterAssetVariant,
+): CharacterAssetVariant[] {
+  const index = CHARACTER_ASSET_VARIANTS.indexOf(requested)
+  return CHARACTER_ASSET_VARIANTS.slice(0, index + 1).reverse()
+}

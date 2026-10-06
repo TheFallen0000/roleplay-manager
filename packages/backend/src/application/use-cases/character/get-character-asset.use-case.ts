@@ -5,7 +5,7 @@ import type {
   CharacterAssetVariantStorage,
 } from "../../../domain/ports/character-asset.repository"
 import {
-  CHARACTER_ASSET_VARIANTS,
+  getCharacterAssetVariantFallbackOrder,
   type CharacterAssetVariant,
 } from "@workspace/shared/types/image"
 import { CharacterAssetNotFoundError } from "../../../domain/errors"
@@ -39,12 +39,13 @@ export class GetCharacterAssetUseCase {
     }
 
     if (input.variant) {
-      const requestedIndex = CHARACTER_ASSET_VARIANTS.indexOf(input.variant)
-      for (let index = requestedIndex; index >= 0; index -= 1) {
+      for (const candidate of getCharacterAssetVariantFallbackOrder(
+        input.variant,
+      )) {
         const variantStream = await this.assetStorage.readVariant(
           asset.characterId,
           asset.id,
-          CHARACTER_ASSET_VARIANTS[index],
+          candidate,
         )
         if (variantStream) {
           return {

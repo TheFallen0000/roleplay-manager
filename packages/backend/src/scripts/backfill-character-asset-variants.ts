@@ -10,6 +10,7 @@ async function main(): Promise<void> {
   const logger = new PinoLoggerAdapter(pino)
   const database = buildDatabase(env.DATABASE_PATH)
   const dryRun = process.argv.includes("--dry-run")
+  const report = process.argv.includes("--report")
 
   try {
     runMigrations(database)
@@ -24,13 +25,13 @@ async function main(): Promise<void> {
       providerTimeoutMs: env.PROVIDER_TIMEOUT_MS,
       providerStreamingTimeoutMs: env.PROVIDER_STREAMING_TIMEOUT_MS,
     })
-    const result = await container.backfillCharacterAssetVariants.execute({
-      dryRun,
-    })
+    const result = report
+      ? await container.backfillCharacterAssetVariants.report()
+      : await container.backfillCharacterAssetVariants.execute({ dryRun })
     console.log(
       JSON.stringify(
         {
-          mode: dryRun ? "dry-run" : "write",
+          mode: report ? "report" : dryRun ? "dry-run" : "write",
           ...result,
         },
         null,
