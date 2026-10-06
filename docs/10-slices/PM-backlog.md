@@ -15,20 +15,18 @@ Last updated: 2026-10-06
 |---|----------|--------------|
 | PM.1 | Import images and store them in the DB (not just links) for the profile photo. <br>*Done as S11 (v1.3.0) — see `S11-progress.md`.* | New column/table, storage |
 | PM.2 | Add an image cropper for the profile photo. <br>*Done as S12 (v1.3.2) — see `S12-progress.md`.* | PM.1 |
-| PM.3 | Image compressor for the background image and square-section cropper. <br>*Deferred — revisit with PM.5 (see note below).* | PM.1 |
+| PM.3 | Image compressor for the background image and square-section cropper. <br>*Done as S30 (v1.22.0) — see `S30-progress.md`.* | PM.1 |
 | PM.4 | Modify the profile image without creating a new character version. <br>*Done as S13 (v1.4.0) — see `S13-progress.md`.* | PM.1 |
-| PM.5 | Allow choosing a background image for the chat (default: profile photo), with fit modes (fill, crop, etc.). <br>*Deferred — requires a totally new image flow (see note below).* | PM.1 |
+| PM.5 | Allow choosing a background image for the chat (default: profile photo), with fit modes (fill, crop, etc.). <br>*Done as S30 (v1.22.0) with **no default background** and Cover/Contain fit; export/import deduplication lands in S31 (phase B). See `S30-progress.md`.* | PM.1 |
 | PM.19 | Generate and serve responsive local variants of existing profile images for character cards and chat avatars, without changing the original asset. <br>*Done as S28 (v1.19.0) — see `S28-progress.md`.* | PM.1 |
 
-> **PM.3 + PM.5 (image flow) — deferred (2026-08-12):** Both form a single, entirely new
-> functionality that is too large for the current cycle: image compressors backed by
-> external libraries, multiple cropping modes, and croppers for different resolutions
-> (e.g. a 1920×1080 background vs the 512×512 avatar). With PM.17 (S14) finished, the
-> backlog moves to the smaller, high-value tasks (PM.6 → PM.16) first. When PM.5 is picked
-> up, a **new image flow must be defined first** (upload → compress → crop → store → fit
-> modes for background and avatar), reusing what S13 built for the profile image but
-> designed for arbitrary sizes and aspect ratios. S28/PM.19 optimizes delivery of
-> existing profile images only; it does not implement the background flow.
+> **PM.3 + PM.5 (S30) — done (2026-10-06, v1.22.0):** The chat background is opt-in from
+> Customization (upload + 16:9 cropper), with Cover/Contain fit, a 0–100 overlay slider, live
+> preview and removal; branches inherit it. There is no default background. Delivery reuses the
+> S28 variant pipeline with a new `large` (1920 px) background variant, and shared assets are
+> only deleted when no conversation references them. Exporting/importing conversation images
+> with deduplication (including the previously broken custom profile image) is deferred to S31
+> (phase B). See `S30-progress.md`.
 
 > **PM.19 (S28) — done (2026-10-05, v1.19.0):** Profile image originals remain unchanged;
 > local WebP variants are generated for uploads/imports, and existing assets can be
