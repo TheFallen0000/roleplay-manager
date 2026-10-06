@@ -25,6 +25,7 @@ const CONVERSATION_CHILDREN: ExportSection[] = [
   "conversations.memories",
   "conversations.summaries",
   "conversations.settings",
+  "conversations.images",
 ]
 
 const DEFAULT_SECTIONS: ExportSection[] = [
@@ -42,6 +43,7 @@ const CHILD_LABEL_KEYS: Record<string, TranslationKey> = {
   "conversations.memories": "characters.exportMemories",
   "conversations.summaries": "characters.exportSummaries",
   "conversations.settings": "characters.exportSettings",
+  "conversations.images": "characters.exportConversationImages",
 }
 
 function slugify(value: string, fallback: string): string {
