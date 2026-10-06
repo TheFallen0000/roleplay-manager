@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.21.0] - 2026-10-06
+
+### Added
+
+- "Apply settings…" action in the character context menu: an exported settings template (`standaloneSettings`) can now be applied to all conversations of a character. It reuses the existing settings validation/clamping, keeps the destination provider and model with a warning when the template's instance does not exist in this installation, and reports translated warnings.
+- `POST /api/characters/:id/settings-imports` endpoint and a pure `parseSettingsTemplate` parser with localized errors.
+
 ## [1.20.1] - 2026-10-06
 
 ### Changed
