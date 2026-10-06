@@ -1,6 +1,7 @@
 import type {
   CharacterExport,
   ExportConversation,
+  ExportConversationImage,
   ExportSection,
   ExportSettings,
 } from "@workspace/shared/types/export"
@@ -114,6 +115,11 @@ export class ExportCharacterUseCase {
       )
     }
 
+    if (selected.has("conversations.images")) {
+      exportData.conversationImages =
+        await this.buildConversationImages(characterConversations)
+    }
+
     if (selected.has("standaloneSettings")) {
       const source = characterConversations[0]
       exportData.standaloneSettings = source
@@ -151,10 +157,14 @@ export class ExportCharacterUseCase {
       }
 
       if (selected.has("conversations.settings")) {
-        item.settings = {
-          ...toSettings(conversation),
-          customProfileImageAssetId: conversation.customProfileImageAssetId,
-        }
+        item.settings = toSettings(conversation)
+      }
+
+      if (selected.has("conversations.images")) {
+        item.customProfileImageAssetId = conversation.customProfileImageAssetId
+        item.backgroundImageAssetId = conversation.backgroundImageAssetId
+        item.backgroundFit = conversation.backgroundFit
+        item.backgroundScrim = conversation.backgroundScrim
       }
 
       if (selected.has("conversations.messages")) {
@@ -182,6 +192,48 @@ export class ExportCharacterUseCase {
     }
 
     return exported
+  }
+
+  /**
+   * Exports each conversation-scoped image once, even when several branches
+   * share it. Conversations reference them by id.
+   */
+  private async buildConversationImages(
+    conversations: Conversation[],
+  ): Promise<ExportConversationImage[]> {
+    const assetIds = new Set<string>()
+    for (const conversation of conversations) {
+      if (conversation.customProfileImageAssetId) {
+        assetIds.add(conversation.customProfileImageAssetId)
+      }
+      if (conversation.backgroundImageAssetId) {
+        assetIds.add(conversation.backgroundImageAssetId)
+      }
+    }
+
+    const images: ExportConversationImage[] = []
+    for (const assetId of assetIds) {
+      const asset = await this.assetRepository.findById(assetId)
+      if (!asset) continue
+
+      const stream = await this.assetStorage.read(
+        asset.characterId,
+        asset.id,
+        asset.extension,
+      )
+      const chunks: Buffer[] = []
+      for await (const chunk of stream) {
+        chunks.push(Buffer.from(chunk))
+      }
+
+      images.push({
+        assetId,
+        mimeType: asset.mimeType,
+        base64: Buffer.concat(chunks).toString("base64"),
+      })
+    }
+
+    return images
   }
 
   private async buildProfileImage(

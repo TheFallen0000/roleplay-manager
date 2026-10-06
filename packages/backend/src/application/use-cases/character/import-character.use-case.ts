@@ -1,6 +1,7 @@
 import { v7 as randomUUIDv7 } from "uuid"
 
 import type { CharacterSummary, CharacterVersionDTO } from "@workspace/shared/types/character"
+import type { CharacterAssetUsage } from "@workspace/shared/types/image"
 import type {
   CharacterExport,
   ExportConversation,
@@ -101,12 +102,19 @@ export class ImportCharacterUseCase {
       now,
     )
 
+    const newIdByOldAssetId = await this.importConversationImages(
+      characterId,
+      payload,
+      now,
+    )
+
     if (payload.conversations && payload.conversations.length > 0) {
       await this.importConversations(
         newIdByOldVersionId,
         currentVersion.id,
         payload.conversations,
         now,
+        newIdByOldAssetId,
       )
     }
 
@@ -185,18 +193,82 @@ export class ImportCharacterUseCase {
     return asset.id
   }
 
+  /**
+   * Recreates each unique conversation image once and returns the old → new id
+   * map used to remap every conversation (branches share the same asset).
+   */
+  private async importConversationImages(
+    characterId: string,
+    payload: CharacterExport,
+    now: Date,
+  ): Promise<Map<string, string>> {
+    const images = payload.conversationImages ?? []
+    const newIdByOldAssetId = new Map<string, string>()
+    if (images.length === 0) return newIdByOldAssetId
+
+    const profileIds = new Set<string>()
+    const backgroundIds = new Set<string>()
+    for (const conversation of payload.conversations ?? []) {
+      const custom =
+        conversation.customProfileImageAssetId ??
+        conversation.settings?.customProfileImageAssetId ??
+        null
+      if (custom) profileIds.add(custom)
+      if (conversation.backgroundImageAssetId) {
+        backgroundIds.add(conversation.backgroundImageAssetId)
+      }
+    }
+
+    for (const image of images) {
+      const usages: CharacterAssetUsage[] = []
+      if (profileIds.has(image.assetId)) usages.push("profile")
+      if (backgroundIds.has(image.assetId)) usages.push("background")
+      if (usages.length === 0) usages.push("profile")
+
+      let asset
+      try {
+        asset = await this.storeCharacterAsset.store({
+          characterId,
+          mimeType: image.mimeType,
+          data: Buffer.from(image.base64, "base64"),
+          createdAt: now,
+          usage: usages,
+        })
+      } catch (error) {
+        if (error instanceof DomainError) throw invalid(error.message)
+        throw error
+      }
+      newIdByOldAssetId.set(image.assetId, asset.id)
+    }
+
+    return newIdByOldAssetId
+  }
+
   private async importConversations(
     newIdByOldVersionId: Map<string, string>,
     fallbackVersionId: string,
     conversations: ExportConversation[],
     now: Date,
+    newIdByOldAssetId: Map<string, string>,
   ): Promise<void> {
     const messageIdByOldMessageId = new Map<string, string>()
+    const remapAssetId = (assetId: string | null): string | null =>
+      assetId ? (newIdByOldAssetId.get(assetId) ?? null) : null
 
     for (const exported of conversations) {
       const conversationId = randomUUIDv7()
       const settings: ExportSettings & { customProfileImageAssetId?: string | null } =
         exported.settings ?? DEFAULT_EXPORT_SETTINGS
+
+      // Legacy exports kept the custom image id inside `settings`.
+      const customProfileImageAssetId = remapAssetId(
+        exported.customProfileImageAssetId ??
+          settings.customProfileImageAssetId ??
+          null,
+      )
+      const backgroundImageAssetId = remapAssetId(
+        exported.backgroundImageAssetId ?? null,
+      )
 
       const conversation = Conversation.create({
         id: conversationId,
@@ -215,7 +287,10 @@ export class ImportCharacterUseCase {
         presencePenalty: settings.presencePenalty,
         stopSequences: settings.stopSequences,
         memoryProposalMode: settings.memoryProposalMode,
-        customProfileImageAssetId: settings.customProfileImageAssetId ?? null,
+        customProfileImageAssetId,
+        backgroundImageAssetId,
+        backgroundFit: exported.backgroundFit ?? "cover",
+        backgroundScrim: exported.backgroundScrim ?? 0,
         memoryDecayMode: settings.memoryDecayMode,
         memoryDecayThreshold: settings.memoryDecayThreshold,
         memoryDecayAgeThreshold: settings.memoryDecayAgeThreshold,

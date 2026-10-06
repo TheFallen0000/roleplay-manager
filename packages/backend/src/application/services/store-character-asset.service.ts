@@ -2,8 +2,10 @@ import { v7 as randomUUIDv7 } from "uuid"
 
 import { isAllowedImageMime, mimeToExtension } from "@workspace/shared/lib/image"
 import {
+  CHARACTER_ASSET_VARIANTS,
   CHARACTER_ASSET_VARIANTS_BY_USAGE,
   type CharacterAssetUsage,
+  type CharacterAssetVariant,
 } from "@workspace/shared/types/image"
 
 import { CharacterAssetValidationError } from "../../domain/errors"
@@ -20,8 +22,12 @@ export interface StoreCharacterAssetInput {
   mimeType: string
   data: Buffer
   createdAt?: Date
-  /** Decides which variant set is generated (defaults to `profile`). */
-  usage?: CharacterAssetUsage
+  /**
+   * Decides which variant set is generated. Pass an array to generate the
+   * union (e.g. an asset used both as profile and background).
+   * Defaults to `profile`.
+   */
+  usage?: CharacterAssetUsage | CharacterAssetUsage[]
 }
 
 export interface CharacterAssetWriter {
@@ -58,7 +64,7 @@ export class StoreCharacterAssetService {
     const processed = await this.imageProcessor.process(
       input.data,
       imageMetadata.mime,
-      { variants: CHARACTER_ASSET_VARIANTS_BY_USAGE[input.usage ?? "profile"] },
+      { variants: resolveVariantSet(input.usage) },
     )
     const assetId = randomUUIDv7()
     const metadata = {
@@ -97,4 +103,16 @@ export class StoreCharacterAssetService {
 
     return metadata
   }
+}
+
+function resolveVariantSet(
+  usage: CharacterAssetUsage | CharacterAssetUsage[] | undefined,
+): CharacterAssetVariant[] {
+  const usages: CharacterAssetUsage[] =
+    usage === undefined ? ["profile"] : Array.isArray(usage) ? usage : [usage]
+  return CHARACTER_ASSET_VARIANTS.filter((variant) =>
+    usages.some((item) =>
+      CHARACTER_ASSET_VARIANTS_BY_USAGE[item].includes(variant),
+    ),
+  )
 }
