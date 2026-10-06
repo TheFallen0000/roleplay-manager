@@ -59,7 +59,7 @@ describe("ProfileImageInput", () => {
   it("renders the dropzone with helper text", () => {
     renderDropzone()
     expect(screen.getByText(/Arrastra una imagen aquí/)).toBeInTheDocument()
-    expect(screen.getByText(/PNG, JPEG, WEBP o GIF · máximo 3 MB/)).toBeInTheDocument()
+    expect(screen.getByText(/PNG, JPEG, WEBP o GIF · máximo 15 MB/)).toBeInTheDocument()
   })
 
   it("opens the cropper dialog when a valid file is dropped", async () => {
@@ -86,7 +86,7 @@ describe("ProfileImageInput", () => {
   })
 
   it("rejects an oversized file and does not call onFileSelected", async () => {
-    const bigFile = new File([new Uint8Array(4 * 1024 * 1024)], "big.png", {
+    const bigFile = new File([new Uint8Array(16 * 1024 * 1024)], "big.png", {
       type: "image/png",
     })
     const handlers = renderDropzone()

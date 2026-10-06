@@ -22,7 +22,7 @@ interface ProfileImageInputProps {
 }
 
 const ACCEPTED_MIMES = ["image/png", "image/jpeg", "image/webp", "image/gif"]
-const MAX_SIZE_BYTES = 3 * 1024 * 1024
+const MAX_SIZE_BYTES = 15 * 1024 * 1024
 
 type ValidationKey = "characters.imageInvalidType" | "characters.imageTooLarge"
 
