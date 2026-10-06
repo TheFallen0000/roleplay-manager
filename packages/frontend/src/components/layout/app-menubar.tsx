@@ -36,6 +36,7 @@ export function AppMenubar() {
   const { theme, mode, setTheme, setMode } = useTheme()
   const { locale, setLocale, t } = useTranslation()
   const tunnelStatus = useTunnelStore((state) => state.status)
+  const lanStatus = useTunnelStore((state) => state.lanStatus)
   const hydrateTunnelStatus = useTunnelStore((state) => state.hydrateFromCache)
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false)
 
@@ -111,7 +112,7 @@ export function AppMenubar() {
           <MenubarTrigger>
             <SmartphoneIcon />
             {t("tunnel.menuLabel")}
-            {tunnelStatus?.active ? (
+            {tunnelStatus?.active || lanStatus?.active ? (
               <span
                 aria-hidden
                 data-testid="tunnel-status-dot"
