@@ -176,22 +176,24 @@ Last updated: 2026-10-06
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects new commits on the project's default branch (`master`), shows a badge and a one-time notice on the characters screen, and can apply the update (pull + install + build) with a backup and restart guidance. <br>*Feasibility confirmed (2026-10-06); strategy and open questions in the note below.* | — |
+| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Not started; prerequisite of PM.23. See note below.* | — |
+| PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Decisions (2026-10-06): release-based, apply + ask to restart, automatic backup. Blocked by PM.24. See note below.* | PM.24 |
 
-> **PM.23 — research (2026-10-06):** Feasible. The repo is public
-> (`github.com/TheFallen0000/roleplay-manager`, default branch **`master`**) and the app runs
-> from a git clone with `pnpm dev`, so detection can be **git-based**: `git fetch` + compare
-> `HEAD` with `origin/<branch>`, read the remote version from `origin/<branch>:package.json`
-> and list the new commits (`git log HEAD..origin/<branch> --oneline`). A GitHub API check
-> (public repo, no auth) is an alternative that also works without a clone. **Apply** is the
-> delicate part: `git pull --ff-only` (only with a clean tree) + `pnpm install` + optional
-> `pnpm build`, followed by a **restart** (in dev, Vite/tsx watch pick up most changes; new
-> dependencies need a restart). Recommended safeguards: preflight checks (git available, repo,
-> branch, clean tree, no divergence), an **automatic backup** before updating (SQLite online
-> backup + `data/` copy) and an explicit warning that updating pulls and runs code from the
-> repository. Open questions: how end users run the app (clone + `pnpm dev` vs a packaged
-> build), whether the button applies everything or only detects and guides, automatic vs manual
-> backup, and whether updates follow the `master` branch or tags/releases.
+> **PM.23 — decisions (2026-10-06):** End users will run a **packaged build** (not a git clone),
+> so the updater is **release-based**: check GitHub Releases (public repo, no auth) for a newer
+> version than the local one, show it in the **Updates** screen (with the release notes and a
+> sidebar badge plus a one-time notice on the characters screen), and, on the button, download
+> the release artifact, **create a backup first** (SQLite online backup + `data/` copy), replace
+> the app files and **ask to restart**. The git-clone approach (`git fetch` + `pull --ff-only`)
+> stays as an alternative for developers; the UI is shared and only the detection/apply adapter
+> changes. Security note: applying an update downloads and runs code published by the repository.
+
+> **PM.24 — research (2026-10-06):** There is no packaging or distribution today, so the updater
+> has nothing to consume yet. Options to evaluate: a **portable folder with a bundled Node
+> runtime + launcher** (keeps the web UI in the system browser, ships native modules as files,
+> simplest self-update by swapping the folder), a **desktop shell** (Tauri/Electron, with their
+> built-in updaters) or **Docker** (`docker pull`). The chosen option defines the release
+> artifact the updater downloads and how the restart works. Decide before PM.23.
 
 ## UI polish
 
