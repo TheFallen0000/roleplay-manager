@@ -235,6 +235,9 @@ es «encender → escanear → listo».
 
 > **Hecho en S33 (v1.25.0):** el menú «Teléfono» con interruptor, QR, enlace
 > copiable y guía está implementado; ver `S33-progress.md`.
+> **Ajustes de la prueba real:** enlace de activación de Serve en el diálogo
+> (S34, v1.25.1) y `server.allowedHosts` para el hostname de Tailscale
+> (S35, v1.25.2). Ver `S34-progress.md` y `S35-progress.md`.
 
 ## Pendientes (opcionales)
 
