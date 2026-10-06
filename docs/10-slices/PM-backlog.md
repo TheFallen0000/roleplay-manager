@@ -158,8 +158,10 @@ Last updated: 2026-10-06
 > private tailnet, nothing exposed to the internet, no domain needed, phone installs the
 > Tailscale app once. The app will toggle the connection from a menubar dialog with a QR and a
 > first-run guide (the user never runs commands; the backend drives the Tailscale CLI).
-> Prerequisite: a same-origin `/api` proxy (the browser currently calls `localhost:3001`, which
-> breaks even over LAN). Key findings and the UX flow live in `remote-access-opt.md`.
+> Prerequisite: a same-origin `/api` proxy — **delivered as S32 (v1.24.0)**: the frontend now
+> serves `/api/*` through an Astro middleware, so a single tunnel of the frontend port exposes
+> the whole app (and LAN access works when the server binds beyond localhost). Next: S33
+> (Tailscale toggle + QR). Key findings and the UX flow live in `remote-access-opt.md`.
 
 ## UI polish
 

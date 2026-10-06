@@ -64,6 +64,10 @@ Antes de cualquier túnel hay que decidir:
 La opción A es trabajo previo a la slice del túnel y beneficia también al
 acceso por LAN.
 
+> **Hecho en S32 (v1.24.0):** el proxy same-origin ya está implementado con un
+> middleware de Astro; el navegador usa rutas relativas `/api/*` y el SSR sigue
+> llamando al backend directamente. Ver `S32-progress.md`.
+
 ## Opciones evaluadas
 
 ### 1. Cloudflare Tunnel
@@ -208,6 +212,7 @@ es «encender → escanear → listo».
 
 - **Prerrequisito**: proxy `/api` same-origin (ver «Hallazgo clave»), para que
   un solo Serve (puerto 4321) sirva toda la app. Beneficia también a la LAN.
+  *(Hecho en S32, v1.24.0.)*
 - **Backend**:
   - Puerto `TunnelController` (dominio): `getStatus`, `enable`, `disable`.
   - Adaptador `TailscaleServeAdapter` (infraestructura) que invoca la CLI:
