@@ -99,7 +99,7 @@ export function PhoneAccessDialog({
           <DialogDescription>{t("tunnel.description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
             <div className="space-y-0.5">
               <p className="text-sm font-medium">{t("tunnel.toggleLabel")}</p>
