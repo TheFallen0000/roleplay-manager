@@ -1,6 +1,24 @@
 import { describe, it, expect } from "vitest"
 
-import { isAllowedImageMime, detectMimeFromMagicBytes, mimeToExtension, validateImageBytes } from "@workspace/shared/lib/image"
+import {
+  DEFAULT_MAX_PROFILE_IMAGE_BYTES,
+  detectMimeFromMagicBytes,
+  formatMegabytes,
+  isAllowedImageMime,
+  mimeToExtension,
+  validateImageBytes,
+} from "@workspace/shared/lib/image"
+
+describe("image upload limits", () => {
+  it("exposes a single shared default byte limit", () => {
+    expect(DEFAULT_MAX_PROFILE_IMAGE_BYTES).toBe(15 * 1024 * 1024)
+  })
+
+  it("formats the limit for display", () => {
+    expect(formatMegabytes(DEFAULT_MAX_PROFILE_IMAGE_BYTES)).toBe("15 MB")
+    expect(formatMegabytes(1024 * 1024)).toBe("1 MB")
+  })
+})
 
 describe("isAllowedImageMime", () => {
   it("accepts allowed mime types", () => {

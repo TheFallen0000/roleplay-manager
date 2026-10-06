@@ -1,4 +1,19 @@
-const ALLOWED_MIMES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"])
+/** MIME types accepted for profile image uploads (shared by both packages). */
+export const ALLOWED_IMAGE_MIMES: readonly string[] = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+]
+
+/**
+ * Default byte limit for profile image uploads. The backend `.env`
+ * (`MAX_PROFILE_IMAGE_BYTES`) can override it at runtime; the frontend uses
+ * this value for its fail-fast pre-check and helper text.
+ */
+export const DEFAULT_MAX_PROFILE_IMAGE_BYTES = 15 * 1024 * 1024
+
+const ALLOWED_MIMES = new Set(ALLOWED_IMAGE_MIMES)
 
 const MAGIC_BYTES: { mime: string; bytes: Uint8Array }[] = [
   { mime: "image/png", bytes: new Uint8Array([0x89, 0x50, 0x4e, 0x47]) },
@@ -9,6 +24,11 @@ const MAGIC_BYTES: { mime: string; bytes: Uint8Array }[] = [
 
 export function isAllowedImageMime(mime: string): boolean {
   return ALLOWED_MIMES.has(mime)
+}
+
+/** Human-readable megabyte label for size limits, e.g. `15 MB`. */
+export function formatMegabytes(bytes: number): string {
+  return `${Math.round(bytes / (1024 * 1024))} MB`
 }
 
 export function detectMimeFromMagicBytes(
