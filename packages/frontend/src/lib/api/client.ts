@@ -92,6 +92,34 @@ export const uploadConversationCustomImage = async (
   return data as { assetId: string; characterId: string; mimeType: string; sizeBytes: number }
 }
 
+export const uploadConversationBackground = async (
+  conversationId: string,
+  file: File,
+): Promise<{ assetId: string; characterId: string; mimeType: string; sizeBytes: number }> => {
+  const url = `${getBaseUrl()}/api/conversations/${conversationId}/customization/background`
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const response = await fetch(url, {
+    method: "POST",
+    body: formData,
+  })
+
+  const text = await response.text()
+  const data = text.length > 0 ? (JSON.parse(text) as unknown) : undefined
+
+  if (!response.ok) {
+    const err = (data as { error?: ApiError } | undefined)?.error
+    throw new ApiClientError(
+      response.status,
+      err?.code ?? "UNKNOWN_ERROR",
+      err?.message ?? response.statusText,
+    )
+  }
+
+  return data as { assetId: string; characterId: string; mimeType: string; sizeBytes: number }
+}
+
 export const apiRequest = async <T>(
   path: string,
   init: RequestInit = {},

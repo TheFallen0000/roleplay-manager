@@ -31,6 +31,8 @@ import {
 import { useChatStreaming } from "../../lib/hooks/use-chat-streaming"
 import { getCharacterAssetUrl } from "../../lib/api/client"
 import { getPromptContext } from "../../lib/api/context"
+import { createAssetSrcSet } from "@/lib/asset-srcset"
+import { cn } from "@workspace/ui/lib/utils"
 import { MessageBubble } from "./message"
 import { MessageInput } from "./message-input"
 import { ContextPreviewDialog } from "./context-preview-dialog"
@@ -340,7 +342,43 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
 
       <MessageScrollerProvider autoScroll={isStreaming}>
         <MessageScroller className="flex-1 p-2">
-          <MessageScrollerViewport>
+          {conv.backgroundImageAssetId ? (
+            <div aria-hidden className="pointer-events-none absolute inset-0">
+              <img
+                src={getCharacterAssetUrl(
+                  conv.characterId,
+                  conv.backgroundImageAssetId,
+                  "medium",
+                )}
+                srcSet={
+                  conv.backgroundImageDimensions
+                    ? createAssetSrcSet(
+                        conv.characterId,
+                        conv.backgroundImageAssetId,
+                        conv.backgroundImageDimensions.width,
+                        "background",
+                      )
+                    : undefined
+                }
+                sizes="100vw"
+                alt=""
+                decoding="async"
+                className={cn(
+                  "size-full",
+                  conv.backgroundFit === "contain"
+                    ? "object-contain"
+                    : "object-cover",
+                )}
+              />
+              {conv.backgroundScrim > 0 ? (
+                <div
+                  className="absolute inset-0 bg-background"
+                  style={{ opacity: conv.backgroundScrim / 100 }}
+                />
+              ) : null}
+            </div>
+          ) : null}
+          <MessageScrollerViewport className="relative z-10">
             <MessageScrollerContent>
               {messages.length === 0 && !streamingContent ? (
                 <div className="flex flex-1 items-center justify-center p-12 text-center text-sm text-muted-foreground">

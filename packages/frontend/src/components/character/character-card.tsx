@@ -14,10 +14,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { UsersIcon } from "lucide-react"
 import { getCharacterAssetUrl } from "@/lib/api/client"
-import {
-  CHARACTER_ASSET_VARIANTS,
-  getCharacterAssetVariantWidth,
-} from "@workspace/shared/types/image"
+import { createAssetSrcSet } from "@/lib/asset-srcset"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { CharacterContextMenu } from "./character-context-menu"
 
@@ -57,10 +54,11 @@ export function CharacterCard({
     : null
   const imageSrcSet =
     canUseVariants && character.profileImageDimensions
-      ? createImageSrcSet(
+      ? createAssetSrcSet(
           character.id,
           character.profileImageAssetId!,
           character.profileImageDimensions.width,
+          "profile",
         )
       : undefined
 
@@ -128,22 +126,4 @@ export function CharacterCard({
       </Card>
     </CharacterContextMenu>
   )
-}
-
-function createImageSrcSet(
-  characterId: string,
-  assetId: string,
-  originalWidth: number,
-): string {
-  const candidates = new Map<number, string>()
-  for (const variant of CHARACTER_ASSET_VARIANTS) {
-    const width = getCharacterAssetVariantWidth(originalWidth, variant)
-    if (!candidates.has(width)) {
-      candidates.set(
-        width,
-        `${getCharacterAssetUrl(characterId, assetId, variant)} ${width}w`,
-      )
-    }
-  }
-  return [...candidates.values()].join(", ")
 }

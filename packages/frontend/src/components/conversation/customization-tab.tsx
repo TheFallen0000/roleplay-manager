@@ -9,7 +9,9 @@ import type { ConversationDetail } from "@workspace/shared/types/conversation"
 import { uploadConversationCustomImage, ApiClientError } from "@/lib/api/client"
 import { setConversationCustomProfileImage } from "@/lib/api/conversations"
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { Separator } from "@workspace/ui/components/separator"
 import { ProfileImageInput } from "../character/profile-image-input"
+import { BackgroundImageInput } from "./background-image-input"
 
 interface CustomizationTabProps {
   conversation: ConversationDetail
@@ -71,6 +73,13 @@ export function CustomizationTab({
         clearLabel={t("settings.clearCustomImage")}
         onFileSelected={handleFileSelected}
         onClear={handleClear}
+      />
+
+      <Separator />
+
+      <BackgroundImageInput
+        conversation={conversation}
+        onSettingsChanged={onSettingsChanged}
       />
 
       {saving ? (
