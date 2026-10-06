@@ -172,6 +172,27 @@ Last updated: 2026-10-06
 > fallback; PWA/service workers remain out of scope. The same-origin `/api` proxy (S32) made
 > this work with no CORS changes. See `S38-progress.md`.
 
+## System & maintenance
+
+| # | Proposal | Dependencies |
+|---|----------|--------------|
+| PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects new commits on the project's default branch (`master`), shows a badge and a one-time notice on the characters screen, and can apply the update (pull + install + build) with a backup and restart guidance. <br>*Feasibility confirmed (2026-10-06); strategy and open questions in the note below.* | — |
+
+> **PM.23 — research (2026-10-06):** Feasible. The repo is public
+> (`github.com/TheFallen0000/roleplay-manager`, default branch **`master`**) and the app runs
+> from a git clone with `pnpm dev`, so detection can be **git-based**: `git fetch` + compare
+> `HEAD` with `origin/<branch>`, read the remote version from `origin/<branch>:package.json`
+> and list the new commits (`git log HEAD..origin/<branch> --oneline`). A GitHub API check
+> (public repo, no auth) is an alternative that also works without a clone. **Apply** is the
+> delicate part: `git pull --ff-only` (only with a clean tree) + `pnpm install` + optional
+> `pnpm build`, followed by a **restart** (in dev, Vite/tsx watch pick up most changes; new
+> dependencies need a restart). Recommended safeguards: preflight checks (git available, repo,
+> branch, clean tree, no divergence), an **automatic backup** before updating (SQLite online
+> backup + `data/` copy) and an explicit warning that updating pulls and runs code from the
+> repository. Open questions: how end users run the app (clone + `pnpm dev` vs a packaged
+> build), whether the button applies everything or only detects and guides, automatic vs manual
+> backup, and whether updates follow the `master` branch or tags/releases.
+
 ## UI polish
 
 | # | Proposal | Dependencies |
