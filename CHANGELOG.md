@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.28.0] - 2026-10-07
+
+### Added
+
+- Production builds can now run as a **single process**: the Astro app is built in `middleware` mode and mounted inside Express, so one port serves the UI and the API (set `WEB_HANDLER_PATH`; the static build is served by the host, with `WEB_CLIENT_DIR` derived automatically). Development is unchanged.
+- The server-side API base can be set at runtime with `PUBLIC_API_URL`, so the single process can listen on any port.
+
 ## [1.27.0] - 2026-10-07
 
 ### Added
