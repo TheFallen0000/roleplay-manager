@@ -1,6 +1,6 @@
 {
   "name": "roleplay-manager",
-  "version": "1.28.0",
+  "version": "1.29.0",
   "license": "AGPL-3.0-or-later",
   "private": true,
   "scripts": {
@@ -11,6 +11,7 @@
     "typecheck": "turbo typecheck",
     "check:arch": "node scripts/architecture-check.mjs",
     "check": "pnpm check:arch && turbo typecheck && turbo lint",
+    "package:win": "node scripts/package-windows.mjs",
     "prepare": "husky"
   },
   "devDependencies": {

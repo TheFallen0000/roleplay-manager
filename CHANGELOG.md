@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.29.0] - 2026-10-07
+
+### Added
+
+- `pnpm package:win` builds a **portable Windows x64 package** (zip) with a bundled Node runtime: the app runs as a single process, requires no Node/pnpm on the user's machine and keeps its data (`data/`, `backups/`) inside the folder.
+
+### Fixed
+
+- The production server now actually runs: the backend is bundled with esbuild (native modules stay external), migrations are shipped and configurable with `MIGRATIONS_DIR`, and the stale `tsconfig.build.json` and `start` script were removed.
+
 ## [1.28.0] - 2026-10-07
 
 ### Added
