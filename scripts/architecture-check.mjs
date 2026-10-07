@@ -9,6 +9,7 @@
  *   4. Frontend file size limit (500 lines)
  *   5. Frontend lib/hooks/ agnostic of features
  *   6. Frontend dead files (every module is imported by something)
+ *   7. Frontend feature isolation (no imports between features)
  *
  * Exits 0 if all checks pass, 1 otherwise.
  *
@@ -57,6 +58,9 @@ const FEATURE_IMPORT_PREFIXES = [
   "components/",
   "pages/",
 ]
+
+/** Folders any feature may import from: shared modules and the app shell. */
+const SHARED_COMPONENT_FOLDERS = new Set(["shared", "layout"])
 
 // --- ANSI helpers ----------------------------------------------------------
 
@@ -368,6 +372,51 @@ async function checkFrontendDeadFiles() {
   }
 }
 
+// --- Check 7: feature isolation --------------------------------------------
+
+async function checkFeatureIsolation() {
+  const violations = []
+  const srcDir = join(ROOT, "packages", "frontend", "src")
+  const componentsDir = join(srcDir, "components")
+  const allFiles = await walk(srcDir, FRONTEND_EXT)
+  const knownFiles = new Set(allFiles)
+
+  /** First folder under components/ (`conversation`, `shared`, ...). */
+  const folderOf = (file) => {
+    const rel = relative(componentsDir, file).split(sep).join(posix.sep)
+    if (rel.startsWith("..")) return null
+    return rel.split("/")[0]
+  }
+
+  for (const file of allFiles) {
+    const from = folderOf(file)
+    // Pages and layouts compose features; lib/ is fair game for everyone.
+    if (!from || from === "layout") continue
+
+    const content = await readFile(file, "utf8")
+    for (const spec of extractImports(content)) {
+      const resolved = resolveImport(spec, file, srcDir, knownFiles)
+      if (!resolved) continue
+
+      const to = folderOf(resolved)
+      if (!to || to === from) continue
+      if (SHARED_COMPONENT_FOLDERS.has(to)) continue
+
+      violations.push({
+        file: relative(ROOT, file).split(sep).join(posix.sep),
+        rule: "feature-isolation",
+        detail: `${spec} → components/${to}/ (move it to components/shared/ or lib/)`,
+      })
+    }
+  }
+
+  return {
+    name: "Frontend feature isolation (no cross-feature imports)",
+    pass: violations.length === 0,
+    violations,
+  }
+}
+
 // --- Reporter --------------------------------------------------------------
 
 function pad(s, n) {
@@ -412,6 +461,7 @@ async function main() {
     checkSharedPure(),
     checkHooksAgnostic(),
     checkFrontendDeadFiles(),
+    checkFeatureIsolation(),
   ])
 
   let totalFailures = 0
