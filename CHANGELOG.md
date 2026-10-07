@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.31.0] - 2026-10-07
+
+### Added
+
+- The packaged app now **updates itself from published releases**: it reads the latest GitHub Release, shows its notes, downloads the Windows x64 package with progress, installs it into `versions/<version>` and switches the `current` pointer. The previous version stays on disk for rollback and the app asks to restart. It is enabled automatically when the app runs from the portable package (`RM_PACKAGED_ROOT`); developers keep the git-based adapter.
+- `version.json` in the package now records the GitHub `repository` the updater follows.
+
+### Changed
+
+- The updates panel shows the release notes and the download progress, and explains the new "no package for this platform" state.
+- The portable `README.txt` documents the built-in updater.
+
 ## [1.30.0] - 2026-10-07
 
 ### Added
