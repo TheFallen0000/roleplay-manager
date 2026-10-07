@@ -13,6 +13,14 @@ const envSchema = z.object({
   TUNNEL_TARGET_URL: z.string().url().default("http://localhost:4321"),
   TAILSCALE_BIN: z.string().min(1).optional(),
   LAN_PORT: z.coerce.number().int().positive().default(4322),
+  UPDATE_REPO_DIR: z.string().min(1).default(process.cwd()),
+  UPDATE_BRANCH: z.string().min(1).optional(),
+  UPDATE_INSTALL: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
+  BACKUP_DIR: z.string().min(1).default("./backups"),
+  GIT_BIN: z.string().min(1).optional(),
   MAX_PROFILE_IMAGE_BYTES: z.coerce.number().int().positive().default(DEFAULT_MAX_PROFILE_IMAGE_BYTES),
   MAX_PROFILE_IMAGE_PIXELS: z.coerce.number().int().positive().default(40_000_000),
   PROVIDER_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),

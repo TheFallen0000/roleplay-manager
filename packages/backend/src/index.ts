@@ -41,6 +41,11 @@ const main = (): void => {
     tunnelTargetUrl: env.TUNNEL_TARGET_URL,
     tailscaleBin: env.TAILSCALE_BIN,
     lanPort: env.LAN_PORT,
+    updateRepoDir: env.UPDATE_REPO_DIR,
+    updateBranch: env.UPDATE_BRANCH,
+    updateInstall: env.UPDATE_INSTALL,
+    backupDir: env.BACKUP_DIR,
+    gitBin: env.GIT_BIN,
   })
   const app = buildServer({
     container,

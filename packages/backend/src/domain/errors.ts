@@ -149,3 +149,32 @@ export class LanAccessError extends DomainError {
     this.name = "LanAccessError"
   }
 }
+
+export class UpdateNotARepoError extends DomainError {
+  constructor() {
+    super(
+      "UPDATE_NOT_A_REPO",
+      "The app is not running from a git checkout.",
+      409,
+    )
+    this.name = "UpdateNotARepoError"
+  }
+}
+
+export class UpdateDirtyWorktreeError extends DomainError {
+  constructor() {
+    super(
+      "UPDATE_DIRTY_WORKTREE",
+      "The working tree has local changes; commit or stash them first.",
+      409,
+    )
+    this.name = "UpdateDirtyWorktreeError"
+  }
+}
+
+export class UpdateFailedError extends DomainError {
+  constructor(message: string) {
+    super("UPDATE_FAILED", message, 502)
+    this.name = "UpdateFailedError"
+  }
+}

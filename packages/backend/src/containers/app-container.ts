@@ -64,6 +64,15 @@ import { GetLanStatusUseCase } from "../application/use-cases/lan/get-lan-status
 import { EnableLanAccessUseCase } from "../application/use-cases/lan/enable-lan-access.use-case"
 import { DisableLanAccessUseCase } from "../application/use-cases/lan/disable-lan-access.use-case"
 import { LanProxyServerAdapter } from "../infrastructure/adapters/secondary/lan/lan-proxy-server.adapter"
+import { GetUpdateStatusUseCase } from "../application/use-cases/updates/get-update-status.use-case"
+import { CheckUpdatesUseCase } from "../application/use-cases/updates/check-updates.use-case"
+import { ApplyUpdateUseCase } from "../application/use-cases/updates/apply-update.use-case"
+import { CreateBackupUseCase } from "../application/use-cases/updates/create-backup.use-case"
+import { GitUpdateAdapter } from "../infrastructure/adapters/secondary/updates/git-update.adapter"
+import {
+  BackupService,
+  type BackupDatabaseClient,
+} from "../application/services/backup.service"
 import { CreateConversationUseCase } from "../application/use-cases/conversation/create-conversation.use-case"
 import { BranchConversationUseCase } from "../application/use-cases/conversation/branch-conversation.use-case"
 import { GetConversationUseCase } from "../application/use-cases/conversation/get-conversation.use-case"
@@ -170,6 +179,12 @@ export interface AppContainer {
   enableLanAccess: EnableLanAccessUseCase
   disableLanAccess: DisableLanAccessUseCase
 
+  // Updates
+  getUpdateStatus: GetUpdateStatusUseCase
+  checkUpdates: CheckUpdatesUseCase
+  applyUpdate: ApplyUpdateUseCase
+  createBackup: CreateBackupUseCase
+
   summaryRepository: SummaryRepository
 
   // Summary
@@ -202,6 +217,11 @@ export interface BuildContainerOptions {
   tunnelTargetUrl: string
   tailscaleBin?: string
   lanPort: number
+  updateRepoDir: string
+  updateBranch?: string
+  updateInstall: boolean
+  backupDir: string
+  gitBin?: string
 }
 
 export const buildContainer = ({
@@ -217,6 +237,11 @@ export const buildContainer = ({
   tunnelTargetUrl,
   tailscaleBin,
   lanPort,
+  updateRepoDir,
+  updateBranch,
+  updateInstall,
+  backupDir,
+  gitBin,
 }: BuildContainerOptions): AppContainer => {
   const settings: SettingsRepository = new DrizzleSettingsRepository(database)
   const providerRegistry: ProviderRegistry = new ProviderRegistryImpl({
@@ -268,6 +293,24 @@ export const buildContainer = ({
   const getLanStatus = new GetLanStatusUseCase(lanAccessController)
   const enableLanAccess = new EnableLanAccessUseCase(lanAccessController)
   const disableLanAccess = new DisableLanAccessUseCase(lanAccessController)
+
+  const backupService = new BackupService({
+    // drizzle keeps the raw better-sqlite3 client on `$client` (not typed).
+    client: (database as unknown as { $client: BackupDatabaseClient }).$client,
+    dataDir,
+    backupDir,
+  })
+  const updateController = new GitUpdateAdapter({
+    repoDir: updateRepoDir,
+    branch: updateBranch,
+    install: updateInstall,
+    gitBin,
+    backup: () => backupService.create(),
+  })
+  const getUpdateStatus = new GetUpdateStatusUseCase(updateController)
+  const checkUpdates = new CheckUpdatesUseCase(updateController)
+  const applyUpdate = new ApplyUpdateUseCase(updateController)
+  const createBackup = new CreateBackupUseCase(updateController)
 
   const applyAllMemoryChanges = new ApplyAllMemoryChangesUseCase(
     memoryRepository,
@@ -402,6 +445,10 @@ export const buildContainer = ({
     getLanStatus,
     enableLanAccess,
     disableLanAccess,
+    getUpdateStatus,
+    checkUpdates,
+    applyUpdate,
+    createBackup,
     settings,
     providerRegistry,
     providerInstanceRepository,

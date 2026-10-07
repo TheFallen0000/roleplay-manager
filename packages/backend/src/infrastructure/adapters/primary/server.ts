@@ -16,6 +16,7 @@ import { buildContextRouter } from "./routes/context.routes"
 import { buildSummaryRouter } from "./routes/summary.routes"
 import { buildTunnelRouter } from "./routes/tunnel.routes"
 import { buildLanRouter } from "./routes/lan.routes"
+import { buildUpdateRouter } from "./routes/update.routes"
 
 export interface BuildServerOptions {
   container: AppContainer
@@ -132,6 +133,15 @@ export const buildServer = ({
       getLanStatus: container.getLanStatus,
       enableLanAccess: container.enableLanAccess,
       disableLanAccess: container.disableLanAccess,
+    }),
+  )
+  app.use(
+    "/api",
+    buildUpdateRouter({
+      getUpdateStatus: container.getUpdateStatus,
+      checkUpdates: container.checkUpdates,
+      applyUpdate: container.applyUpdate,
+      createBackup: container.createBackup,
     }),
   )
 
