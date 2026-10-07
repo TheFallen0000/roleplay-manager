@@ -7,6 +7,8 @@
  *   2. Frontend lib/ agnostic of React/UI/zustand
  *   3. shared/ package purity
  *   4. Frontend file size limit (500 lines)
+ *   5. Frontend lib/hooks/ agnostic of features
+ *   6. Frontend dead files (every module is imported by something)
  *
  * Exits 0 if all checks pass, 1 otherwise.
  *
@@ -14,7 +16,7 @@
  */
 
 import { readFile, readdir, stat } from "node:fs/promises"
-import { join, relative, sep, posix } from "node:path"
+import { dirname, join, relative, resolve, sep, posix } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
@@ -46,6 +48,14 @@ const FORBIDDEN_SHARED_IMPORTS = [
   "drizzle-orm",
   "axios",
   "better-sqlite3",
+]
+
+/** Generic hooks in `lib/hooks/` must not reach into features. */
+const FEATURE_IMPORT_PREFIXES = [
+  "lib/stores/",
+  "lib/api/",
+  "components/",
+  "pages/",
 ]
 
 // --- ANSI helpers ----------------------------------------------------------
@@ -88,15 +98,42 @@ async function walk(dir, extFilter, results = []) {
 // --- Imports of a file -----------------------------------------------------
 
 /**
- * Returns the list of "from '...'" import specifiers in a file.
- * Only matches the "from 'specifier'" form (not bare side-effect imports).
+ * Returns the import specifiers of a file: `from "..."` plus dynamic
+ * `import("...")` with a literal path.
  */
 function extractImports(content) {
-  const re = /from\s+["']([^"']+)["']/g
   const out = []
-  let m
-  while ((m = re.exec(content)) !== null) out.push(m[1])
+  const staticRe = /from\s+["']([^"']+)["']/g
+  const dynamicRe = /import\s*\(\s*["']([^"']+)["']\s*\)/g
+  for (const re of [staticRe, dynamicRe]) {
+    let m
+    while ((m = re.exec(content)) !== null) out.push(m[1])
+  }
   return out
+}
+
+/**
+ * Resolves an import specifier to an absolute file inside the frontend `src`
+ * (`@/...` alias and relative paths). Returns null for external packages.
+ */
+function resolveImport(spec, fromFile, srcDir, knownFiles) {
+  let base
+  if (spec.startsWith("@/")) base = join(srcDir, spec.slice(2))
+  else if (spec.startsWith("./") || spec.startsWith("../")) {
+    base = resolve(dirname(fromFile), spec)
+  } else {
+    return null
+  }
+
+  const candidates = [
+    base,
+    `${base}.ts`,
+    `${base}.tsx`,
+    `${base}.astro`,
+    join(base, "index.ts"),
+    join(base, "index.tsx"),
+  ]
+  return candidates.find((candidate) => knownFiles.has(candidate)) ?? null
 }
 
 // --- Check 1: Frontend file size -------------------------------------------
@@ -249,6 +286,88 @@ async function checkSharedPure() {
   }
 }
 
+// --- Check 5: lib/hooks agnostic of features -------------------------------
+
+async function checkHooksAgnostic() {
+  const violations = []
+  const srcDir = join(ROOT, "packages", "frontend", "src")
+  const hooksDir = join(srcDir, "lib", "hooks")
+  const knownFiles = new Set(await walk(srcDir, FRONTEND_EXT))
+  const files = await walk(hooksDir, TS_EXT)
+
+  for (const file of files) {
+    if (file.endsWith(".test.ts") || file.endsWith(".test.tsx")) continue
+
+    const content = await readFile(file, "utf8")
+    for (const spec of extractImports(content)) {
+      const resolved = resolveImport(spec, file, srcDir, knownFiles)
+      if (!resolved) continue
+
+      const rel = relative(srcDir, resolved).split(sep).join(posix.sep)
+      const feature = FEATURE_IMPORT_PREFIXES.find((prefix) =>
+        rel.startsWith(prefix),
+      )
+      if (feature) {
+        violations.push({
+          file: relative(ROOT, file).split(sep).join(posix.sep),
+          rule: "hooks-agnostic",
+          detail: `${spec} → ${feature} (move it to components/<feature>/)`,
+        })
+      }
+    }
+  }
+
+  return {
+    name: "Frontend lib/hooks agnostic of features",
+    pass: violations.length === 0,
+    violations,
+  }
+}
+
+// --- Check 6: dead frontend files ------------------------------------------
+
+async function checkFrontendDeadFiles() {
+  const srcDir = join(ROOT, "packages", "frontend", "src")
+  const allFiles = await walk(srcDir, FRONTEND_EXT)
+  const knownFiles = new Set(allFiles)
+  const isTest = (file) => /\.test\.tsx?$/.test(file)
+  const relFromSrc = (file) => relative(srcDir, file).split(sep).join(posix.sep)
+
+  // Candidates: components/ and lib/ modules. Pages are entry points, and tests
+  // are not production code.
+  const candidates = allFiles.filter((file) => {
+    if (isTest(file)) return false
+    if (!TS_EXT.has(file.slice(file.lastIndexOf(".")))) return false
+    const rel = relFromSrc(file)
+    return rel.startsWith("components/") || rel.startsWith("lib/")
+  })
+
+  // References from every non-test file (including Astro pages and dynamic imports).
+  const referenced = new Set()
+  for (const file of allFiles) {
+    if (isTest(file)) continue
+    const content = await readFile(file, "utf8")
+    for (const spec of extractImports(content)) {
+      const resolved = resolveImport(spec, file, srcDir, knownFiles)
+      if (resolved) referenced.add(resolved)
+    }
+  }
+
+  const violations = candidates
+    .filter((file) => !referenced.has(file))
+    .map((file) => ({
+      file: relative(ROOT, file).split(sep).join(posix.sep),
+      rule: "no-dead-files",
+      detail: "not imported by any non-test file",
+    }))
+
+  return {
+    name: "Frontend dead files (no orphans)",
+    pass: violations.length === 0,
+    violations,
+  }
+}
+
 // --- Reporter --------------------------------------------------------------
 
 function pad(s, n) {
@@ -291,6 +410,8 @@ async function main() {
     checkBackendHexagonal(),
     checkFrontendAgnostic(),
     checkSharedPure(),
+    checkHooksAgnostic(),
+    checkFrontendDeadFiles(),
   ])
 
   let totalFailures = 0
