@@ -69,6 +69,8 @@ import { CheckUpdatesUseCase } from "../application/use-cases/updates/check-upda
 import { ApplyUpdateUseCase } from "../application/use-cases/updates/apply-update.use-case"
 import { CreateBackupUseCase } from "../application/use-cases/updates/create-backup.use-case"
 import { GitUpdateAdapter } from "../infrastructure/adapters/secondary/updates/git-update.adapter"
+import { ReleaseUpdateAdapter } from "../infrastructure/adapters/secondary/updates/release-update.adapter"
+import type { UpdateController } from "../domain/ports/update-controller"
 import {
   BackupService,
   type BackupDatabaseClient,
@@ -220,6 +222,9 @@ export interface BuildContainerOptions {
   updateRepoDir: string
   updateBranch?: string
   updateInstall: boolean
+  updatePackagedRoot?: string
+  updateRepository?: string
+  updateApiBaseUrl?: string
   backupDir: string
   gitBin?: string
 }
@@ -240,6 +245,9 @@ export const buildContainer = ({
   updateRepoDir,
   updateBranch,
   updateInstall,
+  updatePackagedRoot,
+  updateRepository,
+  updateApiBaseUrl,
   backupDir,
   gitBin,
 }: BuildContainerOptions): AppContainer => {
@@ -300,13 +308,20 @@ export const buildContainer = ({
     dataDir,
     backupDir,
   })
-  const updateController = new GitUpdateAdapter({
-    repoDir: updateRepoDir,
-    branch: updateBranch,
-    install: updateInstall,
-    gitBin,
-    backup: () => backupService.create(),
-  })
+  const updateController: UpdateController = updatePackagedRoot
+    ? new ReleaseUpdateAdapter({
+        packagedRoot: updatePackagedRoot,
+        repository: updateRepository,
+        apiBaseUrl: updateApiBaseUrl,
+        backup: () => backupService.create(),
+      })
+    : new GitUpdateAdapter({
+        repoDir: updateRepoDir,
+        branch: updateBranch,
+        install: updateInstall,
+        gitBin,
+        backup: () => backupService.create(),
+      })
   const getUpdateStatus = new GetUpdateStatusUseCase(updateController)
   const checkUpdates = new CheckUpdatesUseCase(updateController)
   const applyUpdate = new ApplyUpdateUseCase(updateController)

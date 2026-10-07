@@ -70,6 +70,9 @@ const main = async (): Promise<void> => {
     updateRepoDir: env.UPDATE_REPO_DIR,
     updateBranch: env.UPDATE_BRANCH,
     updateInstall: env.UPDATE_INSTALL,
+    updatePackagedRoot: env.RM_PACKAGED_ROOT,
+    updateRepository: env.RM_UPDATE_REPOSITORY,
+    updateApiBaseUrl: env.RM_UPDATE_API_URL,
     backupDir: env.BACKUP_DIR,
     gitBin: env.GIT_BIN,
   })

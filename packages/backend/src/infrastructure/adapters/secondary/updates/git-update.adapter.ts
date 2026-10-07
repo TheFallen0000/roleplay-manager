@@ -231,6 +231,7 @@ const emptyStatus = (currentVersion: string): UpdateStatusDTO => ({
   latestVersion: null,
   behind: false,
   commits: [],
+  notes: null,
   canApply: false,
   blockedReason: null,
   checkError: null,

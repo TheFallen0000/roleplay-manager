@@ -22,6 +22,12 @@ const envSchema = z.object({
     .transform((value) => value === "true"),
   BACKUP_DIR: z.string().min(1).default("./backups"),
   GIT_BIN: z.string().min(1).optional(),
+  /** Portable root of the packaged app (enables release-based updates). */
+  RM_PACKAGED_ROOT: z.string().min(1).optional(),
+  /** GitHub repository (`owner/repo`) the updater follows. */
+  RM_UPDATE_REPOSITORY: z.string().min(1).optional(),
+  /** GitHub API base (override for mirrors/tests). */
+  RM_UPDATE_API_URL: z.string().url().optional(),
   WEB_HANDLER_PATH: z.string().min(1).optional(),
   WEB_CLIENT_DIR: z.string().min(1).optional(),
   MIGRATIONS_DIR: z.string().min(1).optional(),
