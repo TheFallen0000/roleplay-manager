@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef } from "react"
+
 import {
   sendMessageStreaming,
   regenerateReplyStreaming,
   continueConversationStreaming,
-} from "../api/conversations"
+} from "@/lib/api/conversations"
 import type { MessageDTO } from "@workspace/shared/types/message"
-import { useChatStore } from "../stores/chat.store"
+import { useChatStore } from "@/lib/stores/chat.store"
 
 export interface UseChatStreamingOptions {
   onDone?: () => void

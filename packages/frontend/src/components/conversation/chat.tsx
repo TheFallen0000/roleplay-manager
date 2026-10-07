@@ -28,7 +28,7 @@ import {
   setConversationTitle,
   branchConversation,
 } from "../../lib/api/conversations"
-import { useChatStreaming } from "../../lib/hooks/use-chat-streaming"
+import { useChatStreaming } from "./use-chat-streaming"
 import { getCharacterAssetUrl } from "../../lib/api/client"
 import { getPromptContext } from "../../lib/api/context"
 import { createAssetSrcSet } from "@/lib/asset-srcset"
