@@ -1,6 +1,10 @@
 # build output
 dist/
 
+# packaged artifacts and user backups
+release/
+backups/
+
 # generated types
 .astro/
 
