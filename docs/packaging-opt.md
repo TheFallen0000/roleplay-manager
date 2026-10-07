@@ -77,7 +77,7 @@ datos sobreviven a cualquier actualización.
 |---|---|
 | **A** ✅ | Entrypoint de un solo proceso (Astro dentro de Express) + verificación de SSR, assets, streaming SSE y subidas. *Hecho en S40 (v1.28.0).* |
 | **B** ✅ | Script de empaquetado (`pnpm package:win`) para Windows x64: bundle del backend con esbuild, dists, runtime de Node, lanzador, `version.json` y zip. Smoke test del artefacto **sin Node/pnpm del sistema**. *Hecho en S41 (v1.29.0).* |
-| **C** | CI de releases (GitHub Actions por tag `v*`) y contrato del artefacto. |
+| **C** ✅ | CI de releases (GitHub Actions por tag `v*`) y contrato del artefacto. *Hecho en S42 (v1.30.0).* |
 | **D** | Actualizador por releases (PM.23 fase 2): descargar, verificar, instalar en `versions/<v>`, cambiar `current` y pedir reinicio, con rollback. |
 
 ## Empaquetado (fase B)
@@ -98,6 +98,19 @@ datos sobreviven a cualquier actualización.
 El lanzador fija el puerto (3001 por defecto; `PORT` lo sobrescribe), las rutas
 de datos **relativas a la raíz portátil** y usa el runtime incluido. La variable
 `RM_NO_BROWSER` evita abrir el navegador (la usan las pruebas).
+
+## Contrato de release (fase C)
+
+- **Tag**: `v<versión>`; debe coincidir con `package.json` (el workflow lo verifica
+  y falla si no).
+- **Asset**: `roleplay-manager-<versión>-win-x64.zip`.
+- **Notas**: la sección del CHANGELOG de esa versión (`scripts/release-notes.mjs`).
+- **Workflow** `.github/workflows/release.yml` (`windows-latest`, Node 24.18.0, pnpm
+  del `packageManager`): guardia de versión → `pnpm check` + tests → `pnpm package:win`
+  → smoke test del zip → `gh release create`. `workflow_dispatch` permite una
+  ejecución de prueba que **no** publica.
+- El actualizador (fase D) consultará la API de releases y comparará el tag con la
+  versión local antes de descargar el asset.
 
 ## Riesgos y notas
 

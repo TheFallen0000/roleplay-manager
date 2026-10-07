@@ -176,7 +176,7 @@ Last updated: 2026-10-06
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Phases A + B done as S40/S41 (v1.28.0 / v1.29.0): single-process build and the portable Windows x64 package (`pnpm package:win`). Phases C–D pending. See `S40-progress.md` and `S41-progress.md`.* | — |
+| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Phases A–C done as S40/S41/S42 (v1.28.0 / v1.29.0 / v1.30.0): single-process build, portable Windows x64 package and the release CI. Phase D (release-based updater) pending. See `S40-progress.md`, `S41-progress.md` and `S42-progress.md`.* | — |
 | PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Phase 1 done as S39 (v1.27.0): git-based detection, apply (pull + install), automatic backups, updates screen, sidebar badge and one-time notice. Phase 2 (release-based, packaged build) pending PM.24. See `S39-progress.md`.* | PM.24 |
 
 > **PM.23 — phase 1 done (S39, 2026-10-07, v1.27.0):** The **Updates** screen (System), the
@@ -212,6 +212,13 @@ Last updated: 2026-10-06
 > smoke test runs it with the bundled runtime and a stripped `PATH`. This also fixed the
 > production start, which had never worked (`tsc` output path, missing migrations, TS shared
 > package). Remaining: **C** release CI, **D** release-based updater. See `S41-progress.md`.
+
+> **PM.24 — phase C done (S42, 2026-10-07, v1.30.0):** A GitHub Actions workflow
+> (`.github/workflows/release.yml`) publishes the package on `v*` tags: it verifies the tag
+> against `package.json`, runs the quality gates and tests, packages, smoke-tests the artifact
+> and creates the release with the CHANGELOG notes (`workflow_dispatch` runs it as a dry run).
+> The artifact contract (tag, asset name, notes) is documented in `packaging-opt.md`. Remaining:
+> **D** release-based updater. See `S42-progress.md`.
 
 ## UI polish
 
