@@ -141,6 +141,13 @@ definido (lo fija `start.cmd`), usa `ReleaseUpdateAdapter`; si no, el
   conserva para **rollback** (volver a escribir `current`).
 - Asset por plataforma: el que termina en `-win-x64.zip`; si la release no lo
   trae, el estado queda bloqueado con `no-asset`.
+- **Reintentos**: los pasos de red (API y descarga) reintentan 3 veces con
+  backoff ante fallos transitorios, y el error incluye la causa real
+  (`error.cause`). El job muestra "Reintentando n/3" mientras espera.
+- **Reinicio**: `POST /api/updates/restart` relanza el lanzador (en la misma
+  consola y sin reabrir el navegador) y sale; `start.cmd` relee `current`, así
+  que arranca la versión nueva. El panel ofrece "Reiniciar ahora" tras aplicar y
+  recarga la página cuando la app vuelve. En dev responde `not-available`.
 
 ## Riesgos y notas
 
