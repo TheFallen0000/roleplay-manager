@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.30.0] - 2026-10-07
+
+### Added
+
+- A GitHub Actions **release workflow** publishes the portable Windows x64 package on version tags (`v*`): it verifies the tag matches `package.json`, runs the quality gates and tests, packages, smoke-tests the artifact and creates the release with the CHANGELOG notes. A manual run (`workflow_dispatch`) builds and validates without publishing.
+- Reusable scripts: `scripts/smoke-package.mjs` (validates the packaged artifact with the bundled runtime and a stripped `PATH`) and `scripts/release-notes.mjs` (extracts the CHANGELOG section for the release notes).
+
 ## [1.29.0] - 2026-10-07
 
 ### Added
