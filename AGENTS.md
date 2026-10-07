@@ -109,11 +109,12 @@ pages/ (Astro) ─→ components/ (React) ─→ lib/
 
 ### `components/`
 
-- React components, organized by feature (`conversation/`, `character/`, `summary/`, `provider/`, `memory/`, `layout/`).
+- React components, organized by feature (`conversation/`, `character/`, `player-character/`, `provider/`, `updates/`, `tunnel/`), plus the app shell (`layout/`) and the cross-feature modules (`shared/`).
 - Use shadcn primitives from `@workspace/ui`.
 - Feature hooks live here (`use-character-list.ts`, `use-chat-streaming.ts`).
-- **Rule**: every file must be imported by something (tests do not count as
-  references). Enforced by `pnpm check:arch`.
+- **Rules** (enforced by `pnpm check:arch`):
+  - A feature may only import from its own folder, `components/shared/**`, `components/layout/**` and `lib/`. **No imports between features**: shared UI goes to `components/shared/<theme>/`, shared logic goes to `lib/` (usually a store).
+  - Every file must be imported by something (tests do not count as references).
 
 ### `pages/`
 
@@ -181,6 +182,7 @@ Runs `scripts/architecture-check.mjs`. Verifies:
 4. **shared/ package purity** — no runtime imports from React/DB/UI.
 5. **Frontend `lib/hooks/` agnostic** — generic hooks may not import `lib/stores/**`, `lib/api/**`, `components/**` or `pages/**` (feature hooks live in `components/<feature>/`).
 6. **Frontend dead files** — every file under `components/` and `lib/` must be imported by something; test files do not count as references.
+7. **Frontend feature isolation** — no imports between feature folders under `components/`; shared UI lives in `components/shared/**` and the shell (`components/layout/**`) may compose features.
 
 Exits 1 on any failure, 0 on success.
 
