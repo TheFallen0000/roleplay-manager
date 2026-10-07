@@ -97,7 +97,10 @@ datos sobreviven a cualquier actualización.
 
 El lanzador fija el puerto (3001 por defecto; `PORT` lo sobrescribe), las rutas
 de datos **relativas a la raíz portátil** y usa el runtime incluido. La variable
-`RM_NO_BROWSER` evita abrir el navegador (la usan las pruebas).
+`RM_NO_BROWSER` lo desactiva (lo usan el smoke test y los E2E): el lanzador no
+abre el navegador él mismo, pasa `RM_OPEN_BROWSER` al servidor, que lo abre
+**cuando ya está escuchando** (así no aparece el "no se puede acceder al sitio").
+El `README.txt` del paquete es bilingüe (inglés y español).
 
 ## Contrato de release (fase C)
 
