@@ -3,10 +3,11 @@ import { describe, expect, it, vi } from "vitest"
 import { browserCommand, openBrowser } from "./open-browser"
 
 describe("browserCommand", () => {
-  it("uses `start` through cmd on Windows", () => {
+  it("uses `start` through cmd on Windows (verbatim arguments)", () => {
     expect(browserCommand("http://localhost:3001", "win32")).toEqual({
       command: "cmd.exe",
       args: ["/d", "/s", "/c", 'start "" "http://localhost:3001"'],
+      windowsVerbatimArguments: true,
     })
   })
 
@@ -37,6 +38,7 @@ describe("openBrowser", () => {
     expect(spawnImpl).toHaveBeenCalledWith("cmd.exe", expect.any(Array), {
       detached: true,
       stdio: "ignore",
+      windowsVerbatimArguments: true,
     })
     expect(on).toHaveBeenCalledWith("error", onError)
     expect(unref).toHaveBeenCalled()
