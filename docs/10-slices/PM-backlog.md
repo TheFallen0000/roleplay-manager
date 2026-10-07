@@ -176,7 +176,7 @@ Last updated: 2026-10-06
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Decisions (2026-10-07): single-process build (Astro middleware inside Express), **Windows x64 portable folder** with a bundled Node runtime, data inside the folder, versioned update layout. Design: `packaging-opt.md`. Not started.* | — |
+| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Phase A done as S40 (v1.28.0): single-process build (Astro middleware inside Express) with static assets served by the host and a runtime API base. Phases B–D pending. See `S40-progress.md`.* | — |
 | PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Phase 1 done as S39 (v1.27.0): git-based detection, apply (pull + install), automatic backups, updates screen, sidebar badge and one-time notice. Phase 2 (release-based, packaged build) pending PM.24. See `S39-progress.md`.* | PM.24 |
 
 > **PM.23 — phase 1 done (S39, 2026-10-07, v1.27.0):** The **Updates** screen (System), the
@@ -197,6 +197,12 @@ Last updated: 2026-10-06
 > (`versions/<v>/`), which makes rollback trivial and avoids replacing locked files on Windows.
 > Phases: **A** single-process entrypoint, **B** packaging script + artifact (Windows x64),
 > **C** release CI, **D** release-based updater (PM.23 phase 2). Design: `packaging-opt.md`.
+
+> **PM.24 — phase A done (S40, 2026-10-07, v1.28.0):** Production can run as a **single process**:
+> the Astro `middleware` handler is mounted inside Express (after `/api`), the static build is
+> served by the host (`express.static`, since Astro does not serve it in this mode) and the SSR
+> API base is configurable at runtime with `PUBLIC_API_URL`. Remaining: **B** packaging script +
+> artifact, **C** release CI, **D** release-based updater. See `S40-progress.md`.
 
 ## UI polish
 

@@ -60,14 +60,22 @@ datos sobreviven a cualquier actualización.
   proceso es el del backend (**3001**), de modo que las llamadas SSR a
   `http://localhost:3001` apuntan al propio proceso y el navegador usa rutas
   relativas (`/api`) en el mismo origen.
+- **Los assets estáticos los sirve el anfitrión**: en modo `middleware` Astro no
+  sirve su build (`favicon`, `/_astro/*`), así que el backend monta
+  `express.static(<clientDir>)`. Configuración: `WEB_HANDLER_PATH` y
+  `WEB_CLIENT_DIR` (por defecto `../client` respecto al handler).
+- La base de la API en SSR se puede fijar en **tiempo de ejecución** con
+  `PUBLIC_API_URL` (el proceso único puede escuchar en cualquier puerto); en el
+  navegador las llamadas siguen siendo relativas.
 - En desarrollo nada cambia (`astro dev` + backend por separado); el handler se
-  monta solo cuando `WEB_HANDLER_PATH` está definido.
+  monta solo cuando `WEB_HANDLER_PATH` está definido. `astro preview` no está
+  soportado en este modo.
 
 ## Fases
 
 | Fase | Alcance |
 |---|---|
-| **A** | Entrypoint de un solo proceso (Astro dentro de Express) + verificación de SSR, streaming SSE y subidas. |
+| **A** ✅ | Entrypoint de un solo proceso (Astro dentro de Express) + verificación de SSR, assets, streaming SSE y subidas. *Hecho en S40 (v1.28.0).* |
 | **B** | Script de empaquetado (`pnpm package`) para Windows x64: `pnpm deploy --prod`, dists, runtime de Node, lanzador, `version.json` y zip. Smoke test del artefacto **sin Node/pnpm del sistema**. |
 | **C** | CI de releases (GitHub Actions por tag `v*`) y contrato del artefacto. |
 | **D** | Actualizador por releases (PM.23 fase 2): descargar, verificar, instalar en `versions/<v>`, cambiar `current` y pedir reinicio, con rollback. |
