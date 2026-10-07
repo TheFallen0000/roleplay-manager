@@ -15,6 +15,7 @@ const status: UpdateStatusDTO = {
   commits: ["bbbbbbb feat: something"],
   notes: null,
   canApply: true,
+  canRestart: false,
   blockedReason: null,
   checkError: null,
   checkedAt: null,
@@ -26,7 +27,7 @@ const buildController = (): UpdateController => ({
   check: vi.fn(async () => status),
   apply: vi.fn(async () => ({
     ...status,
-    job: { running: true, step: "pull" as const, message: null },
+    job: { running: true, step: "pull" as const, message: null, retry: null },
   })),
   createBackup: vi.fn(async () => ({ path: "/tmp/backup", files: 2, bytes: 20 })),
 })

@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
   checkUpdates: vi.fn(),
   applyUpdate: vi.fn(),
   createBackup: vi.fn(),
+  restartApp: vi.fn(),
+  getHealth: vi.fn(),
 }))
 
 vi.mock("@/lib/api/updates", () => ({
@@ -18,6 +20,11 @@ vi.mock("@/lib/api/updates", () => ({
   checkUpdates: mocks.checkUpdates,
   applyUpdate: mocks.applyUpdate,
   createBackup: mocks.createBackup,
+  restartApp: mocks.restartApp,
+}))
+
+vi.mock("@/lib/api/health", () => ({
+  getHealth: mocks.getHealth,
 }))
 
 const behind = {
@@ -27,6 +34,7 @@ const behind = {
   commits: ["bbbbbbb feat: something"],
   notes: null,
   canApply: true,
+  canRestart: true,
   blockedReason: null,
   checkError: null,
   checkedAt: "2026-10-07T10:00:00.000Z",
@@ -183,6 +191,57 @@ describe("UpdatesPanel", () => {
       ),
     ).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Actualizar" })).toBeDisabled()
+  })
+
+  it("muestra los reintentos mientras descarga", async () => {
+    mocks.checkUpdates.mockResolvedValue({
+      ...behind,
+      job: {
+        running: true,
+        step: "download",
+        message: null,
+        retry: { attempt: 1, attempts: 3 },
+      },
+    })
+    renderPanel()
+
+    expect(await screen.findByText("Reintentando (1/3)…")).toBeInTheDocument()
+  })
+
+  it("ofrece reiniciar la app cuando la actualización está aplicada", async () => {
+    mocks.checkUpdates.mockResolvedValue({
+      ...behind,
+      behind: false,
+      canApply: false,
+      job: { running: false, step: "done", message: null, retry: null },
+    })
+    mocks.restartApp.mockResolvedValue({ restarting: true })
+    // The app is going down; the panel waits for it to answer again.
+    mocks.getHealth.mockImplementation(() => new Promise(() => undefined))
+    renderPanel()
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Reiniciar ahora" }),
+    )
+
+    await waitFor(() => expect(mocks.restartApp).toHaveBeenCalledTimes(1))
+    expect(await screen.findByText(/Reiniciando…/)).toBeInTheDocument()
+  })
+
+  it("no ofrece reiniciar cuando la instalación no puede hacerlo", async () => {
+    mocks.checkUpdates.mockResolvedValue({
+      ...behind,
+      behind: false,
+      canApply: false,
+      canRestart: false,
+      job: { running: false, step: "done", message: null, retry: null },
+    })
+    renderPanel()
+
+    expect(await screen.findByText("Actualización")).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "Reiniciar ahora" }),
+    ).not.toBeInTheDocument()
   })
 
   it("traduce el error al intentar actualizar", async () => {

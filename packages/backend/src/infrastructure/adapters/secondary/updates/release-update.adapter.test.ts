@@ -127,7 +127,8 @@ const buildAdapter = (
 const waitForJob = async (
   adapter: ReleaseUpdateAdapter,
 ): Promise<UpdateStatusDTO> => {
-  for (let attempt = 0; attempt < 50; attempt += 1) {
+  // Retries add backoff delays, so allow a few seconds.
+  for (let attempt = 0; attempt < 500; attempt += 1) {
     const status = await adapter.getStatus()
     if (status.job && !status.job.running) return status
     await new Promise((resolve) => setTimeout(resolve, 10))
@@ -280,5 +281,102 @@ describe("ReleaseUpdateAdapter", () => {
       run: makeTar("2.0.0"),
     })
     await expect(withoutBackup.createBackup()).rejects.toThrow(UpdateFailedError)
+  })
+
+  it("retries the release lookup when the API fails transiently", async () => {
+    let apiCalls = 0
+    const fetchImpl: FetchLike = vi.fn(async () => {
+      apiCalls += 1
+      if (apiCalls === 1) throw new TypeError("fetch failed")
+      return new Response(JSON.stringify(releaseFixture({ tag: "v2.0.0" })), {
+        status: 200,
+      })
+    })
+
+    const status = await buildAdapter(await createRoot(), { fetchImpl }).check()
+
+    expect(status.checkError).toBeNull()
+    expect(status.behind).toBe(true)
+    expect(apiCalls).toBe(2)
+  })
+
+  it("retries a transient download failure and succeeds", async () => {
+    let assetCalls = 0
+    const fetchImpl: FetchLike = vi.fn(async (input: string) => {
+      if (input.includes("/releases/latest")) {
+        return new Response(
+          JSON.stringify(releaseFixture({ tag: "v2.0.0" })),
+          { status: 200 },
+        )
+      }
+      assetCalls += 1
+      if (assetCalls === 1) {
+        throw Object.assign(new TypeError("fetch failed"), {
+          cause: new Error("ECONNRESET"),
+        })
+      }
+      return new Response(new Uint8Array([1, 2, 3]), {
+        status: 200,
+        headers: { "content-length": "3" },
+      })
+    })
+    const adapter = buildAdapter(await createRoot(), { fetchImpl })
+
+    await adapter.check()
+    await adapter.apply({ withBackup: false })
+
+    // While waiting for the retry the job says so.
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    const during = await adapter.getStatus()
+    expect(during.job?.retry).toEqual({ attempt: 1, attempts: 3 })
+
+    const finished = await waitForJob(adapter)
+    expect(finished.job).toMatchObject({ running: false, step: "done" })
+    expect(assetCalls).toBe(2)
+  })
+
+  it("reports the underlying cause when the download keeps failing", async () => {
+    const fetchImpl: FetchLike = vi.fn(async (input: string) => {
+      if (input.includes("/releases/latest")) {
+        return new Response(
+          JSON.stringify(releaseFixture({ tag: "v2.0.0" })),
+          { status: 200 },
+        )
+      }
+      throw Object.assign(new TypeError("fetch failed"), {
+        cause: new Error("getaddrinfo ENOTFOUND objects.githubusercontent.com"),
+      })
+    })
+    const adapter = buildAdapter(await createRoot(), { fetchImpl })
+
+    await adapter.check()
+    await adapter.apply({ withBackup: false })
+    const finished = await waitForJob(adapter)
+
+    expect(finished.job).toMatchObject({ running: false, step: "failed" })
+    expect(finished.job?.message).toContain("fetch failed")
+    expect(finished.job?.message).toContain("ENOTFOUND")
+  })
+
+  it("does not retry a definitive HTTP error", async () => {
+    let assetCalls = 0
+    const fetchImpl: FetchLike = vi.fn(async (input: string) => {
+      if (input.includes("/releases/latest")) {
+        return new Response(
+          JSON.stringify(releaseFixture({ tag: "v2.0.0" })),
+          { status: 200 },
+        )
+      }
+      assetCalls += 1
+      return new Response("nope", { status: 404 })
+    })
+    const adapter = buildAdapter(await createRoot(), { fetchImpl })
+
+    await adapter.check()
+    await adapter.apply({ withBackup: false })
+    const finished = await waitForJob(adapter)
+
+    expect(finished.job?.step).toBe("failed")
+    expect(assetCalls).toBe(1)
   })
 })

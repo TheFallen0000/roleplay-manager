@@ -9,6 +9,7 @@ const cached = {
   commits: ["bbbbbbb feat: something"],
   notes: null,
   canApply: true,
+  canRestart: false,
   blockedReason: null,
   checkError: null,
   checkedAt: "2026-10-07T10:00:00.000Z",

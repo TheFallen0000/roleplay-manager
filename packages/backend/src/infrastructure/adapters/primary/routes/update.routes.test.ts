@@ -15,6 +15,7 @@ const status = {
   commits: ["bbbbbbb feat: something"],
   notes: null,
   canApply: true,
+  canRestart: false,
   blockedReason: null,
   checkError: null,
   checkedAt: "2026-10-07T10:00:00.000Z",
@@ -65,6 +66,7 @@ describe("update routes", () => {
       checkUpdates: unused,
       applyUpdate: unused,
       createBackup: unused,
+      restartApp: unused,
     })
 
     const response = await fetch(`${base}/updates`)
@@ -80,6 +82,7 @@ describe("update routes", () => {
       checkUpdates: { execute } as never,
       applyUpdate: unused,
       createBackup: unused,
+      restartApp: unused,
     })
 
     const response = await fetch(`${base}/updates/check`, { method: "POST" })
@@ -98,6 +101,7 @@ describe("update routes", () => {
       checkUpdates: unused,
       applyUpdate: { execute } as never,
       createBackup: unused,
+      restartApp: unused,
     })
 
     await fetch(`${base}/updates/apply`, {
@@ -126,6 +130,7 @@ describe("update routes", () => {
       checkUpdates: unused,
       applyUpdate: unused,
       createBackup: { execute } as never,
+      restartApp: unused,
     })
 
     const response = await fetch(`${base}/updates/backup`, { method: "POST" })
@@ -138,6 +143,23 @@ describe("update routes", () => {
     })
   })
 
+  it("restarts the app", async () => {
+    const execute = vi.fn(() => ({ restarting: true }))
+    const base = await start({
+      getUpdateStatus: unused,
+      checkUpdates: unused,
+      applyUpdate: unused,
+      createBackup: unused,
+      restartApp: { execute } as never,
+    })
+
+    const response = await fetch(`${base}/updates/restart`, { method: "POST" })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ restarting: true })
+    expect(execute).toHaveBeenCalledTimes(1)
+  })
+
   it("maps a dirty worktree error to 409 with its code", async () => {
     const execute = vi.fn(async () => {
       throw new UpdateDirtyWorktreeError()
@@ -147,6 +169,7 @@ describe("update routes", () => {
       checkUpdates: unused,
       applyUpdate: { execute } as never,
       createBackup: unused,
+      restartApp: unused,
     })
 
     const response = await fetch(`${base}/updates/apply`, {
