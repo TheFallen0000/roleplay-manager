@@ -16,7 +16,11 @@ export default defineConfig({
   // The dynamic routes (characters/[id], conversations/[id]) render on demand,
   // so the build needs an adapter. `standalone` emits a runnable Node server
   // (dist/server/entry.mjs) that also serves the prerendered pages.
-  adapter: node({ mode: "standalone" }),
+  // `middleware` mode emits a handler that the backend mounts inside Express,
+  // so production runs as a single process (UI + API). Development still uses
+  // `astro dev` and is unaffected. Note: `astro preview` is not supported in
+  // this mode.
+  adapter: node({ mode: "middleware" }),
   server: {
     // Allow reaching the dev server through the Tailscale hostname
     // (e.g. `https://<machine>.<tailnet>.ts.net` via `tailscale serve`).

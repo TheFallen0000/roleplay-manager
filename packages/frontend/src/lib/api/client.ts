@@ -24,6 +24,15 @@ const getConfiguredBaseUrl = (): string | null => {
   if (typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_API_URL) {
     return import.meta.env.PUBLIC_API_URL
   }
+  // Server-side runtime override: the packaged app (single process) may listen
+  // on any port, and SSR calls must hit the same origin.
+  if (
+    typeof window === "undefined" &&
+    typeof process !== "undefined" &&
+    process.env?.PUBLIC_API_URL
+  ) {
+    return process.env.PUBLIC_API_URL
+  }
   return null
 }
 
