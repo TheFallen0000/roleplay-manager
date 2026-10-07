@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.31.4] - 2026-10-07
+
+### Changed
+
+- The packaged launcher no longer opens the browser before the app is ready: it passes `RM_OPEN_BROWSER` to the server, which opens it **once it is listening**. The "can't reach this site" flash is gone. `RM_NO_BROWSER` still disables it.
+- The `README.txt` shipped in the package is now **bilingual** (English first, then Spanish, with a header noting it) and uses proper Spanish accents (UTF-8 with BOM).
+
 ## [1.31.3] - 2026-10-07
 
 ### Fixed
