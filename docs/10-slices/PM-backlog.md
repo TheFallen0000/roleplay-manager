@@ -176,8 +176,8 @@ Last updated: 2026-10-06
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Phases A–C done as S40/S41/S42 (v1.28.0 / v1.29.0 / v1.30.0): single-process build, portable Windows x64 package and the release CI. Phase D (release-based updater) pending. See `S40-progress.md`, `S41-progress.md` and `S42-progress.md`.* | — |
-| PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Phase 1 done as S39 (v1.27.0): git-based detection, apply (pull + install), automatic backups, updates screen, sidebar badge and one-time notice. Phase 2 (release-based, packaged build) pending PM.24. See `S39-progress.md`.* | PM.24 |
+| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Done as S40/S41/S42/S43 (v1.28.0 / v1.29.0 / v1.30.0 / v1.31.0): single-process build, portable Windows x64 package, release CI and the release-based updater. See `S40-progress.md` … `S43-progress.md`.* | — |
+| PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Done as S39/S43 (v1.27.0 / v1.31.0): git-based detection + apply for developers, and the release-based updater for the packaged build (download → install in `versions/<v>` → switch `current` → restart), automatic backups, updates screen, sidebar badge and one-time notice. See `S39-progress.md` and `S43-progress.md`.* | PM.24 |
 
 > **PM.23 — phase 1 done (S39, 2026-10-07, v1.27.0):** The **Updates** screen (System), the
 > sidebar badge, the one-time notice on the characters screen and the automatic backup are in
@@ -219,6 +219,15 @@ Last updated: 2026-10-06
 > and creates the release with the CHANGELOG notes (`workflow_dispatch` runs it as a dry run).
 > The artifact contract (tag, asset name, notes) is documented in `packaging-opt.md`. Remaining:
 > **D** release-based updater. See `S42-progress.md`.
+
+> **PM.24 — phase D done (S43, 2026-10-07, v1.31.0):** The packaged app updates itself from
+> **published releases**. The container picks `ReleaseUpdateAdapter` when `RM_PACKAGED_ROOT` is set
+> (the launcher does) and keeps the git adapter for developers; both share the S39 UI. Detection
+> reads the latest GitHub Release (public API), compares the tag with `current` numerically and
+> shows the release notes; applying runs `backup → download → install → done`, extracting into
+> `versions/.staging-<v>` and renaming to `versions/<v>` before switching `current`, so the running
+> version is never touched and the previous one stays for rollback. This completes **PM.24** and
+> **PM.23** (phase 2). See `S43-progress.md`.
 
 ## UI polish
 

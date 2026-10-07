@@ -78,7 +78,7 @@ datos sobreviven a cualquier actualización.
 | **A** ✅ | Entrypoint de un solo proceso (Astro dentro de Express) + verificación de SSR, assets, streaming SSE y subidas. *Hecho en S40 (v1.28.0).* |
 | **B** ✅ | Script de empaquetado (`pnpm package:win`) para Windows x64: bundle del backend con esbuild, dists, runtime de Node, lanzador, `version.json` y zip. Smoke test del artefacto **sin Node/pnpm del sistema**. *Hecho en S41 (v1.29.0).* |
 | **C** ✅ | CI de releases (GitHub Actions por tag `v*`) y contrato del artefacto. *Hecho en S42 (v1.30.0).* |
-| **D** | Actualizador por releases (PM.23 fase 2): descargar, verificar, instalar en `versions/<v>`, cambiar `current` y pedir reinicio, con rollback. |
+| **D** ✅ | Actualizador por releases (PM.23 fase 2): consulta la API de GitHub, descarga el asset, lo instala en `versions/<v>`, cambia `current` y pide reinicio, con rollback. *Hecho en S43 (v1.31.0).* |
 
 ## Empaquetado (fase B)
 
@@ -109,8 +109,32 @@ de datos **relativas a la raíz portátil** y usa el runtime incluido. La variab
   del `packageManager`): guardia de versión → `pnpm check` + tests → `pnpm package:win`
   → smoke test del zip → `gh release create`. `workflow_dispatch` permite una
   ejecución de prueba que **no** publica.
-- El actualizador (fase D) consultará la API de releases y comparará el tag con la
+- El actualizador (fase D) consulta la API de releases y compara el tag con la
   versión local antes de descargar el asset.
+
+## Actualizador por releases (fase D)
+
+El container elige el adaptador según el entorno: si `RM_PACKAGED_ROOT` está
+definido (lo fija `start.cmd`), usa `ReleaseUpdateAdapter`; si no, el
+`GitUpdateAdapter` (dev/clon). La UI y el badge son los mismos.
+
+- **Detección**: `GET {RM_UPDATE_API_URL|https://api.github.com}/repos/<repo>/releases/latest`
+  (repo público, sin auth). El repositorio sale de `RM_UPDATE_REPOSITORY` o de
+  `repository` en `version.json`. Se compara el tag con `current` con comparación
+  numérica (una versión menor nunca se ofrece) y se exponen las **notas**.
+- **Aplicar** (job en segundo plano, pasos `backup → download → install → done`):
+  1. Respaldo automático (reutiliza `BackupService` de S39).
+  2. Descarga el asset a `versions/.download-<v>.zip`, mostrando progreso en el
+     mensaje del job.
+  3. Extrae en `versions/.staging-<v>`, valida que trae `app/server.mjs` y
+     renombra a `versions/<v>` (en el mismo volumen, atómico).
+  4. Refresca `start.cmd`, `README.txt` y `version.json` de la raíz y escribe
+     `current` = `<v>`.
+- **Nunca toca la versión en ejecución** (`versions/<antigua>/app`): por eso hace
+  falta reiniciar y no hay archivos bloqueados en Windows. La versión anterior se
+  conserva para **rollback** (volver a escribir `current`).
+- Asset por plataforma: el que termina en `-win-x64.zip`; si la release no lo
+  trae, el estado queda bloqueado con `no-asset`.
 
 ## Riesgos y notas
 
