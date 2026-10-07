@@ -106,6 +106,8 @@ function UpdatesPanelContent() {
     switch (job.step) {
       case "backup":
         return t("updates.stepBackup")
+      case "download":
+        return t("updates.stepDownload")
       case "pull":
         return t("updates.stepPull")
       case "install":
@@ -186,6 +188,10 @@ function UpdatesPanelContent() {
             </p>
           ) : null}
 
+          {status?.blockedReason === "no-asset" ? (
+            <p className="text-sm text-destructive">{t("updates.noAsset")}</p>
+          ) : null}
+
           {status &&
           !status.behind &&
           !status.checkError &&
@@ -213,13 +219,26 @@ function UpdatesPanelContent() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <ul className="space-y-1 font-mono text-xs text-muted-foreground">
-              {status.commits.map((commit) => (
-                <li key={commit} className="truncate">
-                  {commit}
-                </li>
-              ))}
-            </ul>
+            {status.commits.length > 0 ? (
+              <ul className="space-y-1 font-mono text-xs text-muted-foreground">
+                {status.commits.map((commit) => (
+                  <li key={commit} className="truncate">
+                    {commit}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            {status.notes ? (
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-medium">
+                  {t("updates.notesTitle")}
+                </p>
+                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border p-3 text-xs text-muted-foreground">
+                  {status.notes}
+                </pre>
+              </div>
+            ) : null}
 
             <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
               <span className="text-sm">{t("updates.backupLabel")}</span>
@@ -236,7 +255,7 @@ function UpdatesPanelContent() {
 
             <Button
               onClick={() => void runApply()}
-              disabled={applying || status.blockedReason === "dirty"}
+              disabled={applying || status.blockedReason !== null}
             >
               {applying ? t("updates.applying") : t("updates.apply")}
             </Button>
@@ -247,7 +266,14 @@ function UpdatesPanelContent() {
               </p>
             ) : null}
 
-            {job ? <p className="text-sm">{stepLabel()}</p> : null}
+            {job ? (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm">{stepLabel()}</p>
+                {job.step !== "failed" && job.message ? (
+                  <p className="text-xs text-muted-foreground">{job.message}</p>
+                ) : null}
+              </div>
+            ) : null}
 
             {job?.step === "done" ? (
               <p className="text-sm text-muted-foreground">

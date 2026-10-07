@@ -134,6 +134,7 @@ export const en = {
     apply: "Update",
     applying: "Updating…",
     stepBackup: "Creating a backup…",
+    stepDownload: "Downloading the update…",
     stepPull: "Downloading changes…",
     stepInstall: "Installing dependencies…",
     done: "Update applied.",
@@ -141,8 +142,11 @@ export const en = {
     restartHint: "Restart the app to use the new version.",
     securityNote:
       "Updating downloads and runs code from the repository; do it only if you trust it.",
+    notesTitle: "Release notes",
     notARepo:
       "The app is not running from a git checkout, so automatic updates are not available.",
+    noAsset:
+      "The latest version does not include a package for this platform.",
     checkError: "Could not check for updates: {message}",
     checkFailed: "Could not check for updates.",
     applyFailed: "Could not start the update.",

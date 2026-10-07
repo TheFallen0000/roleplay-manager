@@ -131,6 +131,7 @@ export const es: Dictionary = {
     apply: "Actualizar",
     applying: "Actualizando…",
     stepBackup: "Creando respaldo…",
+    stepDownload: "Descargando la actualización…",
     stepPull: "Descargando cambios…",
     stepInstall: "Instalando dependencias…",
     done: "Actualización aplicada.",
@@ -138,8 +139,11 @@ export const es: Dictionary = {
     restartHint: "Reinicia la app para usar la versión nueva.",
     securityNote:
       "Actualizar descarga y ejecuta código del repositorio; hazlo solo si confías en él.",
+    notesTitle: "Notas de la versión",
     notARepo:
       "La app no se ejecuta desde un clon de git, así que las actualizaciones automáticas no están disponibles.",
+    noAsset:
+      "La última versión no incluye un paquete para esta plataforma.",
     checkError: "No se pudo comprobar si hay actualizaciones: {message}",
     checkFailed: "No se pudo comprobar si hay actualizaciones.",
     applyFailed: "No se pudo iniciar la actualización.",
