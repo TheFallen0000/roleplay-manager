@@ -28,28 +28,59 @@ const run = (command, args, cwd) => {
   }
 }
 
-/** Runs pnpm without a shell (avoids the `shell: true` deprecation warning). */
-const runPnpm = (args, cwd) => {
+/** Quotes an argument with spaces before handing it to a shell. */
+const quoteArg = (value) =>
+  /[\s"]/.test(value) ? `"${value.replace(/"/g, '\\"')}"` : value
+
+/**
+ * Ways to run pnpm, in order of preference. `npm_execpath` (the pnpm that
+ * launched this script) is used when it is a real, spawnable file; otherwise
+ * pnpm is resolved from `PATH`. On CI runners `npm_execpath` can point to a
+ * shim that cannot be spawned directly, which used to fail with `status: null`.
+ */
+const pnpmCandidates = (args) => {
+  const candidates = []
   const execPath = process.env.npm_execpath
-  let result
-  if (execPath && !/\.(cmd|bat)$/i.test(execPath)) {
-    // `.cjs` (node entry) or a compiled pnpm binary.
-    const isScript = execPath.endsWith(".cjs")
-    result = spawnSync(
-      isScript ? process.execPath : execPath,
-      isScript ? [execPath, ...args] : args,
-      { cwd, stdio: "inherit" },
+  if (execPath && existsSync(execPath)) {
+    // `.cjs`/`.js` (node entry) or a compiled pnpm binary.
+    const isScript = /\.(cjs|js|mjs)$/i.test(execPath)
+    candidates.push(
+      isScript
+        ? { command: process.execPath, args: [execPath, ...args] }
+        : { command: execPath, args },
     )
+  }
+  if (process.platform === "win32") {
+    candidates.push({
+      command: process.env.ComSpec ?? "cmd.exe",
+      args: ["/d", "/s", "/c", `pnpm ${args.map(quoteArg).join(" ")}`],
+    })
   } else {
-    result = spawnSync("pnpm", args, {
+    candidates.push({ command: "pnpm", args })
+  }
+  return candidates
+}
+
+/** Runs pnpm, falling back to the one on `PATH` when needed. */
+const runPnpm = (args, cwd) => {
+  let lastError
+  for (const candidate of pnpmCandidates(args)) {
+    const result = spawnSync(candidate.command, candidate.args, {
       cwd,
       stdio: "inherit",
-      shell: true,
     })
+    if (result.error) {
+      lastError = result.error
+      continue
+    }
+    if (result.status !== 0) {
+      throw new Error(`pnpm ${args.join(" ")} failed with code ${result.status}`)
+    }
+    return
   }
-  if (result.status !== 0) {
-    throw new Error(`pnpm ${args.join(" ")} failed with code ${result.status}`)
-  }
+  throw new Error(
+    `Could not run pnpm ${args.join(" ")}: ${lastError?.message ?? "no candidate worked"}`,
+  )
 }
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"))
