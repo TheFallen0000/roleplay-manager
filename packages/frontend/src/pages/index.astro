@@ -1,5 +1,6 @@
 ---
 import { CharacterList } from "@/components/character/character-list"
+import { UpdateNotice } from "@/components/updates/update-notice"
 import BaseLayout from "@/layouts/base.astro"
 import { resolveLocale } from "@/lib/locale"
 import { translate } from "@workspace/shared/i18n"
@@ -11,4 +12,5 @@ const locale = resolveLocale(Astro.cookies.get("language")?.value)
 
 <BaseLayout title={`${translate(locale, "pages.characters")} - Roleplay Manager`}>
   <CharacterList locale={locale} client:load />
+  <UpdateNotice locale={locale} client:load />
 </BaseLayout>

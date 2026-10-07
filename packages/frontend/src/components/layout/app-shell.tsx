@@ -8,18 +8,21 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
 import { Toaster } from "@workspace/ui/components/sonner"
-import { UsersIcon, CogIcon, UserRoundIcon } from "lucide-react"
+import { UsersIcon, CogIcon, UserRoundIcon, RefreshCwIcon } from "lucide-react"
 import { useSidebar } from "@workspace/ui/components/sidebar"
 import { Logo } from "@workspace/ui/components/logo"
+import { useEffect } from "react"
 import { ThemeProvider } from "@/lib/hooks/theme-provider"
 import { useTheme } from "@/lib/hooks/use-theme"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { useUpdatesStore } from "@/lib/stores/updates.store"
 import type { Locale } from "@workspace/shared/i18n"
 import { AppMenubar } from "./app-menubar"
 
@@ -65,6 +68,21 @@ export function AppShell({
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const { resolvedMode } = useTheme()
   const { t } = useTranslation()
+  const updateStatus = useUpdatesStore((state) => state.status)
+  const hydrateUpdates = useUpdatesStore((state) => state.hydrateFromCache)
+  const shouldCheckUpdates = useUpdatesStore((state) => state.shouldCheck)
+  const checkUpdates = useUpdatesStore((state) => state.check)
+
+  useEffect(() => {
+    hydrateUpdates()
+  }, [hydrateUpdates])
+
+  useEffect(() => {
+    if (!shouldCheckUpdates()) return
+    checkUpdates().catch(() => undefined)
+  }, [checkUpdates, shouldCheckUpdates])
+
+  const updatesAvailable = updateStatus?.behind === true
 
   return (
     <SidebarProvider>
@@ -99,6 +117,15 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                       <CogIcon />
                       <span>{t("nav.providers")}</span>
                   </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton render={<a href="/settings/updates" />} tooltip={t("nav.updates")}>
+                    <RefreshCwIcon />
+                    <span>{t("nav.updates")}</span>
+                  </SidebarMenuButton>
+                  {updatesAvailable ? (
+                    <SidebarMenuBadge>{t("updates.badge")}</SidebarMenuBadge>
+                  ) : null}
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
