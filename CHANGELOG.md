@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.32.2] - 2026-10-07
+
+### Changed
+
+- Provider state is now **shared** (`lib/stores/provider.store.ts`): the chat's model selector and the providers screen use the same store, so they stay in sync and no longer duplicate the instance management logic. The provider UI moved to `components/shared/provider/`, the image inputs/cropper to `components/shared/images/`, and the memory/summary panels now live with the conversation feature (only the chat uses them).
+- `pnpm check:arch` gained a **seventh** check: no imports between feature folders under `components/` (shared UI goes to `components/shared/**`, shared logic to `lib/`).
+
 ## [1.32.1] - 2026-10-07
 
 ### Added
