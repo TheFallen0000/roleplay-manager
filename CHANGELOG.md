@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.31.3] - 2026-10-07
+
+### Fixed
+
+- `pnpm package:win` no longer fails when `npm_execpath` points to a pnpm that cannot be spawned directly (as on GitHub Actions runners); it falls back to the `pnpm` on `PATH`. Together with the `bsdtar` fix (1.31.2) this makes the release pipeline run end to end.
+
+> **First published release.** It includes the automated-release workflow (1.31.1) and the CI packaging fixes (1.31.2 + 1.31.3).
+
 ## [1.31.2] - 2026-10-07
 
 ### Fixed
