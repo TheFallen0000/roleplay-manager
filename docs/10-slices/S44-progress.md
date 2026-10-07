@@ -45,8 +45,11 @@ un *dry run* con opción de publicar.
 - Lógica de `prepare` simulada en bash: tag correcto, tag incorrecto, release
   existente y versión nueva.
 - Gates (`pnpm check`, tests, build) en verde.
-- **En GitHub**: al empujar `master` con el bump a 1.31.1, el workflow publica la
-  release **v1.31.1** sin intervención manual (comprobado con la API).
+- **En GitHub**: al empujar `master` con el bump, el job `prepare` detectó
+  "Publishing v1.31.1" y los gates/tests pasaron; el empaquetado falló por el
+  `tar` del runner (GNU tar), arreglado en **S45**. Por eso 1.31.1 no llegó a
+  publicarse: su contenido va incluido en **v1.31.2**, que sí se publica
+  automáticamente (ver `S45-progress.md`).
 
 ## Commits
 
