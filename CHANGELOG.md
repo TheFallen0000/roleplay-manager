@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.27.0] - 2026-10-07
+
+### Added
+
+- New **Updates** screen (System → Updates) with a **sidebar badge** and a **one-time notice** on the characters screen when the tracked branch has new commits. It shows the current and latest versions plus the new commits.
+- Applying an update runs `git pull --ff-only` and `pnpm install` in the background with per-step progress (backup → pull → install), blocks a dirty working tree and asks to restart the app afterwards.
+- **Backups**: an automatic one before updating (SQLite online backup + copy of the data folder) and a manual "create a backup now" action.
+
 ## [1.26.0] - 2026-10-06
 
 ### Added
