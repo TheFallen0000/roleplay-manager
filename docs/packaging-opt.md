@@ -107,8 +107,11 @@ de datos **relativas a la raíz portátil** y usa el runtime incluido. La variab
 - **Notas**: la sección del CHANGELOG de esa versión (`scripts/release-notes.mjs`).
 - **Workflow** `.github/workflows/release.yml` (`windows-latest`, Node 24.18.0, pnpm
   del `packageManager`): guardia de versión → `pnpm check` + tests → `pnpm package:win`
-  → smoke test del zip → `gh release create`. `workflow_dispatch` permite una
-  ejecución de prueba que **no** publica.
+  → smoke test del zip → `gh release create`.
+- **Disparo automático**: un push a `master` que cambia `package.json` publica la
+  release de esa versión (si no existe todavía); los pushes sin cambio de versión se
+  ignoran. Empujar un tag `v*` sigue funcionando y `workflow_dispatch` es un *dry run*
+  (salvo que se active `publish`).
 - El actualizador (fase D) consulta la API de releases y compara el tag con la
   versión local antes de descargar el asset.
 
