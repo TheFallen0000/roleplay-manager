@@ -1,8 +1,14 @@
 /** Why an update cannot be applied right now (a known state). */
-export type UpdateBlockedReason = "not-a-repo" | "dirty"
+export type UpdateBlockedReason = "not-a-repo" | "dirty" | "no-asset"
 
 /** Step of the background apply job. */
-export type UpdateJobStep = "backup" | "pull" | "install" | "done" | "failed"
+export type UpdateJobStep =
+  | "backup"
+  | "download"
+  | "pull"
+  | "install"
+  | "done"
+  | "failed"
 
 export interface UpdateJobDTO {
   running: boolean
@@ -19,6 +25,8 @@ export interface UpdateStatusDTO {
   behind: boolean
   /** Short list of the new commits (newest first). */
   commits: string[]
+  /** Release notes of the latest version, when available. */
+  notes: string | null
   /** Whether the update can be applied right now. */
   canApply: boolean
   /** Why it cannot be applied, when it is a known state. */
