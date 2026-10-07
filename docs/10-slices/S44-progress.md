@@ -46,10 +46,11 @@ un *dry run* con opción de publicar.
   existente y versión nueva.
 - Gates (`pnpm check`, tests, build) en verde.
 - **En GitHub**: al empujar `master` con el bump, el job `prepare` detectó
-  "Publishing v1.31.1" y los gates/tests pasaron; el empaquetado falló por el
-  `tar` del runner (GNU tar), arreglado en **S45**. Por eso 1.31.1 no llegó a
-  publicarse: su contenido va incluido en **v1.31.2**, que sí se publica
-  automáticamente (ver `S45-progress.md`).
+  "Publishing v1.31.1" y los gates/tests pasaron; el empaquetado falló por dos
+  problemas del runner (GNU tar y `npm_execpath`), arreglados en **S45** y
+  **S46**. Por eso 1.31.1 y 1.31.2 no llegaron a publicarse: su contenido va
+  incluido en **v1.31.3**, la primera release, publicada automáticamente (ver
+  `S45-progress.md` y `S46-progress.md`).
 
 ## Commits
 

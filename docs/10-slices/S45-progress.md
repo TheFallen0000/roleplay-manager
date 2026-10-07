@@ -36,8 +36,9 @@ descomprimirlo en el smoke test.
 - `PATH` = `C:\Program Files\Git\usr\bin;...` (GNU tar primero):
   `pnpm package:win` → **OK** (antes fallaba con exit 128) y
   `node scripts/smoke-package.mjs` → **PASS**.
-- La release **v1.31.2** se publica automáticamente al empujar el bump a `master`
-  (el propio CI valida el arreglo de punta a punta).
+- La release **v1.31.3** (primera publicada) se genera al empujar el bump a
+  `master`; hizo falta además el arreglo de `npm_execpath` de **S46** para que el
+  pipeline llegara hasta el final.
 
 ## Commits
 
