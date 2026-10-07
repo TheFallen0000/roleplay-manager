@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.31.1] - 2026-10-07
+
+### Added
+
+- Releases are now **published automatically**: a push to `master` that bumps the version in `package.json` builds and publishes the release for that version, as long as it does not exist yet (pushes that do not change the version are ignored). Pushing a `v*` tag still works, and a manual run (`workflow_dispatch`) is a dry run unless the `publish` input is enabled.
+
 ## [1.31.0] - 2026-10-07
 
 ### Added
