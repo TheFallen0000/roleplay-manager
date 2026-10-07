@@ -10,7 +10,7 @@ import { uploadConversationCustomImage, ApiClientError } from "@/lib/api/client"
 import { setConversationCustomProfileImage } from "@/lib/api/conversations"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { Separator } from "@workspace/ui/components/separator"
-import { ProfileImageInput } from "../character/profile-image-input"
+import { ProfileImageInput } from "@/components/shared/images/profile-image-input"
 import { BackgroundImageInput } from "./background-image-input"
 
 interface CustomizationTabProps {

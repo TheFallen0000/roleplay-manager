@@ -42,22 +42,22 @@ vi.mock("./customization-tab", () => ({
   CustomizationTab: () => <div data-testid="customization-tab" />,
 }))
 
-vi.mock("../summary/summary-viewer", () => ({
+vi.mock("./summary-viewer", () => ({
   __esModule: true,
   SummaryViewer: () => null,
 }))
 
-vi.mock("../memory/proposal-list", () => ({
+vi.mock("./proposal-list", () => ({
   __esModule: true,
   ProposalList: () => null,
 }))
 
-vi.mock("../memory/memory-list", () => ({
+vi.mock("./memory-list", () => ({
   __esModule: true,
   MemoryList: () => null,
 }))
 
-vi.mock("../memory/memory-decay-card", () => ({
+vi.mock("./memory-decay-card", () => ({
   __esModule: true,
   MemoryDecayCard: () => null,
 }))

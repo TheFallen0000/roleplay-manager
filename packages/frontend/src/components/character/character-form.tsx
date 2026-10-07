@@ -44,7 +44,7 @@ import { Sortable, SortableItem, SortableItemHandle } from "@workspace/ui/compon
 
 import type { CharacterDetail } from "@workspace/shared/types/character"
 import { useCharacterForm } from "./use-character-form"
-import { ProfileImageInput } from "./profile-image-input"
+import { ProfileImageInput } from "@/components/shared/images/profile-image-input"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import type { Locale } from "@workspace/shared/i18n"

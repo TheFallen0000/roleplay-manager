@@ -5,46 +5,27 @@ import { Badge } from "@workspace/ui/components/badge"
 import type {
   DefaultProviderConfig,
   ProviderId,
-  ProviderModel,
-  ProviderStatus,
 } from "@workspace/shared/types/provider"
-import type { ProviderInstance } from "@workspace/shared/types/provider-instance"
+import type { Locale } from "@workspace/shared/i18n"
 
 import {
   configureDefaultProvider,
   getDefaultProvider,
   setProviderModel,
 } from "@/lib/api/settings"
-import {
-  listProviders,
-  listProviderModels,
-  validateProvider,
-} from "@/lib/api/providers"
-import {
-  createProviderInstance,
-  deleteProviderInstance,
-  listProviderInstances,
-  updateProviderInstance,
-  validateProviderInstance,
-} from "@/lib/api/provider-instances"
-import { ApiClientError } from "@/lib/api/client"
-
-import { ProviderCard, type CardStatus } from "./provider-card"
-import { InstanceFormDialog } from "./instance-form-dialog"
-import { useInstanceDialog } from "./use-instance-dialog"
+import { formatApiError } from "@/lib/format-api-error"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
-import type { Locale } from "@workspace/shared/i18n"
+import {
+  EMPTY_PROVIDER_RUNTIME,
+  OLLAMA_KEY,
+  useProviderStore,
+  type VerifyProviderResult,
+} from "@/lib/stores/provider.store"
 
-function isError(e: unknown): e is ApiClientError {
-  return e instanceof ApiClientError
-}
-
-function formatError(e: unknown, fallback: string): string {
-  if (isError(e)) return `[${e.code}] ${e.message}`
-  if (e instanceof Error) return e.message
-  return fallback
-}
+import { ProviderCard } from "@/components/shared/provider/provider-card"
+import { InstanceFormDialog } from "@/components/shared/provider/instance-form-dialog"
+import { useInstanceDialog } from "@/components/shared/provider/use-instance-dialog"
 
 export function ProviderManager({ locale }: { locale: Locale }) {
   return (
@@ -56,25 +37,21 @@ export function ProviderManager({ locale }: { locale: Locale }) {
 
 function ProviderManagerContent() {
   const { t } = useTranslation()
-  const [registeredIds, setRegisteredIds] = useState<ProviderId[]>([])
+
+  const registeredIds = useProviderStore((state) => state.registeredIds)
+  const instances = useProviderStore((state) => state.instances)
+  const runtimes = useProviderStore((state) => state.runtimes)
+  const load = useProviderStore((state) => state.load)
+  const createInstance = useProviderStore((state) => state.createInstance)
+  const updateInstance = useProviderStore((state) => state.updateInstance)
+  const deleteInstance = useProviderStore((state) => state.deleteInstance)
+  const verifyOllama = useProviderStore((state) => state.verifyOllama)
+  const verifyInstance = useProviderStore((state) => state.verifyInstance)
+
   const [defaultConfig, setDefaultConfig] =
     useState<DefaultProviderConfig>({ provider: null, providerInstanceId: null, models: {} })
-
-  const [instances, setInstances] = useState<ProviderInstance[]>([])
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
-
-  const [ollamaStatus, setOllamaStatus] = useState<CardStatus>("unknown")
-  const [ollamaMessage, setOllamaMessage] = useState<string | undefined>(undefined)
-  const [ollamaVerifying, setOllamaVerifying] = useState(false)
-  const [ollamaModels, setOllamaModels] = useState<ProviderModel[]>([])
-  const [ollamaModelsLoading, setOllamaModelsLoading] = useState(false)
   const [ollamaModel, setOllamaModel] = useState("")
-
-  const [openaiStatus, setOpenaiStatus] = useState<CardStatus>("unknown")
-  const [openaiMessage, setOpenaiMessage] = useState<string | undefined>(undefined)
-  const [openaiVerifying, setOpenaiVerifying] = useState(false)
-  const [openaiModels, setOpenaiModels] = useState<ProviderModel[]>([])
-  const [openaiModelsLoading, setOpenaiModelsLoading] = useState(false)
   const [openaiModel, setOpenaiModel] = useState("")
 
   const [savingDefault, setSavingDefault] = useState(false)
@@ -86,160 +63,131 @@ function ProviderManagerContent() {
   const ollamaEnabled = registeredIds.includes("ollama")
   const openaiEnabled = registeredIds.includes("openai-compatible")
 
-  const verifyOllama = useCallback(async () => {
-    setOllamaVerifying(true)
-    setOllamaStatus("loading")
-    setOllamaMessage(undefined)
-    try {
-      const result = await validateProvider("ollama")
-      setOllamaStatus(result.status)
-      setOllamaMessage(result.message)
-      if (result.status === "available") {
-        setOllamaModelsLoading(true)
-        try {
-          const r = await listProviderModels("ollama")
-          setOllamaModels(r.models)
-        } catch (e) {
-          toast.warning(t("providers.modelsListFailed"), {
-            description: formatError(e, t("common.unknownError")),
-          })
-          setOllamaModels([])
-        } finally {
-          setOllamaModelsLoading(false)
-        }
-        toast.success(t("providers.connectionOk"), { description: t("providers.modelsLoaded") })
-      }
-    } catch (e) {
-      setOllamaStatus("unavailable")
-      setOllamaMessage(formatError(e, t("common.unknownError")))
-    } finally {
-      setOllamaVerifying(false)
-    }
-  }, [t])
+  const ollamaRuntime = runtimes[OLLAMA_KEY] ?? EMPTY_PROVIDER_RUNTIME
+  const openaiRuntime = selectedInstanceId
+    ? (runtimes[selectedInstanceId] ?? EMPTY_PROVIDER_RUNTIME)
+    : EMPTY_PROVIDER_RUNTIME
 
-  const verifyOpenAIForInstance = useCallback(async (instanceId: string) => {
-    setOpenaiVerifying(true)
-    setOpenaiStatus("loading")
-    setOpenaiMessage(undefined)
-    try {
-      const result = await validateProviderInstance(instanceId)
-      const status: ProviderStatus = result.status
-      setOpenaiStatus(status)
-      setOpenaiMessage(result.message)
-      if (status === "available") {
-        setOpenaiModelsLoading(true)
-        try {
-          const r = await listProviderModels("openai-compatible", instanceId)
-          setOpenaiModels(r.models)
-        } catch (e) {
-          toast.warning(t("providers.modelsListFailed"), {
-            description: formatError(e, t("common.unknownError")),
-          })
-          setOpenaiModels([])
-        } finally {
-          setOpenaiModelsLoading(false)
-        }
-        toast.success(t("providers.connectionOk"), { description: t("providers.modelsLoaded") })
+  const verifyWithToasts = useCallback(
+    async (check: () => Promise<VerifyProviderResult>): Promise<void> => {
+      const result = await check()
+      if (result.ok) {
+        toast.success(t("providers.connectionOk"), {
+          description: t("providers.modelsLoaded"),
+        })
+        return
       }
-    } catch (e) {
-      setOpenaiStatus("unavailable")
-      setOpenaiMessage(formatError(e, t("common.unknownError")))
-    } finally {
-      setOpenaiVerifying(false)
-    }
-  }, [t])
+      if (result.modelsFailed) {
+        toast.warning(t("providers.modelsListFailed"), {
+          description: result.message,
+        })
+      }
+    },
+    [t],
+  )
+
+  const runVerifyOllama = useCallback(
+    () => verifyWithToasts(() => verifyOllama()),
+    [verifyWithToasts, verifyOllama],
+  )
+
+  const runVerifyInstance = useCallback(
+    (id: string) => verifyWithToasts(() => verifyInstance(id)),
+    [verifyWithToasts, verifyInstance],
+  )
 
   useEffect(() => {
     ;(async () => {
       try {
-        const [ids, def, insts] = await Promise.all([
-          listProviders(),
-          getDefaultProvider(),
-          listProviderInstances(),
-        ])
-        setRegisteredIds(ids.map((p) => p.id))
-        setDefaultConfig(def)
-        setInstances(insts)
-        if (def.provider === "openai-compatible" && def.providerInstanceId) {
-          setSelectedInstanceId(def.providerInstanceId)
+        const [, config] = await Promise.all([load(), getDefaultProvider()])
+        setDefaultConfig(config)
+        if (config.provider === "openai-compatible" && config.providerInstanceId) {
+          setSelectedInstanceId(config.providerInstanceId)
         }
-        if (def.provider === "ollama") {
-          const saved = def.models.ollama
+        if (config.provider === "ollama") {
+          const saved = config.models.ollama
           if (saved) setOllamaModel(saved)
-          void verifyOllama()
-        } else if (def.provider === "openai-compatible") {
-          const saved = def.models["openai-compatible"]
+          void runVerifyOllama()
+        } else if (config.provider === "openai-compatible") {
+          const saved = config.models["openai-compatible"]
           if (saved) setOpenaiModel(saved)
-          if (def.providerInstanceId) void verifyOpenAIForInstance(def.providerInstanceId)
+          if (config.providerInstanceId) {
+            void runVerifyInstance(config.providerInstanceId)
+          }
         }
-      } catch (e) {
+      } catch (error) {
         toast.error(t("providers.configLoadFailed"), {
-          description: formatError(e, t("common.unknownError")),
+          description: formatApiError(error, t("common.unknownError")),
         })
       }
     })()
-  }, [verifyOllama, verifyOpenAIForInstance, t])
+  }, [load, runVerifyOllama, runVerifyInstance, t])
 
-  const handleSelectInstance = useCallback((id: string) => {
-    if (id === selectedInstanceId) return
-    setSelectedInstanceId(id)
-    setOpenaiModels([])
-    setOpenaiStatus("unknown")
-    setOpenaiMessage(undefined)
-    void verifyOpenAIForInstance(id)
-  }, [selectedInstanceId, verifyOpenAIForInstance])
+  const handleSelectInstance = useCallback(
+    (id: string) => {
+      if (id === selectedInstanceId) return
+      setSelectedInstanceId(id)
+      void runVerifyInstance(id)
+    },
+    [selectedInstanceId, runVerifyInstance],
+  )
 
   const handleCreateInstance = useCallback(
     async (name: string, url: string, apiKey: string) => {
       try {
-        const instance = await createProviderInstance({
+        const instance = await createInstance({
           kind: "openai-compatible",
           name: name.trim(),
           url: url.trim(),
           apiKey: apiKey.trim() || undefined,
         })
-        setInstances((prev) => [...prev, instance])
         setSelectedInstanceId(instance.id)
-        void verifyOpenAIForInstance(instance.id)
+        void runVerifyInstance(instance.id)
         dialog.close()
-        toast.success(t("providers.instanceCreated"), { description: instance.name })
-      } catch (e) {
-        toast.error(t("providers.instanceCreateFailed"), { description: formatError(e, t("common.unknownError")) })
+        toast.success(t("providers.instanceCreated"), {
+          description: instance.name,
+        })
+      } catch (error) {
+        toast.error(t("providers.instanceCreateFailed"), {
+          description: formatApiError(error, t("common.unknownError")),
+        })
       }
     },
-    [dialog, verifyOpenAIForInstance, t]
+    [createInstance, runVerifyInstance, dialog, t],
   )
 
   const handleUpdateInstance = useCallback(
     async (id: string, name: string, url: string, apiKey: string) => {
       try {
-        const updated = await updateProviderInstance(id, {
+        await updateInstance(id, {
           name: name.trim() || undefined,
           url: url.trim() || undefined,
           apiKey: apiKey.trim() || undefined,
         })
-        setInstances((prev) => prev.map((i) => (i.id === id ? updated : i)))
         dialog.close()
         toast.success(t("providers.instanceUpdated"))
-      } catch (e) {
-        toast.error(t("providers.instanceUpdateFailed"), { description: formatError(e, t("common.unknownError")) })
+      } catch (error) {
+        toast.error(t("providers.instanceUpdateFailed"), {
+          description: formatApiError(error, t("common.unknownError")),
+        })
       }
     },
-    [dialog, t]
+    [updateInstance, dialog, t],
   )
 
   const handleDeleteInstance = useCallback(
     async (id: string) => {
       try {
-        await deleteProviderInstance(id)
-        setInstances((prev) => prev.filter((i) => i.id !== id))
+        await deleteInstance(id)
         if (selectedInstanceId === id) setSelectedInstanceId(null)
         toast.success(t("providers.instanceDeleted"))
-      } catch (e) {
-        toast.error(t("providers.instanceDeleteFailed"), { description: formatError(e, t("common.unknownError")) })
+      } catch (error) {
+        toast.error(t("providers.instanceDeleteFailed"), {
+          description: formatApiError(error, t("common.unknownError")),
+        })
       }
     },
-    [selectedInstanceId, t]
+    [deleteInstance, selectedInstanceId, t],
   )
 
   const handleDialogSave = useCallback(
@@ -250,7 +198,7 @@ function ProviderManagerContent() {
         void handleCreateInstance(name, url, apiKey)
       }
     },
-    [dialog.state, handleCreateInstance, handleUpdateInstance]
+    [dialog.state, handleCreateInstance, handleUpdateInstance],
   )
 
   const selectedInstanceName = useMemo(() => {
@@ -274,9 +222,9 @@ function ProviderManagerContent() {
         })
         setDefaultConfig(result)
         toast.success(t("providers.defaultUpdated"))
-      } catch (e) {
+      } catch (error) {
         toast.error(t("providers.defaultFailed"), {
-          description: formatError(e, t("common.unknownError")),
+          description: formatApiError(error, t("common.unknownError")),
         })
       } finally {
         setSavingDefault(false)
@@ -297,14 +245,14 @@ function ProviderManagerContent() {
           return
         }
         await setProviderModel(provider, model, { providerInstanceId })
-        const def = await getDefaultProvider()
-        setDefaultConfig(def)
+        const config = await getDefaultProvider()
+        setDefaultConfig(config)
         toast.success(t("providers.modelSaved", {
           provider: provider === "ollama" ? "Ollama" : "OpenAI-compatible",
         }))
-      } catch (e) {
+      } catch (error) {
         toast.error(t("providers.modelSaveFailed"), {
-          description: formatError(e, t("common.unknownError")),
+          description: formatApiError(error, t("common.unknownError")),
         })
       } finally {
         setSaving(false)
@@ -330,13 +278,13 @@ function ProviderManagerContent() {
       {ollamaEnabled ? (
         <ProviderCard
           providerId="ollama"
-          status={ollamaStatus}
-          statusMessage={ollamaMessage}
-          verifying={ollamaVerifying}
-          onVerify={() => void verifyOllama()}
+          status={ollamaRuntime.status}
+          statusMessage={ollamaRuntime.message}
+          verifying={ollamaRuntime.verifying}
+          onVerify={() => void runVerifyOllama()}
           model={ollamaModel}
-          models={ollamaModels}
-          modelsLoading={ollamaModelsLoading}
+          models={ollamaRuntime.models}
+          modelsLoading={ollamaRuntime.modelsLoading}
           onModelChange={setOllamaModel}
           onSetDefault={() => void handleSetDefault("ollama")}
           onSetModel={() => void handleSetModel("ollama", ollamaModel.trim())}
@@ -350,14 +298,14 @@ function ProviderManagerContent() {
       {openaiEnabled ? (
         <ProviderCard
           providerId="openai-compatible"
-          status={openaiStatus}
-          statusMessage={openaiMessage}
-          verifying={openaiVerifying}
-          onVerify={() => { if (selectedInstanceId) void verifyOpenAIForInstance(selectedInstanceId) }}
+          status={openaiRuntime.status}
+          statusMessage={openaiRuntime.message}
+          verifying={openaiRuntime.verifying}
+          onVerify={() => { if (selectedInstanceId) void runVerifyInstance(selectedInstanceId) }}
           verifyDisabled={!selectedInstanceId}
           model={openaiModel}
-          models={openaiModels}
-          modelsLoading={openaiModelsLoading}
+          models={openaiRuntime.models}
+          modelsLoading={openaiRuntime.modelsLoading}
           onModelChange={setOpenaiModel}
           instances={instances}
           selectedInstanceId={selectedInstanceId}

@@ -37,7 +37,7 @@ import {
 } from "@/lib/api/client"
 import { updateConversationSettings } from "@/lib/api/conversations"
 import { useTranslation } from "@/lib/hooks/use-translation"
-import { ImageCropperDialog } from "../character/image-cropper-dialog"
+import { ImageCropperDialog } from "@/components/shared/images/image-cropper-dialog"
 
 const MAX_SIZE_BYTES = DEFAULT_MAX_PROFILE_IMAGE_BYTES
 

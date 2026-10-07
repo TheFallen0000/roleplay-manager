@@ -31,7 +31,7 @@ vi.mock("@/lib/api/conversations", () => ({
   setConversationCustomProfileImage: mocks.setConversationCustomProfileImage,
 }))
 
-vi.mock("@/components/character/image-cropper-dialog", () => ({
+vi.mock("@/components/shared/images/image-cropper-dialog", () => ({
   __esModule: true,
   ImageCropperDialog: (props: {
     open: boolean
@@ -42,7 +42,7 @@ vi.mock("@/components/character/image-cropper-dialog", () => ({
   },
 }))
 
-vi.mock("@/components/character/image-cropper.utils", () => ({
+vi.mock("@/components/shared/images/image-cropper.utils", () => ({
   __esModule: true,
   blobToFile: (_blob: Blob, name: string) =>
     new File([_blob], name, { type: _blob.type }),
