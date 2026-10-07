@@ -46,6 +46,10 @@ Dos detalles del paquete portátil:
 - Smoke test del zip con el runtime incluido: **PASS** (y sin abrir navegador).
 - Gates: `pnpm check` 4/4, tests de backend y frontend, `pnpm build`.
 
+> **Nota (S48):** el comando para abrir el navegador tenía un problema de *quoting*
+> en Windows (Node escapaba las comillas y `cmd.exe` no lo entiende). Arreglado en
+> `S48-progress.md`.
+
 ## Commits
 
 1. `feat(backend): open the browser when the server is listening`
