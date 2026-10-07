@@ -25,6 +25,20 @@ describe("getBaseUrl", () => {
     vi.stubGlobal("window", undefined)
     expect(getBaseUrl()).toBe("https://api.example.com")
   })
+
+  it("uses the runtime PUBLIC_API_URL on the server (packaged app port)", () => {
+    vi.stubGlobal("window", undefined)
+    process.env.PUBLIC_API_URL = "http://localhost:4321"
+    try {
+      expect(getBaseUrl()).toBe("http://localhost:4321")
+    } finally {
+      delete process.env.PUBLIC_API_URL
+    }
+  })
+
+  // The browser never sees the runtime variable: `import.meta.env.PUBLIC_API_URL`
+  // is inlined at build time and `process` does not exist there, so the runtime
+  // branch is unreachable outside the server (and is gated by `window`).
 })
 
 describe("getPublicBaseUrl", () => {
