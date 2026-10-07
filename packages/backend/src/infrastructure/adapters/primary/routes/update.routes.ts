@@ -5,6 +5,7 @@ import type { ApplyUpdateUseCase } from "../../../../application/use-cases/updat
 import type { CheckUpdatesUseCase } from "../../../../application/use-cases/updates/check-updates.use-case"
 import type { CreateBackupUseCase } from "../../../../application/use-cases/updates/create-backup.use-case"
 import type { GetUpdateStatusUseCase } from "../../../../application/use-cases/updates/get-update-status.use-case"
+import type { RestartAppUseCase } from "../../../../application/use-cases/app/restart-app.use-case"
 
 const ApplyBodySchema = z.object({
   withBackup: z.boolean().optional(),
@@ -15,6 +16,7 @@ export const buildUpdateRouter = (deps: {
   checkUpdates: CheckUpdatesUseCase
   applyUpdate: ApplyUpdateUseCase
   createBackup: CreateBackupUseCase
+  restartApp: RestartAppUseCase
 }): Router => {
   const router = Router()
 
@@ -48,6 +50,14 @@ export const buildUpdateRouter = (deps: {
   router.post("/updates/backup", async (_req, res, next) => {
     try {
       res.json(await deps.createBackup.execute())
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.post("/updates/restart", async (_req, res, next) => {
+    try {
+      res.json(deps.restartApp.execute())
     } catch (error) {
       next(error)
     }

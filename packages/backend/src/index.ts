@@ -10,6 +10,9 @@ import { PinoLoggerAdapter } from "./infrastructure/adapters/secondary/logger/pi
 import { loadEnv } from "./infrastructure/config/env"
 import type { Logger } from "./domain/ports/logger.port"
 
+const MAX_LISTEN_ATTEMPTS = 15
+const LISTEN_RETRY_MS = 1000
+
 /**
  * Loads the Astro handler built in `middleware` mode, so the app (pages and
  * assets) is served by the same process as the API.
@@ -100,12 +103,31 @@ const main = async (): Promise<void> => {
       )
     }
   }
-  const server = env.HOST
-    ? app.listen(env.PORT, env.HOST, onListening)
-    : app.listen(env.PORT, onListening)
+
+  // When the app restarts itself, the previous process may still hold the port
+  // for a moment: retry for a while instead of giving up.
+  let server: ReturnType<typeof app.listen> | undefined
+  const listen = (attempt = 1): void => {
+    server = env.HOST
+      ? app.listen(env.PORT, env.HOST, onListening)
+      : app.listen(env.PORT, onListening)
+    server.on("error", (error: NodeJS.ErrnoException) => {
+      if (error.code === "EADDRINUSE" && attempt < MAX_LISTEN_ATTEMPTS) {
+        logger.warn(`Port ${env.PORT} is still busy; retrying`, { attempt })
+        setTimeout(() => listen(attempt + 1), LISTEN_RETRY_MS)
+        return
+      }
+      logger.error("Failed to start the server", error)
+      process.exit(1)
+    })
+  }
+  listen()
 
   const shutdown = (signal: string): void => {
     logger.info(`Received ${signal}, shutting down gracefully`)
+    if (!server) {
+      process.exit(0)
+    }
     server.close(() => {
       logger.info("HTTP server closed")
       process.exit(0)

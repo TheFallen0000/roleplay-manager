@@ -70,6 +70,8 @@ import { ApplyUpdateUseCase } from "../application/use-cases/updates/apply-updat
 import { CreateBackupUseCase } from "../application/use-cases/updates/create-backup.use-case"
 import { GitUpdateAdapter } from "../infrastructure/adapters/secondary/updates/git-update.adapter"
 import { ReleaseUpdateAdapter } from "../infrastructure/adapters/secondary/updates/release-update.adapter"
+import { ProcessRestarter } from "../infrastructure/adapters/secondary/app/process-restarter.adapter"
+import { RestartAppUseCase } from "../application/use-cases/app/restart-app.use-case"
 import type { UpdateController } from "../domain/ports/update-controller"
 import {
   BackupService,
@@ -186,6 +188,7 @@ export interface AppContainer {
   checkUpdates: CheckUpdatesUseCase
   applyUpdate: ApplyUpdateUseCase
   createBackup: CreateBackupUseCase
+  restartApp: RestartAppUseCase
 
   summaryRepository: SummaryRepository
 
@@ -326,6 +329,9 @@ export const buildContainer = ({
   const checkUpdates = new CheckUpdatesUseCase(updateController)
   const applyUpdate = new ApplyUpdateUseCase(updateController)
   const createBackup = new CreateBackupUseCase(updateController)
+  const restartApp = new RestartAppUseCase(
+    new ProcessRestarter({ packagedRoot: updatePackagedRoot }),
+  )
 
   const applyAllMemoryChanges = new ApplyAllMemoryChangesUseCase(
     memoryRepository,
@@ -464,6 +470,7 @@ export const buildContainer = ({
     checkUpdates,
     applyUpdate,
     createBackup,
+    restartApp,
     settings,
     providerRegistry,
     providerInstanceRepository,

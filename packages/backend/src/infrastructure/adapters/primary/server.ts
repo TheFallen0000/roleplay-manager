@@ -174,6 +174,7 @@ export const buildServer = ({
       checkUpdates: container.checkUpdates,
       applyUpdate: container.applyUpdate,
       createBackup: container.createBackup,
+      restartApp: container.restartApp,
     }),
   )
 
