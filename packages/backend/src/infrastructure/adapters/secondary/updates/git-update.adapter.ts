@@ -148,6 +148,7 @@ export class GitUpdateAdapter implements UpdateController {
       running: true,
       step: useBackup ? "backup" : "pull",
       message: null,
+      retry: null,
     }
     void this.runJob(useBackup)
     return this.getStatus()
@@ -189,6 +190,7 @@ export class GitUpdateAdapter implements UpdateController {
       running: step !== "done" && step !== "failed",
       step,
       message,
+      retry: null,
     }
   }
 
@@ -233,6 +235,8 @@ const emptyStatus = (currentVersion: string): UpdateStatusDTO => ({
   commits: [],
   notes: null,
   canApply: false,
+  // Restarting is a packaged-app feature (the git adapter runs in development).
+  canRestart: false,
   blockedReason: null,
   checkError: null,
   checkedAt: null,

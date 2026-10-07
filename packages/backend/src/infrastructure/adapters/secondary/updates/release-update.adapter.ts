@@ -66,6 +66,10 @@ const COMMAND_TIMEOUT_MS = 10 * 60 * 1000
 const FALLBACK_VERSION = "0.0.0"
 const DEFAULT_API_BASE_URL = "https://api.github.com"
 const DEFAULT_ASSET_SUFFIX = "-win-x64.zip"
+/** Network steps are retried: the first connection can fail (DNS/TLS/CDN). */
+const MAX_FETCH_ATTEMPTS = 3
+const RETRY_BASE_DELAY_MS = 500
+const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
 
 /**
  * Updates the packaged app from its published releases: reads the latest
@@ -152,6 +156,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
       running: true,
       step: useBackup ? "backup" : "download",
       message: null,
+      retry: null,
     }
     void this.runJob(useBackup, status.latestVersion)
     return this.getStatus()
@@ -197,7 +202,9 @@ export class ReleaseUpdateAdapter implements UpdateController {
   }
 
   private async download(asset: ReleaseAsset, target: string): Promise<void> {
-    const response = await this.fetchImpl(asset.browser_download_url)
+    const response = await this.fetchWithRetry(asset.browser_download_url, {
+      headers: { "user-agent": "roleplay-manager-updater" },
+    })
     if (!response.ok || !response.body) {
       throw new UpdateFailedError(
         `Could not download the update (HTTP ${response.status}).`,
@@ -262,11 +269,50 @@ export class ReleaseUpdateAdapter implements UpdateController {
     }
   }
 
+  /**
+   * `fetch` with retries for transient failures (network errors and 5xx/408/429
+   * responses). The first connection to a CDN can fail on a cold DNS/TLS state.
+   */
+  private async fetchWithRetry(
+    input: string,
+    init?: { headers?: Record<string, string> },
+  ): Promise<Response> {
+    let lastError: unknown
+    for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
+      try {
+        const response = await this.fetchImpl(input, init)
+        if (
+          attempt < MAX_FETCH_ATTEMPTS &&
+          RETRYABLE_STATUSES.has(response.status)
+        ) {
+          lastError = new UpdateFailedError(`HTTP ${response.status}`)
+          await this.waitBeforeRetry(attempt)
+          continue
+        }
+        return response
+      } catch (error) {
+        lastError = error
+        if (attempt >= MAX_FETCH_ATTEMPTS) break
+        await this.waitBeforeRetry(attempt)
+      }
+    }
+    throw new UpdateFailedError(describeError(lastError))
+  }
+
+  private waitBeforeRetry(attempt: number): Promise<void> {
+    const job = this.job
+    if (job?.running) {
+      this.job = { ...job, retry: { attempt, attempts: MAX_FETCH_ATTEMPTS } }
+    }
+    return delay(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
+  }
+
   private reportDownload(received: number, total: number): void {
     this.job = {
       running: true,
       step: "download",
       message: `${formatBytes(received)} / ${formatBytes(total)}`,
+      retry: null,
     }
   }
 
@@ -275,6 +321,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
       running: step !== "done" && step !== "failed",
       step,
       message,
+      retry: null,
     }
   }
 
@@ -291,7 +338,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
   }
 
   private async fetchLatestRelease(repository: string): Promise<ReleaseInfo> {
-    const response = await this.fetchImpl(
+    const response = await this.fetchWithRetry(
       `${this.apiBaseUrl}/repos/${repository}/releases/latest`,
       {
         headers: {
@@ -330,6 +377,8 @@ const emptyStatus = (currentVersion: string): UpdateStatusDTO => ({
   commits: [],
   notes: null,
   canApply: false,
+  // This adapter only runs from the packaged app (launcher present).
+  canRestart: true,
   blockedReason: null,
   checkError: null,
   checkedAt: null,
@@ -394,8 +443,26 @@ const defaultRunner: CommandRunner = (command, args, cwd) =>
     })
   })
 
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
+
+/** Flattens an error and its `cause` chain (`fetch` hides the real reason there). */
+const errorMessages = (error: unknown, depth = 0): string[] => {
+  if (error == null || depth > 4) return []
+  if (error instanceof AggregateError) {
+    return error.errors.flatMap((inner) => errorMessages(inner, depth + 1))
+  }
+  if (error instanceof Error) {
+    const own = error.message ? [error.message] : []
+    const cause = (error as { cause?: unknown }).cause
+    return [...own, ...errorMessages(cause, depth + 1)]
+  }
+  return [String(error)]
+}
+
 const describeError = (error: unknown): string => {
   const stderr = (error as { stderr?: string } | undefined)?.stderr?.trim()
   if (stderr) return stderr
-  return (error as Error).message
+  const messages = [...new Set(errorMessages(error))]
+  return messages.length > 0 ? messages.join(": ") : "unknown error"
 }
