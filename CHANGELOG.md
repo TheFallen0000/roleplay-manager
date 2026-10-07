@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.32.0] - 2026-10-07
+
+### Added
+
+- The updates panel now offers **Restart now** once an update is installed: the app relaunches itself (the packaged launcher starts the new version) and the tab reconnects on its own. Only available in the packaged app.
+
+### Changed
+
+- The updater **retries transient network failures** (3 attempts with backoff) when reading the release and downloading the package, and reports the underlying cause (for example `getaddrinfo ENOTFOUND ...`) instead of a bare `fetch failed`. The job shows the retry attempt while it waits.
+- The server retries binding its port for a few seconds, so restarting does not clash with the previous process.
+
 ## [1.31.5] - 2026-10-07
 
 ### Fixed
