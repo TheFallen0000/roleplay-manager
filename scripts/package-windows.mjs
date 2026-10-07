@@ -127,6 +127,13 @@ const gitCommit = () => {
   return result.status === 0 ? result.stdout.trim() : "unknown"
 }
 
+/** Turns a GitHub URL (`https://github.com/owner/repo.git`) into `owner/repo`. */
+const parseRepository = (url) => {
+  if (!url) return undefined
+  const match = url.match(/github\.com[/:]([^/]+)\/([^/]+?)(?:\.git)?$/)
+  return match ? `${match[1]}/${match[2]}` : undefined
+}
+
 const dirSize = (dir) => {
   let bytes = 0
   const walk = (current) => {
@@ -160,6 +167,7 @@ set "WEB_HANDLER_PATH=%APP%\\frontend\\server\\entry.mjs"
 set "WEB_CLIENT_DIR=%APP%\\frontend\\client"
 set "PUBLIC_API_URL=http://localhost:%PORT%"
 set "TUNNEL_TARGET_URL=http://localhost:%PORT%"
+set "RM_PACKAGED_ROOT=%ROOT%"
 
 echo.
 echo   Roleplay Manager %VERSION%
@@ -197,9 +205,11 @@ todas formas" (el ejecutable no esta firmado).
 
 Actualizaciones
 ---------------
-La app comprueba si hay versiones nuevas (Sistema - Actualizaciones). Mientras
-el actualizador por releases no este listo, actualizar es descargar la carpeta
-nueva y copiar data\\ y backups\\ a la nueva.
+La app comprueba si hay versiones nuevas (Sistema - Actualizaciones) y puede
+instalarlas sola: descarga la version nueva a versions/ y cambia el puntero
+"current". Tus datos y respaldos no se tocan. La version anterior se conserva
+por si quieres volver atras. Despues de actualizar, cierra y vuelve a abrir la
+app.
 
 Detener la app
 --------------
@@ -207,6 +217,9 @@ Cierra la ventana de la consola o pulsa Ctrl+C.
 `
 
 const version = readJson(join(repoRoot, "package.json")).version
+const repository = parseRepository(
+  readJson(join(repoRoot, "package.json")).repository?.url,
+)
 const platform = "win-x64"
 const releaseDir = join(repoRoot, "release")
 const zipName = `roleplay-manager-${version}-${platform}.zip`
@@ -305,6 +318,7 @@ writeFileSync(
       builtAt: new Date().toISOString(),
       platform,
       node: process.version,
+      ...(repository ? { repository } : {}),
     },
     null,
     2,
