@@ -176,7 +176,7 @@ Last updated: 2026-10-06
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Not started; prerequisite of PM.23. See note below.* | — |
+| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Decisions (2026-10-07): single-process build (Astro middleware inside Express), **Windows x64 portable folder** with a bundled Node runtime, data inside the folder, versioned update layout. Design: `packaging-opt.md`. Not started.* | — |
 | PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Phase 1 done as S39 (v1.27.0): git-based detection, apply (pull + install), automatic backups, updates screen, sidebar badge and one-time notice. Phase 2 (release-based, packaged build) pending PM.24. See `S39-progress.md`.* | PM.24 |
 
 > **PM.23 — phase 1 done (S39, 2026-10-07, v1.27.0):** The **Updates** screen (System), the
@@ -188,12 +188,15 @@ Last updated: 2026-10-06
 > published by the repository. **Phase 2** (release-based, for the packaged build of PM.24)
 > reuses the same UI and swaps only the detection/apply adapter.
 
-> **PM.24 — research (2026-10-06):** There is no packaging or distribution today, so the updater
-> has nothing to consume yet. Options to evaluate: a **portable folder with a bundled Node
-> runtime + launcher** (keeps the web UI in the system browser, ships native modules as files,
-> simplest self-update by swapping the folder), a **desktop shell** (Tauri/Electron, with their
-> built-in updaters) or **Docker** (`docker pull`). The chosen option defines the release
-> artifact the updater downloads and how the restart works. Decide before PM.23.
+> **PM.24 — decisions (2026-10-07):** The app will ship as a **portable folder for Windows x64**
+> with a bundled Node runtime (users install nothing). It runs as a **single process**: the Astro
+> server is built in `middleware` mode and mounted inside Express, so one port serves the UI and
+> the API (the `/api` proxy becomes unnecessary in production). User data (`data/`, `backups/`)
+> lives **inside the portable folder** and the launcher resolves those paths relative to the
+> root, so updates never touch them. Updates use **versioned folders plus a `current` pointer**
+> (`versions/<v>/`), which makes rollback trivial and avoids replacing locked files on Windows.
+> Phases: **A** single-process entrypoint, **B** packaging script + artifact (Windows x64),
+> **C** release CI, **D** release-based updater (PM.23 phase 2). Design: `packaging-opt.md`.
 
 ## UI polish
 
