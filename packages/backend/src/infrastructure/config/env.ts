@@ -28,6 +28,8 @@ const envSchema = z.object({
   RM_UPDATE_REPOSITORY: z.string().min(1).optional(),
   /** GitHub API base (override for mirrors/tests). */
   RM_UPDATE_API_URL: z.string().url().optional(),
+  /** Opens this URL in the default browser once the server is listening. */
+  RM_OPEN_BROWSER: z.string().url().optional(),
   WEB_HANDLER_PATH: z.string().min(1).optional(),
   WEB_CLIENT_DIR: z.string().min(1).optional(),
   MIGRATIONS_DIR: z.string().min(1).optional(),
