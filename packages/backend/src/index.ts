@@ -1,11 +1,37 @@
-import { buildServer } from "./infrastructure/adapters/primary/server"
+import { dirname, resolve } from "node:path"
+import { pathToFileURL } from "node:url"
+
+import { buildServer, type WebHandler } from "./infrastructure/adapters/primary/server"
 import { buildContainer } from "./containers/app-container"
 import { buildDatabase, runMigrations } from "./infrastructure/config/database"
 import { buildLogger } from "./infrastructure/config/logger.config"
 import { PinoLoggerAdapter } from "./infrastructure/adapters/secondary/logger/pino-logger.adapter"
 import { loadEnv } from "./infrastructure/config/env"
+import type { Logger } from "./domain/ports/logger.port"
 
-const main = (): void => {
+/**
+ * Loads the Astro handler built in `middleware` mode, so the app (pages and
+ * assets) is served by the same process as the API.
+ */
+const loadWebHandler = async (
+  handlerPath: string,
+  logger: Logger,
+): Promise<WebHandler> => {
+  const module = (await import(pathToFileURL(resolve(handlerPath)).href)) as {
+    handler?: WebHandler
+  }
+  if (typeof module.handler !== "function") {
+    throw new Error(
+      `The web handler module does not export a "handler" function: ${handlerPath}`,
+    )
+  }
+  logger.info("Web handler mounted (single-process mode)", {
+    handlerPath,
+  })
+  return module.handler
+}
+
+const main = async (): Promise<void> => {
   const env = loadEnv()
   const pino = buildLogger({ level: env.LOG_LEVEL, nodeEnv: env.NODE_ENV })
   const logger = new PinoLoggerAdapter(pino)
@@ -47,9 +73,19 @@ const main = (): void => {
     backupDir: env.BACKUP_DIR,
     gitBin: env.GIT_BIN,
   })
+  const webHandler = env.WEB_HANDLER_PATH
+    ? await loadWebHandler(env.WEB_HANDLER_PATH, logger)
+    : undefined
+  const clientDir = env.WEB_HANDLER_PATH
+    ? (env.WEB_CLIENT_DIR ??
+      resolve(dirname(env.WEB_HANDLER_PATH), "..", "client"))
+    : undefined
+
   const app = buildServer({
     container,
     corsOrigin: env.CORS_ORIGIN,
+    webHandler,
+    clientDir,
   })
 
   const server = app.listen(env.PORT, () => {
@@ -72,4 +108,7 @@ const main = (): void => {
   process.on("SIGTERM", () => shutdown("SIGTERM"))
 }
 
-main()
+void main().catch((error: unknown) => {
+  console.error("Fatal error during startup:", error)
+  process.exit(1)
+})

@@ -1,5 +1,11 @@
 import cors from "cors"
-import express, { type Express } from "express"
+import express, {
+  type Express,
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express"
+import { resolve } from "node:path"
 import pinoHttp from "pino-http"
 
 import type { AppContainer } from "../../../containers/app-container"
@@ -21,11 +27,30 @@ import { buildUpdateRouter } from "./routes/update.routes"
 export interface BuildServerOptions {
   container: AppContainer
   corsOrigin: string
+  /**
+   * Optional Astro handler (built in `middleware` mode) that serves the app
+   * (pages and assets) in the same process. Mounted after the `/api` routers,
+   * so the API always wins and API errors still reach the error handler.
+   */
+  webHandler?: WebHandler
+  /**
+   * Optional folder with the frontend's static build (`dist/client`). In
+   * middleware mode Astro does not serve it, so the host must.
+   */
+  clientDir?: string
 }
+
+export type WebHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void
 
 export const buildServer = ({
   container,
   corsOrigin,
+  webHandler,
+  clientDir,
 }: BuildServerOptions): Express => {
   const { logger, pino } = container
   const app = express()
@@ -54,6 +79,13 @@ export const buildServer = ({
         `${req.method} ${req.url} ${res.statusCode} ${err.message}`,
     }),
   )
+
+  // In `middleware` mode Astro does not serve its static build; the host does.
+  if (clientDir) {
+    app.use(
+      express.static(resolve(clientDir), { index: false, maxAge: "1h" }),
+    )
+  }
 
   app.use("/api", buildHealthRouter(container.healthCheck))
   app.use("/api", buildProviderRouter(container))
@@ -144,6 +176,12 @@ export const buildServer = ({
       createBackup: container.createBackup,
     }),
   )
+
+  // The Astro handler (pages + assets) goes last: `/api` always wins and API
+  // errors still reach the error handler below.
+  if (webHandler) {
+    app.use(webHandler)
+  }
 
   app.use(buildErrorHandler(logger))
 
