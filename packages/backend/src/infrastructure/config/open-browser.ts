@@ -3,6 +3,12 @@ import { spawn } from "node:child_process"
 export interface BrowserCommand {
   command: string
   args: string[]
+  /**
+   * Windows only: hand the arguments to `cmd.exe` verbatim. Node escapes inner
+   * quotes with backslashes, which `cmd.exe` does not understand, so `start`
+   * would get a broken argument and Windows would report a missing file.
+   */
+  windowsVerbatimArguments?: boolean
 }
 
 /**
@@ -18,6 +24,7 @@ export const browserCommand = (
     return {
       command: "cmd.exe",
       args: ["/d", "/s", "/c", `start "" "${url}"`],
+      windowsVerbatimArguments: true,
     }
   }
   if (platform === "darwin") {
@@ -36,8 +43,12 @@ export const openBrowser = (
   onError: (error: unknown) => void,
   spawnImpl: typeof spawn = spawn,
 ): void => {
-  const { command, args } = browserCommand(url)
-  const child = spawnImpl(command, args, { detached: true, stdio: "ignore" })
+  const { command, args, windowsVerbatimArguments } = browserCommand(url)
+  const child = spawnImpl(command, args, {
+    detached: true,
+    stdio: "ignore",
+    windowsVerbatimArguments,
+  })
   child.on("error", onError)
   child.unref()
 }
