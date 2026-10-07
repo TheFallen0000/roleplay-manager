@@ -45,7 +45,7 @@ const main = async (): Promise<void> => {
   let db
   try {
     db = buildDatabase(env.DATABASE_PATH)
-    runMigrations(db)
+    runMigrations(db, env.MIGRATIONS_DIR)
     logger.info("Database migrations applied", { databasePath: env.DATABASE_PATH })
   } catch (error) {
     logger.error("Failed to initialize database", error as Error, {
@@ -88,9 +88,12 @@ const main = async (): Promise<void> => {
     clientDir,
   })
 
-  const server = app.listen(env.PORT, () => {
-    logger.info(`Server listening on http://localhost:${env.PORT}`)
-  })
+  const onListening = (): void => {
+    logger.info(`Server listening on http://${env.HOST ?? "localhost"}:${env.PORT}`)
+  }
+  const server = env.HOST
+    ? app.listen(env.PORT, env.HOST, onListening)
+    : app.listen(env.PORT, onListening)
 
   const shutdown = (signal: string): void => {
     logger.info(`Received ${signal}, shutting down gracefully`)

@@ -21,12 +21,12 @@ export const buildDatabase = (databasePath: string): Database => {
   return drizzle(sqlite, { schema })
 }
 
-export const runMigrations = (db: Database): void => {
-  const migrationsFolder = resolve(
-    import.meta.dirname,
-    "..",
-    "database",
-    "migrations",
-  )
+export const runMigrations = (
+  db: Database,
+  migrationsDir?: string,
+): void => {
+  const migrationsFolder =
+    migrationsDir ??
+    resolve(import.meta.dirname, "..", "database", "migrations")
   migrate(db, { migrationsFolder })
 }

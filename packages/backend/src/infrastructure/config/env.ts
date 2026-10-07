@@ -6,6 +6,7 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
+  HOST: z.string().min(1).optional(),
   DATABASE_PATH: z.string().min(1).default("./data/roleplay.db"),
   DATA_DIR: z.string().min(1).default("./data"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("debug"),
@@ -23,6 +24,7 @@ const envSchema = z.object({
   GIT_BIN: z.string().min(1).optional(),
   WEB_HANDLER_PATH: z.string().min(1).optional(),
   WEB_CLIENT_DIR: z.string().min(1).optional(),
+  MIGRATIONS_DIR: z.string().min(1).optional(),
   MAX_PROFILE_IMAGE_BYTES: z.coerce.number().int().positive().default(DEFAULT_MAX_PROFILE_IMAGE_BYTES),
   MAX_PROFILE_IMAGE_PIXELS: z.coerce.number().int().positive().default(40_000_000),
   PROVIDER_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),

@@ -13,7 +13,7 @@ async function main(): Promise<void> {
   const report = process.argv.includes("--report")
 
   try {
-    runMigrations(database)
+    runMigrations(database, env.MIGRATIONS_DIR)
     const container = buildContainer({
       logger,
       pino,
