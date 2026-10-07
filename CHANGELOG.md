@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.31.5] - 2026-10-07
+
+### Fixed
+
+- The packaged launcher no longer shows *"Windows cannot find the file ..."* when opening the browser: Node escaped the inner quotes when spawning `cmd.exe`, and `cmd` does not understand that escaping, so `start` got a broken argument. The command is now passed verbatim (`windowsVerbatimArguments`).
+
 ## [1.31.4] - 2026-10-07
 
 ### Changed
