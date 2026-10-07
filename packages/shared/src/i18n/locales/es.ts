@@ -137,6 +137,12 @@ export const es: Dictionary = {
     done: "Actualización aplicada.",
     failed: "La actualización falló: {message}",
     restartHint: "Reinicia la app para usar la versión nueva.",
+    jobTitle: "Actualización",
+    retrying: "Reintentando ({attempt}/{attempts})…",
+    restart: "Reiniciar ahora",
+    restarting: "Reiniciando… la página se recargará sola.",
+    restartNotAvailable: "Esta instalación no puede reiniciarse sola.",
+    restartFailed: "No se pudo reiniciar la app.",
     securityNote:
       "Actualizar descarga y ejecuta código del repositorio; hazlo solo si confías en él.",
     notesTitle: "Notas de la versión",

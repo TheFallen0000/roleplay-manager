@@ -19,3 +19,10 @@ export const applyUpdate = (withBackup: boolean): Promise<UpdateStatusDTO> =>
 
 export const createBackup = (): Promise<BackupResultDTO> =>
   apiRequest<BackupResultDTO>("/api/updates/backup", { method: "POST" })
+
+export type RestartAppResult =
+  | { restarting: true }
+  | { restarting: false; reason: "not-available" }
+
+export const restartApp = (): Promise<RestartAppResult> =>
+  apiRequest<RestartAppResult>("/api/updates/restart", { method: "POST" })

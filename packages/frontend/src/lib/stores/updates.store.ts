@@ -4,6 +4,7 @@ import type {
   BackupResultDTO,
   UpdateStatusDTO,
 } from "@workspace/shared/types/update"
+import type { RestartAppResult } from "@/lib/api/updates"
 
 import * as updatesApi from "@/lib/api/updates"
 
@@ -45,6 +46,7 @@ export interface UpdatesState {
   refresh: () => Promise<UpdateStatusDTO>
   apply: (withBackup: boolean) => Promise<UpdateStatusDTO>
   createBackup: () => Promise<BackupResultDTO>
+  restart: () => Promise<RestartAppResult>
   wasNotified: (version: string) => boolean
   markNotified: (version: string) => void
 }
@@ -96,6 +98,8 @@ export const useUpdatesStore = create<UpdatesState>((set, get) => ({
   },
 
   createBackup: () => updatesApi.createBackup(),
+
+  restart: () => updatesApi.restartApp(),
 
   wasNotified: (version) => {
     if (typeof window === "undefined") return false

@@ -18,8 +18,26 @@ import { Switch } from "@workspace/ui/components/switch"
 
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { getHealth } from "@/lib/api/health"
 import { useUpdatesStore } from "@/lib/stores/updates.store"
 import { translateApiError } from "@/lib/translate-api-error"
+
+/** Waits until the app answers again (it restarts after applying an update). */
+const RECONNECT_ATTEMPTS = 120
+const RECONNECT_INTERVAL_MS = 1000
+
+const waitForApp = async (): Promise<void> => {
+  for (let attempt = 0; attempt < RECONNECT_ATTEMPTS; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, RECONNECT_INTERVAL_MS))
+    try {
+      await getHealth()
+      window.location.reload()
+      return
+    } catch {
+      // Still restarting.
+    }
+  }
+}
 
 export function UpdatesPanel({ locale }: { locale: Locale }) {
   return (
@@ -39,11 +57,13 @@ function UpdatesPanelContent() {
   const refresh = useUpdatesStore((state) => state.refresh)
   const apply = useUpdatesStore((state) => state.apply)
   const createBackup = useUpdatesStore((state) => state.createBackup)
+  const restart = useUpdatesStore((state) => state.restart)
 
   const [withBackup, setWithBackup] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [backup, setBackup] = useState<BackupResultDTO | null>(null)
   const [busy, setBusy] = useState(false)
+  const [restarting, setRestarting] = useState(false)
 
   useEffect(() => {
     hydrateFromCache()
@@ -98,6 +118,26 @@ function UpdatesPanelContent() {
       await apply(withBackup)
     } catch (applyError) {
       setError(translateApiError(applyError, tRaw, t("updates.applyFailed")))
+    }
+  }
+
+  const runRestart = async () => {
+    setError(null)
+    setRestarting(true)
+    try {
+      const result = await restart()
+      if (!result.restarting) {
+        setRestarting(false)
+        setError(t("updates.restartNotAvailable"))
+        return
+      }
+      await waitForApp()
+      setRestarting(false)
+    } catch (restartError) {
+      setRestarting(false)
+      setError(
+        translateApiError(restartError, tRaw, t("updates.restartFailed")),
+      )
     }
   }
 
@@ -266,19 +306,48 @@ function UpdatesPanelContent() {
               </p>
             ) : null}
 
-            {job ? (
-              <div className="flex flex-col gap-1">
-                <p className="text-sm">{stepLabel()}</p>
-                {job.step !== "failed" && job.message ? (
-                  <p className="text-xs text-muted-foreground">{job.message}</p>
-                ) : null}
-              </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {job ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("updates.jobTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-sm">{stepLabel()}</p>
+
+            {job.step !== "failed" && job.message ? (
+              <p className="text-xs text-muted-foreground">{job.message}</p>
             ) : null}
 
-            {job?.step === "done" ? (
-              <p className="text-sm text-muted-foreground">
-                {t("updates.restartHint")}
+            {job.retry ? (
+              <p className="text-xs text-muted-foreground">
+                {t("updates.retrying", {
+                  attempt: String(job.retry.attempt),
+                  attempts: String(job.retry.attempts),
+                })}
               </p>
+            ) : null}
+
+            {job.step === "done" ? (
+              <div className="flex flex-col gap-2">
+                <p className="text-sm text-muted-foreground">
+                  {t("updates.restartHint")}
+                </p>
+                {status?.canRestart ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => void runRestart()}
+                    disabled={restarting}
+                  >
+                    {restarting
+                      ? t("updates.restarting")
+                      : t("updates.restart")}
+                  </Button>
+                ) : null}
+              </div>
             ) : null}
           </CardContent>
         </Card>

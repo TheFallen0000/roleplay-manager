@@ -140,6 +140,12 @@ export const en = {
     done: "Update applied.",
     failed: "The update failed: {message}",
     restartHint: "Restart the app to use the new version.",
+    jobTitle: "Update",
+    retrying: "Retrying ({attempt}/{attempts})…",
+    restart: "Restart now",
+    restarting: "Restarting… the page will reload by itself.",
+    restartNotAvailable: "This installation cannot restart itself.",
+    restartFailed: "Could not restart the app.",
     securityNote:
       "Updating downloads and runs code from the repository; do it only if you trust it.",
     notesTitle: "Release notes",
