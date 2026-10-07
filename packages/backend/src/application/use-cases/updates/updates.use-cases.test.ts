@@ -13,6 +13,7 @@ const status: UpdateStatusDTO = {
   latestVersion: "2.0.0",
   behind: true,
   commits: ["bbbbbbb feat: something"],
+  notes: null,
   canApply: true,
   blockedReason: null,
   checkError: null,

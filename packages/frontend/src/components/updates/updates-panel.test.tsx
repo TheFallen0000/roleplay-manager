@@ -25,6 +25,7 @@ const behind = {
   latestVersion: "2.0.0",
   behind: true,
   commits: ["bbbbbbb feat: something"],
+  notes: null,
   canApply: true,
   blockedReason: null,
   checkError: null,
@@ -139,6 +140,49 @@ describe("UpdatesPanel", () => {
         "La app no se ejecuta desde un clon de git, así que las actualizaciones automáticas no están disponibles.",
       ),
     ).toBeInTheDocument()
+  })
+
+  it("muestra las notas de la release cuando hay actualización", async () => {
+    mocks.checkUpdates.mockResolvedValue({
+      ...behind,
+      commits: [],
+      notes: "## 2.0.0\n\n- Mejoras varias",
+    })
+    renderPanel()
+
+    expect(
+      await screen.findByText("Notas de la versión"),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Mejoras varias/)).toBeInTheDocument()
+  })
+
+  it("muestra el progreso de la descarga", async () => {
+    mocks.checkUpdates.mockResolvedValue({
+      ...behind,
+      job: { running: true, step: "download", message: "12.3 MB / 54.2 MB" },
+    })
+    renderPanel()
+
+    expect(
+      await screen.findByText("Descargando la actualización…"),
+    ).toBeInTheDocument()
+    expect(screen.getByText("12.3 MB / 54.2 MB")).toBeInTheDocument()
+  })
+
+  it("explica cuando la release no trae paquete para la plataforma", async () => {
+    mocks.checkUpdates.mockResolvedValue({
+      ...behind,
+      canApply: false,
+      blockedReason: "no-asset",
+    })
+    renderPanel()
+
+    expect(
+      await screen.findByText(
+        "La última versión no incluye un paquete para esta plataforma.",
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Actualizar" })).toBeDisabled()
   })
 
   it("traduce el error al intentar actualizar", async () => {
