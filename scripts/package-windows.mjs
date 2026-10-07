@@ -223,40 +223,81 @@ echo   http://localhost:%PORT%
 echo   (Ctrl+C para detener)
 echo.
 
-if not defined RM_NO_BROWSER start "" "http://localhost:%PORT%"
+if not defined RM_NO_BROWSER set "RM_OPEN_BROWSER=http://localhost:%PORT%"
 "%NODE%" "%APP%\\server.mjs"
 `.replace(/\n/g, "\r\n")
 
-const readme = `Roleplay Manager
-===============
+const readme = `Roleplay Manager — User manual / Manual de usuario
+==================================================
 
-Como usar
+This manual is available in two languages: English first, then Spanish.
+Este manual está disponible en dos idiomas: primero inglés y después español.
+
+English
+=======
+
+How to use
+----------
+1. Unzip this folder wherever you want to keep it (for example, Documents).
+2. Double-click "start.cmd".
+3. The browser opens at http://localhost:3001 once the app is ready.
+
+You do not need to install Node or pnpm: the runtime is bundled.
+
+Where your data lives
+---------------------
+- data\\      database and images (your content)
+- backups\\   backups created before updating
+
+Those two folders are yours: updates never touch them.
+
+First run
+---------
+If Windows shows a firewall prompt, allow access on private networks.
+If "Windows protected your PC" appears, choose "More info" and "Run anyway"
+(the executable is not signed).
+
+Updates
+-------
+The app checks for new versions (System - Updates) and can install them by
+itself: it downloads the new version into versions\\ and switches the "current"
+pointer. Your data and backups are not touched. The previous version is kept in
+case you want to go back. After updating, close and reopen the app.
+
+Stopping the app
+----------------
+Close the console window or press Ctrl+C.
+
+Español
+=======
+
+Cómo usar
 ---------
 1. Descomprime esta carpeta donde quieras conservarla (por ejemplo, Documentos).
 2. Haz doble clic en "start.cmd".
-3. Se abrira el navegador en http://localhost:3001
+3. El navegador se abre en http://localhost:3001 cuando la app está lista.
 
 No necesitas instalar Node ni pnpm: el runtime va incluido.
 
-Donde se guardan tus datos
+Dónde se guardan tus datos
 --------------------------
-- data\\        base de datos e imagenes (tu contenido)
-- backups\\     respaldos creados antes de actualizar
+- data\\      base de datos e imágenes (tu contenido)
+- backups\\   respaldos creados antes de actualizar
 
 Esas dos carpetas son tuyas: las actualizaciones no las tocan.
 
-Primera ejecucion
+Primera ejecución
 -----------------
 Si Windows muestra un aviso de firewall, permite el acceso en redes privadas.
-Si aparece "Windows protegio tu PC", elige "Mas informacion" y "Ejecutar de
-todas formas" (el ejecutable no esta firmado).
+Si aparece "Windows protegió tu PC", elige "Más información" y "Ejecutar de
+todas formas" (el ejecutable no está firmado).
 
 Actualizaciones
 ---------------
 La app comprueba si hay versiones nuevas (Sistema - Actualizaciones) y puede
-instalarlas sola: descarga la version nueva a versions/ y cambia el puntero
-"current". Tus datos y respaldos no se tocan. La version anterior se conserva
-por si quieres volver atras. Despues de actualizar, cierra y vuelve a abrir la
+instalarlas sola: descarga la versión nueva a versions\\ y cambia el puntero
+"current". Tus datos y respaldos no se tocan. La versión anterior se conserva
+por si quieres volver atrás. Después de actualizar, cierra y vuelve a abrir la
 app.
 
 Detener la app
@@ -373,7 +414,8 @@ writeFileSync(
   )}\n`,
 )
 writeFileSync(join(stage, "start.cmd"), startCmd)
-writeFileSync(join(stage, "README.txt"), readme)
+// UTF-8 with BOM so Windows editors render the accents correctly.
+writeFileSync(join(stage, "README.txt"), `\uFEFF${readme}`)
 
 console.log("- Zipping...")
 mkdirSync(releaseDir, { recursive: true })
