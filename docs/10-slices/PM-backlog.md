@@ -177,16 +177,16 @@ Last updated: 2026-10-06
 | # | Proposal | Dependencies |
 |---|----------|--------------|
 | PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Not started; prerequisite of PM.23. See note below.* | — |
-| PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Decisions (2026-10-06): release-based, apply + ask to restart, automatic backup. Blocked by PM.24. See note below.* | PM.24 |
+| PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Phase 1 done as S39 (v1.27.0): git-based detection, apply (pull + install), automatic backups, updates screen, sidebar badge and one-time notice. Phase 2 (release-based, packaged build) pending PM.24. See `S39-progress.md`.* | PM.24 |
 
-> **PM.23 — decisions (2026-10-06):** End users will run a **packaged build** (not a git clone),
-> so the updater is **release-based**: check GitHub Releases (public repo, no auth) for a newer
-> version than the local one, show it in the **Updates** screen (with the release notes and a
-> sidebar badge plus a one-time notice on the characters screen), and, on the button, download
-> the release artifact, **create a backup first** (SQLite online backup + `data/` copy), replace
-> the app files and **ask to restart**. The git-clone approach (`git fetch` + `pull --ff-only`)
-> stays as an alternative for developers; the UI is shared and only the detection/apply adapter
-> changes. Security note: applying an update downloads and runs code published by the repository.
+> **PM.23 — phase 1 done (S39, 2026-10-07, v1.27.0):** The **Updates** screen (System), the
+> sidebar badge, the one-time notice on the characters screen and the automatic backup are in
+> place, with a **git adapter**: `git fetch` + compare `HEAD` with `origin/<branch>`, remote
+> version from the remote `package.json` and the list of new commits; applying runs
+> `git pull --ff-only` + `pnpm install` as a background job (backup → pull → install) and asks
+> to restart. It blocks a dirty working tree. Security note: applying pulls and runs code
+> published by the repository. **Phase 2** (release-based, for the packaged build of PM.24)
+> reuses the same UI and swaps only the detection/apply adapter.
 
 > **PM.24 — research (2026-10-06):** There is no packaging or distribution today, so the updater
 > has nothing to consume yet. Options to evaluate: a **portable folder with a bundled Node
