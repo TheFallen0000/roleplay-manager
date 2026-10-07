@@ -29,6 +29,23 @@ const check = (condition, message) => {
 
 const sleep = (ms) => new Promise((resolvePromise) => setTimeout(resolvePromise, ms))
 
+/**
+ * Windows ships libarchive's bsdtar in System32. Use it explicitly: if a GNU
+ * tar (e.g. the one bundled with Git) comes first in PATH, `-f C:\...` fails
+ * because GNU tar reads the drive letter as a remote host.
+ */
+const tarBinary = () => {
+  if (process.platform === "win32") {
+    const bundled = join(
+      process.env.SystemRoot ?? "C:\\Windows",
+      "System32",
+      "tar.exe",
+    )
+    if (existsSync(bundled)) return bundled
+  }
+  return "tar"
+}
+
 if (!existsSync(zip)) {
   console.error(`Artifact not found: ${zip}`)
   process.exit(1)
@@ -38,7 +55,7 @@ const dir = mkdtempSync(join(tmpdir(), "rm-smoke-"))
 const launcherOutput = []
 
 try {
-  const extract = spawnSync("tar", ["-x", "-f", zip, "-C", dir], {
+  const extract = spawnSync(tarBinary(), ["-x", "-f", zip, "-C", dir], {
     stdio: "inherit",
   })
   check(extract.status === 0, "artifact extracted")

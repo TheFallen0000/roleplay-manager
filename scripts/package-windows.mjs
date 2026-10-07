@@ -54,6 +54,23 @@ const runPnpm = (args, cwd) => {
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"))
 
+/**
+ * Windows ships libarchive's bsdtar in System32. Use it explicitly: if a GNU
+ * tar (e.g. the one bundled with Git) comes first in PATH, `-a`/`-f C:\...`
+ * fails because GNU tar reads the drive letter as a remote host.
+ */
+const tarBinary = () => {
+  if (process.platform === "win32") {
+    const bundled = join(
+      process.env.SystemRoot ?? "C:\\Windows",
+      "System32",
+      "tar.exe",
+    )
+    if (existsSync(bundled)) return bundled
+  }
+  return "tar"
+}
+
 /** Valid npm package name (filters false positives from minified code). */
 const PACKAGE_NAME = /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/i
 
@@ -330,7 +347,7 @@ writeFileSync(join(stage, "README.txt"), readme)
 console.log("- Zipping...")
 mkdirSync(releaseDir, { recursive: true })
 rmSync(zipPath, { force: true })
-run("tar", ["-a", "-c", "-f", zipPath, "-C", stage, "."])
+run(tarBinary(), ["-a", "-c", "-f", zipPath, "-C", stage, "."])
 
 const size = formatBytes(dirSize(stage))
 rmSync(stage, { recursive: true, force: true })
