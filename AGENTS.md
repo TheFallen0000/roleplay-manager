@@ -95,13 +95,25 @@ pages/ (Astro) ─→ components/ (React) ─→ lib/
 
 ### `lib/hooks/`
 
-- React hooks (e.g. `use-persisted-value`, `use-persisted-string-list`).
-- May import from `react`.
+- **Generic** React hooks that do **not** know about any feature: contexts
+  (`use-theme`, `use-translation`), utilities (`use-persisted-value`,
+  `use-persisted-string-list`) and gestures (`use-swipe-navigation`).
+- The providers that back those contexts (`theme-provider.tsx`,
+  `i18n-provider.tsx`) live here too.
+- **Rule**: they may import from `react`, `@workspace/*` and other `lib/` modules,
+  but **not** from `lib/stores/**`, `lib/api/**`, `components/**` or `pages/**`.
+  Enforced by `pnpm check:arch`.
+- **Feature hooks** (state + API calls for one screen) live next to their
+  components: `components/<feature>/use-<kebab>.ts` (e.g.
+  `components/character/use-character-form.ts`).
 
 ### `components/`
 
 - React components, organized by feature (`conversation/`, `character/`, `summary/`, `provider/`, `memory/`, `layout/`).
 - Use shadcn primitives from `@workspace/ui`.
+- Feature hooks live here (`use-character-list.ts`, `use-chat-streaming.ts`).
+- **Rule**: every file must be imported by something (tests do not count as
+  references). Enforced by `pnpm check:arch`.
 
 ### `pages/`
 
@@ -143,7 +155,7 @@ pages/ (Astro) ─→ components/ (React) ─→ lib/
 | React component | PascalCase export | `export function SummaryViewer()` |
 | API function | `<verb><Noun>` (camelCase) | `listSummaries`, `setConversationTitle` |
 | Store | `use<Resource>Store` (zustand) | `useSummaryStore` |
-| Hook | `use<KebabCase>` | `usePersistedValue` |
+| Hook (file / export) | `use-<kebab>.ts` / `use<PascalCase>` | `use-persisted-value.ts` / `usePersistedValue` |
 | Formatter | `<verb>-<object>.ts` | `format-message.ts` |
 
 ### Shared
@@ -167,6 +179,8 @@ Runs `scripts/architecture-check.mjs`. Verifies:
 2. **Backend hexagonal** — `domain/` and `application/` purity. Allowed exception: `application/**` may import `infrastructure/adapters/primary/middlewares/error-handler` (warning only).
 3. **Frontend lib/ agnostic** — `lib/api/**` and `lib/format-*.ts` may not import from React/UI/zustand.
 4. **shared/ package purity** — no runtime imports from React/DB/UI.
+5. **Frontend `lib/hooks/` agnostic** — generic hooks may not import `lib/stores/**`, `lib/api/**`, `components/**` or `pages/**` (feature hooks live in `components/<feature>/`).
+6. **Frontend dead files** — every file under `components/` and `lib/` must be imported by something; test files do not count as references.
 
 Exits 1 on any failure, 0 on success.
 
