@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.31.2] - 2026-10-07
+
+### Fixed
+
+- `pnpm package:win` and the package smoke test now use Windows' bundled **bsdtar** (`System32\tar.exe`) explicitly. When a GNU `tar` (for example Git's) came first in `PATH` — as on GitHub Actions runners — packaging failed because GNU tar reads `C:\...` paths as a remote host (`Cannot connect to C: resolve failed`). This was the first CI run's failure.
+
 ## [1.31.1] - 2026-10-07
 
 ### Added
