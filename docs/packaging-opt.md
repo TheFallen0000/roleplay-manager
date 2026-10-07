@@ -76,9 +76,28 @@ datos sobreviven a cualquier actualización.
 | Fase | Alcance |
 |---|---|
 | **A** ✅ | Entrypoint de un solo proceso (Astro dentro de Express) + verificación de SSR, assets, streaming SSE y subidas. *Hecho en S40 (v1.28.0).* |
-| **B** | Script de empaquetado (`pnpm package`) para Windows x64: `pnpm deploy --prod`, dists, runtime de Node, lanzador, `version.json` y zip. Smoke test del artefacto **sin Node/pnpm del sistema**. |
+| **B** ✅ | Script de empaquetado (`pnpm package:win`) para Windows x64: bundle del backend con esbuild, dists, runtime de Node, lanzador, `version.json` y zip. Smoke test del artefacto **sin Node/pnpm del sistema**. *Hecho en S41 (v1.29.0).* |
 | **C** | CI de releases (GitHub Actions por tag `v*`) y contrato del artefacto. |
 | **D** | Actualizador por releases (PM.23 fase 2): descargar, verificar, instalar en `versions/<v>`, cambiar `current` y pedir reinicio, con rollback. |
+
+## Empaquetado (fase B)
+
+`pnpm package:win` (`scripts/package-windows.mjs`) genera
+`release/roleplay-manager-<versión>-win-x64.zip` (~165 MB descomprimido):
+
+1. `pnpm build`: bundle del backend con esbuild (`dist/server.mjs`, nativos
+   externos) + build del frontend (Astro en modo middleware).
+2. Ensambla `versions/<versión>/app/`: `server.mjs`, `migrations/`,
+   `frontend/client`, `frontend/server` y un `node_modules` **hoisted** con las
+   dependencias de runtime, que se **derivan escaneando los imports externos**
+   del build SSR y se completan con los nativos (`better-sqlite3`, `sharp`).
+3. Copia el runtime (`runtime/node.exe`, la versión del equipo que empaqueta) y
+   escribe `start.cmd`, `current`, `version.json` y `README.txt`.
+4. Comprime con `tar`.
+
+El lanzador fija el puerto (3001 por defecto; `PORT` lo sobrescribe), las rutas
+de datos **relativas a la raíz portátil** y usa el runtime incluido. La variable
+`RM_NO_BROWSER` evita abrir el navegador (la usan las pruebas).
 
 ## Riesgos y notas
 

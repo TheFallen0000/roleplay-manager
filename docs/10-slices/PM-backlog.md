@@ -176,7 +176,7 @@ Last updated: 2026-10-06
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Phase A done as S40 (v1.28.0): single-process build (Astro middleware inside Express) with static assets served by the host and a runtime API base. Phases B–D pending. See `S40-progress.md`.* | — |
+| PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Phases A + B done as S40/S41 (v1.28.0 / v1.29.0): single-process build and the portable Windows x64 package (`pnpm package:win`). Phases C–D pending. See `S40-progress.md` and `S41-progress.md`.* | — |
 | PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Phase 1 done as S39 (v1.27.0): git-based detection, apply (pull + install), automatic backups, updates screen, sidebar badge and one-time notice. Phase 2 (release-based, packaged build) pending PM.24. See `S39-progress.md`.* | PM.24 |
 
 > **PM.23 — phase 1 done (S39, 2026-10-07, v1.27.0):** The **Updates** screen (System), the
@@ -203,6 +203,15 @@ Last updated: 2026-10-06
 > served by the host (`express.static`, since Astro does not serve it in this mode) and the SSR
 > API base is configurable at runtime with `PUBLIC_API_URL`. Remaining: **B** packaging script +
 > artifact, **C** release CI, **D** release-based updater. See `S40-progress.md`.
+
+> **PM.24 — phase B done (S41, 2026-10-07, v1.29.0):** `pnpm package:win` produces
+> `release/roleplay-manager-<version>-win-x64.zip` (~165 MB unpacked): a bundled Node runtime,
+> the backend bundled with esbuild (natives external, migrations shipped), the frontend build
+> and a **hoisted** `node_modules` whose runtime deps are derived by scanning the SSR build's
+> external imports. `start.cmd` resolves the data paths relative to the portable root and the
+> smoke test runs it with the bundled runtime and a stripped `PATH`. This also fixed the
+> production start, which had never worked (`tsc` output path, missing migrations, TS shared
+> package). Remaining: **C** release CI, **D** release-based updater. See `S41-progress.md`.
 
 ## UI polish
 
