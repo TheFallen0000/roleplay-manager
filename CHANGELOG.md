@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.32.1] - 2026-10-07
+
+### Added
+
+- `pnpm check:arch` now runs **six** checks: generic hooks in `lib/hooks/` must be feature-agnostic, and no frontend module may be orphaned (not imported by any non-test file). Unused imports were already covered by ESLint.
+
+### Changed
+
+- Hook conventions are explicit and enforced: generic hooks live in `lib/hooks/` (no imports from stores/API/components/pages) and feature hooks live next to their components (`components/<feature>/use-<kebab>.ts`). `use-chat-streaming` moved to `components/conversation/`, and `use-mobile.ts` now exports `useMobile` (was `useIsMobile`) to match its file name.
+
 ## [1.32.0] - 2026-10-07
 
 ### Added
