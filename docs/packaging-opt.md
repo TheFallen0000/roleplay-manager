@@ -2,9 +2,10 @@
 
 ## Objetivo
 
-Distribuir la app como una **carpeta portátil para Windows x64** con su propio
-runtime de Node, de forma que el usuario final **no instale nada** (ni Node ni
-pnpm): descomprime, ejecuta el lanzador y la app se abre en el navegador.
+Distribuir la app como una **carpeta portátil** con su propio runtime de Node, de
+forma que el usuario final **no instale nada** (ni Node ni pnpm): descomprime,
+ejecuta el lanzador y la app se abre en el navegador. Hay un paquete por
+plataforma: **Windows x64**, **Linux x64/arm64** y **macOS arm64/x64**.
 
 ## Decisiones (2026-10-07)
 
@@ -12,8 +13,10 @@ pnpm): descomprime, ejecuta el lanzador y la app se abre en el navegador.
    se monta **dentro de Express**. Un solo puerto, mismo origen; el proxy `/api`
    del frontend deja de ser necesario en producción (Express sirve `/api`
    primero).
-2. **Solo Windows x64** por ahora, con una versión de Node **fijada** (24.x). Las
-   plataformas Linux/macOS quedan para una matriz de CI posterior.
+2. **Un paquete por plataforma** (Windows x64, Linux x64/arm64, macOS arm64/x64),
+   cada uno con una versión de Node **fijada** (24.x). Los módulos nativos se
+   instalan en el SO de destino, así que cada paquete se construye y se prueba en
+   su propio runner de CI.
 3. **Datos dentro de la carpeta portátil**: `data/` (SQLite + imágenes) y
    `backups/`. Cero rastro en el sistema.
 4. **Actualización por carpetas versionadas + puntero**: `versions/<v>/` y un
@@ -22,16 +25,18 @@ pnpm): descomprime, ejecuta el lanzador y la app se abre en el navegador.
 
 ## Contrato del artefacto (release)
 
-El zip que se publica en GitHub Releases y que consume el actualizador:
+El paquete que se publica en GitHub Releases y que consume el actualizador
+(`<os>` ∈ `win`/`linux`/`mac`, `<arch>` ∈ `x64`/`arm64`; `.zip` en Windows y
+`.tar.gz` en Linux/macOS):
 
 ```text
-roleplay-manager-<version>-win-x64.zip
+roleplay-manager-<version>-<os>-<arch>.zip|tar.gz
 ├── versions/
 │   └── <version>/
 │       ├── app/            ← dist de backend y frontend + node_modules (prod)
-│       └── runtime/        ← node.exe (versión fijada)
+│       └── runtime/        ← node(.exe) (versión fijada)
 ├── current                 ← puntero con la versión activa
-├── start.cmd               ← lanzador raíz (lee `current` y abre el navegador)
+├── start.cmd | start.sh    ← lanzador raíz (lee `current` y abre el navegador)
 ├── version.json            ← { version, commit, builtAt, platform }
 └── README.txt
 ```
@@ -44,7 +49,7 @@ RoleplayManager/
 ├── current                 ← versión activa
 ├── data/                   ← base de datos + imágenes (NUNCA se toca al actualizar)
 ├── backups/                ← respaldos (NUNCA se toca)
-└── start.cmd
+└── start.cmd | start.sh
 ```
 
 El lanzador resuelve las rutas **relativas a la raíz portátil**
@@ -79,11 +84,13 @@ datos sobreviven a cualquier actualización.
 | **B** ✅ | Script de empaquetado (`pnpm package:win`) para Windows x64: bundle del backend con esbuild, dists, runtime de Node, lanzador, `version.json` y zip. Smoke test del artefacto **sin Node/pnpm del sistema**. *Hecho en S41 (v1.29.0).* |
 | **C** ✅ | CI de releases (GitHub Actions por tag `v*`) y contrato del artefacto. *Hecho en S42 (v1.30.0).* |
 | **D** ✅ | Actualizador por releases (PM.23 fase 2): consulta la API de GitHub, descarga el asset, lo instala en `versions/<v>`, cambia `current` y pide reinicio, con rollback. *Hecho en S43 (v1.31.0).* |
+| **E** ✅ | Paquetes para **Linux y macOS** (x64/arm64), CI en matriz (cada paquete se construye y se prueba en su SO) y actualizador multiplataforma. *Hecho en S52 (v1.33.0).* |
 
 ## Empaquetado (fase B)
 
-`pnpm package:win` (`scripts/package-windows.mjs`) genera
-`release/roleplay-manager-<versión>-win-x64.zip` (~165 MB descomprimido):
+`pnpm package:app` (`scripts/package.mjs`) genera el paquete de **la plataforma en
+la que se ejecuta** (`release/roleplay-manager-<versión>-<os>-<arch>.<ext>`, ~165 MB
+en Windows y ~195 MB en Linux descomprimido):
 
 1. `pnpm build`: bundle del backend con esbuild (`dist/server.mjs`, nativos
    externos) + build del frontend (Astro en modo middleware).
@@ -91,26 +98,33 @@ datos sobreviven a cualquier actualización.
    `frontend/client`, `frontend/server` y un `node_modules` **hoisted** con las
    dependencias de runtime, que se **derivan escaneando los imports externos**
    del build SSR y se completan con los nativos (`better-sqlite3`, `sharp`).
-3. Copia el runtime (`runtime/node.exe`, la versión del equipo que empaqueta) y
-   escribe `start.cmd`, `current`, `version.json` y `README.txt`.
-4. Comprime con `tar`.
+3. Copia el runtime (`runtime/node.exe` en Windows, `runtime/node` en unix, la
+   versión del equipo que empaqueta) y escribe el lanzador de su plataforma
+   (`start.cmd`/`start.sh`), `current`, `version.json` y `README.txt`.
+4. Comprime: `.zip` en Windows (bsdtar), `.tar.gz` en Linux/macOS (preserva el
+   bit de ejecución).
 
 El lanzador fija el puerto (3001 por defecto; `PORT` lo sobrescribe), las rutas
-de datos **relativas a la raíz portátil** y usa el runtime incluido. La variable
+de datos **relativas a la raíz portátil** y usa el runtime incluido.
 `RM_NO_BROWSER` lo desactiva (lo usan el smoke test y los E2E): el lanzador no
 abre el navegador él mismo, pasa `RM_OPEN_BROWSER` al servidor, que lo abre
 **cuando ya está escuchando** (así no aparece el "no se puede acceder al sitio").
-El `README.txt` del paquete es bilingüe (inglés y español).
+El `README.txt` del paquete es bilingüe (inglés y español) e incluye la nota de
+primera ejecución de cada SO (SmartScreen en Windows, Gatekeeper en macOS,
+`chmod +x` en Linux).
 
 ## Contrato de release (fase C)
 
 - **Tag**: `v<versión>`; debe coincidir con `package.json` (el workflow lo verifica
   y falla si no).
-- **Asset**: `roleplay-manager-<versión>-win-x64.zip`.
+- **Asset**: `roleplay-manager-<versión>-<os>-<arch>.<ext>`; cada release publica
+  **cinco** paquetes (`win-x64`, `linux-x64`, `linux-arm64`, `mac-arm64`, `mac-x64`).
 - **Notas**: la sección del CHANGELOG de esa versión (`scripts/release-notes.mjs`).
-- **Workflow** `.github/workflows/release.yml` (`windows-latest`, Node 24.18.0, pnpm
-  del `packageManager`): guardia de versión → `pnpm check` + tests → `pnpm package:win`
-  → smoke test del zip → `gh release create`.
+- **Workflow** `.github/workflows/release.yml`: `prepare` (decide) → `gates`
+  (ubuntu: `pnpm check` + tests) → `build` en **matriz** (`windows-latest`,
+  `ubuntu-latest`, `ubuntu-24.04-arm`, `macos-latest`, `macos-26-intel`), cada uno
+  con `pnpm package:app`, **smoke test nativo** y subida de artefacto → `publish`
+  (descarga los cinco assets y crea la release).
 - **Disparo automático**: un push a `master` que cambia `package.json` publica la
   release de esa versión (si no existe todavía); los pushes sin cambio de versión se
   ignoran. Empujar un tag `v*` sigue funcionando y `workflow_dispatch` es un *dry run*
@@ -121,7 +135,7 @@ El `README.txt` del paquete es bilingüe (inglés y español).
 ## Actualizador por releases (fase D)
 
 El container elige el adaptador según el entorno: si `RM_PACKAGED_ROOT` está
-definido (lo fija `start.cmd`), usa `ReleaseUpdateAdapter`; si no, el
+definido (lo fija el lanzador), usa `ReleaseUpdateAdapter`; si no, el
 `GitUpdateAdapter` (dev/clon). La UI y el badge son los mismos.
 
 - **Detección**: `GET {RM_UPDATE_API_URL|https://api.github.com}/repos/<repo>/releases/latest`
@@ -130,24 +144,28 @@ definido (lo fija `start.cmd`), usa `ReleaseUpdateAdapter`; si no, el
   numérica (una versión menor nunca se ofrece) y se exponen las **notas**.
 - **Aplicar** (job en segundo plano, pasos `backup → download → install → done`):
   1. Respaldo automático (reutiliza `BackupService` de S39).
-  2. Descarga el asset a `versions/.download-<v>.zip`, mostrando progreso en el
+  2. Descarga el asset a `versions/.download-<v>.<ext>`, mostrando progreso en el
      mensaje del job.
   3. Extrae en `versions/.staging-<v>`, valida que trae `app/server.mjs` y
      renombra a `versions/<v>` (en el mismo volumen, atómico).
-  4. Refresca `start.cmd`, `README.txt` y `version.json` de la raíz y escribe
-     `current` = `<v>`.
+  4. Refresca el lanzador de su plataforma (`start.cmd`/`start.sh`, restaurando el
+     bit de ejecución en unix), `README.txt` y `version.json` de la raíz, y
+     escribe `current` = `<v>`.
 - **Nunca toca la versión en ejecución** (`versions/<antigua>/app`): por eso hace
   falta reiniciar y no hay archivos bloqueados en Windows. La versión anterior se
   conserva para **rollback** (volver a escribir `current`).
-- Asset por plataforma: el que termina en `-win-x64.zip`; si la release no lo
-  trae, el estado queda bloqueado con `no-asset`.
+- Asset por plataforma: el que termina en `-<os>-<arch>.<ext>` según el SO y la
+  arquitectura del proceso (`-win-x64.zip`, `-linux-arm64.tar.gz`,
+  `-mac-arm64.tar.gz`, ...); si la release no lo trae, el estado queda bloqueado
+  con `no-asset`.
 - **Reintentos**: los pasos de red (API y descarga) reintentan 3 veces con
   backoff ante fallos transitorios, y el error incluye la causa real
   (`error.cause`). El job muestra "Reintentando n/3" mientras espera.
 - **Reinicio**: `POST /api/updates/restart` relanza el lanzador (en la misma
-  consola y sin reabrir el navegador) y sale; `start.cmd` relee `current`, así
-  que arranca la versión nueva. El panel ofrece "Reiniciar ahora" tras aplicar y
-  recarga la página cuando la app vuelve. En dev responde `not-available`.
+  consola/terminal y sin reabrir el navegador) y sale; el lanzador relee
+  `current`, así que arranca la versión nueva. El panel ofrece "Reiniciar ahora"
+  tras aplicar y recarga la página cuando la app vuelve. En dev responde
+  `not-available`.
 
 ## Riesgos y notas
 
