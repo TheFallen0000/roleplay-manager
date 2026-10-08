@@ -16,7 +16,7 @@ Be respectful and constructive. This is a community project.
 ## Prerequisites
 
 - **Node.js** ≥ 22.12.0
-- **pnpm** ≥ 11.15.1 (install via `corepack enable && corepack prepare pnpm@11.15.1 --activate`)
+- **pnpm** ≥ 11.15.1 (install via `corepack enable && corepack prepare pnpm@11.21.0 --activate`)
 - A POSIX shell (Linux, macOS, or WSL on Windows). The repo includes
   Windows `.bat` scripts for end users, but the dev workflow assumes a
   POSIX shell.
@@ -30,7 +30,7 @@ pnpm install
 # 2. Run all quality checks (architecture, types, lint, tests)
 pnpm check
 
-# 3. Start the dev servers (backend on :3000, frontend on :4321)
+# 3. Start the dev servers (backend on :3001, frontend on :4321)
 pnpm dev
 ```
 
