@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.36.2] - 2026-10-08
+
+### Changed
+
+- **Rewritten, bilingual README**: `README.md` (English) with a language switcher to the new [README.es.md](README.es.md), covering what the app is, its features, the end-user install (portable packages for Windows, Linux and macOS), development setup, phone access, updates and documentation links.
+- Fixed stale details in `CONTRIBUTING.md` (backend port and pnpm version).
+
 ## [1.36.1] - 2026-10-08
 
 ### Fixed
