@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.36.0] - 2026-10-08
+
+### Added
+
+- **Link settings for phone access** (Tailscale and home network), in a collapsible *Link settings* section of the Phone dialog and persisted per mode:
+  - *Turn on when the app starts* — the link comes up by itself when you open the app.
+  - *Turn off when the app closes* (Tailscale only) — `tailscale serve` would otherwise keep serving after the app is gone.
+  - *Turn off after inactivity* — cuts the link after 15/30/60/120 minutes without requests coming from the phone (using the app on the PC does not count); enabling the link restarts the countdown.
+
+### Changed
+
+- Restarting the app keeps the link on: only a real close (Ctrl+C, closing the console) triggers the shutdown rule, and the idle timeout can be adjusted at any time, even while the link is active.
+- Auto-enable on start runs in the packaged app only (a dev server restarts constantly and would keep turning the link back on).
+
 ## [1.35.1] - 2026-10-08
 
 ### Fixed
