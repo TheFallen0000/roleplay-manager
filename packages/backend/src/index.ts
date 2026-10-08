@@ -5,7 +5,7 @@ import { buildServer, type WebHandler } from "./infrastructure/adapters/primary/
 import { buildContainer } from "./containers/app-container"
 import { buildDatabase, runMigrations } from "./infrastructure/config/database"
 import { buildLogger } from "./infrastructure/config/logger.config"
-import { openBrowser } from "./infrastructure/config/open-browser"
+import { browserUrlToOpen, openBrowser } from "./infrastructure/config/open-browser"
 import { PinoLoggerAdapter } from "./infrastructure/adapters/secondary/logger/pino-logger.adapter"
 import { loadEnv } from "./infrastructure/config/env"
 import type { Logger } from "./domain/ports/logger.port"
@@ -97,8 +97,9 @@ const main = async (): Promise<void> => {
 
   const onListening = (): void => {
     logger.info(`Server listening on http://${env.HOST ?? "localhost"}:${env.PORT}`)
-    if (env.RM_OPEN_BROWSER) {
-      openBrowser(env.RM_OPEN_BROWSER, (error) =>
+    const browserUrl = browserUrlToOpen(env)
+    if (browserUrl) {
+      openBrowser(browserUrl, (error) =>
         logger.warn("Could not open the browser", { error: String(error) }),
       )
     }

@@ -33,6 +33,23 @@ export const browserCommand = (
   return { command: "xdg-open", args: [url] }
 }
 
+/** Environment slice the browser logic cares about (easy to pass and test). */
+export interface BrowserEnv {
+  RM_OPEN_BROWSER?: string
+  RM_NO_BROWSER?: string
+}
+
+/**
+ * URL the app should open in the browser once it is listening, or `undefined`
+ * when it must not open anything.
+ *
+ * `RM_NO_BROWSER` wins over `RM_OPEN_BROWSER`: a restart inherits the latter
+ * from the process that is going away, and the browser tab that asked for the
+ * restart reloads itself.
+ */
+export const browserUrlToOpen = (env: BrowserEnv): string | undefined =>
+  env.RM_NO_BROWSER ? undefined : env.RM_OPEN_BROWSER || undefined
+
 /**
  * Opens a URL in the user's default browser. Best effort: it never throws, and
  * failures are reported through `onError` (the app must keep working even when

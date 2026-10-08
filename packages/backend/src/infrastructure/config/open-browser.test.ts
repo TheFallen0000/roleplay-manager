@@ -1,6 +1,31 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { browserCommand, openBrowser } from "./open-browser"
+import { browserCommand, browserUrlToOpen, openBrowser } from "./open-browser"
+
+describe("browserUrlToOpen", () => {
+  it("returns the URL when only RM_OPEN_BROWSER is set", () => {
+    expect(browserUrlToOpen({ RM_OPEN_BROWSER: "http://localhost:3001" })).toBe(
+      "http://localhost:3001",
+    )
+  })
+
+  it("returns undefined when RM_NO_BROWSER is set, even with RM_OPEN_BROWSER", () => {
+    expect(
+      browserUrlToOpen({
+        RM_OPEN_BROWSER: "http://localhost:3001",
+        RM_NO_BROWSER: "1",
+      }),
+    ).toBeUndefined()
+  })
+
+  it("returns undefined when nothing is set", () => {
+    expect(browserUrlToOpen({})).toBeUndefined()
+  })
+
+  it("treats an empty RM_OPEN_BROWSER as nothing to open", () => {
+    expect(browserUrlToOpen({ RM_OPEN_BROWSER: "" })).toBeUndefined()
+  })
+})
 
 describe("browserCommand", () => {
   it("uses `start` through cmd on Windows (verbatim arguments)", () => {
