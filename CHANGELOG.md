@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.35.0] - 2026-10-08
+
+### Added
+
+- The app can be **installed as a PWA**: web app manifest, opaque install icons (192/512 plus a maskable one) and the meta tags iOS needs. Installed, it opens in its own window with its own icon and name.
+  - Installable from `localhost` (desktop) and over HTTPS (Tailscale). Plain LAN IPs are not a secure context, so the install option will not show up there — that is expected.
+  - No service worker on purpose: there is no offline mode (the app needs the server, and a stale cache must never serve an old shell after an update).
+
 ## [1.34.0] - 2026-10-08
 
 ### Added
