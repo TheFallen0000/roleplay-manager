@@ -140,7 +140,9 @@ export function PhoneAccessDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      {/* The whole dialog scrolls on short viewports (small screens, or the
+          Tailscale tab with the settings section expanded). */}
+      <DialogContent className="max-h-[85dvh] overflow-y-auto overscroll-contain sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("tunnel.title")}</DialogTitle>
           <DialogDescription>{t("tunnel.description")}</DialogDescription>
