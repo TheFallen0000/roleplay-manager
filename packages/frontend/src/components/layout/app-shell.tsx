@@ -16,7 +16,7 @@ import {
 import { Toaster } from "@workspace/ui/components/sonner"
 import { UsersIcon, CogIcon, UserRoundIcon, RefreshCwIcon } from "lucide-react"
 import { useSidebar } from "@workspace/ui/components/sidebar"
-import { Logo } from "@workspace/ui/components/logo"
+import { BrandFace } from "./brand"
 import { useEffect } from "react"
 import { ThemeProvider } from "@/lib/hooks/theme-provider"
 import { useTheme } from "@/lib/hooks/use-theme"
@@ -31,9 +31,9 @@ function SidebarLogo() {
   const collapsed = state === "collapsed"
 
   return (
-    <SidebarHeader className="overflow-hidden p-4 font-semibold text-sm">
+    <SidebarHeader className="overflow-hidden p-3 font-semibold text-sm">
       <span className="flex items-center gap-2">
-        <Logo className="shrink-0" />
+        <BrandFace className="size-6" />
         <span
           className="inline-block transition-all duration-300 ease-in-out"
           style={{

@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { Logo } from "@workspace/ui/components/logo"
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
 
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
@@ -18,6 +17,7 @@ import { useTheme } from "@/lib/hooks/use-theme"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { setOnboardedCookie } from "@/lib/onboarding"
 import { COLOR_MODES, THEMES, type ColorMode, type ThemeId } from "@/lib/themes"
+import { BrandMascot } from "./brand"
 
 const MODE_ICONS = {
   light: SunIcon,
@@ -53,7 +53,7 @@ function WelcomeContent() {
       <Card className="w-full max-w-xl">
         <CardHeader className="items-center text-center">
           <div className="mb-2 flex items-center gap-2">
-            <Logo />
+            <BrandMascot className="size-10" />
             <span className="font-semibold">Roleplay Manager</span>
           </div>
           <CardTitle className="text-2xl">{t("welcome.title")}</CardTitle>
