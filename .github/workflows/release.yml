@@ -1,6 +1,6 @@
 name: Release
 
-# Publishes the portable Windows x64 package as a GitHub Release.
+# Publishes the portable packages (Windows, Linux and macOS) as a GitHub Release.
 #
 # Automatic: a push to `master` that changes `package.json` (i.e. a version
 # bump) publishes the release for that version, as long as it does not exist
@@ -8,6 +8,9 @@ name: Release
 # Manual: push a tag `v*` (it must match `package.json`) to publish that version.
 # workflow_dispatch: builds and validates without publishing (dry run) unless
 # the `publish` input is enabled.
+#
+# Native modules (better-sqlite3, sharp) are installed on the target OS, so each
+# package is built and smoke-tested on its own runner.
 
 on:
   push:
@@ -77,11 +80,11 @@ jobs:
           echo "publish=true" >> "$GITHUB_OUTPUT"
           echo "::notice::Publishing ${tag}."
 
-  release:
-    name: Build and publish
+  gates:
+    name: Quality gates
     needs: prepare
     if: needs.prepare.outputs.run == 'true'
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -92,7 +95,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          # Same version that gets bundled in the package.
+          # Same version that gets bundled in the packages.
           node-version: "24.18.0"
           cache: pnpm
 
@@ -108,31 +111,93 @@ jobs:
       - name: Frontend tests
         run: pnpm --filter @workspace/frontend exec vitest run
 
-      - name: Package (Windows x64)
-        run: pnpm package:win
+  build:
+    name: Package ${{ matrix.target }}
+    needs: [prepare, gates]
+    if: needs.prepare.outputs.run == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: win-x64
+          - os: ubuntu-latest
+            target: linux-x64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+          - os: macos-latest
+            target: mac-arm64
+          - os: macos-26-intel
+            target: mac-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.18.0"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Package
+        run: pnpm package:app
 
       - name: Smoke test the artifact
         run: node scripts/smoke-package.mjs
 
+      - name: Upload the package
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.target }}
+          path: release/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish the GitHub Release
+    needs: [prepare, build]
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.18.0"
+
+      - name: Download every package
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
       - name: Build the release notes
-        shell: bash
         run: node scripts/release-notes.mjs "${{ needs.prepare.outputs.version }}" > release-notes.md
 
-      - name: Publish the GitHub Release
-        if: needs.prepare.outputs.publish == 'true'
+      - name: Create the release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           tag="${{ needs.prepare.outputs.tag }}"
+          ls -l release
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" >/dev/null 2>&1; then
             # The tag already exists (tag push): publish against it.
-            gh release create "${tag}" release/*.zip \
+            gh release create "${tag}" release/* \
               --title "${tag}" \
               --notes-file release-notes.md
           else
             # Create the tag at the commit that was pushed.
-            gh release create "${tag}" release/*.zip \
+            gh release create "${tag}" release/* \
               --title "${tag}" \
               --notes-file release-notes.md \
               --target "${GITHUB_SHA}"
