@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.34.0] - 2026-10-08
+
+### Added
+
+- The app now has a **face**: the mascot is the favicon (16/32/48 plus Apple touch icon), the sidebar mark and the welcome illustration. Every image is generated from the original art with `pnpm brand:generate` (~38 KB for the whole set).
+
+### Changed
+
+- The sidebar logo is a 24px head crop and the welcome screen shows the full mascot; the old generic SVG mark and the Astro favicon are gone.
+- The release smoke test now checks that the packaged app serves the brand images.
+
 ## [1.33.0] - 2026-10-08
 
 ### Added
