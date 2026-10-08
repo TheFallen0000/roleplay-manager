@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.33.0] - 2026-10-08
+
+### Added
+
+- **Linux and macOS packages**: every release now publishes five portable packages (`win-x64`, `linux-x64`, `linux-arm64`, `mac-arm64`, `mac-x64`), each with its bundled Node runtime and its launcher (`start.sh` on unix, `start.cmd` on Windows). Linux/macOS ship as `.tar.gz` (preserves the executable bit); Windows keeps `.zip`.
+- The release CI builds and **smoke-tests each package on its own OS** (Windows, Ubuntu, Ubuntu ARM, macOS Apple Silicon and macOS Intel) before publishing.
+
+### Changed
+
+- `pnpm package:win` is now `pnpm package:app` (`scripts/package.mjs`): it packages the platform it runs on.
+- The updater picks the asset for the current OS/architecture (`-linux-arm64.tar.gz`, `-mac-arm64.tar.gz`, …), refreshes the launcher of its platform and restarts through it (`sh start.sh` on unix).
+
 ## [1.32.2] - 2026-10-07
 
 ### Changed
