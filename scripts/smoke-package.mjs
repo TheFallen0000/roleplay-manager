@@ -155,6 +155,19 @@ try {
         check(false, "no hashed asset found in the home HTML")
       }
 
+      for (const brandAsset of [
+        "/favicon-32x32.png",
+        "/brand/face-96.png",
+        "/brand/mascot-192.png",
+      ]) {
+        const response = await fetch(`${base}${brandAsset}`)
+        const type = response.headers.get("content-type") ?? ""
+        check(
+          response.status === 200 && type.includes("image/png"),
+          `brand asset served (${brandAsset})`,
+        )
+      }
+
       const create = await fetch(`${base}/api/characters`, {
         method: "POST",
         headers: { "content-type": "application/json", origin: base },
