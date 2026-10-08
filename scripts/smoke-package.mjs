@@ -168,6 +168,33 @@ try {
         )
       }
 
+      for (const installIcon of [
+        "/brand/icon-192.png",
+        "/brand/icon-512.png",
+        "/brand/icon-maskable-512.png",
+      ]) {
+        const response = await fetch(`${base}${installIcon}`)
+        const type = response.headers.get("content-type") ?? ""
+        check(
+          response.status === 200 && type.includes("image/png"),
+          `install icon served (${installIcon})`,
+        )
+      }
+
+      const manifestResponse = await fetch(`${base}/manifest.webmanifest`)
+      const manifest = await manifestResponse.json().catch(() => null)
+      const icons = manifest?.icons ?? []
+      check(
+        manifestResponse.status === 200 &&
+          Boolean(manifest?.name) &&
+          manifest?.display === "standalone" &&
+          manifest?.start_url === "/" &&
+          icons.some((icon) => icon.sizes === "192x192") &&
+          icons.some((icon) => icon.sizes === "512x512") &&
+          icons.some((icon) => icon.purpose === "maskable"),
+        "manifest served with the install criteria",
+      )
+
       const create = await fetch(`${base}/api/characters`, {
         method: "POST",
         headers: { "content-type": "application/json", origin: base },
