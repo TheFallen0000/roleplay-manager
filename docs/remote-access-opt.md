@@ -252,9 +252,12 @@ fallback clásico y no hay PWA/service workers. Ver `S38-progress.md`.
 
 ## Pendientes (opcionales)
 
-- «Activar al iniciar» / «desactivar al cerrar» y auto-desactivado por
-  inactividad.
-- Manifest PWA para «añadir a inicio» en el teléfono.
+- **Hecho en S56 (v1.36.0)**: «activar al iniciar», «desactivar al cerrar»
+  (solo Tailscale) y auto-desactivado por inactividad del enlace, en la sección
+  «Ajustes del enlace» del diálogo Teléfono (Tailscale y LAN). Ver
+  `S56-progress.md`.
+- **Hecho en S54 (v1.35.0)**: manifest PWA e iconos de instalación
+  («añadir a pantalla de inicio» en el teléfono). Ver `S54-progress.md`.
 - Probar el flujo real con un tailnet (requiere instalar Tailscale en la
   computadora y en el teléfono).
 
