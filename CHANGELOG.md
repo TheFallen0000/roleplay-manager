@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.36.1] - 2026-10-08
+
+### Fixed
+
+- The **Phone dialog** no longer grows past the viewport on short screens: the whole dialog scrolls (85% of the visible height) so the QR, the hints and the *Link settings* section stay reachable on a phone or in a small window.
+
 ## [1.36.0] - 2026-10-08
 
 ### Added
