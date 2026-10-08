@@ -9,15 +9,31 @@ import { fileURLToPath } from "node:url"
  * bundled runtime and a stripped `PATH`, so it proves the app needs neither
  * Node nor pnpm on the machine.
  *
- * Usage: node scripts/smoke-package.mjs [path-to-zip]
+ * Usage: node scripts/smoke-package.mjs [path-to-artifact]
  */
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const version = JSON.parse(
   readFileSync(join(repoRoot, "package.json"), "utf8"),
 ).version
-const zip =
+const OS =
+  process.platform === "win32"
+    ? "win"
+    : process.platform === "darwin"
+      ? "mac"
+      : "linux"
+const ARCH = process.arch === "arm64" ? "arm64" : "x64"
+const TARGET = `${OS}-${ARCH}`
+const IS_WINDOWS = OS === "win"
+const LAUNCHER = IS_WINDOWS ? "start.cmd" : "start.sh"
+const NODE_BINARY = IS_WINDOWS ? "node.exe" : "node"
+const ARCHIVE_EXT = IS_WINDOWS ? "zip" : "tar.gz"
+const artifact =
   process.argv[2] ??
-  join(repoRoot, "release", `roleplay-manager-${version}-win-x64.zip`)
+  join(
+    repoRoot,
+    "release",
+    `roleplay-manager-${version}-${TARGET}.${ARCHIVE_EXT}`,
+  )
 const port = Number(process.env.SMOKE_PORT ?? 3210)
 const base = `http://127.0.0.1:${port}`
 
@@ -46,8 +62,8 @@ const tarBinary = () => {
   return "tar"
 }
 
-if (!existsSync(zip)) {
-  console.error(`Artifact not found: ${zip}`)
+if (!existsSync(artifact)) {
+  console.error(`Artifact not found: ${artifact}`)
   process.exit(1)
 }
 
@@ -55,17 +71,17 @@ const dir = mkdtempSync(join(tmpdir(), "rm-smoke-"))
 const launcherOutput = []
 
 try {
-  const extract = spawnSync(tarBinary(), ["-x", "-f", zip, "-C", dir], {
+  const extract = spawnSync(tarBinary(), ["-x", "-f", artifact, "-C", dir], {
     stdio: "inherit",
   })
   check(extract.status === 0, "artifact extracted")
-  check(existsSync(join(dir, "start.cmd")), "start.cmd at the root")
+  check(existsSync(join(dir, LAUNCHER)), `${LAUNCHER} at the root`)
 
   const pointer = readFileSync(join(dir, "current"), "utf8").trim()
   check(pointer.length > 0, `current pointer present (${pointer})`)
   const appDir = join(dir, "versions", pointer, "app")
   check(
-    existsSync(join(dir, "versions", pointer, "runtime", "node.exe")),
+    existsSync(join(dir, "versions", pointer, "runtime", NODE_BINARY)),
     "bundled Node runtime present",
   )
   check(existsSync(join(appDir, "server.mjs")), "bundled backend present")
@@ -79,12 +95,24 @@ try {
   )
 
   const systemRoot = process.env.SystemRoot ?? "C:\\Windows"
-  const launcher = spawn(join(systemRoot, "System32", "cmd.exe"), ["/c", "start.cmd"], {
+  const launch = IS_WINDOWS
+    ? {
+        command: join(systemRoot, "System32", "cmd.exe"),
+        args: ["/c", LAUNCHER],
+        // No Node/pnpm on PATH: the app must use its bundled runtime.
+        env: { SystemRoot: systemRoot, PATH: join(systemRoot, "System32") },
+      }
+    : {
+        command: "sh",
+        args: [LAUNCHER],
+        env: { PATH: "/usr/bin:/bin" },
+      }
+  const launcher = spawn(launch.command, launch.args, {
     cwd: dir,
     env: {
-      SystemRoot: systemRoot,
-      // No Node/pnpm on PATH: the app must use its bundled runtime.
-      PATH: join(systemRoot, "System32"),
+      ...launch.env,
+      HOME: tmpdir(),
+      TMPDIR: tmpdir(),
       TEMP: tmpdir(),
       RM_NO_BROWSER: "1",
       PORT: String(port),
@@ -158,13 +186,16 @@ try {
       )
     }
   } finally {
+    // On unix `start.sh` uses exec, so this kills the server itself.
     launcher.kill()
     await sleep(500)
-    spawnSync("powershell", [
-      "-NoProfile",
-      "-Command",
-      `Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }`,
-    ])
+    if (IS_WINDOWS) {
+      spawnSync("powershell", [
+        "-NoProfile",
+        "-Command",
+        `Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }`,
+      ])
+    }
   }
 } finally {
   rmSync(dir, { recursive: true, force: true })

@@ -1,5 +1,15 @@
+#!/usr/bin/env node
+/**
+ * Packages the portable app for the platform it runs on:
+ *   - Windows       -> roleplay-manager-<v>-win-<arch>.zip      (start.cmd)
+ *   - Linux / macOS -> roleplay-manager-<v>-<os>-<arch>.tar.gz  (start.sh)
+ *
+ * Native modules (better-sqlite3, sharp) must be installed on the target OS, so
+ * each release runs this script on its own runner (see the release workflow).
+ */
 import { spawnSync } from "node:child_process"
 import {
+  chmodSync,
   copyFileSync,
   cpSync,
   existsSync,
@@ -15,6 +25,20 @@ import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+
+const OS =
+  process.platform === "win32"
+    ? "win"
+    : process.platform === "darwin"
+      ? "mac"
+      : "linux"
+const ARCH = process.arch === "arm64" ? "arm64" : "x64"
+const TARGET = `${OS}-${ARCH}`
+const IS_WINDOWS = OS === "win"
+const LAUNCHER = IS_WINDOWS ? "start.cmd" : "start.sh"
+const NODE_BINARY = IS_WINDOWS ? "node.exe" : "node"
+const ARCHIVE_EXT = IS_WINDOWS ? "zip" : "tar.gz"
+const PATH_SEP = IS_WINDOWS ? "\\" : "/"
 
 const run = (command, args, cwd) => {
   const result = spawnSync(command, args, {
@@ -50,7 +74,7 @@ const pnpmCandidates = (args) => {
         : { command: execPath, args },
     )
   }
-  if (process.platform === "win32") {
+  if (IS_WINDOWS) {
     candidates.push({
       command: process.env.ComSpec ?? "cmd.exe",
       args: ["/d", "/s", "/c", `pnpm ${args.map(quoteArg).join(" ")}`],
@@ -91,7 +115,7 @@ const readJson = (path) => JSON.parse(readFileSync(path, "utf8"))
  * fails because GNU tar reads the drive letter as a remote host.
  */
 const tarBinary = () => {
-  if (process.platform === "win32") {
+  if (IS_WINDOWS) {
     const bundled = join(
       process.env.SystemRoot ?? "C:\\Windows",
       "System32",
@@ -227,6 +251,65 @@ if not defined RM_NO_BROWSER set "RM_OPEN_BROWSER=http://localhost:%PORT%"
 "%NODE%" "%APP%\\server.mjs"
 `.replace(/\n/g, "\r\n")
 
+const startSh = `#!/bin/sh
+# Roleplay Manager launcher: reads the "current" pointer and starts that version.
+set -e
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+VERSION="$(cat "$ROOT/current")"
+APP="$ROOT/versions/$VERSION/app"
+NODE="$ROOT/versions/$VERSION/runtime/node"
+
+: "\${PORT:=3001}"
+: "\${HOST:=127.0.0.1}"
+: "\${LOG_LEVEL:=info}"
+export PORT HOST LOG_LEVEL
+export NODE_ENV=production
+export DATABASE_PATH="$ROOT/data/roleplay.db"
+export DATA_DIR="$ROOT/data"
+export BACKUP_DIR="$ROOT/backups"
+export MIGRATIONS_DIR="$APP/migrations"
+export WEB_HANDLER_PATH="$APP/frontend/server/entry.mjs"
+export WEB_CLIENT_DIR="$APP/frontend/client"
+export PUBLIC_API_URL="http://localhost:$PORT"
+export TUNNEL_TARGET_URL="http://localhost:$PORT"
+export RM_PACKAGED_ROOT="$ROOT"
+if [ -z "\${RM_NO_BROWSER:-}" ]; then
+  export RM_OPEN_BROWSER="http://localhost:$PORT"
+fi
+
+echo
+echo "  Roleplay Manager $VERSION"
+echo "  http://localhost:$PORT"
+echo "  (Ctrl+C para detener)"
+echo
+
+exec "$NODE" "$APP/server.mjs"
+`
+
+const firstRunEnglish =
+  OS === "win"
+    ? `If Windows shows a firewall prompt, allow access on private networks.
+If "Windows protected your PC" appears, choose "More info" and "Run anyway"
+(the executable is not signed).`
+    : OS === "mac"
+      ? `macOS may block the bundled runtime because it is not signed: open
+System Settings > Privacy & Security and allow it, or run once:
+  xattr -dr com.apple.quarantine .`
+      : `If the launcher is not executable, run once:
+  chmod +x start.sh`
+
+const firstRunSpanish =
+  OS === "win"
+    ? `Si Windows muestra un aviso de firewall, permite el acceso en redes privadas.
+Si aparece "Windows protegió tu PC", elige "Más información" y "Ejecutar de
+todas formas" (el ejecutable no está firmado).`
+    : OS === "mac"
+      ? `macOS puede bloquear el runtime incluido porque no está firmado: abre
+Ajustes del Sistema > Privacidad y seguridad y permítelo, o ejecuta una vez:
+  xattr -dr com.apple.quarantine .`
+      : `Si el lanzador no tiene permisos de ejecución, ejecuta una vez:
+  chmod +x start.sh`
+
 const readme = `Roleplay Manager — User manual / Manual de usuario
 ==================================================
 
@@ -239,34 +322,32 @@ English
 How to use
 ----------
 1. Unzip this folder wherever you want to keep it (for example, Documents).
-2. Double-click "start.cmd".
+2. Run "${LAUNCHER}".
 3. The browser opens at http://localhost:3001 once the app is ready.
 
 You do not need to install Node or pnpm: the runtime is bundled.
 
 Where your data lives
 ---------------------
-- data\\      database and images (your content)
-- backups\\   backups created before updating
+- data${PATH_SEP}      database and images (your content)
+- backups${PATH_SEP}   backups created before updating
 
 Those two folders are yours: updates never touch them.
 
 First run
 ---------
-If Windows shows a firewall prompt, allow access on private networks.
-If "Windows protected your PC" appears, choose "More info" and "Run anyway"
-(the executable is not signed).
+${firstRunEnglish}
 
 Updates
 -------
 The app checks for new versions (System - Updates) and can install them by
-itself: it downloads the new version into versions\\ and switches the "current"
-pointer. Your data and backups are not touched. The previous version is kept in
-case you want to go back. After updating, close and reopen the app.
+itself: it downloads the new version into versions${PATH_SEP} and switches the
+"current" pointer. Your data and backups are not touched. The previous version
+is kept in case you want to go back. After updating, close and reopen the app.
 
 Stopping the app
 ----------------
-Close the console window or press Ctrl+C.
+Press Ctrl+C in the terminal (or close its window).
 
 Español
 =======
@@ -274,51 +355,47 @@ Español
 Cómo usar
 ---------
 1. Descomprime esta carpeta donde quieras conservarla (por ejemplo, Documentos).
-2. Haz doble clic en "start.cmd".
+2. Ejecuta "${LAUNCHER}".
 3. El navegador se abre en http://localhost:3001 cuando la app está lista.
 
 No necesitas instalar Node ni pnpm: el runtime va incluido.
 
 Dónde se guardan tus datos
 --------------------------
-- data\\      base de datos e imágenes (tu contenido)
-- backups\\   respaldos creados antes de actualizar
+- data${PATH_SEP}      base de datos e imágenes (tu contenido)
+- backups${PATH_SEP}   respaldos creados antes de actualizar
 
 Esas dos carpetas son tuyas: las actualizaciones no las tocan.
 
 Primera ejecución
 -----------------
-Si Windows muestra un aviso de firewall, permite el acceso en redes privadas.
-Si aparece "Windows protegió tu PC", elige "Más información" y "Ejecutar de
-todas formas" (el ejecutable no está firmado).
+${firstRunSpanish}
 
 Actualizaciones
 ---------------
 La app comprueba si hay versiones nuevas (Sistema - Actualizaciones) y puede
-instalarlas sola: descarga la versión nueva a versions\\ y cambia el puntero
-"current". Tus datos y respaldos no se tocan. La versión anterior se conserva
-por si quieres volver atrás. Después de actualizar, cierra y vuelve a abrir la
-app.
+instalarlas sola: descarga la versión nueva a versions${PATH_SEP} y cambia el
+puntero "current". Tus datos y respaldos no se tocan. La versión anterior se
+conserva por si quieres volver atrás. Después de actualizar, cierra y vuelve a
+abrir la app.
 
 Detener la app
 --------------
-Cierra la ventana de la consola o pulsa Ctrl+C.
+Pulsa Ctrl+C en la terminal (o cierra su ventana).
 `
 
-const version = readJson(join(repoRoot, "package.json")).version
-const repository = parseRepository(
-  readJson(join(repoRoot, "package.json")).repository?.url,
-)
-const platform = "win-x64"
+const rootPackage = readJson(join(repoRoot, "package.json"))
+const version = rootPackage.version
+const repository = parseRepository(rootPackage.repository?.url)
 const releaseDir = join(repoRoot, "release")
-const zipName = `roleplay-manager-${version}-${platform}.zip`
-const zipPath = join(releaseDir, zipName)
+const archiveName = `roleplay-manager-${version}-${TARGET}.${ARCHIVE_EXT}`
+const archivePath = join(releaseDir, archiveName)
 const stage = join(tmpdir(), `rm-package-${version}`)
 const versionDir = join(stage, "versions", version)
 const appDir = join(versionDir, "app")
 const runtimeDir = join(versionDir, "runtime")
 
-console.log(`Packaging Roleplay Manager ${version} (${platform})`)
+console.log(`Packaging Roleplay Manager ${version} (${TARGET})`)
 
 console.log("- Building the workspace...")
 runPnpm(["build"], repoRoot)
@@ -335,10 +412,7 @@ copyFileSync(
   join(appDir, "server.mjs"),
 )
 cpSync(
-  join(
-    repoRoot,
-    "packages/backend/src/infrastructure/database/migrations",
-  ),
+  join(repoRoot, "packages/backend/src/infrastructure/database/migrations"),
   join(appDir, "migrations"),
   { recursive: true },
 )
@@ -352,7 +426,8 @@ cpSync(
   join(appDir, "frontend/server"),
   { recursive: true },
 )
-copyFileSync(process.execPath, join(runtimeDir, "node.exe"))
+copyFileSync(process.execPath, join(runtimeDir, NODE_BINARY))
+if (!IS_WINDOWS) chmodSync(join(runtimeDir, NODE_BINARY), 0o755)
 
 console.log("- Installing the runtime dependencies...")
 const externalPackages = collectExternalPackages(
@@ -387,8 +462,8 @@ runPnpm(
   [
     "install",
     "--prod",
-    // Hoisted layout: real folders instead of symlinks, so the zip works when
-    // extracted on another machine (Windows symlinks need privileges).
+    // Hoisted layout: real folders instead of symlinks, so the archive works
+    // when extracted on another machine (Windows symlinks need privileges).
     "--config.node-linker=hoisted",
     "--config.confirmModulesPurge=false",
     "--reporter=silent",
@@ -405,7 +480,7 @@ writeFileSync(
       version,
       commit: gitCommit(),
       builtAt: new Date().toISOString(),
-      platform,
+      platform: TARGET,
       node: process.version,
       ...(repository ? { repository } : {}),
     },
@@ -413,17 +488,25 @@ writeFileSync(
     2,
   )}\n`,
 )
-writeFileSync(join(stage, "start.cmd"), startCmd)
+writeFileSync(
+  join(stage, LAUNCHER),
+  IS_WINDOWS ? startCmd : startSh,
+)
+if (!IS_WINDOWS) chmodSync(join(stage, LAUNCHER), 0o755)
 // UTF-8 with BOM so Windows editors render the accents correctly.
 writeFileSync(join(stage, "README.txt"), `\uFEFF${readme}`)
 
-console.log("- Zipping...")
+console.log("- Archiving...")
 mkdirSync(releaseDir, { recursive: true })
-rmSync(zipPath, { force: true })
-run(tarBinary(), ["-a", "-c", "-f", zipPath, "-C", stage, "."])
+rmSync(archivePath, { force: true })
+if (IS_WINDOWS) {
+  run(tarBinary(), ["-a", "-c", "-f", archivePath, "-C", stage, "."])
+} else {
+  run("tar", ["-czf", archivePath, "-C", stage, "."])
+}
 
 const size = formatBytes(dirSize(stage))
 rmSync(stage, { recursive: true, force: true })
 
-console.log(`\nDone: ${zipPath}`)
+console.log(`\nDone: ${archivePath}`)
 console.log(`Unpacked size: ${size}`)
