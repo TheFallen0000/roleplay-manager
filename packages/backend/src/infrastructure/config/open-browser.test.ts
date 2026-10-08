@@ -32,14 +32,20 @@ describe("openBrowser", () => {
     const unref = vi.fn()
     const spawnImpl = vi.fn(() => ({ on, unref }))
     const onError = vi.fn()
+    const expectedCommand =
+      process.platform === "win32"
+        ? "cmd.exe"
+        : process.platform === "darwin"
+          ? "open"
+          : "xdg-open"
 
     openBrowser("http://localhost:3001", onError, spawnImpl as never)
 
-    expect(spawnImpl).toHaveBeenCalledWith("cmd.exe", expect.any(Array), {
-      detached: true,
-      stdio: "ignore",
-      windowsVerbatimArguments: true,
-    })
+    expect(spawnImpl).toHaveBeenCalledWith(
+      expectedCommand,
+      expect.any(Array),
+      expect.objectContaining({ detached: true, stdio: "ignore" }),
+    )
     expect(on).toHaveBeenCalledWith("error", onError)
     expect(unref).toHaveBeenCalled()
   })

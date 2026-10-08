@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process"
 import { existsSync } from "node:fs"
 import { createWriteStream } from "node:fs"
-import { cp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises"
+import { chmod, cp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { Readable, Transform } from "node:stream"
 import { pipeline } from "node:stream/promises"
@@ -65,11 +65,25 @@ interface ReleaseInfo {
 const COMMAND_TIMEOUT_MS = 10 * 60 * 1000
 const FALLBACK_VERSION = "0.0.0"
 const DEFAULT_API_BASE_URL = "https://api.github.com"
-const DEFAULT_ASSET_SUFFIX = "-win-x64.zip"
 /** Network steps are retried: the first connection can fail (DNS/TLS/CDN). */
 const MAX_FETCH_ATTEMPTS = 3
 const RETRY_BASE_DELAY_MS = 500
 const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
+
+/** Launcher shipped in the package for the platform this app runs on. */
+const LAUNCHER_FILE = process.platform === "win32" ? "start.cmd" : "start.sh"
+
+/** Asset suffix of the package built for the platform this app runs on. */
+const defaultAssetSuffix = (): string => {
+  const os =
+    process.platform === "win32"
+      ? "win"
+      : process.platform === "darwin"
+        ? "mac"
+        : "linux"
+  const arch = process.arch === "arm64" ? "arm64" : "x64"
+  return `-${os}-${arch}.${os === "win" ? "zip" : "tar.gz"}`
+}
 
 /**
  * Updates the packaged app from its published releases: reads the latest
@@ -95,7 +109,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
     this.apiBaseUrl = (
       options.apiBaseUrl ?? DEFAULT_API_BASE_URL
     ).replace(/\/+$/, "")
-    this.assetSuffix = options.assetSuffix ?? DEFAULT_ASSET_SUFFIX
+    this.assetSuffix = options.assetSuffix ?? defaultAssetSuffix()
     this.fetchImpl = options.fetchImpl ?? (globalThis.fetch as FetchLike)
     this.run = options.run ?? defaultRunner
     this.backup = options.backup
@@ -257,9 +271,14 @@ export class ReleaseUpdateAdapter implements UpdateController {
       await rename(stagedVersion, target)
 
       // Refresh the root launcher and metadata when the package ships new ones.
-      for (const file of ["start.cmd", "README.txt", "version.json"]) {
+      for (const file of [LAUNCHER_FILE, "README.txt", "version.json"]) {
         const source = join(staging, file)
-        if (existsSync(source)) await cp(source, join(this.root, file))
+        if (!existsSync(source)) continue
+        const target = join(this.root, file)
+        await cp(source, target)
+        if (file === LAUNCHER_FILE && process.platform !== "win32") {
+          await chmod(target, 0o755)
+        }
       }
 
       await writeFile(join(this.root, "current"), version, "utf8")

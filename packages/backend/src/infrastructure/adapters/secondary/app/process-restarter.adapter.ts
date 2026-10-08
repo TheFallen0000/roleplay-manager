@@ -16,10 +16,14 @@ export interface ProcessRestarterOptions {
 /** Time to let the HTTP response reach the browser before exiting. */
 const EXIT_DELAY_MS = 700
 
+const IS_WINDOWS = process.platform === "win32"
+const LAUNCHER_FILE = IS_WINDOWS ? "start.cmd" : "start.sh"
+
 /**
- * Restarts the packaged app by running its `start.cmd` again (detached, sharing
- * the console) and then exiting this process. The launcher re-reads the
- * `current` pointer, so the freshly installed version is the one that starts.
+ * Restarts the packaged app by running its launcher again (detached, sharing
+ * the console/terminal) and then exiting this process. The launcher re-reads
+ * the `current` pointer, so the freshly installed version is the one that
+ * starts.
  *
  * The browser is not reopened (`RM_NO_BROWSER`): the tab that requested the
  * restart reconnects on its own.
@@ -36,9 +40,7 @@ export class ProcessRestarter implements AppRestarter {
   }
 
   available(): boolean {
-    return Boolean(
-      this.root && existsSync(join(this.root, "start.cmd")),
-    )
+    return Boolean(this.root && existsSync(join(this.root, LAUNCHER_FILE)))
   }
 
   restart(): void {
@@ -46,16 +48,23 @@ export class ProcessRestarter implements AppRestarter {
       throw new Error("The app is not packaged; it cannot restart itself.")
     }
 
-    const child = this.spawnImpl(
-      process.env.ComSpec ?? "cmd.exe",
-      ["/d", "/s", "/c", "start.cmd"],
-      {
-        cwd: this.root,
-        env: { ...process.env, RM_NO_BROWSER: "1" },
-        detached: true,
-        stdio: "ignore",
-      },
-    )
+    const child = IS_WINDOWS
+      ? this.spawnImpl(
+          process.env.ComSpec ?? "cmd.exe",
+          ["/d", "/s", "/c", LAUNCHER_FILE],
+          {
+            cwd: this.root,
+            env: { ...process.env, RM_NO_BROWSER: "1" },
+            detached: true,
+            stdio: "ignore",
+          },
+        )
+      : this.spawnImpl("sh", [LAUNCHER_FILE], {
+          cwd: this.root,
+          env: { ...process.env, RM_NO_BROWSER: "1" },
+          detached: true,
+          stdio: "ignore",
+        })
     child.unref()
     setTimeout(() => this.exit(0), EXIT_DELAY_MS)
   }

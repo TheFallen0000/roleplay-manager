@@ -115,6 +115,8 @@ const buildAdapter = (
   new ReleaseUpdateAdapter({
     packagedRoot: root,
     repository: options.repository ?? "owner/repo",
+    // Fixed so the tests do not depend on the host platform.
+    assetSuffix: "-win-x64.zip",
     fetchImpl:
       options.fetchImpl ??
       makeFetch(options.release ?? releaseFixture({ tag: "v2.0.0" })),
@@ -228,6 +230,7 @@ describe("ReleaseUpdateAdapter", () => {
   it("resolves the repository from version.json when not configured", async () => {
     const adapter = new ReleaseUpdateAdapter({
       packagedRoot: await createRoot({ repository: "other/repo" }),
+      assetSuffix: "-win-x64.zip",
       fetchImpl: makeFetch(releaseFixture({ tag: "v2.0.0" })),
       run: makeTar("2.0.0"),
     })
@@ -240,6 +243,7 @@ describe("ReleaseUpdateAdapter", () => {
   it("reports a check error when no repository can be resolved", async () => {
     const adapter = new ReleaseUpdateAdapter({
       packagedRoot: await createRoot({}),
+      assetSuffix: "-win-x64.zip",
       fetchImpl: makeFetch(releaseFixture({ tag: "v2.0.0" })),
       run: makeTar("2.0.0"),
     })
@@ -277,6 +281,7 @@ describe("ReleaseUpdateAdapter", () => {
     const withoutBackup = new ReleaseUpdateAdapter({
       packagedRoot: await createRoot(),
       repository: "owner/repo",
+      assetSuffix: "-win-x64.zip",
       fetchImpl: makeFetch(releaseFixture({ tag: "v2.0.0" })),
       run: makeTar("2.0.0"),
     })

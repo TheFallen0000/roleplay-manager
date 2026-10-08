@@ -6,11 +6,13 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 import { ProcessRestarter } from "./process-restarter.adapter"
 
+const LAUNCHER = process.platform === "win32" ? "start.cmd" : "start.sh"
+
 let root: string
 
 beforeAll(async () => {
   root = await mkdtemp(join(tmpdir(), "rm-restarter-"))
-  await writeFile(join(root, "start.cmd"), "@echo off\r\n", "utf8")
+  await writeFile(join(root, LAUNCHER), "launcher\n", "utf8")
 })
 
 afterAll(async () => {
@@ -45,7 +47,9 @@ describe("ProcessRestarter", () => {
 
       expect(spawnImpl).toHaveBeenCalledWith(
         expect.any(String),
-        ["/d", "/s", "/c", "start.cmd"],
+        process.platform === "win32"
+          ? ["/d", "/s", "/c", LAUNCHER]
+          : [LAUNCHER],
         expect.objectContaining({
           cwd: root,
           detached: true,
