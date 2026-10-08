@@ -113,6 +113,22 @@ export const en = {
     lanFirewallHint:
       "If it does not load, allow Node.js through the Windows firewall (private networks).",
     lanActionFailed: "Could not change the local network mode.",
+    settingsTitle: "Link settings",
+    settingAutoEnable: "Turn on when the app starts",
+    settingAutoEnableHint: "It will turn on by itself when you open the app.",
+    settingDisableOnClose: "Turn off when the app closes",
+    settingDisableOnCloseHint:
+      "Tailscale keeps serving after the app closes; this cuts the link on exit.",
+    settingIdle: "Turn off after inactivity",
+    settingIdleHint:
+      "Turns off after the chosen time without use from the phone.",
+    idleMinutesLabel: "Idle time",
+    idleMinutesOption: "{minutes} min",
+    summaryAutoEnable: "On start: enable",
+    summaryDisableOnClose: "On close: disable",
+    summaryIdle: "Idle: {minutes} min",
+    summaryNone: "No active settings",
+    settingsFailed: "Could not save the settings.",
   },
   updates: {
     title: "Updates",

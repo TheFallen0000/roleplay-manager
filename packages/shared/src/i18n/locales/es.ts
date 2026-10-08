@@ -111,6 +111,22 @@ export const es: Dictionary = {
     lanFirewallHint:
       "Si no carga, permite Node.js en el firewall de Windows (redes privadas).",
     lanActionFailed: "No se pudo cambiar el modo de red local.",
+    settingsTitle: "Ajustes del enlace",
+    settingAutoEnable: "Activar al iniciar la app",
+    settingAutoEnableHint: "Se encenderá solo al abrir la app.",
+    settingDisableOnClose: "Desactivar al cerrar la app",
+    settingDisableOnCloseHint:
+      "Tailscale sigue sirviendo aunque cierres la app; esto corta el enlace al salir.",
+    settingIdle: "Desactivar por inactividad",
+    settingIdleHint:
+      "Se apaga tras el tiempo elegido sin uso desde el teléfono.",
+    idleMinutesLabel: "Tiempo sin uso",
+    idleMinutesOption: "{minutes} min",
+    summaryAutoEnable: "Al iniciar: activar",
+    summaryDisableOnClose: "Al cerrar: desactivar",
+    summaryIdle: "Inactividad: {minutes} min",
+    summaryNone: "Sin ajustes activos",
+    settingsFailed: "No se pudieron guardar los ajustes.",
   },
   updates: {
     title: "Actualizaciones",
