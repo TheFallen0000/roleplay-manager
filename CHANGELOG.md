@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.35.1] - 2026-10-08
+
+### Fixed
+
+- **Restarting no longer opens a new browser tab.** The running app carries the launcher's "open the browser" order (`RM_OPEN_BROWSER`) in its environment, and the restart passed it on to the new process. Now `RM_NO_BROWSER` wins over it (the server ignores a stale `RM_OPEN_BROWSER`), and the restart drops the inherited variable before relaunching. The tab that asked for the restart keeps reloading itself, as before.
+
 ## [1.35.0] - 2026-10-08
 
 ### Added
