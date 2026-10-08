@@ -22,6 +22,8 @@ import { buildContextRouter } from "./routes/context.routes"
 import { buildSummaryRouter } from "./routes/summary.routes"
 import { buildTunnelRouter } from "./routes/tunnel.routes"
 import { buildLanRouter } from "./routes/lan.routes"
+import { buildPhoneAccessRouter } from "./routes/phone-access.routes"
+import { buildPhoneAccessActivityMiddleware } from "./middlewares/phone-access-activity"
 import { buildUpdateRouter } from "./routes/update.routes"
 
 export interface BuildServerOptions {
@@ -79,6 +81,9 @@ export const buildServer = ({
         `${req.method} ${req.url} ${res.statusCode} ${err.message}`,
     }),
   )
+
+  // Remote (phone) requests feed the idle watchdog before they are served.
+  app.use(buildPhoneAccessActivityMiddleware(container.phoneAccessActivity))
 
   // In `middleware` mode Astro does not serve its static build; the host does.
   if (clientDir) {
@@ -165,6 +170,13 @@ export const buildServer = ({
       getLanStatus: container.getLanStatus,
       enableLanAccess: container.enableLanAccess,
       disableLanAccess: container.disableLanAccess,
+    }),
+  )
+  app.use(
+    "/api",
+    buildPhoneAccessRouter({
+      getPhoneAccessPreferences: container.getPhoneAccessPreferences,
+      updatePhoneAccessPreferences: container.updatePhoneAccessPreferences,
     }),
   )
   app.use(

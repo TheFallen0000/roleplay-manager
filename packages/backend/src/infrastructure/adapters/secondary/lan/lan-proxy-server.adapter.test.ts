@@ -42,10 +42,15 @@ afterEach(async () => {
 const startTarget = async (): Promise<{
   port: number
   seenHosts: string[]
+  seenLanMarkers: Array<string | undefined>
 }> => {
   const seenHosts: string[] = []
+  const seenLanMarkers: Array<string | undefined> = []
   const server = createServer((request, response) => {
     seenHosts.push(request.headers.host ?? "")
+    seenLanMarkers.push(
+      request.headers["x-rm-lan-access"] as string | undefined,
+    )
     if (request.url === "/hello") {
       response.writeHead(200, { "content-type": "text/plain" })
       response.end("world")
@@ -73,7 +78,7 @@ const startTarget = async (): Promise<{
   servers.push(server)
   const address = server.address()
   const port = typeof address === "object" && address ? address.port : 0
-  return { port, seenHosts }
+  return { port, seenHosts, seenLanMarkers }
 }
 
 const buildAdapter = (targetPort: number, port = 0) =>
@@ -97,7 +102,7 @@ describe("LanProxyServerAdapter", () => {
     expect(status.addresses).toEqual(["192.168.1.10"])
   })
 
-  it("proxies requests to the app keeping the original Host", async () => {
+  it("proxies requests to the app keeping the original Host and marking LAN use", async () => {
     const target = await startTarget()
     const adapter = buildAdapter(target.port)
 
@@ -109,6 +114,7 @@ describe("LanProxyServerAdapter", () => {
     expect(response.status).toBe(200)
     expect(await response.text()).toBe("world")
     expect(target.seenHosts).toContain(`127.0.0.1:${status.port}`)
+    expect(target.seenLanMarkers).toContain("1")
   })
 
   it("forwards POST bodies and content types", async () => {

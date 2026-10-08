@@ -23,6 +23,9 @@ export interface LanProxyServerAdapterOptions {
 
 const DEFAULT_PORT = 4322
 
+/** Header the proxy adds so the app can tell remote requests apart. */
+export const LAN_ACCESS_MARKER_HEADER = "x-rm-lan-access"
+
 const VIRTUAL_INTERFACE =
   /virtual|vmware|vbox|hyper-v|wsl|loopback|docker|tailscale|vethernet|wi-fi direct|área local|area local|local area connection|\*/i
 
@@ -110,8 +113,9 @@ export class LanProxyServerAdapter implements LanAccessController {
         port: this.target.port || 80,
         path: request.url,
         method: request.method,
-        // Keep the original Host so Astro's origin check keeps passing.
-        headers: request.headers,
+        // Keep the original Host so Astro's origin check keeps passing, and
+        // mark the request so the idle watchdog can count it as remote use.
+        headers: { ...request.headers, [LAN_ACCESS_MARKER_HEADER]: "1" },
       },
       (upstreamResponse) => {
         response.writeHead(

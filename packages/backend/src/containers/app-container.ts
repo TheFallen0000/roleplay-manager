@@ -23,6 +23,7 @@ import { ProviderRegistryImpl } from "../infrastructure/adapters/secondary/provi
 import { PromptContextBuilderImpl } from "../infrastructure/adapters/secondary/prompt-context-builder/prompt-context-builder.impl"
 import type { ProviderRegistry } from "../domain/ports/provider.port"
 import type { SettingsRepository } from "../domain/ports/settings.repository"
+import type { PhoneAccessActivity } from "../domain/ports/phone-access-activity"
 import type { CharacterRepository } from "../domain/ports/character.repository"
 import type { PlayerCharacterRepository } from "../domain/ports/player-character.repository"
 import type {
@@ -64,6 +65,10 @@ import { GetLanStatusUseCase } from "../application/use-cases/lan/get-lan-status
 import { EnableLanAccessUseCase } from "../application/use-cases/lan/enable-lan-access.use-case"
 import { DisableLanAccessUseCase } from "../application/use-cases/lan/disable-lan-access.use-case"
 import { LanProxyServerAdapter } from "../infrastructure/adapters/secondary/lan/lan-proxy-server.adapter"
+import { GetPhoneAccessPreferencesUseCase } from "../application/use-cases/phone-access/get-phone-access-preferences.use-case"
+import { UpdatePhoneAccessPreferencesUseCase } from "../application/use-cases/phone-access/update-phone-access-preferences.use-case"
+import { PhoneAccessService } from "../application/services/phone-access.service"
+import { InMemoryPhoneAccessActivity } from "../infrastructure/adapters/secondary/phone-access/in-memory-phone-access-activity.adapter"
 import { GetUpdateStatusUseCase } from "../application/use-cases/updates/get-update-status.use-case"
 import { CheckUpdatesUseCase } from "../application/use-cases/updates/check-updates.use-case"
 import { ApplyUpdateUseCase } from "../application/use-cases/updates/apply-update.use-case"
@@ -183,6 +188,12 @@ export interface AppContainer {
   enableLanAccess: EnableLanAccessUseCase
   disableLanAccess: DisableLanAccessUseCase
 
+  // Phone access preferences (both modes) and their background rules
+  getPhoneAccessPreferences: GetPhoneAccessPreferencesUseCase
+  updatePhoneAccessPreferences: UpdatePhoneAccessPreferencesUseCase
+  phoneAccess: PhoneAccessService
+  phoneAccessActivity: PhoneAccessActivity
+
   // Updates
   getUpdateStatus: GetUpdateStatusUseCase
   checkUpdates: CheckUpdatesUseCase
@@ -293,8 +304,10 @@ export const buildContainer = ({
     targetUrl: tunnelTargetUrl,
     binPath: tailscaleBin,
   })
+  const phoneAccessActivity: PhoneAccessActivity =
+    new InMemoryPhoneAccessActivity()
   const getTunnelStatus = new GetTunnelStatusUseCase(tunnelController)
-  const enableTunnel = new EnableTunnelUseCase(tunnelController)
+  const enableTunnel = new EnableTunnelUseCase(tunnelController, phoneAccessActivity)
   const disableTunnel = new DisableTunnelUseCase(tunnelController)
 
   const lanAccessController = new LanProxyServerAdapter({
@@ -302,8 +315,20 @@ export const buildContainer = ({
     port: lanPort,
   })
   const getLanStatus = new GetLanStatusUseCase(lanAccessController)
-  const enableLanAccess = new EnableLanAccessUseCase(lanAccessController)
+  const enableLanAccess = new EnableLanAccessUseCase(lanAccessController, phoneAccessActivity)
   const disableLanAccess = new DisableLanAccessUseCase(lanAccessController)
+
+  const getPhoneAccessPreferences = new GetPhoneAccessPreferencesUseCase(settings)
+  const updatePhoneAccessPreferences = new UpdatePhoneAccessPreferencesUseCase(settings)
+  const phoneAccess = new PhoneAccessService({
+    settings,
+    tunnel: tunnelController,
+    lan: lanAccessController,
+    activity: phoneAccessActivity,
+    logger,
+    // Auto-enable on start only runs in the packaged app.
+    packaged: Boolean(updatePackagedRoot),
+  })
 
   const backupService = new BackupService({
     // drizzle keeps the raw better-sqlite3 client on `$client` (not typed).
@@ -466,6 +491,10 @@ export const buildContainer = ({
     getLanStatus,
     enableLanAccess,
     disableLanAccess,
+    getPhoneAccessPreferences,
+    updatePhoneAccessPreferences,
+    phoneAccess,
+    phoneAccessActivity,
     getUpdateStatus,
     checkUpdates,
     applyUpdate,

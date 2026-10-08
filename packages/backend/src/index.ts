@@ -12,6 +12,8 @@ import type { Logger } from "./domain/ports/logger.port"
 
 const MAX_LISTEN_ATTEMPTS = 15
 const LISTEN_RETRY_MS = 1000
+/** How often the idle watchdog checks the phone-access link. */
+const PHONE_ACCESS_IDLE_INTERVAL_MS = 60_000
 
 /**
  * Loads the Astro handler built in `middleware` mode, so the app (pages and
@@ -103,6 +105,15 @@ const main = async (): Promise<void> => {
         logger.warn("Could not open the browser", { error: String(error) }),
       )
     }
+    // Apply the phone-access preferences (auto-enable on start), without
+    // blocking boot: failures are logged and the app keeps running.
+    void container.phoneAccess
+      .applyOnStartup()
+      .catch((error) =>
+        logger.warn("Phone-access startup check failed", {
+          error: String(error),
+        }),
+      )
   }
 
   // When the app restarts itself, the previous process may still hold the port
@@ -124,23 +135,47 @@ const main = async (): Promise<void> => {
   }
   listen()
 
+  // Idle watchdog: turns the phone-access link off after N minutes without
+  // remote requests (per the user's preferences).
+  setInterval(() => {
+    void container.phoneAccess
+      .checkIdle()
+      .catch((error) =>
+        logger.warn("Phone-access idle check failed", { error: String(error) }),
+      )
+  }, PHONE_ACCESS_IDLE_INTERVAL_MS).unref()
+
   const shutdown = (signal: string): void => {
     logger.info(`Received ${signal}, shutting down gracefully`)
-    if (!server) {
-      process.exit(0)
-    }
-    server.close(() => {
-      logger.info("HTTP server closed")
-      process.exit(0)
-    })
-    setTimeout(() => {
+    const forced = setTimeout(() => {
       logger.error("Forced shutdown after timeout")
       process.exit(1)
-    }, 10_000).unref()
+    }, 10_000)
+    forced.unref()
+
+    // The tunnel may need a CLI call to stop sharing; everything else waits.
+    void container.phoneAccess
+      .applyOnShutdown()
+      .catch((error) =>
+        logger.warn("Phone-access shutdown check failed", {
+          error: String(error),
+        }),
+      )
+      .finally(() => {
+        if (!server) {
+          process.exit(0)
+        }
+        server.close(() => {
+          logger.info("HTTP server closed")
+          process.exit(0)
+        })
+      })
   }
 
   process.on("SIGINT", () => shutdown("SIGINT"))
   process.on("SIGTERM", () => shutdown("SIGTERM"))
+  // Windows emits SIGHUP when the console window is closed.
+  process.on("SIGHUP", () => shutdown("SIGHUP"))
 }
 
 void main().catch((error: unknown) => {
