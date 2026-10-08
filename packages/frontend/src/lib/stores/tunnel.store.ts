@@ -1,9 +1,14 @@
 import { create } from "zustand"
 
 import type { LanAccessStatusDTO } from "@workspace/shared/types/lan"
+import type {
+  PhoneAccessPreferencesResponseDTO,
+  PhoneAccessPreferencesUpdateDTO,
+} from "@workspace/shared/types/phone-access"
 import type { TunnelStatusDTO } from "@workspace/shared/types/tunnel"
 
 import * as lanApi from "@/lib/api/lan"
+import * as phoneAccessApi from "@/lib/api/phone-access"
 import * as tunnelApi from "@/lib/api/tunnel"
 
 /**
@@ -38,6 +43,11 @@ export interface TunnelState {
   status: TunnelStatusDTO | null
   lanStatus: LanAccessStatusDTO | null
   /**
+   * Preferences of both phone-access modes. Not cached in `localStorage`:
+   * they are configuration, and the dialog refreshes them on every open.
+   */
+  preferences: PhoneAccessPreferencesResponseDTO | null
+  /**
    * Loads the statuses cached in `localStorage` once on the client. Kept out of
    * the initial state so SSR and the first client render match (a cached dot
    * in the initial state caused a hydration mismatch).
@@ -50,11 +60,16 @@ export interface TunnelState {
   refreshLan: () => Promise<LanAccessStatusDTO>
   enableLan: () => Promise<LanAccessStatusDTO>
   disableLan: () => Promise<LanAccessStatusDTO>
+  refreshPreferences: () => Promise<PhoneAccessPreferencesResponseDTO>
+  updatePreferences: (
+    update: PhoneAccessPreferencesUpdateDTO,
+  ) => Promise<PhoneAccessPreferencesResponseDTO>
 }
 
 export const useTunnelStore = create<TunnelState>((set) => ({
   status: null,
   lanStatus: null,
+  preferences: null,
 
   hydrateFromCache: () => {
     const cachedTunnel = readCached<TunnelStatusDTO>(TUNNEL_STORAGE_KEY)
@@ -110,5 +125,17 @@ export const useTunnelStore = create<TunnelState>((set) => ({
     persist(LAN_STORAGE_KEY, lanStatus)
     set({ lanStatus })
     return lanStatus
+  },
+
+  refreshPreferences: async () => {
+    const preferences = await phoneAccessApi.getPhoneAccessPreferences()
+    set({ preferences })
+    return preferences
+  },
+
+  updatePreferences: async (update) => {
+    const preferences = await phoneAccessApi.updatePhoneAccessPreferences(update)
+    set({ preferences })
+    return preferences
   },
 }))
