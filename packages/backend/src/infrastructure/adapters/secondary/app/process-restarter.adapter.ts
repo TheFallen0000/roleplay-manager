@@ -25,8 +25,10 @@ const LAUNCHER_FILE = IS_WINDOWS ? "start.cmd" : "start.sh"
  * the `current` pointer, so the freshly installed version is the one that
  * starts.
  *
- * The browser is not reopened (`RM_NO_BROWSER`): the tab that requested the
- * restart reconnects on its own.
+ * The browser is not reopened: the tab that requested the restart reconnects on
+ * its own. `RM_NO_BROWSER` tells the launcher not to ask for a browser, and the
+ * inherited `RM_OPEN_BROWSER` is dropped so the new server cannot open one
+ * either.
  */
 export class ProcessRestarter implements AppRestarter {
   private readonly root: string | undefined
@@ -48,20 +50,23 @@ export class ProcessRestarter implements AppRestarter {
       throw new Error("The app is not packaged; it cannot restart itself.")
     }
 
+    const env: NodeJS.ProcessEnv = { ...process.env, RM_NO_BROWSER: "1" }
+    delete env.RM_OPEN_BROWSER
+
     const child = IS_WINDOWS
       ? this.spawnImpl(
           process.env.ComSpec ?? "cmd.exe",
           ["/d", "/s", "/c", LAUNCHER_FILE],
           {
             cwd: this.root,
-            env: { ...process.env, RM_NO_BROWSER: "1" },
+            env,
             detached: true,
             stdio: "ignore",
           },
         )
       : this.spawnImpl("sh", [LAUNCHER_FILE], {
           cwd: this.root,
-          env: { ...process.env, RM_NO_BROWSER: "1" },
+          env,
           detached: true,
           stdio: "ignore",
         })

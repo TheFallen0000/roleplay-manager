@@ -33,6 +33,9 @@ describe("ProcessRestarter", () => {
 
   it("relaunches the launcher (without the browser) and exits", () => {
     vi.useFakeTimers()
+    // The running process was started by the launcher, so it carries the
+    // "open the browser" order: the restart must not forward it.
+    vi.stubEnv("RM_OPEN_BROWSER", "http://localhost:3001")
     try {
       const on = vi.fn()
       const unref = vi.fn()
@@ -54,15 +57,22 @@ describe("ProcessRestarter", () => {
           cwd: root,
           detached: true,
           stdio: "ignore",
-          env: expect.objectContaining({ RM_NO_BROWSER: "1" }),
         }),
       )
+
+      const options = (spawnImpl.mock.calls[0] as unknown[])[2] as {
+        env: NodeJS.ProcessEnv
+      }
+      expect(options.env.RM_NO_BROWSER).toBe("1")
+      expect(options.env.RM_OPEN_BROWSER).toBeUndefined()
+
       expect(unref).toHaveBeenCalledTimes(1)
       expect(exit).not.toHaveBeenCalled()
 
       vi.runAllTimers()
       expect(exit).toHaveBeenCalledWith(0)
     } finally {
+      vi.unstubAllEnvs()
       vi.useRealTimers()
     }
   })
