@@ -35,6 +35,7 @@ import {
   extractTunnelServeUrl,
   translateApiError,
 } from "@/lib/translate-api-error"
+import { PhoneAccessSettings } from "./phone-access-settings"
 
 export interface PhoneAccessDialogProps {
   open: boolean
@@ -54,6 +55,7 @@ export function PhoneAccessDialog({
   const refreshLan = useTunnelStore((state) => state.refreshLan)
   const enableLan = useTunnelStore((state) => state.enableLan)
   const disableLan = useTunnelStore((state) => state.disableLan)
+  const refreshPreferences = useTunnelStore((state) => state.refreshPreferences)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [consentUrl, setConsentUrl] = useState<string | null>(null)
@@ -63,7 +65,8 @@ export function PhoneAccessDialog({
     if (!open) return
     refresh().catch(() => setError(t("tunnel.checkFailed")))
     refreshLan().catch(() => setError(t("tunnel.checkFailed")))
-  }, [open, refresh, refreshLan, t])
+    refreshPreferences().catch(() => undefined)
+  }, [open, refresh, refreshLan, refreshPreferences, t])
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -234,6 +237,8 @@ export function PhoneAccessDialog({
                 {t("tunnel.lanHint")}
               </p>
             )}
+
+            <PhoneAccessSettings mode="lan" />
           </TabsContent>
 
           <TabsContent value="tailscale" className="min-w-0 space-y-4 pt-2">
@@ -307,6 +312,8 @@ export function PhoneAccessDialog({
                 </p>
               </div>
             ) : null}
+
+            <PhoneAccessSettings mode="tailscale" />
           </TabsContent>
         </Tabs>
 

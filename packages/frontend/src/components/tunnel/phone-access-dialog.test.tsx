@@ -20,6 +20,8 @@ const mocks = vi.hoisted(() => ({
   getLanStatus: vi.fn(),
   enableLanAccess: vi.fn(),
   disableLanAccess: vi.fn(),
+  getPhoneAccessPreferences: vi.fn(),
+  updatePhoneAccessPreferences: vi.fn(),
 }))
 
 vi.mock("@/lib/api/tunnel", () => ({
@@ -32,6 +34,11 @@ vi.mock("@/lib/api/lan", () => ({
   getLanStatus: mocks.getLanStatus,
   enableLanAccess: mocks.enableLanAccess,
   disableLanAccess: mocks.disableLanAccess,
+}))
+
+vi.mock("@/lib/api/phone-access", () => ({
+  getPhoneAccessPreferences: mocks.getPhoneAccessPreferences,
+  updatePhoneAccessPreferences: mocks.updatePhoneAccessPreferences,
 }))
 
 vi.mock("@workspace/ui/components/sonner", () => ({
@@ -56,6 +63,15 @@ const tunnelActive = { ...tunnelInactive, active: true }
 const lanInactive = { active: false, port: 4322, addresses: ["192.168.1.10"] }
 const lanActive = { ...lanInactive, active: true }
 
+const preferences = {
+  tailscale: {
+    autoEnableOnStart: false,
+    disableOnClose: true,
+    idleDisableMinutes: null,
+  },
+  lan: { autoEnableOnStart: false, idleDisableMinutes: null },
+}
+
 const renderDialog = () =>
   render(
     <I18nProvider initialLocale="es">
@@ -70,8 +86,9 @@ const openTailscaleTab = async () => {
 const activePanel = () => within(screen.getByRole("tabpanel"))
 
 beforeEach(() => {
-  useTunnelStore.setState({ status: null, lanStatus: null })
+  useTunnelStore.setState({ status: null, lanStatus: null, preferences: null })
   mocks.getLanStatus.mockResolvedValue(lanInactive)
+  mocks.getPhoneAccessPreferences.mockResolvedValue(preferences)
 })
 
 afterEach(() => {
@@ -81,6 +98,20 @@ afterEach(() => {
 })
 
 describe("PhoneAccessDialog", () => {
+  it("muestra los ajustes del enlace en ambas pestañas", async () => {
+    mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
+
+    renderDialog()
+
+    expect(
+      await activePanel().findByText("Ajustes del enlace"),
+    ).toBeInTheDocument()
+    await openTailscaleTab()
+    expect(
+      await activePanel().findByText("Ajustes del enlace"),
+    ).toBeInTheDocument()
+  })
+
   it("activa el modo de red local desde su pestaña y muestra el QR", async () => {
     mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
     mocks.enableLanAccess.mockResolvedValue(lanActive)
