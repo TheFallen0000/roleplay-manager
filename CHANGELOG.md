@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.37.1] - 2026-10-09
+
+### Changed
+
+- **All code comments are now written in English** across the monorepo
+  (backend, frontend, shared and ui): Spanish JSDoc and inline comments were
+  translated, and comments that only restated the code were removed. The
+  convention is recorded in `AGENTS.md`: English names and comments, comments
+  used sparingly to explain *why*, no JSX narration comments and configuration
+  files preferred as their home.
+
 ## [1.37.0] - 2026-10-09
 
 ### Added
