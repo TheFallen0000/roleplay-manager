@@ -47,7 +47,7 @@ describe("sortCharacters", () => {
       "activity-desc",
     )
 
-    // newCharacter no tiene actividad -> usa su creación (junio), que es más reciente
+    // newCharacter has no activity -> uses its creation (June), which is more recent
     expect(result.map((c) => c.id)).toEqual(["new", "old"])
   })
 

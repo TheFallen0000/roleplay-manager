@@ -98,7 +98,7 @@ describe("memoryDecayInfo", () => {
 
     expect(info.effectivePriority).toBe(3)
     expect(info.isPromptEligible).toBe(false)
-    expect(info.isDeletionCandidate).toBe(false) // 1 turno < ageThreshold 30
+    expect(info.isDeletionCandidate).toBe(false) // 1 turn < ageThreshold 30
   })
 
   it("marca como candidata a eliminación solo cuando cumple umbral y antigüedad", () => {
@@ -116,7 +116,7 @@ describe("memoryDecayInfo", () => {
 
   it("no cuenta los mensajes anteriores a la última actualización de la memoria", () => {
     const conversation = buildConversation({ memoryDecaySpeed: 1 })
-    // La memoria se actualizó después de 1 mensaje; solo 3 de 4 mensajes cuentan.
+    // The memory was updated after 1 message; only 3 of 4 messages count.
     const memory = buildMemory({ updatedAt: buildMessages(1)[0].createdAt })
     const info = memoryDecayInfo(memory, conversation, buildMessages(4))
 

@@ -24,10 +24,9 @@ import { useTunnelStore } from "@/lib/stores/tunnel.store"
 const DEFAULT_IDLE_MINUTES: IdleDisableMinutes = 60
 
 /**
- * Sección «Ajustes del enlace», una por modo de acceso telefónico. Está plegada
- * por defecto y muestra un resumen de las opciones activas, para que el diálogo
- * principal siga siendo solo encender/apagar (los ajustes se editan al
- * expandirla, también con el enlace activo).
+ * "Link settings" section, one per phone-access mode. It starts collapsed and
+ * summarizes the active options so the main dialog stays on/off only; settings
+ * are edited by expanding it, including while the link is active.
  */
 export function PhoneAccessSettings({ mode }: { mode: PhoneAccessMode }) {
   const { t } = useTranslation()

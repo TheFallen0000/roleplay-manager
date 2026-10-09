@@ -52,12 +52,10 @@ function WelcomeContent() {
 
   return (
     <div className="relative grid min-h-svh lg:grid-cols-[1.15fr_1fr]">
-      {/* Papel con grano: el material del mundo, no un degradado. */}
       <div
         aria-hidden
         className="rm-paper-grain pointer-events-none absolute inset-0 opacity-[0.05]"
       />
-      {/* Portada: el nombre, la mascota y la promesa del producto. */}
       <section className="relative flex flex-col justify-center gap-8 overflow-hidden border-b border-border px-6 py-12 lg:border-b-0 lg:border-r lg:px-14 lg:py-16">
         <h1 className="font-display text-[clamp(3rem,2.2rem+6.5vw,6rem)] leading-[1.02] tracking-[-0.02em] text-balance">
           Roleplay{" "}
@@ -73,7 +71,6 @@ function WelcomeContent() {
         </div>
       </section>
 
-      {/* Decisiones de primer arranque, como placas de tinta. */}
       <section
         aria-label={t("welcome.world")}
         className="flex flex-col justify-center bg-card/50 px-6 py-10 lg:px-12"
@@ -182,7 +179,7 @@ function Placa({
   )
 }
 
-/** Destello de un solo uso al empezar: ocho rayos dorados. */
+/** One-shot golden sparkle shown while the app starts. */
 function SparkleBurst() {
   return (
     <svg
