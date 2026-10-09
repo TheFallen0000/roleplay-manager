@@ -1,10 +1,10 @@
 import type { LanAccessStatusDTO } from "@workspace/shared/types/lan"
 
 /**
- * Puerto del acceso por red local.
+ * Local network access port.
  *
- * La implementación concreta (un proxy HTTP en el backend) vive en
- * infraestructura; los casos de uso solo ven este contrato.
+ * The concrete implementation (an HTTP proxy in the backend) lives in
+ * infrastructure; use cases only see this contract.
  */
 export interface LanAccessController {
   getStatus(): Promise<LanAccessStatusDTO>

@@ -16,11 +16,11 @@ export interface OllamaAdapterOptions {
 }
 
 /**
- * Adaptador para Ollama local (HTTP contra `/api/tags`).
+ * Adapter for a local Ollama instance (HTTP against `/api/tags`).
  *
- * En S1 implementa unicamente `validateConnection` y `listModels`. La
- * generacion de respuestas llega en S4 con su propio adaptador que
- * traduce el `PromptContext` al formato `/api/chat` de Ollama.
+ * As of S1 it only implements `validateConnection` and `listModels`. Response
+ * generation arrives in S4 with its own adapter that translates
+ * `PromptContext` into Ollama's `/api/chat` format.
  */
 export class OllamaAdapter implements ProviderPort {
   constructor(private readonly options: OllamaAdapterOptions) {}

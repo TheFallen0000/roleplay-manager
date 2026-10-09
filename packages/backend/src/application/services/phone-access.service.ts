@@ -22,10 +22,10 @@ export interface PhoneAccessServiceOptions {
 const IDLE_CHECK_CLOCK_MS = 60_000
 
 /**
- * Aplica los ajustes del enlace telefónico fuera de las peticiones:
- * activar al iniciar, desactivar al cerrar y auto-desactivado por inactividad
- * (sin peticiones remotas durante N minutos). Todo es *best effort*: un fallo
- * se registra y nunca tumba la app.
+ * Applies phone link settings outside requests: enable on startup, disable on
+ * shutdown, and auto-disable on inactivity (no remote requests for N minutes).
+ * Everything is *best effort*: a failure is logged and never brings the app
+ * down.
  */
 export class PhoneAccessService {
   private readonly settings: SettingsRepository

@@ -4,10 +4,10 @@ import type {
 } from "@workspace/shared/types/update"
 
 /**
- * Puerto de actualizaciones de la aplicación.
+ * Application updates port.
  *
- * La implementación concreta (hoy por git; en el futuro por releases) vive en
- * infraestructura; los casos de uso solo ven este contrato.
+ * The concrete implementation (git today; releases in the future) lives in
+ * infrastructure; use cases only see this contract.
  */
 export interface UpdateController {
   /** Last known status (no network access). */

@@ -1,10 +1,10 @@
 /**
- * Puerto de acceso a la tabla `settings`.
+ * Access port for the `settings` table.
  *
- * La tabla es un simple key-value store que persiste configuración
- * global del sistema (proveedor por defecto, modelo, claves de
- * proveedores remotos, etc.). El dominio la consume a través de este
- * puerto; la implementación (Drizzle) vive en infraestructura.
+ * The table is a simple key-value store persisting global system
+ * configuration (default provider, model, remote provider keys, etc.).
+ * The domain consumes it through this port; the implementation (Drizzle)
+ * lives in infrastructure.
  */
 export interface SettingsRepository {
   get(key: string): Promise<string | null>

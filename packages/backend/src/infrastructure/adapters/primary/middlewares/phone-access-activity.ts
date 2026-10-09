@@ -7,9 +7,8 @@ import { LAN_ACCESS_MARKER_HEADER } from "../../secondary/lan/lan-proxy-server.a
 const TAILSCALE_HOST = /\.ts\.net$/i
 
 /**
- * Registra el uso remoto del enlace telefónico, para que el vigilante de
- * inactividad sepa cuándo se usó cada modo por última vez. Las peticiones
- * locales (el navegador de la PC) no cuentan.
+ * Records remote use of the phone link so the inactivity watchdog knows when
+ * each mode was last used. Local requests (the PC's browser) do not count.
  */
 export const buildPhoneAccessActivityMiddleware = (
   activity: PhoneAccessActivity,

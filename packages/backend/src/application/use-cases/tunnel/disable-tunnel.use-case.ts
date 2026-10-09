@@ -3,7 +3,7 @@ import type { TunnelStatusDTO } from "@workspace/shared/types/tunnel"
 import { TunnelNotAvailableError } from "../../../domain/errors"
 import type { TunnelController } from "../../../domain/ports/tunnel-controller"
 
-/** Deja de compartir la app en la red privada (idempotente). */
+/** Stops sharing the app on the private network (idempotent). */
 export class DisableTunnelUseCase {
   constructor(private readonly controller: TunnelController) {}
 

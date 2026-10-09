@@ -36,11 +36,11 @@ const PRIVATE_PATTERNS: Array<{ pattern: RegExp; priority: number }> = [
 ]
 
 /**
- * Proxy HTTP para compartir la app en la red local.
+ * HTTP proxy that shares the app on the local network.
  *
- * Escucha en `0.0.0.0:<port>` y reenvía todo (HTML, assets, API, SSE y subidas)
- * al frontend local conservando el `Host` original, para que el chequeo de
- * origen de Astro siga pasando. Se puede encender y apagar en caliente.
+ * Listens on `0.0.0.0:<port>` and forwards everything (HTML, assets, API, SSE
+ * and uploads) to the local frontend while keeping the original `Host`, so
+ * Astro's origin check keeps passing. It can be turned on and off on the fly.
  */
 export class LanProxyServerAdapter implements LanAccessController {
   private readonly target: URL

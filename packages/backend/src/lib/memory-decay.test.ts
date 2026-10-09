@@ -65,7 +65,7 @@ const buildTimeline = (
 
 describe("filterMemoriesForPrompt", () => {
   it("excluye las memorias cuya prioridad efectiva cayó al umbral o por debajo", () => {
-    // decaySpeed 1, threshold 3: la memoria de prioridad 5 cae a 3 tras 2 turnos.
+    // decaySpeed 1, threshold 3: the priority-5 memory drops to 3 after 2 turns.
     const conversation = buildConversation({
       memoryDecayThreshold: 3,
       memoryDecaySpeed: 1,
@@ -103,7 +103,7 @@ describe("filterMemoriesForPrompt", () => {
       memoryDecayThreshold: 3,
       memoryDecaySpeed: 1,
     })
-    // La memoria se actualizó después de 1 mensaje; de los 4 totales solo 3 cuentan.
+    // The memory was updated after 1 message; only 3 of the 4 total count.
     const memory = buildMemory("m-recent", 5, new Date(now.getTime() + 60_000))
 
     const result = filterMemoriesForPrompt(
@@ -112,7 +112,7 @@ describe("filterMemoriesForPrompt", () => {
       buildTimeline(4, "user", 0),
     )
 
-    // 4 mensajes, 3 posteriores al update → 5-3 = 2 ≤ 3 → excluida.
+    // 4 messages, 3 after the update → 5-3 = 2 ≤ 3 → excluded.
     expect(result).toEqual([])
   })
 
@@ -145,7 +145,7 @@ describe("filterMemoriesForPrompt", () => {
 
     const result = filterMemoriesForPrompt(conversation, [memory], assistantReplies)
 
-    // 0 turnos de usuario → prioridad efectiva 5 → sigue elegible.
+    // 0 user turns → effective priority 5 → still eligible.
     expect(result.map((m) => m.id)).toEqual(["m-old"])
   })
 

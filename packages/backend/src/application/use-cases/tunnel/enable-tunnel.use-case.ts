@@ -7,7 +7,7 @@ import {
 import type { PhoneAccessActivity } from "../../../domain/ports/phone-access-activity"
 import type { TunnelController } from "../../../domain/ports/tunnel-controller"
 
-/** Comparte la app en la red privada (idempotente). */
+/** Shares the app on the private network (idempotent). */
 export class EnableTunnelUseCase {
   constructor(
     private readonly controller: TunnelController,

@@ -64,11 +64,11 @@ interface ServeConfigJson {
 }
 
 /**
- * Controla `tailscale serve` para compartir la app dentro del tailnet.
+ * Controls `tailscale serve` to share the app inside the tailnet.
  *
- * - `getStatus` nunca lanza: si el binario no existe devuelve
- *   `available: false`; si Tailscale no está en ejecución, `connected: false`.
- * - `enable`/`disable` lanzan `TunnelCommandError` si el comando falla.
+ * - `getStatus` never throws: when the binary is missing it returns
+ *   `available: false`; when Tailscale is not running, `connected: false`.
+ * - `enable`/`disable` throw `TunnelCommandError` when the command fails.
  */
 export class TailscaleServeAdapter implements TunnelController {
   private readonly targetUrl: string

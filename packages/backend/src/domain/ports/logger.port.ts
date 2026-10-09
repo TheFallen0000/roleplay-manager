@@ -3,15 +3,14 @@ export type LogLevel = "debug" | "info" | "warn" | "error"
 export type LogContext = Record<string, unknown>
 
 /**
- * Puerto de logging.
+ * Logging port.
  *
- * El dominio y los casos de uso emiten eventos de log a través de esta
- * interfaz. La elección del backend (pino, winston, console) vive en
- * infraestructura.
+ * The domain and use cases emit log events through this interface. The
+ * backend choice (pino, winston, console) lives in infrastructure.
  *
- * El método `child` permite crear un logger con bindings fijos
- * (p. ej. `requestId`, `conversationId`) que se propagan a cada
- * llamada de log sin repetirlos manualmente.
+ * `child` creates a logger with fixed bindings (e.g. `requestId`,
+ * `conversationId`) that propagate to every log call without repeating
+ * them manually.
  */
 export interface Logger {
   debug(message: string, context?: LogContext): void

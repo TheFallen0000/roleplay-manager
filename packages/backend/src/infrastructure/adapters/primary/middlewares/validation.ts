@@ -15,8 +15,8 @@ export const validate =
       next(new ValidationError(message))
       return
     }
-    // Sustituimos los datos validados en req[source] para que el
-    // controller reciba versiones saneadas.
+    // Replace the data in req[source] with the validated result so the
+    // controller receives sanitized versions.
     ;(req as unknown as Record<string, unknown>)[source] = result.data
     next()
   }

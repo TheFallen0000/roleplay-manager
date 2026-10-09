@@ -22,13 +22,13 @@ export interface OpenAICompatibleAdapterOptions {
 }
 
 /**
- * Adaptador para cualquier proveedor que exponga la API de OpenAI
+ * Adapter for any provider exposing the OpenAI API
  * (LM Studio, vLLM, Text Generation WebUI, OpenAI, Groq, etc.).
  *
- * Se usa `fetch` directo para `listModels()` y `validateConnection()`
- * (el SDK openai no expone correctamente la respuesta cruda en v4.x).
- * La generacion sigue usando `client.chat.completions.create` para
- * streaming, ya que ahi el SDK es confiable.
+ * Plain `fetch` is used for `listModels()` and `validateConnection()`
+ * (the openai SDK does not expose the raw response correctly in v4.x).
+ * Generation still uses `client.chat.completions.create` for streaming,
+ * where the SDK is reliable.
  */
 export class OpenAICompatibleAdapter implements ProviderPort {
   private readonly baseUrl: string

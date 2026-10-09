@@ -7,7 +7,7 @@ export interface ApplyUpdateInput {
   withBackup: boolean
 }
 
-/** Inicia la actualización en segundo plano (el progreso va en `job`). */
+/** Starts the update in the background (progress goes in `job`). */
 export class ApplyUpdateUseCase {
   constructor(private readonly controller: UpdateController) {}
 

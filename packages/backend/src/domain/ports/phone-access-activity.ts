@@ -1,11 +1,11 @@
 import type { PhoneAccessMode } from "@workspace/shared/types/phone-access"
 
 /**
- * Actividad del enlace telefónico.
+ * Phone link activity.
  *
- * Registra cuándo se usó cada modo por última vez (una petición que llegó por
- * el túnel o por la red local) para que el vigilante de inactividad pueda
- * apagarlo cuando nadie lo usa.
+ * Records when each mode was last used (a request arriving through the tunnel
+ * or the local network) so the inactivity watcher can turn it off when nobody
+ * is using it.
  */
 export interface PhoneAccessActivity {
   /** Marks the mode as used right now (enabling it also counts as use). */

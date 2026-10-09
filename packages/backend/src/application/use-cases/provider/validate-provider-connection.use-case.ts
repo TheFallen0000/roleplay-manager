@@ -11,13 +11,13 @@ export interface ValidateProviderConnectionResult {
 }
 
 /**
- * Verifica la conexion con un proveedor.
+ * Verifies connectivity with a provider.
  *
- * - Si el proveedor no esta configurado (p. ej. OpenAI-compatible
- *   sin URL base), devuelve `status: "unconfigured"` sin lanzar error.
- * - Si el adaptador responde OK, devuelve `"available"`.
- * - Si falla la conexion o expira el timeout, devuelve `"unavailable"`.
- * - Si el id es desconocido, lanza `ProviderUnavailableError`.
+ * - If the provider is not configured (e.g. OpenAI-compatible without a base
+ *   URL), returns `status: "unconfigured"` without throwing.
+ * - If the adapter responds OK, returns `"available"`.
+ * - If the connection fails or the timeout expires, returns `"unavailable"`.
+ * - If the id is unknown, throws `ProviderUnavailableError`.
  */
 export class ValidateProviderConnectionUseCase {
   constructor(

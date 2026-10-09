@@ -2,7 +2,7 @@ import type { LanAccessStatusDTO } from "@workspace/shared/types/lan"
 
 import type { LanAccessController } from "../../../domain/ports/lan-access-controller"
 
-/** Deja de compartir la app en la red local (idempotente). */
+/** Stops sharing the app on the local network (idempotent). */
 export class DisableLanAccessUseCase {
   constructor(private readonly controller: LanAccessController) {}
 

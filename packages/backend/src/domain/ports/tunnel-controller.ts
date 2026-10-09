@@ -1,10 +1,10 @@
 import type { TunnelStatusDTO } from "@workspace/shared/types/tunnel"
 
 /**
- * Puerto del túnel de acceso remoto.
+ * Remote access tunnel port.
  *
- * La implementación concreta (Tailscale Serve u otra) vive en
- * infraestructura; los casos de uso solo ven este contrato.
+ * The concrete implementation (Tailscale Serve or another) lives in
+ * infrastructure; use cases only see this contract.
  */
 export interface TunnelController {
   /** Never throws: returns `available: false` when the tool is missing. */

@@ -9,7 +9,6 @@ import {
   type PhoneAccessPreferencesPatch,
 } from "../../services/phone-access-preferences"
 
-/** Persiste un cambio parcial de un modo y devuelve los ajustes frescos. */
 export class UpdatePhoneAccessPreferencesUseCase {
   constructor(private readonly settings: SettingsRepository) {}
 

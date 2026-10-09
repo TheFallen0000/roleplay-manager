@@ -1,8 +1,8 @@
 /**
- * Puerto de ciclo de vida de la aplicación.
+ * Application lifecycle port.
  *
- * Permite relanzar la app empaquetada (por ejemplo, después de aplicar una
- * actualización) sin que el usuario tenga que cerrar y volver a abrir.
+ * Allows relaunching the packaged app (for example, after applying an
+ * update) without the user having to close and reopen it.
  */
 export interface AppRestarter {
   /** Whether this process can restart itself (packaged launcher present). */

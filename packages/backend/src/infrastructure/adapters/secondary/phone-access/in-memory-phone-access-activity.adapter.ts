@@ -8,11 +8,11 @@ export interface InMemoryPhoneAccessActivityOptions {
 }
 
 /**
- * Últimos instantes de uso de cada modo del enlace telefónico, en memoria.
+ * Last use instants of each phone link mode, kept in memory.
  *
- * Un reinicio de la app resetea el reloj a propósito: el arranque cuenta como
- * actividad y la cuenta atrás del vigilante empieza desde ahí (o desde el
- * momento en que el usuario enciende el enlace, que también hace `touch`).
+ * An app restart resets the clock on purpose: startup counts as activity and
+ * the watchdog countdown starts from there (or from the moment the user turns
+ * the link on, which also calls `touch`).
  */
 export class InMemoryPhoneAccessActivity implements PhoneAccessActivity {
   private readonly now: () => number

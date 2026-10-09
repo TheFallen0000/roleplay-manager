@@ -105,11 +105,11 @@ describe("MemoryDecayPolicy", () => {
   describe("isDeletionCandidate", () => {
     it("exige prioridad efectiva bajo el umbral Y antigüedad mínima", () => {
       const policy = new MemoryDecayPolicy("silent", 3, 30, 1)
-      // Prioridad efectiva 1 pero solo 5 turnos → no candidata.
+      // Effective priority 1 but only 5 turns → not a candidate.
       expect(policy.isDeletionCandidate(5, 5)).toBe(false)
-      // Prioridad efectiva 1 y 30 turnos → candidata.
+      // Effective priority 1 and 30 turns → candidate.
       expect(policy.isDeletionCandidate(5, 30)).toBe(true)
-      // 30 turnos pero prioridad efectiva 4 → no candidata.
+      // 30 turns but effective priority 5 → not a candidate.
       const slowPolicy = new MemoryDecayPolicy("silent", 3, 30, 100)
       expect(slowPolicy.isDeletionCandidate(5, 30)).toBe(false)
     })

@@ -18,11 +18,11 @@ export interface ListProviderModelsResult {
 }
 
 /**
- * Lista los modelos de un proveedor. Si no se pasa `providerInstanceId`,
- * se usa `getAdapter` (legacy settings). Si se pasa un ID de instancia,
- * se busca en `ProviderInstanceRepository` y se usa `createAdapter`.
- * Si el proveedor no esta configurado, devuelve `{ models: [], manualEntryRequired: true }`
- * para que el frontend habilite la entrada manual.
+ * Lists the models of a provider. When `providerInstanceId` is omitted,
+ * `getAdapter` is used (legacy settings). When an instance ID is passed,
+ * `ProviderInstanceRepository` is queried and `createAdapter` is used.
+ * If the provider is not configured, returns `{ models: [], manualEntryRequired: true }`
+ * so the frontend enables manual entry.
  */
 export class ListProviderModelsUseCase {
   constructor(

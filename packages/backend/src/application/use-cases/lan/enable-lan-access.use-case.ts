@@ -3,7 +3,7 @@ import type { LanAccessStatusDTO } from "@workspace/shared/types/lan"
 import type { LanAccessController } from "../../../domain/ports/lan-access-controller"
 import type { PhoneAccessActivity } from "../../../domain/ports/phone-access-activity"
 
-/** Comparte la app en la red local (idempotente). */
+/** Shares the app on the local network (idempotent). */
 export class EnableLanAccessUseCase {
   constructor(
     private readonly controller: LanAccessController,

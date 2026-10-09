@@ -114,8 +114,8 @@ const buildRepos = ({
 
 describe("DecayConversationMemoryUseCase", () => {
   it("elimina memorias con prioridad efectiva bajo el umbral y antigüedad suficiente (decaySpeed 1)", async () => {
-    // decaySpeed = 1: cada turno pierde -1 de prioridad.
-    // 35 mensajes despues de updatedAt → prioridad 5 baja a 1 → candidata.
+    // decaySpeed = 1: each turn loses -1 priority.
+    // 35 messages after updatedAt → priority 5 drops to 1 → candidate.
     const conversation = buildConversation({
       memoryDecayMode: "silent",
       memoryDecayThreshold: 3,
@@ -144,8 +144,8 @@ describe("DecayConversationMemoryUseCase", () => {
   })
 
   it("no elimina si la prioridad efectiva no ha caído bajo el umbral", async () => {
-    // decaySpeed = 10: 35 turnos → -3 de prioridad → 5-3 = 2... con threshold 3 si es candidata.
-    // Usamos decaySpeed 100 para que no decaiga: 35/100 = 0 → prioridad 5 > 3.
+    // decaySpeed = 10: 35 turns → -3 priority → 5-3 = 2... with threshold 3 it would be a candidate.
+    // Use decaySpeed 100 so it does not decay: 35/100 = 0 → priority 5 > 3.
     const conversation = buildConversation({
       memoryDecayMode: "silent",
       memoryDecayThreshold: 3,
@@ -173,7 +173,7 @@ describe("DecayConversationMemoryUseCase", () => {
   })
 
   it("no elimina si la memoria no tiene la antigüedad mínima", async () => {
-    // Solo 5 turnos: prioridad efectiva 5 (decaySpeed 1 → -5 → 1) pero turns < 30.
+    // Only 5 turns: effective priority 1 (5 - 5 with decaySpeed 1) but turns < 30.
     const conversation = buildConversation({
       memoryDecayMode: "silent",
       memoryDecayThreshold: 3,
@@ -201,7 +201,7 @@ describe("DecayConversationMemoryUseCase", () => {
   })
 
   it("no cuenta las respuestas del asistente como turnos", async () => {
-    // 35 respuestas del asistente, 0 mensajes de usuario → turns = 0 → no candidata.
+    // 35 assistant replies, 0 user messages → turns = 0 → not a candidate.
     const conversation = buildConversation({
       memoryDecayMode: "silent",
       memoryDecayThreshold: 3,

@@ -19,15 +19,15 @@ export interface ProviderPort {
 export type { ListModelsResult, ProviderId, ProviderModel, ProviderStatus }
 
 /**
- * Registry de proveedores.
+ * Provider registry.
  *
- * Devuelve el adaptador configurado para un `ProviderId` dado, o `null`
- * si el proveedor no está configurado (caso típico: OpenAI-compatible
- * sin URL base).
+ * Returns the adapter configured for a given `ProviderId`, or `null`
+ * when the provider is not configured (typical case: OpenAI-compatible
+ * without a base URL).
  *
- * El listado de IDs registrados se mantiene como una constante del
- * registry para que la API pueda anunciar al frontend qué proveedores
- * están disponibles sin necesidad de instanciar cada adaptador.
+ * The list of registered IDs is kept as a registry constant so the API
+ * can announce which providers are available to the frontend without
+ * instantiating every adapter.
  */
 import type { ProviderInstance } from "@workspace/shared/types/provider-instance"
 
