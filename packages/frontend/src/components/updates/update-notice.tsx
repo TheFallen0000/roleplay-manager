@@ -82,6 +82,7 @@ function UpdateNoticeContent() {
           </Button>
           <Button
             render={<a href="/settings/updates" />}
+            nativeButton={false}
             onClick={dismiss}
           >
             {t("updates.noticeAction")}
