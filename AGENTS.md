@@ -136,6 +136,10 @@ pages/ (Astro) ─→ components/ (React) ─→ lib/
 
 ## 5. Naming conventions
 
+All names are English: files, components, exports, variables, types and test
+helpers. Spanish only appears in user-facing copy, and that copy lives in the
+i18n dictionaries (`packages/shared/src/i18n`) — never in identifiers or code.
+
 ### Backend
 
 | Kind | Pattern | Example |
@@ -167,6 +171,17 @@ pages/ (Astro) ─→ components/ (React) ─→ lib/
 | Type export | PascalCase | `ConversationDetail`, `SummaryDTO` |
 | DTO suffix | `DTO` (data transfer object) | `MessageDTO`, `SummaryDTO` |
 | Input suffix | `Input` | `CreateConversationInput` |
+
+### Comments
+
+- **English only.** Every comment in the repo is written in English.
+- **Comment sparingly.** A comment explains *why* (a non-obvious decision, a
+  workaround, an accessibility choice); it never restates what the code does.
+- **Avoid comments in `.tsx`** unless they carry real information. Narrating
+  what a block of JSX renders is noise — delete it.
+- **Configuration files are the preferred home for comments** (`.css` files,
+  config objects, `scripts/`), where they document tokens, options and
+  behaviour.
 
 ---
 
@@ -203,6 +218,8 @@ Runs `check:arch` + `turbo typecheck` + `turbo lint` across all packages. Use th
 - **Don't put runtime imports in `shared/`.** If you need to compute a value, return a function or pure data; do not import `drizzle-orm` or `react`.
 - **Don't let components exceed 500 lines.** Extract subcomponents, dialogs, or hooks.
 - **Don't mutate domain entities.** Return new instances via factory methods or `withX()` helpers.
+- **Don't write Spanish names or comments.** Identifiers are English and every
+  comment is English; JSX narration comments get deleted.
 
 ---
 
