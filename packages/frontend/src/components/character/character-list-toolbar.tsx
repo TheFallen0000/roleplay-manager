@@ -1,5 +1,6 @@
 import { SearchIcon } from "lucide-react"
 
+import { Badge } from "@workspace/ui/components/badge"
 import { Input } from "@workspace/ui/components/input"
 import {
   Select,
@@ -32,6 +33,7 @@ interface CharacterListToolbarProps {
   sort: CharacterSortKey
   onSortChange: (value: CharacterSortKey) => void
   resultCount: number
+  totalCount: number
 }
 
 export function CharacterListToolbar({
@@ -40,6 +42,7 @@ export function CharacterListToolbar({
   sort,
   onSortChange,
   resultCount,
+  totalCount,
 }: CharacterListToolbarProps) {
   const { t } = useTranslation()
 
@@ -61,11 +64,11 @@ export function CharacterListToolbar({
         />
       </div>
       <div className="flex items-center justify-between gap-2 sm:justify-end">
-        {searching ? (
-          <span className="text-muted-foreground text-sm whitespace-nowrap">
-            {t("characters.results", { count: resultCount })}
-          </span>
-        ) : null}
+        <Badge variant="secondary" className="whitespace-nowrap">
+          {searching
+            ? t("characters.results", { count: resultCount })
+            : t("characters.count", { count: totalCount })}
+        </Badge>
         <Select
           value={sort}
           onValueChange={(value) => {

@@ -388,9 +388,11 @@ export const en = {
     sortActivityDesc: "Last activity: newest",
     sortActivityAsc: "Last activity: oldest",
     results: { one: "1 result", other: "{count} results" },
+    lede: "Each character keeps their versions, memory and conversations.",
     noResults: 'No characters match "{term}".',
-    emptyTitle: "You have no characters",
-    emptyDescription: "Create your first character to start a conversation.",
+    emptyTitle: "Your shelf is empty",
+    emptyDescription:
+      "Create your first character and start a story you won't forget.",
     deleteFailed: "The character could not be deleted.",
     conversationExists:
       "A conversation already exists for this character and version.",

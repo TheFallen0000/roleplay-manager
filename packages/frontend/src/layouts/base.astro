@@ -52,7 +52,7 @@ const onboarded = isOnboarded(
   <body class="bg-background text-foreground min-h-svh">
     {
       onboarded ? (
-        <AppShell locale={locale} client:load>
+        <AppShell locale={locale} pathname={Astro.url.pathname} client:load>
           <slot />
         </AppShell>
       ) : (

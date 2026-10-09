@@ -55,7 +55,7 @@ export function CharacterDropOverlay({
       {active ? (
         <div
           data-testid="character-drop-overlay"
-          className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center rounded-lg border-2 border-dashed border-primary bg-background/80 backdrop-blur-sm"
+          className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary bg-background/85 backdrop-blur-sm"
         >
           <div className="flex flex-col items-center gap-2 text-center">
             <UploadIcon className="size-10 text-primary" />

@@ -35,7 +35,7 @@ function SidebarLogo() {
       <span className="flex items-center gap-2">
         <BrandFace className="size-6" />
         <span
-          className="inline-block transition-all duration-300 ease-in-out"
+          className="font-heading text-sm font-black tracking-tight inline-block transition-all duration-300 ease-in-out"
           style={{
             opacity: collapsed ? 0 : 1,
             transform: collapsed ? "translateX(-8px)" : "translateX(0)",
@@ -51,27 +51,38 @@ function SidebarLogo() {
 
 export function AppShell({
   locale,
+  pathname,
   children,
 }: {
   locale: Locale
+  pathname: string
   children: React.ReactNode
 }) {
   return (
     <I18nProvider initialLocale={locale}>
       <ThemeProvider>
-        <AppShellContent>{children}</AppShellContent>
+        <AppShellContent pathname={pathname}>{children}</AppShellContent>
       </ThemeProvider>
     </I18nProvider>
   )
 }
 
-function AppShellContent({ children }: { children: React.ReactNode }) {
+function AppShellContent({
+  pathname,
+  children,
+}: {
+  pathname: string
+  children: React.ReactNode
+}) {
   const { resolvedMode } = useTheme()
   const { t } = useTranslation()
   const updateStatus = useUpdatesStore((state) => state.status)
   const hydrateUpdates = useUpdatesStore((state) => state.hydrateFromCache)
   const shouldCheckUpdates = useUpdatesStore((state) => state.shouldCheck)
   const checkUpdates = useUpdatesStore((state) => state.check)
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href)
 
   useEffect(() => {
     hydrateUpdates()
@@ -94,13 +105,21 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton render={<a href="/" />} tooltip={t("nav.characters")}>
+                  <SidebarMenuButton
+                    render={<a href="/" />}
+                    tooltip={t("nav.characters")}
+                    isActive={isActive("/")}
+                  >
                       <UsersIcon />
                       <span>{t("nav.characters")}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton render={<a href="/player-characters" />} tooltip={t("nav.players")}>
+                  <SidebarMenuButton
+                    render={<a href="/player-characters" />}
+                    tooltip={t("nav.players")}
+                    isActive={isActive("/player-characters")}
+                  >
                       <UserRoundIcon />
                       <span>{t("nav.players")}</span>
                   </SidebarMenuButton>
@@ -113,13 +132,21 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton render={<a href="/settings/providers" />} tooltip={t("nav.providers")}>
+                  <SidebarMenuButton
+                    render={<a href="/settings/providers" />}
+                    tooltip={t("nav.providers")}
+                    isActive={isActive("/settings/providers")}
+                  >
                       <CogIcon />
                       <span>{t("nav.providers")}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton render={<a href="/settings/updates" />} tooltip={t("nav.updates")}>
+                  <SidebarMenuButton
+                    render={<a href="/settings/updates" />}
+                    tooltip={t("nav.updates")}
+                    isActive={isActive("/settings/updates")}
+                  >
                     <RefreshCwIcon />
                     <span>{t("nav.updates")}</span>
                   </SidebarMenuButton>
@@ -133,7 +160,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-12 items-center gap-2 border-b px-4">
+        <header className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur-sm">
           <SidebarTrigger />
           <AppMenubar />
         </header>

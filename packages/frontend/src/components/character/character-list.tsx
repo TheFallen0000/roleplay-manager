@@ -1,19 +1,11 @@
 import { useMemo, useState } from "react"
-import { PlusIcon, SearchXIcon, UploadIcon, UsersIcon } from "lucide-react"
+import { PlusIcon, SearchXIcon, UploadIcon } from "lucide-react"
 
 import type { CharacterSummary } from "@workspace/shared/types/character"
 import type { CharacterExport } from "@workspace/shared/types/export"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
-  EmptyMedia,
-} from "@workspace/ui/components/empty"
 
 import { createConversation } from "@/lib/api/conversations"
 import { deleteCharacter, importCharacter } from "@/lib/api/characters"
@@ -28,6 +20,7 @@ import {
   sortCharacters,
   type CharacterSortKey,
 } from "@/lib/sort-characters"
+import { MascotPose } from "../layout/brand"
 import { CharacterCard } from "./character-card"
 import { CharacterDropOverlay } from "./character-drop-overlay"
 import { CharacterListToolbar } from "./character-list-toolbar"
@@ -188,13 +181,13 @@ function CharacterListContent() {
   return (
     <>
       <CharacterDropOverlay onFile={handleImportFile}>
-        <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">{t("characters.title")}</h1>
-          <p className="text-muted-foreground text-sm">
-            {t("characters.count", { count: characters.length })}
-          </p>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="grid gap-1">
+          <h1 className="font-heading text-3xl font-black tracking-tight">
+            {t("characters.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">{t("characters.lede")}</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button variant="outline" onClick={() => setImportOpen(true)}>
@@ -209,23 +202,21 @@ function CharacterListContent() {
       </header>
 
       {characters.length === 0 ? (
-        <Empty>
-          <EmptyMedia variant="icon">
-            <UsersIcon />
-          </EmptyMedia>
-          <EmptyHeader>
-            <EmptyTitle>{t("characters.emptyTitle")}</EmptyTitle>
-            <EmptyDescription>
+        <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
+          <MascotPose pose="hello" className="h-36 w-36" />
+          <div className="grid gap-1.5">
+            <h2 className="font-heading text-xl font-bold">
+              {t("characters.emptyTitle")}
+            </h2>
+            <p className="text-sm text-muted-foreground">
               {t("characters.emptyDescription")}
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button render={<a href="/characters/new" />} nativeButton={false}>
-              <PlusIcon />
-              {t("characters.create")}
-            </Button>
-          </EmptyContent>
-        </Empty>
+            </p>
+          </div>
+          <Button render={<a href="/characters/new" />} nativeButton={false}>
+            <PlusIcon />
+            {t("characters.create")}
+          </Button>
+        </div>
       ) : (
         <>
           <CharacterListToolbar
@@ -234,11 +225,12 @@ function CharacterListContent() {
             sort={sort}
             onSortChange={setSort}
             resultCount={visibleCharacters.length}
+            totalCount={characters.length}
           />
           {visibleCharacters.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-12 text-center">
-              <SearchXIcon className="text-muted-foreground size-8" />
-              <p className="text-muted-foreground text-sm">
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border px-6 py-10 text-center">
+              <SearchXIcon className="size-7 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
                 {t("characters.noResults", { term: search.trim() })}
               </p>
             </div>
@@ -259,6 +251,13 @@ function CharacterListContent() {
                   />
                 </div>
               ))}
+              <a
+                href="/characters/new"
+                className="mb-4 flex break-inside-avoid flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border px-4 py-10 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+              >
+                <PlusIcon className="size-6" />
+                {t("characters.create")}
+              </a>
             </div>
           )}
         </>

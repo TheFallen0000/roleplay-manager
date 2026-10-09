@@ -386,9 +386,11 @@ export const es: Dictionary = {
     sortActivityDesc: "Última actividad: recientes",
     sortActivityAsc: "Última actividad: antiguos",
     results: { one: "1 resultado", other: "{count} resultados" },
+    lede: "Cada personaje guarda sus versiones, su memoria y sus conversaciones.",
     noResults: 'No hay personajes que coincidan con "{term}".',
-    emptyTitle: "No tienes personajes",
-    emptyDescription: "Crea tu primer personaje para empezar una conversación.",
+    emptyTitle: "Tu estantería está vacía",
+    emptyDescription:
+      "Crea tu primer personaje y empieza una historia que no se olvide.",
     deleteFailed: "No se pudo eliminar el personaje.",
     conversationExists:
       "Ya existe una conversación para este personaje y versión.",
