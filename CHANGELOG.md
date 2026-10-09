@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.37.0] - 2026-10-09
+
+### Added
+
+- **New visual identity «Ink & Violet»** — first slice of the redesign (S59):
+  cool paper light mode and ink-night dark mode built around the mascot's
+  violet. **Sakura** and **Midnight** join the theme picker — five worlds in
+  total, each with complete light and dark variants — and the palette,
+  radii, selection, caret and scrollbars are rebuilt from the new tokens.
+  Character dialogue colours are defined per world (`--dialogue-char` /
+  `--dialogue-user`) for the upcoming chat work.
+- **New typography**: Dela Gothic One for the wordmark, Zen Maru Gothic for
+  headings and Zen Kaku Gothic New for body text, self-hosted with Fontsource
+  (latin subsets); Geist stays as fallback.
+- **Redesigned welcome screen**: a title-spread cover with the mascot and a
+  world picker with live colour swatches, plus a one-shot golden sparkle when
+  starting.
+
+### Changed
+
+- **Welcome copy and theme labels**: the default theme is now «Ink & Violet» /
+  «Tinta y violeta», and the first-run button reads «Start writing» /
+  «Empezar a escribir»; the screen carries the product tagline and a
+  local-first note. Existing theme ids are preserved, so stored preferences
+  keep working.
+
 ## [1.36.2] - 2026-10-08
 
 ### Changed
