@@ -86,7 +86,7 @@
   40% { transform: translateY(0); }
 }
 
-/* Destello de un solo uso (bienvenida, hitos). */
+/* One-shot burst (welcome screen, milestones). */
 @keyframes rm-burst {
   0% { transform: scale(0.2); opacity: 0; }
   35% { opacity: 1; }
@@ -94,8 +94,8 @@
 }
 
 /* ==========================================================================
-   Mundo por defecto: «Tinta y Violeta» — papel frío y tinta violeta.
-   Cada mundo define claro y oscuro completos (`[data-theme="…"]`).
+   Default world: «Ink & Violet» — cool paper and violet ink.
+   Every world defines complete light and dark tokens (`[data-theme="…"]`).
    ========================================================================== */
 :root {
     color-scheme: light;
@@ -176,7 +176,7 @@
     --sidebar-ring: oklch(0.75 0.15 300 / 50%);
 }
 
-/* Mundo: Sakura — rosa suave, diurno. */
+/* World: Sakura — soft pink, daytime. */
 [data-theme="sakura"] {
     --background: oklch(0.982 0.008 355);
     --foreground: oklch(0.2 0.02 355);
@@ -253,7 +253,7 @@
     --sidebar-ring: oklch(0.78 0.13 355 / 50%);
 }
 
-/* Mundo: Bosque — verde tintado, con violeta fuera del eje. */
+/* World: Forest — tinted green. */
 [data-theme="forest"] {
     --background: oklch(0.982 0.008 155);
     --foreground: oklch(0.19 0.02 155);
@@ -330,7 +330,7 @@
     --sidebar-ring: oklch(0.78 0.13 155 / 50%);
 }
 
-/* Mundo: Océano — azul tintado, cálido como contrapunto. */
+/* World: Ocean — tinted blue with a warm counterpoint. */
 [data-theme="ocean"] {
     --background: oklch(0.982 0.008 250);
     --foreground: oklch(0.19 0.025 250);
@@ -407,7 +407,7 @@
     --sidebar-ring: oklch(0.78 0.13 250 / 50%);
 }
 
-/* Mundo: Medianoche — índigo profundo para escribir de noche. */
+/* World: Midnight — deep indigo for writing at night. */
 [data-theme="midnight"] {
     --background: oklch(0.975 0.012 275);
     --foreground: oklch(0.18 0.025 275);
@@ -496,7 +496,7 @@
     background-color: var(--primary);
     color: var(--primary-foreground);
     }
-  /* Superficies del navegador, afinadas desde la paleta. */
+  /* Browser surfaces themed from the palette. */
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--input) transparent;
@@ -504,7 +504,7 @@
 }
 
 @layer utilities {
-  /* Textura de papel: grano apenas visible, material del mundo. */
+  /* Paper texture: barely visible grain, a material of the world. */
   .rm-paper-grain {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 160px 160px;

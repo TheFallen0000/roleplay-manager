@@ -1,9 +1,9 @@
 /**
- * Estado del acceso por red local (misma WiFi).
+ * LAN access state (same Wi-Fi network).
  *
- * El backend levanta un pequeño proxy en la red local que reenvía al frontend;
- * este DTO expone si está activo, el puerto y las direcciones candidatas de la
- * máquina (la más probable primero).
+ * The backend runs a small proxy on the local network that forwards to the
+ * frontend; this DTO exposes whether it is active, the port, and the machine's
+ * candidate addresses (most likely first).
  */
 export interface LanAccessStatusDTO {
   /** Whether the LAN sharing proxy is running. */

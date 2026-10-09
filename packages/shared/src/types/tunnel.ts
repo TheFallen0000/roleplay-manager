@@ -1,9 +1,9 @@
 /**
- * Estado del túnel de acceso remoto (compartir la app en una red privada).
+ * Remote access tunnel state (sharing the app on a private network).
  *
- * Es genérico a propósito: el dominio no conoce Tailscale, solo si la
- * herramienta está disponible, si hay conexión, si se está compartiendo y la
- * URL para abrir desde el teléfono.
+ * Deliberately generic: the domain knows nothing about Tailscale, only whether
+ * the tool is available, whether the machine is connected, whether sharing is
+ * active, and the URL to open on the phone.
  */
 export interface TunnelStatusDTO {
   /** Whether the tunnel tool is installed on this machine. */

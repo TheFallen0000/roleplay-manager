@@ -1,10 +1,10 @@
 /**
- * Ajustes del enlace telefónico (túnel de Tailscale y red doméstica).
+ * Phone-access preferences (Tailscale tunnel and home network).
  *
- * El backend los persiste en la tabla `settings` y los aplica al arrancar
- * (activar al iniciar), al cerrar (desactivar al cerrar; solo Tailscale, que
- * sigue sirviendo aunque la app termine) y cuando nadie usa el enlace
- * (auto-desactivado por inactividad).
+ * The backend persists them in the `settings` table and applies them on start
+ * (enable on launch), on close (disable on close; Tailscale only, since it
+ * keeps serving after the app exits) and when the link is idle
+ * (auto-disable after inactivity).
  */
 export type PhoneAccessMode = "tailscale" | "lan"
 
