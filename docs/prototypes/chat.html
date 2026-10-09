@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es" data-world="default">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prototipo · Chat — Roleplay Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Geist:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="prototype.css" />
+<style>
+  .proto-dock {
+    position: fixed; left: 1rem; bottom: 4.4rem; z-index: 60;
+    display: grid; gap: 0.55rem; padding: 0.7rem 0.8rem;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-1);
+    max-width: 19rem;
+  }
+  .dock-row { display: flex; align-items: center; gap: 0.55rem; justify-content: space-between; }
+  .dock-label { font-size: 0.7rem; font-weight: 700; color: var(--muted-fg); }
+  .swatches { display: inline-flex; gap: 0.35rem; }
+  .swatch {
+    width: 1.15rem; height: 1.15rem; border-radius: 999px; cursor: pointer;
+    border: 2px solid var(--card); outline: 1px solid var(--border);
+    padding: 0; transition: transform var(--t-fast) var(--ease-out);
+  }
+  .swatch:hover { transform: scale(1.12); }
+  .swatch[aria-pressed="true"] { outline: 2px solid var(--primary); outline-offset: 1px; }
+  @media (max-width: 52rem) { .proto-dock { display: none; } }
+</style>
+</head>
+<body>
+  <div class="chat-shell">
+    <header class="chat-top">
+      <a class="btn btn--quiet btn--icon btn--sm" href="library.html" aria-label="Volver a la biblioteca">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <span class="avatar" aria-hidden="true">A</span>
+      <div style="display:grid; line-height:1.25; margin-right:auto">
+        <span class="h3" style="font-size:0.95rem">Aoi Kurosawa</span>
+        <span class="tiny muted">Lluvia en Kioto · v3 · 128 mensajes</span>
+      </div>
+      <button class="btn btn--quiet btn--icon btn--sm" type="button" aria-label="Resúmenes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6s1.5-2 5-2 5 2 5 2v14s-1.5-2-5-2-5 2-5 2Z"/><path d="M12 6s1.5-2 5-2 5 2 5 2v14s-1.5-2-5-2-5 2-5 2Z"/></svg>
+      </button>
+      <button class="btn btn--quiet btn--icon btn--sm" type="button" aria-label="Memoria">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12.83 2.18 8 4a2 2 0 0 1 1.17 1.82v8a2 2 0 0 1-1.17 1.82l-8 4a2 2 0 0 1-1.66 0l-8-4A2 2 0 0 1 2 16V8a2 2 0 0 1 1.17-1.82l8-4a2 2 0 0 1 1.66 0Z"/><path d="m22 8-10 5L2 8"/><path d="M12 13v9"/></svg>
+      </button>
+      <button class="btn btn--ghost btn--sm" type="button">Ajustes ▾</button>
+    </header>
+
+    <section class="messages" id="messages" data-style="bubble" aria-label="Conversación">
+      <!-- impeccable-disable blinking-cursor -- cursor de streaming real, no un prompt decorativo -->
+      <span class="badge scene-note">fondo del chat · imagen del usuario</span>
+      <div class="messages-inner">
+
+        <article class="msg msg--char enter-msg">
+          <div class="body">
+            <div class="text">
+              <span class="seg-action">*Deja el paraguas junto a la puerta y mira por la ventana.*</span>
+              <span class="seg-dialogue"> «Llegas justo a tiempo. El té ya está listo.»</span>
+            </div>
+            <div class="actions"><span class="num">18:04</span></div>
+          </div>
+        </article>
+
+        <article class="msg msg--user enter-msg">
+          <div class="body">
+            <div class="text">
+              <span class="seg-action">*Me sacudo la lluvia del abrigo y cuelgo el paraguas.*</span>
+              <span class="seg-dialogue"> «No sabía que fuera a caer tan fuerte.»</span>
+              <span class="seg-ooc"> //Kyoto en junio, supongo//</span>
+            </div>
+            <div class="actions"><span class="num">18:05</span></div>
+          </div>
+        </article>
+
+        <article class="msg msg--char enter-msg">
+          <div class="body">
+            <div class="text">
+              <span class="seg-dialogue">«Junio aquí es una promesa que se cumple todos los días.»</span>
+              <span class="seg-action"> *Sirve dos tazas y te ofrece una con las dos manos.*</span>
+              <span class="seg-dialogue"> «Cuéntame cómo te fue en la universidad.»</span>
+            </div>
+            <div class="actions">
+              <span class="num">18:06</span>
+              <span class="alt-nav">
+                <button class="btn btn--quiet btn--icon btn--sm" type="button" aria-label="Alternativa anterior">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <span class="num">2/3</span>
+                <button class="btn btn--quiet btn--icon btn--sm" type="button" aria-label="Alternativa siguiente">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <div class="summary-mark" role="separator"><span>Resumen hasta aquí · «La primera tarde de lluvia»</span></div>
+
+        <article class="msg msg--user enter-msg">
+          <div class="body">
+            <div class="text">
+              <span class="seg-action">*Acepto la taza con las dos manos.*</span>
+              <span class="seg-dialogue"> «Bien. El profesor de historia nos dejó un trabajo sobre la era Meiji.»</span>
+            </div>
+            <div class="actions"><span class="num">18:09</span></div>
+          </div>
+        </article>
+
+        <article class="msg msg--char enter-msg">
+          <div class="body">
+            <div class="text">
+              <span class="seg-action">*Se acomoda en el cojín, con la taza apoyada en las rodillas.*</span>
+              <span class="seg-dialogue"> «¿Sobre la era Meiji? Espera, ¿te toca a ti exponer?»</span>
+              <span class="brush-caret" aria-hidden="true"></span>
+            </div>
+            <div class="actions"><span class="num">18:10 · escribiendo…</span></div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <footer class="composer">
+      <div class="composer-inner">
+        <div class="composer-row">
+          <textarea class="textarea" rows="2" placeholder="Escribe tu respuesta… (*acción*, «diálogo», //OOC)" aria-label="Mensaje"></textarea>
+          <button class="btn btn--icon" type="button" aria-label="Enviar mensaje">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+          </button>
+        </div>
+        <div class="composer-meta">
+          <span>Enter envía · Shift+Enter salta de línea</span>
+          <span class="badge">qwen3-8b · Ollama</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <aside class="proto-dock" aria-label="Controles del prototipo">
+    <div class="dock-row">
+      <span class="dock-label">Estilo de mensaje</span>
+      <div class="segment">
+        <button type="button" data-style-set="bubble" aria-pressed="true">Burbuja</button>
+        <button type="button" data-style-set="document" aria-pressed="false">Documento</button>
+        <button type="button" data-style-set="novel" aria-pressed="false">Novela visual</button>
+      </div>
+    </div>
+    <div class="dock-row">
+      <span class="dock-label">Color de Aoi</span>
+      <div class="swatches">
+        <button type="button" class="swatch" data-char-color="oklch(0.54 0.2 300)" style="background:oklch(0.54 0.2 300)" aria-pressed="true" aria-label="Violeta"></button>
+        <button type="button" class="swatch" data-char-color="oklch(0.55 0.17 355)" style="background:oklch(0.55 0.17 355)" aria-pressed="false" aria-label="Sakura"></button>
+        <button type="button" class="swatch" data-char-color="oklch(0.52 0.15 250)" style="background:oklch(0.52 0.15 250)" aria-pressed="false" aria-label="Océano"></button>
+        <button type="button" class="swatch" data-char-color="oklch(0.52 0.12 155)" style="background:oklch(0.52 0.12 155)" aria-pressed="false" aria-label="Matcha"></button>
+        <button type="button" class="swatch" data-char-color="oklch(0.56 0.13 70)" style="background:oklch(0.56 0.13 70)" aria-pressed="false" aria-label="Ámbar"></button>
+      </div>
+    </div>
+  </aside>
+
+  <nav class="proto-bar" aria-label="Páginas del prototipo">
+    <span class="tag">Prototipo</span>
+    <a href="style-tile.html">Style tile</a>
+    <a href="welcome.html">Bienvenida</a>
+    <a href="library.html">Biblioteca</a>
+    <a href="chat.html" aria-current="page">Chat</a>
+    <span style="width:1px;height:1.1rem;background:currentColor;opacity:.25"></span>
+    <button type="button" data-mode-set="light">Claro</button>
+    <button type="button" data-mode-set="dark">Oscuro</button>
+    <button type="button" data-mode-set="system">Auto</button>
+  </nav>
+
+  <script src="prototype.js"></script>
+</body>
+</html>

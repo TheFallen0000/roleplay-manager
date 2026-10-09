@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es" data-world="default">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prototipo · Bienvenida — Roleplay Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Geist:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="prototype.css" />
+<style>
+  .welcome {
+    position: relative; z-index: 1;
+    min-height: 100svh;
+    display: grid; grid-template-columns: 1.15fr 1fr;
+  }
+
+  /* Columna izquierda: la portada del cuaderno. */
+  .cover {
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center; gap: 1.6rem;
+    padding: 4.5rem 3.5rem;
+    border-right: 1px solid var(--border);
+  }
+  .cover::before {
+    content: ""; position: absolute; pointer-events: none;
+    inset: 0 30% 30% 0;
+    background: radial-gradient(58% 58% at 34% 42%,
+      color-mix(in oklch, var(--primary) 17%, transparent), transparent 72%);
+  }
+  .cover::after {
+    content: ""; position: absolute; pointer-events: none;
+    inset: auto 0 0 40%;
+    height: 55%;
+    background: radial-gradient(50% 60% at 60% 60%,
+      color-mix(in oklch, var(--sakura) 12%, transparent), transparent 70%);
+  }
+  .wordmark {
+    font-size: clamp(3rem, 3rem + 6.5vw, 6rem);
+    margin: 0;
+  }
+  .wordmark-sub {
+    display: block;
+    font-size: clamp(1.5rem, 1.1rem + 2.4vw, 2.9rem);
+    color: color-mix(in oklch, var(--fg) 60%, var(--primary));
+  }
+  .cover .mascot-row { display: flex; align-items: flex-end; gap: 1.4rem; position: relative; }
+  .cover .mascot { width: clamp(8rem, 22vw, 13rem); rotate: -2.5deg; filter: drop-shadow(0 10px 18px oklch(0.3 0.08 300 / 0.18)); }
+  .cover .lede { font-size: 1.08rem; max-width: 34ch; margin: 0; }
+
+  /* Columna derecha: las decisiones, como placas de tinta. */
+  .panel {
+    display: flex; flex-direction: column; justify-content: center; gap: 1rem;
+    padding: 3rem 2.5rem;
+    background: color-mix(in oklch, var(--card) 55%, var(--bg));
+  }
+  .panel-inner { width: min(27rem, 100%); margin: 0 auto; display: grid; gap: 1rem; }
+  .panel .placa { display: grid; gap: 0.65rem; }
+  .placa .label { font-size: 0.8125rem; font-weight: 700; }
+  .placa .hint { font-size: 0.75rem; color: var(--muted-fg); }
+  .cta { margin-top: 0.4rem; display: grid; gap: 0.55rem; }
+  .cta .btn { width: 100%; }
+  .watermark { text-align: center; color: var(--muted-fg); font-size: 0.75rem; margin: 0; }
+
+  @media (max-width: 56rem) {
+    .welcome { grid-template-columns: 1fr; }
+    .cover { border-right: 0; border-bottom: 1px solid var(--border); padding: 2.4rem 1.5rem; }
+    .panel { padding: 2.4rem 1.5rem 3rem; }
+    .cover .wordmark { font-size: clamp(2.6rem, 12vw, 4rem); }
+  }
+</style>
+</head>
+<body>
+  <main class="welcome">
+    <section class="cover">
+      <h1 class="display wordmark">Roleplay<span class="wordmark-sub">Manager</span></h1>
+      <div class="mascot-row">
+        <img class="mascot" src="../../packages/frontend/public/brand/mascot-192.png"
+             alt="Mascota del proyecto saludando (arte final en producción)" />
+        <p class="lede">Escribe con tus personajes tanto como quieras: viven en tu equipo y recuerdan lo que pasó.</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Primeros ajustes">
+      <div class="panel-inner">
+        <div class="placa">
+          <span class="label" id="lang-label">Idioma</span>
+          <div class="segment" role="group" aria-labelledby="lang-label">
+            <button type="button" aria-pressed="false">English</button>
+            <button type="button" aria-pressed="true">Español</button>
+          </div>
+        </div>
+
+        <div class="placa">
+          <span class="label">Mundo</span>
+          <div style="display:flex; flex-wrap:wrap; gap:0.45rem">
+            <button type="button" class="world-chip" data-world-set="default" aria-pressed="true"><span class="dot dot--default"></span>Tinta y Violeta</button>
+            <button type="button" class="world-chip" data-world-set="sakura" aria-pressed="false"><span class="dot dot--sakura"></span>Sakura</button>
+            <button type="button" class="world-chip" data-world-set="forest" aria-pressed="false"><span class="dot dot--forest"></span>Bosque</button>
+            <button type="button" class="world-chip" data-world-set="ocean" aria-pressed="false"><span class="dot dot--ocean"></span>Océano</button>
+            <button type="button" class="world-chip" data-world-set="midnight" aria-pressed="false"><span class="dot dot--midnight"></span>Medianoche</button>
+          </div>
+          <span class="hint">Cada mundo tiene versión clara y oscura. Podrás cambiarlo cuando quieras.</span>
+        </div>
+
+        <div class="placa">
+          <span class="label" id="mode-label">Modo</span>
+          <div class="segment" role="group" aria-labelledby="mode-label">
+            <button type="button" data-mode-set="light" aria-pressed="false">Claro</button>
+            <button type="button" data-mode-set="dark" aria-pressed="false">Oscuro</button>
+            <button type="button" data-mode-set="system" aria-pressed="true">Sistema</button>
+          </div>
+        </div>
+
+        <div class="cta">
+          <span class="sparkle">
+            <svg width="130" height="130" viewBox="0 0 130 130" fill="none" aria-hidden="true">
+              <g stroke="var(--spark)" stroke-width="2.5" stroke-linecap="round">
+                <path class="ray" d="M65 6v16" /><path class="ray" d="M65 108v16" />
+                <path class="ray" d="M6 65h16" /><path class="ray" d="M108 65h16" />
+                <path class="ray" d="M24 24l11 11" /><path class="ray" d="M95 95l11 11" />
+                <path class="ray" d="M106 24L95 35" /><path class="ray" d="M35 95l-11 11" />
+              </g>
+            </svg>
+            <a class="btn btn--lg" href="library.html" data-sparkle>Empezar a escribir</a>
+          </span>
+          <p class="watermark">Sin cuentas, sin nube: tus historias se quedan contigo.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="proto-bar" aria-label="Páginas del prototipo">
+    <span class="tag">Prototipo</span>
+    <a href="style-tile.html">Style tile</a>
+    <a href="welcome.html" aria-current="page">Bienvenida</a>
+    <a href="library.html">Biblioteca</a>
+    <a href="chat.html">Chat</a>
+    <span style="width:1px;height:1.1rem;background:currentColor;opacity:.25"></span>
+    <button type="button" data-mode-set="light">Claro</button>
+    <button type="button" data-mode-set="dark">Oscuro</button>
+    <button type="button" data-mode-set="system">Auto</button>
+  </nav>
+
+  <script src="prototype.js"></script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es" data-world="default">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prototipo · Style tile — Roleplay Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Geist:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="prototype.css" />
+<style>
+  .page { max-width: 62rem; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; position: relative; z-index: 1; }
+  .tile-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 1.2rem; }
+  section { margin-top: 3rem; }
+  section > h2 { margin-bottom: 0.35rem; }
+  section > .note { color: var(--muted-fg); font-size: 0.82rem; margin: 0 0 1.2rem; max-width: 62ch; }
+
+  .sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.75rem; }
+  .sw { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--card); }
+  .sw .chip { height: 3.2rem; }
+  .sw .meta { padding: 0.5rem 0.7rem; display: grid; gap: 0.1rem; }
+  .sw .name { font-size: 0.78rem; font-weight: 700; }
+  .sw .val { font-size: 0.72rem; color: var(--muted-fg); }
+
+  .type-row { display: grid; gap: 1.4rem; border-top: 1px solid var(--border); padding-top: 1.2rem; }
+  .type-row + .type-row { margin-top: 1.4rem; }
+  .type-row .label { font-size: 0.72rem; font-weight: 700; color: var(--muted-fg); }
+  .display-sample { font-size: clamp(2.2rem, 5vw, 3.4rem); margin: 0.2rem 0 0; }
+  .body-sample { max-width: 68ch; margin: 0; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+  .row + .row { margin-top: 0.75rem; }
+  .panel { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; box-shadow: none; padding: 1rem 0 0; }
+  .panel-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .dialog-sample { max-width: 26rem; }
+
+  .demo-scroll { max-height: 7rem; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.6rem 0.8rem; background: var(--muted); font-size: 0.82rem; }
+  .demo-bubble { max-width: 30rem; }
+
+  .swatch-mini { display: inline-flex; gap: 0.25rem; }
+  .swatch-mini i { width: 0.8rem; height: 0.8rem; border-radius: 3px; border: 1px solid oklch(0 0 0 / 0.12); }
+</style>
+</head>
+<body>
+  <main class="page">
+    <header class="tile-head">
+      <div>
+        <h1 class="display" style="font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0">Style tile</h1>
+        <p class="lede" style="margin: 0.4rem 0 0">Mundo «Tinta y Violeta» — tokens, tipografía, componentes y movimiento del rediseño. <span class="muted">Prototipo con datos sintéticos.</span></p>
+      </div>
+      <span class="badge badge--violet">Fase 0 · revisión</span>
+    </header>
+
+    <section>
+      <h2 class="h2">Color</h2>
+      <p class="note">Tinta sobre papel frío (no crema) con el violeta de la mascota como color comprometido. Los recuadros leen los tokens en vivo: cambia el modo abajo para verlos en oscuro.</p>
+      <div class="sw-grid">
+        <div class="sw"><div class="chip" style="background: var(--bg)"></div><div class="meta"><span class="name">Fondo / papel</span><span class="val">--bg</span></div></div>
+        <div class="sw"><div class="chip" style="background: var(--fg)"></div><div class="meta"><span class="name">Tinta / texto</span><span class="val">--fg</span></div></div>
+        <div class="sw"><div class="chip" style="background: var(--primary)"></div><div class="meta"><span class="name">Violeta acción</span><span class="val">--primary</span></div></div>
+        <div class="sw"><div class="chip" style="background: var(--primary-soft)"></div><div class="meta"><span class="name">Violeta suave</span><span class="val">--primary-soft</span></div></div>
+        <div class="sw"><div class="chip" style="background: var(--sakura)"></div><div class="meta"><span class="name">Sakura</span><span class="val">acento emocional</span></div></div>
+        <div class="sw"><div class="chip" style="background: var(--spark)"></div><div class="meta"><span class="name">Destello</span><span class="val">hitos, sparkle</span></div></div>
+        <div class="sw"><div class="chip" style="background: var(--matcha)"></div><div class="meta"><span class="name">Matcha</span><span class="val">éxito / OOC suave</span></div></div>
+        <div class="sw"><div class="chip" style="background: var(--danger)"></div><div class="meta"><span class="name">Aviso</span><span class="val">destructivo</span></div></div>
+      </div>
+
+      <h2 class="h3" style="margin-top: 1.8rem">Mundos</h2>
+      <p class="note">Haz clic para probar cada paleta en todo el prototipo. Cada mundo trae claro y oscuro completos.</p>
+      <div class="row">
+        <button type="button" class="world-chip" data-world-set="default" aria-pressed="true"><span class="dot dot--default"></span>Tinta y Violeta</button>
+        <button type="button" class="world-chip" data-world-set="sakura" aria-pressed="false"><span class="dot dot--sakura"></span>Sakura</button>
+        <button type="button" class="world-chip" data-world-set="forest" aria-pressed="false"><span class="dot dot--forest"></span>Bosque</button>
+        <button type="button" class="world-chip" data-world-set="ocean" aria-pressed="false"><span class="dot dot--ocean"></span>Océano</button>
+        <button type="button" class="world-chip" data-world-set="midnight" aria-pressed="false"><span class="dot dot--midnight"></span>Medianoche</button>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="h2">Tipografía</h2>
+      <p class="note">Dela Gothic One para el nombre y los momentos grandes; Zen Maru Gothic para títulos; Zen Kaku Gothic New para el cuerpo, en prueba frente a Geist (una sesión de escritura larga manda). En la app se servirán con Fontsource.</p>
+      <div class="type-row">
+        <span class="label">Display · Dela Gothic One</span>
+        <p class="display display-sample">Roleplay Manager</p>
+      </div>
+      <div class="type-row">
+        <span class="label">Títulos · Zen Maru Gothic</span>
+        <h1 class="h1" style="margin-top: 0.3rem">Tus historias</h1>
+        <h2 class="h2" style="margin-top: 0.5rem">Memoria del personaje</h2>
+        <h3 class="h3" style="margin-top: 0.5rem">Últimas alternativas</h3>
+      </div>
+      <div class="type-row">
+        <span class="label">Cuerpo · Zen Kaku Gothic New (65–75ch)</span>
+        <p class="body-sample" style="margin-top: 0.4rem">La memoria del personaje guarda lo que importa de cada escena y lo decae con el tiempo, para que una historia larga siga teniendo sentido semanas después. Puedes revisar las propuestas, aceptarlas o descartarlas antes de que entren en el contexto.</p>
+        <p class="muted small num" style="margin-top: 0.2rem">12.480 tokens · 128 mensajes · 3 ramas</p>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="h2">Componentes</h2>
+      <p class="note">El mismo lenguaje en botones, formularios y placas. Todo con foco visible y estados reales.</p>
+      <div class="panel-grid">
+        <div class="panel">
+          <h3 class="h3" style="margin-bottom: 0.8rem">Botones</h3>
+          <div class="row">
+            <button class="btn" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nuevo personaje</button>
+            <button class="btn btn--ghost" type="button">Importar</button>
+            <button class="btn btn--soft" type="button">Regenerar</button>
+          </div>
+          <div class="row">
+            <button class="btn btn--quiet btn--sm" type="button">Copiar</button>
+            <button class="btn btn--danger btn--sm" type="button">Eliminar</button>
+            <button class="btn btn--sm" type="button" disabled>Guardando…</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 class="h3" style="margin-bottom: 0.8rem">Formularios</h3>
+          <div class="field" style="margin-bottom: 0.7rem">
+            <span class="label">Nombre del personaje</span>
+            <input class="input" value="Aoi Kurosawa" />
+          </div>
+          <div class="field" style="margin-bottom: 0.7rem">
+            <span class="label">Modelo</span>
+            <select class="select"><option>qwen3-8b · Ollama</option><option>gpt-4.1-mini</option></select>
+          </div>
+          <div class="row">
+            <div class="segment">
+              <button type="button" aria-pressed="true">Claro</button>
+              <button type="button" aria-pressed="false">Oscuro</button>
+              <button type="button" aria-pressed="false">Sistema</button>
+            </div>
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem" class="muted">
+              <span class="switch" role="switch" aria-checked="true" tabindex="0"></span> Memoria activa
+            </label>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 class="h3" style="margin-bottom: 0.8rem">Distintivos</h3>
+          <div class="row">
+            <span class="badge">v3</span>
+            <span class="badge badge--violet">Memoria propuesta</span>
+            <span class="badge badge--spark">Actualización lista</span>
+            <span class="badge">128 mensajes</span>
+          </div>
+          <div class="row" style="margin-top: 1rem">
+            <div class="portal-card card" style="padding:0.75rem 0.9rem; display:grid; gap:0.35rem; min-width:14rem">
+              <span style="display:flex; justify-content:space-between; align-items:center">
+                <span class="h3" style="font-size:0.95rem">Aoi Kurosawa</span>
+                <span class="badge badge--violet">v3</span>
+              </span>
+              <span class="small muted">Estudiante de intercambio en Kioto</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="h2">Mensajes</h2>
+      <p class="note">El formato estándar (*acción*, «diálogo», //OOC) coloreado. El diálogo del personaje lleva su color; el del usuario, el suyo. Los tres estilos se prueban en <a href="chat.html">chat.html</a>.</p>
+
+      <div class="panel" style="display:grid; gap:1rem; max-width:34rem">
+        <div class="messages" data-style="bubble" style="background:none; padding:0; overflow:visible; display:grid; gap:1rem">
+        <article class="msg msg--char">
+          <div class="body">
+            <div class="text">
+              <span class="seg-action">*Deja el paraguas junto a la puerta.*</span>
+              <span class="seg-dialogue"> «Llegas justo a tiempo.»</span>
+            </div>
+          </div>
+        </article>
+        <article class="msg msg--user">
+          <div class="body">
+            <div class="text">
+              <span class="seg-action">*Me sacudo la lluvia del abrigo.*</span>
+              <span class="seg-dialogue"> «No sabía que fuera a caer tan fuerte.»</span>
+              <span class="seg-ooc"> //Kyoto en junio, supongo//</span>
+            </div>
+          </div>
+        </article>
+        </div>
+        <div style="display:grid; gap:0.6rem" id="demo-message">
+          <span class="name-plate">Aoi · v3</span>
+          <article class="msg msg--char enter-msg" style="grid-column:1">
+            <div class="body">
+              <div class="text">
+                <span class="seg-dialogue">«¿Sobre la era Meiji? Espera, ¿te toca a ti exponer?»</span>
+                <span class="brush-caret" aria-hidden="true"></span>
+              </div>
+              <div class="actions">
+                <span class="num">18:10</span>
+                <span class="alt-nav"><span class="num">‹ 2/3 ›</span></span>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="summary-mark" role="separator"><span>Resumen hasta aquí · «La primera tarde de lluvia»</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="h2">Movimiento</h2>
+      <p class="note">Tres duraciones (120 / 180 / 280 ms) con ease-out exponencial. Un único momento orquestado por superficie; todo respeta <span class="num">prefers-reduced-motion</span>.</p>
+      <div class="row">
+        <button class="btn btn--ghost" type="button" data-replay="#demo-message .enter-msg">Repetir entrada de mensaje</button>
+        <span class="sparkle"><button class="btn btn--ghost" type="button" data-sparkle>Lanzar destello
+          <svg width="120" height="120" viewBox="0 0 130 130" fill="none" aria-hidden="true">
+            <g stroke="var(--spark)" stroke-width="2.5" stroke-linecap="round">
+              <path class="ray" d="M65 6v16" /><path class="ray" d="M65 108v16" />
+              <path class="ray" d="M6 65h16" /><path class="ray" d="M108 65h16" />
+              <path class="ray" d="M24 24l11 11" /><path class="ray" d="M95 95l11 11" />
+              <path class="ray" d="M106 24L95 35" /><path class="ray" d="M35 95l-11 11" />
+            </g>
+          </svg>
+        </span></button>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="h2">Superficies del navegador</h2>
+      <p class="note">Selección, cursor de texto, anillo de foco, barras de desplazamiento y cifras tabulares también visten el mundo.</p>
+      <div class="row">
+        <label class="field" style="min-width:16rem"><span class="label">Enfoca este campo (anillo violeta)</span><input class="input" placeholder="Foco visible…" /></label>
+        <p class="small" style="max-width:22rem; margin:0">Selecciona este texto para ver el color de <span style="border-bottom:1px dotted var(--muted-fg)">selección</span>. <span class="num">1.024 · 2.048 · 4.096</span></p>
+      </div>
+      <div class="demo-scroll" style="margin-top:0.8rem" tabindex="0">
+        Barra de desplazamiento afinada (demo):<br />
+        línea uno · línea dos · línea tres · línea cuatro · línea cinco · línea seis · línea siete · línea ocho · línea nueve · línea diez · línea once · línea doce
+      </div>
+    </section>
+
+    <section>
+      <h2 class="h2">Estado vacío</h2>
+      <div class="empty" style="margin-top:0.8rem">
+        <img class="mascot" src="../../packages/frontend/public/brand/mascot-192.png" alt="Mascota (pose «hello»; arte definitivo en producción)" />
+        <div>
+          <h3 class="h3">Tu estantería está vacía</h3>
+          <p class="muted" style="margin:0.35rem 0 0">Crea tu primer personaje y empieza una historia que no se olvide.</p>
+        </div>
+        <button class="btn" type="button">Crear tu primer personaje</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="proto-bar" aria-label="Páginas del prototipo">
+    <span class="tag">Prototipo</span>
+    <a href="style-tile.html" aria-current="page">Style tile</a>
+    <a href="welcome.html">Bienvenida</a>
+    <a href="library.html">Biblioteca</a>
+    <a href="chat.html">Chat</a>
+    <span style="width:1px;height:1.1rem;background:currentColor;opacity:.25"></span>
+    <button type="button" data-mode-set="light">Claro</button>
+    <button type="button" data-mode-set="dark">Oscuro</button>
+    <button type="button" data-mode-set="system">Auto</button>
+  </nav>
+
+  <script src="prototype.js"></script>
+  <script>
+    document.querySelectorAll("[data-replay]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = document.querySelector(btn.dataset.replay);
+        if (!target) return;
+        target.classList.remove("enter-msg");
+        void target.offsetWidth;
+        target.classList.add("enter-msg");
+      });
+    });
+  </script>
+</body>
+</html>
