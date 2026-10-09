@@ -346,4 +346,5 @@ Cada slice: bump en `package.json`, entrada en `CHANGELOG.md` y
    archivo.
 3. Arte adicional de la mascota — **diferido** (§7.1); se usa el arte
    existente con fallback a la pose neutral.
-4. Siguiente: **S59 — Fundación Ink & Violet**.
+4. ~~S59 — Fundación Ink & Violet~~ — entregado (v1.37.0; ver
+   `S59-progress.md`). Siguiente: **S60 — Shell y biblioteca**.
