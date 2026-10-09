@@ -38,7 +38,8 @@ esa combinación: control total del dato + control total del modelo.
   `pnpm dev` directamente.
 - El proveedor de IA se configura en la pantalla de Proveedores; puede ser una
   instancia local (Ollama) o remota (OpenAI-compatible) con API key propia.
-- La interfaz actual está en español.
+- La interfaz está en inglés y español (inglés por defecto), elegible en la
+  app.
 
 ## Capabilities and Constraints
 
@@ -70,17 +71,22 @@ Restricciones técnicas:
 
 Sin decidir (no inventar):
 
-- Multi-idioma: existe en el backlog (PM.11, inglés por defecto) pero no está
-  implementado; el idioma de la interfaz no es un compromiso cerrado.
-- La interfaz visual de árbol de ramas (PM.7) está diferida.
 - No hay despliegue cloud previsto; el producto se usa en local.
+
+Descartado:
+
+- La interfaz visual de árbol de ramas (PM.7) se descartó: la acción de
+  ramificar (S16) cubre los casos reales.
 
 ## Brand Commitments
 
 - Nombre: **Roleplay Manager**.
 - Licencia: **AGPL-3.0-or-later** (compromiso legal confirmado).
-- No hay voz de marca, testimonios ni identidad visual declarada más allá de lo
-  que vive en el código.
+- Identidad visual **«Ink & Violet»** (tinta sobre papel + el violeta de la
+  mascota), con la mascota como anfitriona de la app; dirección del rediseño
+  S59–S62 aprobada el 2026-10-09. Plan en `docs/redesign-plan.md`.
+- La voz de marca no está definida fuera de lo que vive en el código; no hay
+  testimonios ni material de prensa.
 
 ## Evidence on Hand
 
