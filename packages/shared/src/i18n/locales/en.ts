@@ -29,9 +29,11 @@ export const en = {
     label: "Theme and appearance",
     theme: "Theme",
     mode: "Mode",
-    default: "Default",
+    default: "Ink & Violet",
+    sakura: "Sakura",
     forest: "Forest",
     ocean: "Ocean",
+    midnight: "Midnight",
     light: "Light",
     dark: "Dark",
     system: "System",
@@ -42,13 +44,14 @@ export const en = {
     es: "Spanish",
   },
   welcome: {
-    title: "Welcome to Roleplay Manager",
-    description:
-      "Pick your language and look before you start. You can change both later from the top bar.",
     language: "Language",
-    theme: "Theme",
+    world: "World",
+    worldHint: "Every world ships light and dark. You can switch any time.",
     mode: "Mode",
-    continue: "Continue",
+    continue: "Start writing",
+    tagline:
+      "Write with your characters for as long as you like: they live on your machine and remember what happened.",
+    privacy: "No accounts, no cloud: your stories stay with you.",
   },
   players: {
     title: "Player characters",

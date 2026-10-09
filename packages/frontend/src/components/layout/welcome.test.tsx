@@ -17,16 +17,21 @@ afterEach(() => {
 })
 
 describe("Welcome", () => {
-  it("pregunta idioma, tema y modo", () => {
+  it("presenta el producto y pregunta idioma, mundo y modo", () => {
     render(<Welcome locale="es" />)
 
     expect(
-      screen.getByText("Bienvenido a Roleplay Manager"),
+      screen.getByRole("heading", { name: "Roleplay Manager" }),
     ).toBeInTheDocument()
     expect(screen.getByText("Idioma")).toBeInTheDocument()
-    expect(screen.getByText("Tema")).toBeInTheDocument()
+    expect(screen.getByText("Mundo")).toBeInTheDocument()
     expect(screen.getByText("Modo")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Continuar" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Tinta y violeta" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Empezar a escribir" }),
+    ).toBeInTheDocument()
   })
 
   it("cambia de idioma sin recargar y guarda la preferencia", async () => {
@@ -35,7 +40,7 @@ describe("Welcome", () => {
     await userEvent.click(screen.getByRole("button", { name: "Inglés" }))
 
     expect(
-      screen.getByText("Welcome to Roleplay Manager"),
+      screen.getByRole("button", { name: "Start writing" }),
     ).toBeInTheDocument()
     expect(document.cookie).toContain("language=en")
     expect(window.location.reload).not.toHaveBeenCalled()
@@ -53,9 +58,13 @@ describe("Welcome", () => {
   it("marca la bienvenida como completada y recarga al continuar", async () => {
     render(<Welcome locale="es" />)
 
-    await userEvent.click(screen.getByRole("button", { name: "Continuar" }))
+    await userEvent.click(
+      screen.getByRole("button", { name: "Empezar a escribir" }),
+    )
 
-    expect(document.cookie).toContain("rm_onboarded=1")
+    await vi.waitFor(() => {
+      expect(document.cookie).toContain("rm_onboarded=1")
+    })
     expect(window.location.reload).toHaveBeenCalled()
   })
 })

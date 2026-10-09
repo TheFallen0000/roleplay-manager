@@ -1,4 +1,4 @@
-export type ThemeId = "default" | "forest" | "ocean"
+export type ThemeId = "default" | "forest" | "ocean" | "sakura" | "midnight"
 
 export type ColorMode = "light" | "dark" | "system"
 
@@ -7,15 +7,22 @@ export const DEFAULT_COLOR_MODE: ColorMode = "system"
 
 export interface ThemeDefinition {
   id: ThemeId
-  labelKey: "theme.default" | "theme.forest" | "theme.ocean"
+  labelKey:
+    | "theme.default"
+    | "theme.forest"
+    | "theme.ocean"
+    | "theme.sakura"
+    | "theme.midnight"
   /** Preview color for the theme picker (the theme's primary token). */
   swatch: string
 }
 
 export const THEMES: ThemeDefinition[] = [
-  { id: "default", labelKey: "theme.default", swatch: "oklch(0.205 0 0)" },
-  { id: "forest", labelKey: "theme.forest", swatch: "oklch(0.47 0.12 150)" },
-  { id: "ocean", labelKey: "theme.ocean", swatch: "oklch(0.48 0.14 250)" },
+  { id: "default", labelKey: "theme.default", swatch: "oklch(0.54 0.24 300)" },
+  { id: "sakura", labelKey: "theme.sakura", swatch: "oklch(0.6 0.19 355)" },
+  { id: "forest", labelKey: "theme.forest", swatch: "oklch(0.5 0.13 155)" },
+  { id: "ocean", labelKey: "theme.ocean", swatch: "oklch(0.5 0.15 250)" },
+  { id: "midnight", labelKey: "theme.midnight", swatch: "oklch(0.45 0.16 275)" },
 ]
 
 export interface ColorModeDefinition {

@@ -29,6 +29,8 @@ describe("themes registry", () => {
   it("valida ids de tema", () => {
     expect(isThemeId("forest")).toBe(true)
     expect(isThemeId("ocean")).toBe(true)
+    expect(isThemeId("sakura")).toBe(true)
+    expect(isThemeId("midnight")).toBe(true)
     expect(isThemeId("default")).toBe(true)
     expect(isThemeId("nope")).toBe(false)
     expect(isThemeId(null)).toBe(false)

@@ -26,9 +26,11 @@ export const es: Dictionary = {
     label: "Tema y apariencia",
     theme: "Tema",
     mode: "Modo",
-    default: "Por defecto",
+    default: "Tinta y violeta",
+    sakura: "Sakura",
     forest: "Bosque",
     ocean: "Océano",
+    midnight: "Medianoche",
     light: "Claro",
     dark: "Oscuro",
     system: "Sistema",
@@ -39,13 +41,15 @@ export const es: Dictionary = {
     es: "Español",
   },
   welcome: {
-    title: "Bienvenido a Roleplay Manager",
-    description:
-      "Elige tu idioma y aspecto antes de empezar. Podrás cambiarlos luego desde la barra superior.",
     language: "Idioma",
-    theme: "Tema",
+    world: "Mundo",
+    worldHint:
+      "Cada mundo tiene versión clara y oscura. Podrás cambiarlo cuando quieras.",
     mode: "Modo",
-    continue: "Continuar",
+    continue: "Empezar a escribir",
+    tagline:
+      "Escribe con tus personajes tanto como quieras: viven en tu equipo y recuerdan lo que pasó.",
+    privacy: "Sin cuentas, sin nube: tus historias se quedan contigo.",
   },
   players: {
     title: "Personajes jugados",
