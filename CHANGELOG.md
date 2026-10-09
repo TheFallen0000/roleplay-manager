@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.38.0] - 2026-10-09
+
+### Added
+
+- **Library and app shell redesign** (S60): the characters screen is now a
+  story shelf — a typographic page head with a lede, a search/sort toolbar
+  with a live count badge, image-led cards with a 16:10 cover, a violet
+  version chip and a hover lift, a dashed «Create character» card in the
+  grid, and the character's initial as the cover placeholder when there is
+  no picture. The empty shelf shows the mascot with a create call to action.
+- **`MascotPose`**: a brand component that draws a named mascot pose and
+  falls back to the available art, ready for the extra pose files.
+- The sidebar highlights the active section and uses the display face for
+  the product name; the header is now sticky with a subtle blur.
+
+### Changed
+
+- Empty-state copy: «Tu estantería está vacía» / "Your shelf is empty", and
+  the library carries a lede explaining what each character keeps.
+
+### Fixed
+
+- The update notice's «See updates» action renders an anchor again without
+  breaking button semantics (`nativeButton={false}`), removing a Base UI
+  console error.
+
 ## [1.37.1] - 2026-10-09
 
 ### Changed
