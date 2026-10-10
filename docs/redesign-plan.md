@@ -323,18 +323,20 @@ Cada slice: bump en `package.json`, entrada en `CHANGELOG.md` y
 
 ## 11. Criterios de aceptación globales
 
-- [ ] La app se siente de la misma familia que sus referentes fandom sin
+- [x] La app se siente de la misma familia que sus referentes fandom sin
       romper la lectura larga (densidad, contraste, foco visible).
-- [ ] Welcome, biblioteca y chat son coherentes entre sí en claro y
+- [x] Welcome, biblioteca y chat son coherentes entre sí en claro y
       oscuro, y con los 5 mundos.
-- [ ] Estilo de mensaje y colores de diálogo persisten por conversación,
+- [x] Estilo de mensaje y colores de diálogo persisten por conversación,
       heredan en ramas y viajan en export/import.
-- [ ] La mascota aparece con intención (bienvenida, vacíos, errores,
-      carga) y tiene fallback seguro.
-- [ ] `pnpm check` verde en cada slice; sin archivos huérfanos ni >500
+- [x] La mascota aparece con intención (bienvenida, vacíos, errores,
+      carga) y tiene fallback seguro. El arte adicional de poses sigue en
+      producción por el usuario; el fallback a la pose neutral está activo.
+- [x] `pnpm check` verde en cada slice; sin archivos huérfanos ni >500
       líneas.
-- [ ] `DESIGN.md` documenta el mundo construido con tokens y
-      `.impeccable/design.json`; capturas de desktop y mobile adjuntas.
+- [x] `DESIGN.md` documenta el mundo construido con tokens y
+      `.impeccable/design.json`; capturas de verificación revisadas
+      (welcome, biblioteca vacía, búsqueda, novela visual, chat vacío).
 
 ## 12. Estado y próximos pasos
 
@@ -346,8 +348,11 @@ Cada slice: bump en `package.json`, entrada en `CHANGELOG.md` y
    archivo.
 3. Arte adicional de la mascota — **diferido** (§7.1); se usa el arte
    existente con fallback a la pose neutral.
-4. ~~S59 — Fundación~~, ~~S60 — Shell y biblioteca~~ y ~~S61 — Chat con
-   carácter~~ — entregados (v1.37.0, v1.37.1, v1.38.0 y v1.39.0; ver
-   `S59-progress.md`, `S60-progress.md` y `S61-progress.md`). Siguiente:
-   **S62 — Delicia y cierre** (micro-animaciones, mascota en estados, a11y,
-   `DESIGN.md` y capturas de cierre).
+4. ~~S59 — Fundación~~, ~~S60 — Shell y biblioteca~~, ~~S61 — Chat con
+   carácter~~ y ~~S62 — Delicia y cierre~~ — **rediseño completo**
+   (v1.37.0, v1.37.1, v1.38.0, v1.39.0 y v1.40.0; ver `S59-progress.md`,
+   `S60-progress.md`, `S61-progress.md` y `S62-progress.md`). Cierre con
+   `DESIGN.md` + `.impeccable/design.json` y capturas de verificación.
+5. Pendiente único del rediseño: **arte de poses de la mascota** (§7.1),
+   en producción por el usuario; entra sin cambios de código y cae al
+   fallback mientras tanto.
