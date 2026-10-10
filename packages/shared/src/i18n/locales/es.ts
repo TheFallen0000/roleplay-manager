@@ -203,6 +203,7 @@ export const es: Dictionary = {
   },
   chat: {
     noMessages: "No hay mensajes en esta conversación.",
+    you: "Tú",
     titleEditManually: "Editar manualmente",
     titleRegenerate: "Regenerar automáticamente",
     inputPlaceholder: "Escribe un mensaje...",
@@ -323,6 +324,32 @@ export const es: Dictionary = {
     backgroundDeleted: "Fondo eliminado",
     backgroundDeleteFailed: "No se pudo quitar el fondo",
     backgroundSaving: "Guardando fondo…",
+    appearanceTitle: "Apariencia del chat",
+    appearanceDescription:
+      "Cómo se leen las escenas y de qué color habla cada voz. Solo para este chat; las ramas lo heredan.",
+    messageStyle: "Estilo de mensaje",
+    messageStyleBubble: "Burbuja",
+    messageStyleBubbleHint: "El chat de siempre: burbujas a cada lado.",
+    messageStyleDocument: "Documento",
+    messageStyleDocumentHint:
+      "Prosa a todo el ancho, para leer como una novela.",
+    messageStyleNovel: "Novela visual",
+    messageStyleNovelHint:
+      "Cada voz con su placa y su color, sobre el fondo del chat.",
+    dialogueColors: "Colores de diálogo",
+    dialogueColorsHint:
+      "El color con el que habla cada voz. «Tema» usa el color del mundo activo.",
+    dialogueCharacter: "Personaje",
+    dialogueUser: "Tú",
+    dialogueColorDefault: "Tema",
+    dialogueColorViolet: "Violeta",
+    dialogueColorSakura: "Sakura",
+    dialogueColorOcean: "Océano",
+    dialogueColorMatcha: "Matcha",
+    dialogueColorAmber: "Ámbar",
+    dialogueColorRed: "Rojo",
+    appearanceUpdated: "Apariencia actualizada",
+    appearanceUpdateFailed: "No se pudo actualizar la apariencia",
     personaHint:
       "Elige a quién interpretas en esta conversación. La IA lo incluirá en el contexto y se dirigirá a ti en consecuencia.",
     personaManage: "Gestionar personajes jugados",

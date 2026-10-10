@@ -1,5 +1,5 @@
 import type { CharacterVersionDTO } from "./character"
-import type { BackgroundFit } from "./conversation"
+import type { BackgroundFit, MessageStyle } from "./conversation"
 import type { MemoryDTO } from "./memory"
 import type { MessageDTO } from "./message"
 import type { SummaryDTO } from "./summary"
@@ -62,6 +62,9 @@ export interface ExportSettings {
   memoryDecayThreshold: number
   memoryDecayAgeThreshold: number
   memoryDecaySpeed: number
+  messageStyle: MessageStyle
+  characterDialogueColor: string | null
+  userDialogueColor: string | null
 }
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
@@ -81,6 +84,9 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   memoryDecayThreshold: 3,
   memoryDecayAgeThreshold: 30,
   memoryDecaySpeed: 10,
+  messageStyle: "bubble",
+  characterDialogueColor: null,
+  userDialogueColor: null,
 }
 
 export interface ExportConversation {

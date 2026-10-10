@@ -9,6 +9,8 @@ export type TitleSource = "auto" | "manual"
 
 export type BackgroundFit = "cover" | "contain"
 
+export type MessageStyle = "bubble" | "document" | "novel"
+
 export interface ConversationSummary {
   id: string
   characterId: string
@@ -45,6 +47,9 @@ export interface ConversationDetail {
   backgroundImageDimensions?: ImageDimensions | null
   backgroundFit: BackgroundFit
   backgroundScrim: number
+  messageStyle: MessageStyle
+  characterDialogueColor: string | null
+  userDialogueColor: string | null
   playerCharacterId: string | null
   memoryDecayMode: MemoryDecayMode
   memoryDecayThreshold: number
@@ -72,6 +77,9 @@ export interface ConversationSettingsUpdate {
   backgroundImageAssetId?: string | null
   backgroundFit?: BackgroundFit
   backgroundScrim?: number
+  messageStyle?: MessageStyle
+  characterDialogueColor?: string | null
+  userDialogueColor?: string | null
   playerCharacterId?: string | null
   memoryDecayMode?: MemoryDecayMode
   memoryDecayThreshold?: number
