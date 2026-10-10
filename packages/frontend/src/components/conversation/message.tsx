@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react"
 import type { MessageDTO } from "@workspace/shared/types/message"
+import type { MessageStyle } from "@workspace/shared/types/conversation"
 import {
   Message,
   MessageContent,
@@ -29,14 +30,20 @@ import {
   Split,
 } from "lucide-react"
 import { TypingIndicator } from "@workspace/ui/components/typing-indicator"
+import { cn } from "@workspace/ui/lib/utils"
 import { parseMessage } from "../../lib/format-message"
 import { useTranslation } from "../../lib/hooks/use-translation"
 import { useSwipeNavigation } from "../../lib/hooks/use-swipe-navigation"
+
+const DIALOGUE_CHARACTER_CLASS = "rm-dialogue-char"
+const DIALOGUE_USER_CLASS = "rm-dialogue-user"
 
 export function MessageBubble({
   message,
   isStreaming,
   isLastMessage,
+  messageStyle = "bubble",
+  characterName,
   onDelete,
   onRegenerate,
   onRewind,
@@ -53,6 +60,8 @@ export function MessageBubble({
   message: Pick<MessageDTO, "id" | "role" | "content" | "createdAt" | "position" | "alternatives" | "alternativesCursor">
   isStreaming?: boolean
   isLastMessage?: boolean
+  messageStyle?: MessageStyle
+  characterName?: string
   onDelete?: (messageId: string) => void
   onRegenerate?: (messageId: string) => void
   onRewind?: (messageId: string) => void
@@ -110,8 +119,23 @@ export function MessageBubble({
     onCancelEdit?.()
   }
 
+  const isBubble = messageStyle === "bubble"
+  const isDocument = messageStyle === "document"
+  const isNovel = messageStyle === "novel"
+  const userAligned = isUser && isBubble
+
+  const bubbleVariant = isBubble
+    ? isUser
+      ? "default"
+      : "muted"
+    : isDocument
+      ? "ghost"
+      : isUser
+        ? "tinted"
+        : "outline"
+
   return (
-    <Message align={isUser ? "end" : "start"}>
+    <Message align={userAligned ? "end" : "start"}>
       <MessageContent>
         {isEditing ? (
           <div className="flex flex-col gap-2">
@@ -136,96 +160,124 @@ export function MessageBubble({
             </div>
           </div>
         ) : (
-          <ContextMenu>
-            <ContextMenuTrigger className="select-text">
-              <Bubble
-                variant={isUser ? "default" : "muted"}
-                align={isUser ? "end" : "start"}
-                className={isUser ? "ml-auto" : ""}
-                style={swipeStyle}
-                {...swipe.handlers}
+          <>
+            {isNovel && (isUser || characterName) ? (
+              <span
+                className={cn(
+                  "inline-flex w-fit items-center rounded-full border border-border bg-card/90 px-2.5 py-0.5 text-xs font-semibold",
+                  isUser ? DIALOGUE_USER_CLASS : DIALOGUE_CHARACTER_CLASS,
+                )}
               >
-                <BubbleContent>
-                  {segments.length > 0 ? (
-                    segments.map((segment, i) => {
-                      switch (segment.type) {
-                        case "action":
-                          return (
-                            <span
-                              key={i}
-                              className={
-                                isUser
-                                  ? "italic"
-                                  : "italic text-muted-foreground/70"
-                              }
-                            >
-                              {segment.content}
-                            </span>
-                          )
-                        case "ooc":
-                          return (
-                            <code
-                              key={i}
-                              className={
-                                isUser
-                                  ? "text-xs font-mono"
-                                  : "text-xs font-mono text-emerald-600 dark:text-emerald-400"
-                              }
-                            >
-                              //{segment.content}//
-                            </code>
-                          )
-                        default:
-                          return <span key={i}>{segment.content}</span>
-                      }
-                    })
-                  ) : message.role === "assistant" ? (
-                    <TypingIndicator />
-                  ) : null}
-                  {isStreaming && (
-                    <span className="inline-block w-0.5 h-4 bg-foreground ml-0.5 animate-pulse" />
+                {isUser ? t("chat.you") : characterName}
+              </span>
+            ) : null}
+            <ContextMenu>
+              <ContextMenuTrigger className="select-text">
+                <Bubble
+                  variant={bubbleVariant}
+                  align={userAligned ? "end" : "start"}
+                  className={cn(
+                    !isBubble && "w-full max-w-full",
+                    isBubble && isUser && "ml-auto",
                   )}
-                </BubbleContent>
-              </Bubble>
-            </ContextMenuTrigger>
-            {!isStreaming && (
-              <ContextMenuContent>
-                {!isUser && isLastMessage && (
-                  <ContextMenuItem onClick={() => onRegenerate?.(message.id)}>
-                    <RefreshCcw className="size-4" />
-                    {t("chat.messageRegenerate")}
-                  </ContextMenuItem>
-                )}
-                <ContextMenuItem onClick={() => onStartEdit?.(message.id, message.content)}>
-                  <Pencil className="size-4" />
-                  {t("chat.messageEdit")}
-                </ContextMenuItem>
-                {!isLastMessage && (
-                  <ContextMenuItem onClick={() => onRewind?.(message.id)}>
-                    <History className="size-4" />
-                    {t("chat.messageRewind")}
-                  </ContextMenuItem>
-                )}
-                <ContextMenuItem onClick={() => navigator.clipboard.writeText(message.content)}>
-                  <Copy className="size-4" />
-                  {t("chat.messageCopy")}
-                </ContextMenuItem>
-                {message.position > 0 && (
-                  <>
-                    <ContextMenuItem onClick={() => onBranch?.(message.id)}>
-                      <Split className="size-4" />
-                      {t("chat.messageBranch")}
+                  style={swipeStyle}
+                  {...swipe.handlers}
+                >
+                  <BubbleContent
+                    className={
+                      isDocument ? "text-[0.95rem] leading-relaxed" : undefined
+                    }
+                  >
+                    {segments.length > 0 ? (
+                      segments.map((segment, i) => {
+                        switch (segment.type) {
+                          case "action":
+                            return (
+                              <span
+                                key={i}
+                                className={
+                                  isUser
+                                    ? "italic"
+                                    : "italic text-muted-foreground/70"
+                                }
+                              >
+                                {segment.content}
+                              </span>
+                            )
+                          case "ooc":
+                            return (
+                              <code
+                                key={i}
+                                className="rounded-md bg-foreground/85 px-1.5 py-0.5 font-mono text-xs text-background"
+                              >
+                                //{segment.content}//
+                              </code>
+                            )
+                          default:
+                            return (
+                              <span
+                                key={i}
+                                className={
+                                  isUser
+                                    ? isBubble
+                                      ? undefined
+                                      : DIALOGUE_USER_CLASS
+                                    : DIALOGUE_CHARACTER_CLASS
+                                }
+                              >
+                                {segment.content}
+                              </span>
+                            )
+                        }
+                      })
+                    ) : message.role === "assistant" ? (
+                      <TypingIndicator />
+                    ) : null}
+                    {isStreaming && (
+                      <span className="inline-block w-0.5 h-4 bg-foreground ml-0.5 animate-pulse" />
+                    )}
+                  </BubbleContent>
+                </Bubble>
+              </ContextMenuTrigger>
+              {!isStreaming && (
+                <ContextMenuContent>
+                  {!isUser && isLastMessage && (
+                    <ContextMenuItem onClick={() => onRegenerate?.(message.id)}>
+                      <RefreshCcw className="size-4" />
+                      {t("chat.messageRegenerate")}
                     </ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem variant="destructive" onClick={() => onDelete?.(message.id)}>
-                      <Trash2 className="size-4" />
-                      {t("chat.messageDelete")}
+                  )}
+                  <ContextMenuItem onClick={() => onStartEdit?.(message.id, message.content)}>
+                    <Pencil className="size-4" />
+                    {t("chat.messageEdit")}
+                  </ContextMenuItem>
+                  {!isLastMessage && (
+                    <ContextMenuItem onClick={() => onRewind?.(message.id)}>
+                      <History className="size-4" />
+                      {t("chat.messageRewind")}
                     </ContextMenuItem>
-                  </>
-                )}
-              </ContextMenuContent>
-            )}
-          </ContextMenu>
+                  )}
+                  <ContextMenuItem onClick={() => navigator.clipboard.writeText(message.content)}>
+                    <Copy className="size-4" />
+                    {t("chat.messageCopy")}
+                  </ContextMenuItem>
+                  {message.position > 0 && (
+                    <>
+                      <ContextMenuItem onClick={() => onBranch?.(message.id)}>
+                        <Split className="size-4" />
+                        {t("chat.messageBranch")}
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem variant="destructive" onClick={() => onDelete?.(message.id)}>
+                        <Trash2 className="size-4" />
+                        {t("chat.messageDelete")}
+                      </ContextMenuItem>
+                    </>
+                  )}
+                </ContextMenuContent>
+              )}
+            </ContextMenu>
+          </>
         )}
         {!isStreaming && message.content && (message.createdAt || (totalAlternatives > 1 && message.role === "assistant")) && (
           <MessageFooter>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 import type { PromptContextDTO } from "@workspace/shared/types/context"
 import {
@@ -341,7 +341,20 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       </header>
 
       <MessageScrollerProvider autoScroll={isStreaming}>
-        <MessageScroller className="flex-1 p-2">
+        <MessageScroller
+          className="flex-1 p-2"
+          data-message-style={conv.messageStyle}
+          style={
+            {
+              ...(conv.characterDialogueColor
+                ? { "--rm-dialogue-char": conv.characterDialogueColor }
+                : {}),
+              ...(conv.userDialogueColor
+                ? { "--rm-dialogue-user": conv.userDialogueColor }
+                : {}),
+            } as CSSProperties
+          }
+        >
           {conv.backgroundImageAssetId ? (
             <div aria-hidden className="pointer-events-none absolute inset-0">
               <img
@@ -391,8 +404,8 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                       return (
                         <MessageScrollerItem key={msg.id} scrollAnchor={i === messages.length - 1}>
                           {streamingContent
-                            ? <MessageBubble message={{ ...msg, content: streamingContent }} isStreaming />
-                            : <MessageBubble message={{ ...msg, content: "" }} />}
+                            ? <MessageBubble message={{ ...msg, content: streamingContent }} isStreaming messageStyle={conv.messageStyle} characterName={conv.characterName} />
+                            : <MessageBubble message={{ ...msg, content: "" }} messageStyle={conv.messageStyle} characterName={conv.characterName} />}
                         </MessageScrollerItem>
                       )
                     }
@@ -403,6 +416,8 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                       >
                         <MessageBubble
                           message={msg}
+                          messageStyle={conv.messageStyle}
+                          characterName={conv.characterName}
                           isLastMessage={i === messages.length - 1 && !streamingContent}
                           isEditing={editingMessageId === msg.id}
                           editContent={editingMessageId === msg.id ? editingContent : undefined}
@@ -423,8 +438,8 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                   {isStreaming && !regeneratingMessageId && (
                     <MessageScrollerItem key={streamingContent ? "streaming" : "typing"} scrollAnchor>
                       {streamingContent
-                        ? <MessageBubble message={{ id: "streaming", role: "assistant", content: streamingContent, position: 0, createdAt: "", alternatives: [], alternativesCursor: 0 }} isStreaming />
-                        : <MessageBubble message={{ id: "typing", role: "assistant", content: "", position: 0, createdAt: "", alternatives: [], alternativesCursor: 0 }} />}
+                        ? <MessageBubble message={{ id: "streaming", role: "assistant", content: streamingContent, position: 0, createdAt: "", alternatives: [], alternativesCursor: 0 }} isStreaming messageStyle={conv.messageStyle} characterName={conv.characterName} />
+                        : <MessageBubble message={{ id: "typing", role: "assistant", content: "", position: 0, createdAt: "", alternatives: [], alternativesCursor: 0 }} messageStyle={conv.messageStyle} characterName={conv.characterName} />}
                     </MessageScrollerItem>
                   )}
                 </>

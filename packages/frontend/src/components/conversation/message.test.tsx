@@ -222,21 +222,82 @@ describe("MessageBubble segment colors", () => {
     expect(screen.getByText("sonríe")).toHaveClass("text-muted-foreground/70")
   })
 
-  it("el OOC del usuario hereda el color de la burbuja", () => {
+  it("el OOC del usuario se muestra como pastilla legible", () => {
     render(<MessageBubble message={buildUserMessage("Hola //nota//")} />)
 
     const ooc = screen.getByText("//nota//")
     expect(ooc).toHaveClass("font-mono")
+    expect(ooc).toHaveClass("bg-foreground/85")
+    expect(ooc).toHaveClass("text-background")
     expect(ooc).not.toHaveClass("text-emerald-600")
   })
 
-  it("el OOC del asistente conserva el color esmeralda", () => {
+  it("el OOC del asistente se muestra como pastilla legible", () => {
     render(
       <MessageBubble
         message={{ ...buildMessage(0, []), content: "Hola //nota//" }}
       />,
     )
 
-    expect(screen.getByText("//nota//")).toHaveClass("text-emerald-600")
+    const ooc = screen.getByText("//nota//")
+    expect(ooc).toHaveClass("bg-foreground/85")
+    expect(ooc).not.toHaveClass("text-emerald-600")
+  })
+})
+
+describe("MessageBubble appearance", () => {
+  it("muestra una placa con el nombre del personaje en novela visual", () => {
+    render(
+      <MessageBubble
+        message={{ ...buildMessage(0, []), content: "Hola" }}
+        messageStyle="novel"
+        characterName="Lyra"
+      />,
+    )
+
+    expect(screen.getByText("Lyra")).toBeInTheDocument()
+  })
+
+  it("la placa del usuario dice «Tú» en novela visual", () => {
+    render(
+      <MessageBubble message={buildUserMessage("Hola")} messageStyle="novel" />,
+    )
+
+    expect(screen.getByText("Tú")).toBeInTheDocument()
+  })
+
+  it("en documento el mensaje ocupa todo el ancho sin burbuja", () => {
+    render(
+      <MessageBubble
+        message={{ ...buildMessage(0, []), content: "Hola" }}
+        messageStyle="document"
+      />,
+    )
+
+    const bubble = getBubble()
+    expect(bubble).toHaveAttribute("data-variant", "ghost")
+    expect(bubble).toHaveClass("max-w-full")
+  })
+
+  it("colorea el diálogo del personaje en cualquier estilo", () => {
+    render(
+      <MessageBubble message={{ ...buildMessage(0, []), content: "«Hola»" }} />,
+    )
+
+    expect(screen.getByText("«Hola»")).toHaveClass("rm-dialogue-char")
+  })
+
+  it("en burbuja el diálogo del usuario hereda el color de la burbuja", () => {
+    render(<MessageBubble message={buildUserMessage("«Hola»")} />)
+
+    expect(screen.getByText("«Hola»")).not.toHaveClass("rm-dialogue-user")
+  })
+
+  it("en documento el diálogo del usuario usa su propio color", () => {
+    render(
+      <MessageBubble message={buildUserMessage("«Hola»")} messageStyle="document" />,
+    )
+
+    expect(screen.getByText("«Hola»")).toHaveClass("rm-dialogue-user")
   })
 })

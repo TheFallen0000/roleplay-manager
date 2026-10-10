@@ -12,6 +12,8 @@ import { useTranslation } from "@/lib/hooks/use-translation"
 import { Separator } from "@workspace/ui/components/separator"
 import { ProfileImageInput } from "@/components/shared/images/profile-image-input"
 import { BackgroundImageInput } from "./background-image-input"
+import { DialogueColorPicker } from "./dialogue-color-picker"
+import { MessageStylePicker } from "./message-style-picker"
 
 interface CustomizationTabProps {
   conversation: ConversationDetail
@@ -81,6 +83,44 @@ export function CustomizationTab({
         conversation={conversation}
         onSettingsChanged={onSettingsChanged}
       />
+
+      <Separator />
+
+      <div>
+        <p className="text-sm font-medium">{t("settings.appearanceTitle")}</p>
+        <p className="text-xs text-muted-foreground">
+          {t("settings.appearanceDescription")}
+        </p>
+      </div>
+
+      <MessageStylePicker
+        conversationId={conversation.id}
+        value={conversation.messageStyle}
+        onSettingsChanged={onSettingsChanged}
+      />
+
+      <div className="grid gap-3">
+        <div>
+          <p className="text-sm font-medium">{t("settings.dialogueColors")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("settings.dialogueColorsHint")}
+          </p>
+        </div>
+        <DialogueColorPicker
+          conversationId={conversation.id}
+          field="characterDialogueColor"
+          label={t("settings.dialogueCharacter")}
+          value={conversation.characterDialogueColor}
+          onSettingsChanged={onSettingsChanged}
+        />
+        <DialogueColorPicker
+          conversationId={conversation.id}
+          field="userDialogueColor"
+          label={t("settings.dialogueUser")}
+          value={conversation.userDialogueColor}
+          onSettingsChanged={onSettingsChanged}
+        />
+      </div>
 
       {saving ? (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
