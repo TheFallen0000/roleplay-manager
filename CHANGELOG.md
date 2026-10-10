@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.40.1] - 2026-10-09
+
+### Changed
+
+- **Release pipeline maintenance**: the GitHub Actions that build and publish
+  the portable packages now run on their Node 24 releases (`checkout` v7,
+  `setup-node` v7, `upload-artifact` v7, `download-artifact` v8 and
+  `pnpm/action-setup` v6), and every runner is pinned to an explicit image
+  (`ubuntu-26.04`, `windows-2025`, `macos-26`), so a `-latest` label
+  migration cannot change the build OS unnoticed.
+- Weekly **Dependabot** updates keep the workflow actions current.
+
 ## [1.40.0] - 2026-10-09
 
 ### Added
