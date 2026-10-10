@@ -346,6 +346,8 @@ Cada slice: bump en `package.json`, entrada en `CHANGELOG.md` y
    archivo.
 3. Arte adicional de la mascota — **diferido** (§7.1); se usa el arte
    existente con fallback a la pose neutral.
-4. ~~S59 — Fundación~~ y ~~S60 — Shell y biblioteca~~ — entregados (v1.37.0,
-   v1.37.1 y v1.38.0; ver `S59-progress.md` y `S60-progress.md`). Siguiente:
-   **S61 — Chat con carácter**.
+4. ~~S59 — Fundación~~, ~~S60 — Shell y biblioteca~~ y ~~S61 — Chat con
+   carácter~~ — entregados (v1.37.0, v1.37.1, v1.38.0 y v1.39.0; ver
+   `S59-progress.md`, `S60-progress.md` y `S61-progress.md`). Siguiente:
+   **S62 — Delicia y cierre** (micro-animaciones, mascota en estados, a11y,
+   `DESIGN.md` y capturas de cierre).
