@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.40.0] - 2026-10-09
+
+### Added
+
+- **Delight and finish pass (S62)**: new messages settle in with a soft
+  entrance, the streaming caret is now an ink brush stroke, and the mascot
+  appears in the empty chat, the no-results search and the character
+  not-found state.
+- **Mobile platform layer**: safe-area support for notched phones (shell
+  header, chat composer and chat height), 16px inputs on touch screens so
+  iOS does not zoom, no tap highlight, no long-press selection on controls,
+  no pull-to-refresh bounce, and `viewport-fit=cover`.
+- **`DESIGN.md`** at the repo root plus a `.impeccable/design.json` sidecar:
+  the built design system is now documented with machine-readable tokens
+  (colours, typography, radii, components), a motion vocabulary and named
+  rules such as *The Ink-Before-Chrome* and *The Flat-by-Default*.
+
+### Changed
+
+- Every animation and transition is damped for users who ask for reduced
+  motion.
+- The active sidebar item exposes `aria-current="page"` and the browser
+  `theme-color` follows the app's real light/dark mode instead of the
+  system preference.
+
 ## [1.39.0] - 2026-10-09
 
 ### Added
