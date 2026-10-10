@@ -11,6 +11,10 @@ name: Release
 #
 # Native modules (better-sqlite3, sharp) are installed on the target OS, so each
 # package is built and smoke-tested on its own runner.
+#
+# Runner images are pinned to explicit labels (never `-latest`) so a label
+# migration cannot change the OS of a release unnoticed; bump them deliberately
+# after checking https://github.com/actions/runner-images#available-images.
 
 on:
   push:
@@ -33,7 +37,7 @@ permissions:
 jobs:
   prepare:
     name: Decide what to do
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       run: ${{ steps.decide.outputs.run }}
       publish: ${{ steps.decide.outputs.publish }}
@@ -41,7 +45,7 @@ jobs:
       tag: ${{ steps.decide.outputs.tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Decide whether to build and publish
         id: decide
@@ -84,16 +88,16 @@ jobs:
     name: Quality gates
     needs: prepare
     if: needs.prepare.outputs.run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           # Same version that gets bundled in the packages.
           node-version: "24.18.0"
@@ -119,26 +123,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
+          - os: windows-2025
             target: win-x64
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             target: linux-x64
-          - os: ubuntu-24.04-arm
+          - os: ubuntu-26.04-arm
             target: linux-arm64
-          - os: macos-latest
+          - os: macos-26
             target: mac-arm64
           - os: macos-26-intel
             target: mac-x64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "24.18.0"
           cache: pnpm
@@ -153,7 +157,7 @@ jobs:
         run: node scripts/smoke-package.mjs
 
       - name: Upload the package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package-${{ matrix.target }}
           path: release/*
@@ -163,18 +167,18 @@ jobs:
     name: Publish the GitHub Release
     needs: [prepare, build]
     if: needs.prepare.outputs.publish == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "24.18.0"
 
       - name: Download every package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: release
           merge-multiple: true
