@@ -20,7 +20,7 @@ const onboarded = isOnboarded(
 <html lang={locale}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -43,6 +43,9 @@ const onboarded = isOnboarded(
           const root = document.documentElement
           root.dataset.theme = theme
           root.classList.toggle("dark", dark)
+          document
+            .querySelector('meta[name="theme-color"]')
+            ?.setAttribute("content", dark ? "#17131f" : "#fbfafd")
         } catch {
           /* localStorage unavailable — fall back to the default theme */
         }

@@ -47,7 +47,10 @@ export function MessageInput({
   const hasText = content.trim().length > 0
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-2 p-4">
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-end gap-2 p-4 pb-[calc(1rem_+_env(safe-area-inset-bottom,0px))]"
+    >
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}

@@ -109,6 +109,7 @@ function AppShellContent({
                     render={<a href="/" />}
                     tooltip={t("nav.characters")}
                     isActive={isActive("/")}
+                    aria-current={isActive("/") ? "page" : undefined}
                   >
                       <UsersIcon />
                       <span>{t("nav.characters")}</span>
@@ -119,6 +120,7 @@ function AppShellContent({
                     render={<a href="/player-characters" />}
                     tooltip={t("nav.players")}
                     isActive={isActive("/player-characters")}
+                    aria-current={isActive("/player-characters") ? "page" : undefined}
                   >
                       <UserRoundIcon />
                       <span>{t("nav.players")}</span>
@@ -136,6 +138,7 @@ function AppShellContent({
                     render={<a href="/settings/providers" />}
                     tooltip={t("nav.providers")}
                     isActive={isActive("/settings/providers")}
+                    aria-current={isActive("/settings/providers") ? "page" : undefined}
                   >
                       <CogIcon />
                       <span>{t("nav.providers")}</span>
@@ -146,6 +149,7 @@ function AppShellContent({
                     render={<a href="/settings/updates" />}
                     tooltip={t("nav.updates")}
                     isActive={isActive("/settings/updates")}
+                    aria-current={isActive("/settings/updates") ? "page" : undefined}
                   >
                     <RefreshCwIcon />
                     <span>{t("nav.updates")}</span>
@@ -160,7 +164,7 @@ function AppShellContent({
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur-sm">
+        <header className="sticky top-0 z-10 flex min-h-12 items-center gap-2 border-b bg-background/80 px-4 pt-[env(safe-area-inset-top,0px)] backdrop-blur-sm">
           <SidebarTrigger />
           <AppMenubar />
         </header>

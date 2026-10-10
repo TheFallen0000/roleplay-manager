@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { PlusIcon, SearchXIcon, UploadIcon } from "lucide-react"
+import { PlusIcon, UploadIcon } from "lucide-react"
 
 import type { CharacterSummary } from "@workspace/shared/types/character"
 import type { CharacterExport } from "@workspace/shared/types/export"
@@ -229,7 +229,7 @@ function CharacterListContent() {
           />
           {visibleCharacters.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border px-6 py-10 text-center">
-              <SearchXIcon className="size-7 text-muted-foreground" />
+              <MascotPose pose="thinking" className="h-20 w-20" />
               <p className="text-sm text-muted-foreground">
                 {t("characters.noResults", { term: search.trim() })}
               </p>

@@ -233,9 +233,7 @@ export function MessageBubble({
                     ) : message.role === "assistant" ? (
                       <TypingIndicator />
                     ) : null}
-                    {isStreaming && (
-                      <span className="inline-block w-0.5 h-4 bg-foreground ml-0.5 animate-pulse" />
-                    )}
+                    {isStreaming && <span className="rm-caret" aria-hidden="true" />}
                   </BubbleContent>
                 </Bubble>
               </ContextMenuTrigger>

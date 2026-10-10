@@ -51,6 +51,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement
     root.dataset.theme = theme
     root.classList.toggle("dark", resolvedMode === "dark")
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", resolvedMode === "dark" ? "#17131f" : "#fbfafd")
   }, [theme, resolvedMode])
 
   const setTheme = useCallback((next: ThemeId) => {

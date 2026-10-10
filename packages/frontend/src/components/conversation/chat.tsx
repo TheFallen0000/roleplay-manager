@@ -43,6 +43,7 @@ import { useSummaryStore } from "@/lib/stores/summary.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import type { Locale } from "@workspace/shared/i18n"
+import { MascotPose } from "../layout/brand"
 
 export function Chat({
   conversation,
@@ -394,15 +395,18 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
           <MessageScrollerViewport className="relative z-10">
             <MessageScrollerContent>
               {messages.length === 0 && !streamingContent ? (
-                <div className="flex flex-1 items-center justify-center p-12 text-center text-sm text-muted-foreground">
-                  {t("chat.noMessages")}
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 p-12 text-center">
+                  <MascotPose pose="sparkle" className="h-28 w-28" />
+                  <p className="text-sm text-muted-foreground">
+                    {t("chat.noMessages")}
+                  </p>
                 </div>
               ) : (
                 <>
                   {messages.map((msg, i) => {
                     if (msg.id === regeneratingMessageId) {
                       return (
-                        <MessageScrollerItem key={msg.id} scrollAnchor={i === messages.length - 1}>
+                        <MessageScrollerItem className="rm-message-enter" key={msg.id} scrollAnchor={i === messages.length - 1}>
                           {streamingContent
                             ? <MessageBubble message={{ ...msg, content: streamingContent }} isStreaming messageStyle={conv.messageStyle} characterName={conv.characterName} />
                             : <MessageBubble message={{ ...msg, content: "" }} messageStyle={conv.messageStyle} characterName={conv.characterName} />}
@@ -411,6 +415,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                     }
                     return (
                       <MessageScrollerItem
+                        className="rm-message-enter"
                         key={msg.id}
                         scrollAnchor={i === messages.length - 1 && !isStreaming}
                       >
@@ -436,7 +441,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                     )
                   })}
                   {isStreaming && !regeneratingMessageId && (
-                    <MessageScrollerItem key={streamingContent ? "streaming" : "typing"} scrollAnchor>
+                    <MessageScrollerItem className="rm-message-enter" key={streamingContent ? "streaming" : "typing"} scrollAnchor>
                       {streamingContent
                         ? <MessageBubble message={{ id: "streaming", role: "assistant", content: streamingContent, position: 0, createdAt: "", alternatives: [], alternativesCursor: 0 }} isStreaming messageStyle={conv.messageStyle} characterName={conv.characterName} />
                         : <MessageBubble message={{ id: "typing", role: "assistant", content: "", position: 0, createdAt: "", alternatives: [], alternativesCursor: 0 }} messageStyle={conv.messageStyle} characterName={conv.characterName} />}
