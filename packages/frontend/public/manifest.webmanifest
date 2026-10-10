@@ -1,6 +1,6 @@
 {
   "name": "Roleplay Manager",
-  "short_name": "Roleplay",
+  "short_name": "RM",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
