@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.39.0] - 2026-10-09
+
+### Added
+
+- **Per-conversation chat appearance (S61)**: every conversation now stores its
+  **message style** — *bubble* (classic), *document* (full-width prose) or
+  *visual novel* (name plates over the chat background) — plus **dialogue
+  colours** for the character and for you, chosen from a palette or reset to
+  the theme. Branches inherit the look, and it travels in character exports
+  and settings templates.
+- A new **Chat appearance** block in the conversation Customization dialog
+  with style cards and colour swatches.
+- Out-of-character comments (`//…//`) render as a legible monospace pill in
+  every style and both modes.
+
+### Changed
+
+- Character dialogue is tinted with its colour in every style; your dialogue
+  colour applies in *document* and *visual novel*.
+- Custom dialogue colours are lifted slightly in dark mode so mid tones stay
+  readable.
+
+### Fixed
+
+- The conversation settings endpoint (and the settings-template schema) now
+  accept the new appearance fields instead of silently dropping them; a route
+  regression test covers the contract.
+
 ## [1.38.0] - 2026-10-09
 
 ### Added
