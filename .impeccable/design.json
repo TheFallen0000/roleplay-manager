@@ -1,0 +1,322 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-09T20:00:00.000Z",
+  "title": "Design System: Roleplay Manager",
+  "extensions": {
+    "colorMeta": {
+      "ink-violet": {
+        "role": "primary",
+        "displayName": "Ink Violet",
+        "canonical": "oklch(0.54 0.24 300)",
+        "tonalRamp": [
+          "oklch(0.2 0.08 300)",
+          "oklch(0.3 0.14 300)",
+          "oklch(0.4 0.19 300)",
+          "oklch(0.48 0.22 300)",
+          "oklch(0.54 0.24 300)",
+          "oklch(0.68 0.19 300)",
+          "oklch(0.82 0.12 300)",
+          "oklch(0.94 0.045 300)"
+        ]
+      },
+      "ink-violet-soft": {
+        "role": "primary",
+        "displayName": "Ink Violet Soft",
+        "canonical": "oklch(0.935 0.05 300)",
+        "tonalRamp": [
+          "oklch(0.22 0.05 300)",
+          "oklch(0.34 0.07 300)",
+          "oklch(0.46 0.09 300)",
+          "oklch(0.58 0.09 300)",
+          "oklch(0.7 0.08 300)",
+          "oklch(0.82 0.065 300)",
+          "oklch(0.9 0.055 300)",
+          "oklch(0.96 0.03 300)"
+        ]
+      },
+      "milestone-gold": {
+        "role": "tertiary",
+        "displayName": "Milestone Gold",
+        "canonical": "oklch(0.78 0.13 85)",
+        "tonalRamp": [
+          "oklch(0.24 0.05 85)",
+          "oklch(0.36 0.08 85)",
+          "oklch(0.48 0.11 85)",
+          "oklch(0.6 0.13 85)",
+          "oklch(0.7 0.13 85)",
+          "oklch(0.78 0.13 85)",
+          "oklch(0.87 0.1 85)",
+          "oklch(0.95 0.05 85)"
+        ]
+      },
+      "character-voice": {
+        "role": "primary",
+        "displayName": "Character Voice Violet",
+        "canonical": "oklch(0.46 0.2 300)",
+        "tonalRamp": [
+          "oklch(0.18 0.06 300)",
+          "oklch(0.28 0.12 300)",
+          "oklch(0.36 0.16 300)",
+          "oklch(0.46 0.2 300)",
+          "oklch(0.56 0.18 300)",
+          "oklch(0.68 0.14 300)",
+          "oklch(0.82 0.09 300)",
+          "oklch(0.94 0.04 300)"
+        ]
+      },
+      "user-voice": {
+        "role": "secondary",
+        "displayName": "User Voice Teal",
+        "canonical": "oklch(0.47 0.12 165)",
+        "tonalRamp": [
+          "oklch(0.18 0.04 165)",
+          "oklch(0.28 0.07 165)",
+          "oklch(0.37 0.1 165)",
+          "oklch(0.47 0.12 165)",
+          "oklch(0.58 0.11 165)",
+          "oklch(0.7 0.09 165)",
+          "oklch(0.83 0.06 165)",
+          "oklch(0.95 0.03 165)"
+        ]
+      },
+      "cool-paper": {
+        "role": "neutral",
+        "displayName": "Cool Paper",
+        "canonical": "oklch(0.98 0.006 300)",
+        "tonalRamp": [
+          "oklch(0.18 0.006 300)",
+          "oklch(0.3 0.006 300)",
+          "oklch(0.42 0.006 300)",
+          "oklch(0.54 0.006 300)",
+          "oklch(0.66 0.006 300)",
+          "oklch(0.78 0.006 300)",
+          "oklch(0.88 0.006 300)",
+          "oklch(0.98 0.006 300)"
+        ]
+      },
+      "night-ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "oklch(0.16 0.025 300)",
+        "tonalRamp": [
+          "oklch(0.16 0.025 300)",
+          "oklch(0.22 0.026 300)",
+          "oklch(0.3 0.027 300)",
+          "oklch(0.4 0.028 300)",
+          "oklch(0.52 0.028 300)",
+          "oklch(0.66 0.028 300)",
+          "oklch(0.81 0.026 300)",
+          "oklch(0.97 0.01 300)"
+        ]
+      },
+      "ink-black": {
+        "role": "neutral",
+        "displayName": "Ink Black",
+        "canonical": "oklch(0.2 0.02 300)",
+        "tonalRamp": [
+          "oklch(0.16 0.02 300)",
+          "oklch(0.2 0.02 300)",
+          "oklch(0.3 0.021 300)",
+          "oklch(0.42 0.022 300)",
+          "oklch(0.55 0.022 300)",
+          "oklch(0.68 0.022 300)",
+          "oklch(0.82 0.02 300)",
+          "oklch(0.95 0.01 300)"
+        ]
+      },
+      "faded-ink": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "oklch(0.51 0.024 300)",
+        "tonalRamp": [
+          "oklch(0.2 0.024 300)",
+          "oklch(0.3 0.024 300)",
+          "oklch(0.4 0.024 300)",
+          "oklch(0.51 0.024 300)",
+          "oklch(0.62 0.024 300)",
+          "oklch(0.74 0.022 300)",
+          "oklch(0.86 0.018 300)",
+          "oklch(0.96 0.01 300)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Wordmark, welcome hero and milestone numbers only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles; Zen Maru Gothic at weight 900."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Character names, panel headings; Zen Maru Gothic 700."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Conversation and prose; Zen Kaku Gothic New, 65–75ch measure."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Control labels and metadata; never decorative."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ambient-lift",
+        "value": "0 1px 2px rgba(60,40,80,0.08), 0 2px 8px rgba(60,40,80,0.06)",
+        "purpose": "Buttons and surfaces responding to hover."
+      },
+      {
+        "name": "floating-panel",
+        "value": "0 2px 6px rgba(60,40,80,0.10), 0 12px 32px rgba(60,40,80,0.12)",
+        "purpose": "Dialogs, popovers and lifted cards."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "The single easing curve for entrances, lifts and presses."
+      },
+      {
+        "name": "rm-message-enter",
+        "value": "160ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "New messages settle in with a 4px rise; killed by reduced motion."
+      },
+      {
+        "name": "rm-caret",
+        "value": "1.1s cubic-bezier(0.22, 1, 0.36, 1) infinite",
+        "purpose": "Streaming caret: a clipped brush stroke that pulses."
+      },
+      {
+        "name": "rm-burst",
+        "value": "900ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "One-shot golden sparkle for milestones (welcome start)."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Violet ink action: create, send, start writing.",
+      "html": "<button class=\"ds-btn-primary\">Crear personaje</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 17px;border:1px solid transparent;border-radius:12px;background:var(--primary);color:var(--primary-foreground);font:600 14px/1 'Zen Kaku Gothic New',sans-serif;cursor:pointer;transition:transform .12s cubic-bezier(.22,1,.36,1),box-shadow .18s cubic-bezier(.22,1,.36,1);}.ds-btn-primary:hover{transform:translateY(-1px);box-shadow:0 1px 2px rgba(60,40,80,.08),0 2px 8px rgba(60,40,80,.06);}.ds-btn-primary:active{transform:translateY(0);}.ds-btn-primary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Hairline secondary action: import, cancel.",
+      "html": "<button class=\"ds-btn-outline\">Importar</button>",
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 17px;border:1px solid var(--border);border-radius:12px;background:transparent;color:var(--foreground);font:600 14px/1 'Zen Kaku Gothic New',sans-serif;cursor:pointer;transition:background .12s linear,box-shadow .18s cubic-bezier(.22,1,.36,1);}.ds-btn-outline:hover{background:var(--muted);box-shadow:0 1px 2px rgba(60,40,80,.08);}.ds-btn-outline:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}"
+    },
+    {
+      "name": "Version Chip",
+      "kind": "chip",
+      "refersTo": "version-chip",
+      "description": "Soft violet pill on character cards (v1, v2…).",
+      "html": "<span class=\"ds-chip-violet\">v3</span>",
+      "css": ".ds-chip-violet{display:inline-flex;align-items:center;border:1px solid color-mix(in oklch,var(--primary) 35%,transparent);border-radius:999px;background:var(--primary-soft);color:var(--primary);font:600 11px/1 'Zen Kaku Gothic New',sans-serif;padding:5px 9px;letter-spacing:.01em;}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Search and form fields; hairline on card paper, violet ring on focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"Buscar personaje…\" />",
+      "css": ".ds-input{width:100%;border:1px solid var(--input);border-radius:12px;background:var(--card);color:var(--foreground);font:400 15px/1.4 'Zen Kaku Gothic New',sans-serif;padding:9px 13px;transition:border-color .12s linear,box-shadow .12s linear;}.ds-input::placeholder{color:var(--muted-foreground);}.ds-input:focus-visible{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px color-mix(in oklch,var(--primary) 25%,transparent);}"
+    },
+    {
+      "name": "Character Card",
+      "kind": "card",
+      "refersTo": "character-card",
+      "description": "Image-led 16:10 card; lifts 2px and rings violet on hover.",
+      "html": "<article class=\"ds-card-character\"><div class=\"ds-card-art\">A</div><div class=\"ds-card-body\"><span class=\"ds-card-name\">Aoi Kurosawa</span><span class=\"ds-card-sub\">Estudiante de intercambio en Kioto</span></div></article>",
+      "css": ".ds-card-character{width:260px;overflow:hidden;border:1px solid var(--border);border-radius:22px;background:var(--card);color:var(--card-foreground);box-shadow:0 1px 2px rgba(60,40,80,.08),0 2px 8px rgba(60,40,80,.06);transition:transform .18s cubic-bezier(.22,1,.36,1),box-shadow .18s cubic-bezier(.22,1,.36,1),border-color .18s linear;}.ds-card-character:hover{transform:translateY(-3px);border-color:color-mix(in oklch,var(--primary) 35%,var(--border));box-shadow:0 2px 6px rgba(60,40,80,.10),0 12px 32px rgba(60,40,80,.12);}.ds-card-art{display:grid;place-items:center;aspect-ratio:16/10;background:var(--muted);color:color-mix(in oklch,var(--foreground) 50%,transparent);font:400 38px/1 'Dela Gothic One',sans-serif;}.ds-card-body{display:grid;gap:4px;padding:14px 16px 16px;}.ds-card-name{font:700 16px/1.2 'Zen Maru Gothic',sans-serif;}.ds-card-sub{color:var(--muted-foreground);font:400 13px/1.4 'Zen Kaku Gothic New',sans-serif;}"
+    },
+    {
+      "name": "Character Message Bubble",
+      "kind": "custom",
+      "refersTo": "message-bubble-character",
+      "description": "Assistant voice on muted paper; dialogue text carries the character colour.",
+      "html": "<div class=\"ds-bubble-char\"><em>*Deja el paraguas junto a la puerta.*</em> <span class=\"ds-dialogue-char\">«Llegas justo a tiempo.»</span></div>",
+      "css": ".ds-bubble-char{max-width:80%;border:1px solid var(--border);border-radius:18px 18px 18px 6px;background:var(--muted);color:var(--foreground);font:400 15px/1.6 'Zen Kaku Gothic New',sans-serif;padding:10px 14px;}.ds-bubble-char em{color:color-mix(in oklch,var(--muted-foreground) 92%,var(--foreground));}.ds-dialogue-char{color:var(--dialogue-char);}"
+    },
+    {
+      "name": "User Message Bubble",
+      "kind": "custom",
+      "refersTo": "message-bubble-user",
+      "description": "User voice on violet ink with paper text; OOC becomes an ink pill.",
+      "html": "<div class=\"ds-bubble-user\"><span>«No sabía que fuera a caer tan fuerte.»</span> <code class=\"ds-ooc\">//Kyoto en junio//</code></div>",
+      "css": ".ds-bubble-user{margin-left:auto;max-width:80%;border-radius:18px 18px 6px 18px;background:var(--primary);color:var(--primary-foreground);font:400 15px/1.6 'Zen Kaku Gothic New',sans-serif;padding:10px 14px;}.ds-ooc{border-radius:6px;background:color-mix(in oklch,var(--foreground) 85%,transparent);color:var(--background);font:400 12px/1.3 ui-monospace,monospace;padding:2px 6px;}"
+    },
+    {
+      "name": "Dialogue Name Plate",
+      "kind": "custom",
+      "description": "Visual-novel speaker plate; colour matches the voice's dialogue colour.",
+      "html": "<span class=\"ds-name-plate\">Aoi Kurosawa</span>",
+      "css": ".ds-name-plate{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;background:color-mix(in oklch,var(--card) 90%,transparent);color:var(--dialogue-char);font:700 12px/1 'Zen Maru Gothic',sans-serif;padding:5px 10px;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Tinta viva (Living Ink)",
+    "overview": "El sistema es un cuaderno de historias: papel frío —nunca crema— y tinta negra con veta violeta, el violeta exacto de los ojos de la mascota. La app se comporta como una herramienta de escritura larga (Operate) vestida con el lenguaje de las estanterías de novelas: superficies de papel con filos de tinta, insignias tipo placa, prosa legible y un único destello dorado reservado a los hitos. La mascota es la anfitriona —bienvenida, estados vacíos, errores— y nunca un adorno repetido. El mundo rechaza el look SaaS neutro de shadcn y el degradado violeta de fondo (el «tell» clásico de UI generada por IA); se sustituyó por grano de papel apenas visible. El chat tiene su capa expresiva: estilos de mensaje y colores de diálogo por conversación.",
+    "keyCharacteristics": [
+      "Papel frío y tinta con veta violeta; sin degradados decorativos.",
+      "Cinco mundos completos, cada uno con claro y oscuro.",
+      "Tipografía japonesa: display Dela Gothic, títulos Zen Maru, cuerpo Zen Kaku Gothic New.",
+      "Movimiento escaso y con intención: pincelada de streaming, entrada suave de mensajes, destello único.",
+      "La mascota como sistema (poses con fallback), no como decoración."
+    ],
+    "rules": [
+      {
+        "name": "The Ink-Before-Chrome Rule",
+        "body": "El color viene de la tinta (texto, diálogo, placas), no del ornamento: sin degradados de fondo, sin glass decorativo, sin texto con gradiente.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Sparkle Rule",
+        "body": "El dorado y los destellos se reservan a los hitos; una superficie tiene un solo momento expresivo.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Modes Rule",
+        "body": "Cada color se decide en claro y oscuro a la vez; los colores personalizados de diálogo se aclaran un 18 % hacia blanco solo en oscuro.",
+        "section": "colors"
+      },
+      {
+        "name": "The Quiet Body Rule",
+        "body": "La display nunca escribe párrafos: si el texto se lee seguido, va en Zen Kaku.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-by-Default Rule",
+        "body": "Las superficies descansan planas; la sombra existe para mostrar un cambio de estado, no para decorar.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do mantener el papel frío (oklch(0.98 0.006 300)) y comprobar cada cambio en claro y oscuro.",
+      "Do usar la pincelada (rm-caret) como único cursor de streaming y el destello dorado una vez por hito.",
+      "Do dejar que 1 px de hairline haga la separación; las sombras solo para estados.",
+      "Do escribir el cuerpo en Zen Kaku con medida 65–75ch; los títulos en Zen Maru y la display solo para el nombre.",
+      "Do dar aria-current, foco visible y feedback al pulsar en cada control."
+    ],
+    "donts": [
+      "Don't reintroducir degradados violeta de fondo ni glass decorativo (el grano de papel es la única textura).",
+      "Don't usar crema + terracota ni el verde esmeralda para el OOC.",
+      "Don't poner la display en párrafos ni etiquetas de eyebrow decorativas sobre los títulos.",
+      "Don't decorar con destellos fuera de los hitos ni animar cada borde.",
+      "Don't sacrificar la densidad de lectura por ornamento: el modo Operate manda."
+    ]
+  }
+}
