@@ -12,6 +12,8 @@ import {
   EXPORT_KIND,
   EXPORT_SCHEMA_VERSION,
 } from "@workspace/shared/types/export"
+import { normalizeDialogueColor } from "@workspace/shared/lib/dialogue-color"
+import { normalizeMessageStyle } from "@workspace/shared/lib/message-style"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import { CharacterCard } from "../../../domain/entities/character-card.entity"
@@ -291,6 +293,11 @@ export class ImportCharacterUseCase {
         backgroundImageAssetId,
         backgroundFit: exported.backgroundFit ?? "cover",
         backgroundScrim: exported.backgroundScrim ?? 0,
+        messageStyle: normalizeMessageStyle(settings.messageStyle),
+        characterDialogueColor: normalizeDialogueColor(
+          settings.characterDialogueColor,
+        ),
+        userDialogueColor: normalizeDialogueColor(settings.userDialogueColor),
         memoryDecayMode: settings.memoryDecayMode,
         memoryDecayThreshold: settings.memoryDecayThreshold,
         memoryDecayAgeThreshold: settings.memoryDecayAgeThreshold,

@@ -359,4 +359,34 @@ describe("UpdateConversationSettingsUseCase", () => {
 
     expect(deletedAssetIds).toEqual([])
   })
+
+  it("acepta y guarda el estilo de mensaje y los colores de diálogo", async () => {
+    const useCase = buildUseCase()
+
+    await useCase.execute("conv-1", {
+      messageStyle: "document",
+      characterDialogueColor: "#7c3aed",
+      userDialogueColor: null,
+    })
+
+    expect(capturedSettings.messageStyle).toBe("document")
+    expect(capturedSettings.characterDialogueColor).toBe("#7c3aed")
+    expect(capturedSettings.userDialogueColor).toBeNull()
+  })
+
+  it("rechaza un estilo de mensaje desconocido", async () => {
+    const useCase = buildUseCase()
+
+    await expect(
+      useCase.execute("conv-1", { messageStyle: "fancy" as never }),
+    ).rejects.toThrow("Invalid message style")
+  })
+
+  it("rechaza un color de diálogo que no sea #RRGGBB", async () => {
+    const useCase = buildUseCase()
+
+    await expect(
+      useCase.execute("conv-1", { characterDialogueColor: "violet" }),
+    ).rejects.toThrow("dialogue colour")
+  })
 })

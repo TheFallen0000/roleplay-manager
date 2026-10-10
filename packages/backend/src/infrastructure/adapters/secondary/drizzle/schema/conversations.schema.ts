@@ -39,6 +39,11 @@ export const conversations = sqliteTable("conversations", {
     .notNull()
     .default("cover"),
   backgroundScrim: integer("background_scrim").notNull().default(0),
+  messageStyle: text("message_style", { enum: ["bubble", "document", "novel"] })
+    .notNull()
+    .default("bubble"),
+  characterDialogueColor: text("character_dialogue_color"),
+  userDialogueColor: text("user_dialogue_color"),
   playerCharacterId: text("player_character_id").references(
     () => playerCharacters.id,
     { onDelete: "set null" },

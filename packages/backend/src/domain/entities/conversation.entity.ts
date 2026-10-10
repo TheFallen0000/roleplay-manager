@@ -1,6 +1,7 @@
 import type {
   BackgroundFit,
   MemoryDecayMode,
+  MessageStyle,
   TitleSource,
 } from "@workspace/shared/types/conversation"
 
@@ -27,6 +28,9 @@ export interface ConversationProps {
   backgroundImageAssetId?: string | null
   backgroundFit?: BackgroundFit
   backgroundScrim?: number
+  messageStyle?: MessageStyle
+  characterDialogueColor?: string | null
+  userDialogueColor?: string | null
   playerCharacterId?: string | null
   memoryDecayMode?: MemoryDecayMode
   memoryDecayThreshold?: number
@@ -53,6 +57,9 @@ export class Conversation {
       backgroundImageAssetId: props.backgroundImageAssetId ?? null,
       backgroundFit: props.backgroundFit ?? "cover",
       backgroundScrim: props.backgroundScrim ?? 0,
+      messageStyle: props.messageStyle ?? "bubble",
+      characterDialogueColor: props.characterDialogueColor ?? null,
+      userDialogueColor: props.userDialogueColor ?? null,
       playerCharacterId: props.playerCharacterId ?? null,
       memoryDecayMode: props.memoryDecayMode ?? DEFAULT_MEMORY_DECAY.mode,
       memoryDecayThreshold: props.memoryDecayThreshold ?? DEFAULT_MEMORY_DECAY.threshold,
@@ -81,6 +88,9 @@ export class Conversation {
   get backgroundImageAssetId(): string | null { return this.props.backgroundImageAssetId ?? null }
   get backgroundFit(): BackgroundFit { return this.props.backgroundFit as BackgroundFit }
   get backgroundScrim(): number { return this.props.backgroundScrim as number }
+  get messageStyle(): MessageStyle { return this.props.messageStyle as MessageStyle }
+  get characterDialogueColor(): string | null { return this.props.characterDialogueColor ?? null }
+  get userDialogueColor(): string | null { return this.props.userDialogueColor ?? null }
   get playerCharacterId(): string | null { return this.props.playerCharacterId ?? null }
   get memoryDecayMode(): MemoryDecayMode { return this.props.memoryDecayMode as MemoryDecayMode }
   get memoryDecayThreshold(): number { return this.props.memoryDecayThreshold as number }

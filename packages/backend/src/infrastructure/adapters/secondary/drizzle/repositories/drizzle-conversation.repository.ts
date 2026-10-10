@@ -12,6 +12,7 @@ import type {
   ConversationSettingsUpdate,
   MemoryDecayMode,
   MemoryProposalMode,
+  MessageStyle,
   TitleSource,
 } from "@workspace/shared/types/conversation"
 import { conversations, messages } from "../schema"
@@ -41,6 +42,9 @@ const toConversation = (row: ConversationRow): Conversation =>
     backgroundImageAssetId: row.backgroundImageAssetId ?? null,
     backgroundFit: (row.backgroundFit ?? "cover") as BackgroundFit,
     backgroundScrim: row.backgroundScrim ?? 0,
+    messageStyle: (row.messageStyle ?? "bubble") as MessageStyle,
+    characterDialogueColor: row.characterDialogueColor ?? null,
+    userDialogueColor: row.userDialogueColor ?? null,
     playerCharacterId: row.playerCharacterId ?? null,
     memoryDecayMode: (row.memoryDecayMode ?? "silent") as MemoryDecayMode,
     memoryDecayThreshold: row.memoryDecayThreshold ?? 3,
@@ -86,6 +90,9 @@ export class DrizzleConversationRepository implements ConversationRepository {
       backgroundImageAssetId: conversation.backgroundImageAssetId,
       backgroundFit: conversation.backgroundFit,
       backgroundScrim: conversation.backgroundScrim,
+      messageStyle: conversation.messageStyle,
+      characterDialogueColor: conversation.characterDialogueColor,
+      userDialogueColor: conversation.userDialogueColor,
       playerCharacterId: conversation.playerCharacterId,
       memoryDecayMode: conversation.memoryDecayMode,
       memoryDecayThreshold: conversation.memoryDecayThreshold,
@@ -191,6 +198,12 @@ export class DrizzleConversationRepository implements ConversationRepository {
       values.backgroundFit = settings.backgroundFit
     if (settings.backgroundScrim !== undefined)
       values.backgroundScrim = settings.backgroundScrim
+    if (settings.messageStyle !== undefined)
+      values.messageStyle = settings.messageStyle
+    if (settings.characterDialogueColor !== undefined)
+      values.characterDialogueColor = settings.characterDialogueColor
+    if (settings.userDialogueColor !== undefined)
+      values.userDialogueColor = settings.userDialogueColor
     if (settings.playerCharacterId !== undefined)
       values.playerCharacterId = settings.playerCharacterId
     if (settings.memoryDecayMode !== undefined)

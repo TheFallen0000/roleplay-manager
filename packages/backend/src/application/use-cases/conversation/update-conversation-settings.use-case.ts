@@ -3,6 +3,8 @@ import type {
   ConversationSettingsUpdate,
 } from "@workspace/shared/types/conversation"
 import type { ProviderId } from "@workspace/shared/types/provider"
+import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
+import { MESSAGE_STYLES, isMessageStyle } from "@workspace/shared/lib/message-style"
 
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
@@ -176,6 +178,35 @@ export class UpdateConversationSettingsUseCase {
         Math.max(0, Math.round(input.backgroundScrim)),
       )
     }
+    if (
+      input.messageStyle !== undefined &&
+      !isMessageStyle(input.messageStyle)
+    ) {
+      throw new DomainError(
+        "INVALID_MESSAGE_STYLE",
+        `Invalid message style. Must be one of: ${MESSAGE_STYLES.join(", ")}`,
+      )
+    }
+    if (
+      input.characterDialogueColor !== undefined &&
+      input.characterDialogueColor !== null &&
+      !isValidDialogueColor(input.characterDialogueColor)
+    ) {
+      throw new DomainError(
+        "INVALID_DIALOGUE_COLOR",
+        "The dialogue colour must be a #RRGGBB hex value or null.",
+      )
+    }
+    if (
+      input.userDialogueColor !== undefined &&
+      input.userDialogueColor !== null &&
+      !isValidDialogueColor(input.userDialogueColor)
+    ) {
+      throw new DomainError(
+        "INVALID_DIALOGUE_COLOR",
+        "The dialogue colour must be a #RRGGBB hex value or null.",
+      )
+    }
 
     const updated = await this.conversationRepository.updateSettings(
       conversationId,
@@ -237,6 +268,9 @@ export class UpdateConversationSettingsUseCase {
           : null,
       backgroundFit: updated.backgroundFit,
       backgroundScrim: updated.backgroundScrim,
+      messageStyle: updated.messageStyle,
+      characterDialogueColor: updated.characterDialogueColor,
+      userDialogueColor: updated.userDialogueColor,
       playerCharacterId: updated.playerCharacterId,
       memoryDecayMode: updated.memoryDecayMode,
       memoryDecayThreshold: updated.memoryDecayThreshold,

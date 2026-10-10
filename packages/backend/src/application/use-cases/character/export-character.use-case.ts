@@ -286,6 +286,9 @@ function toSettings(conversation: Conversation): ExportSettings {
     memoryDecayThreshold: conversation.memoryDecayThreshold,
     memoryDecayAgeThreshold: conversation.memoryDecayAgeThreshold,
     memoryDecaySpeed: conversation.memoryDecaySpeed,
+    messageStyle: conversation.messageStyle,
+    characterDialogueColor: conversation.characterDialogueColor,
+    userDialogueColor: conversation.userDialogueColor,
   }
 }
 

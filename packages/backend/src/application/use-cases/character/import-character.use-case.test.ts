@@ -184,6 +184,9 @@ describe("ImportCharacterUseCase", () => {
             memoryDecayThreshold: 4,
             memoryDecayAgeThreshold: 40,
             memoryDecaySpeed: 5,
+            messageStyle: "document",
+            characterDialogueColor: "#7c3aed",
+            userDialogueColor: null,
             customProfileImageAssetId: null,
           },
           messages: [
@@ -270,6 +273,9 @@ describe("ImportCharacterUseCase", () => {
     expect(createdConversation.model).toBe("gpt-4o-mini")
     expect(createdConversation.temperature).toBe(0.9)
     expect(createdConversation.memoryDecayMode).toBe("manual")
+    expect(createdConversation.messageStyle).toBe("document")
+    expect(createdConversation.characterDialogueColor).toBe("#7c3aed")
+    expect(createdConversation.userDialogueColor).toBeNull()
     expect(createdConversation.titleSource).toBe("manual")
 
     expect(repos.messageRepository.create).toHaveBeenCalledTimes(2)
@@ -390,6 +396,8 @@ describe("ImportCharacterUseCase", () => {
     expect(created[1].backgroundImageAssetId).toBe("new-asset-id")
     expect(created[1].backgroundFit).toBe("contain")
     expect(created[1].backgroundScrim).toBe(30)
+    expect(created[0].messageStyle).toBe("bubble")
+    expect(created[0].userDialogueColor).toBeNull()
   })
 
   it("remapea la imagen personalizada de exportaciones antiguas", async () => {

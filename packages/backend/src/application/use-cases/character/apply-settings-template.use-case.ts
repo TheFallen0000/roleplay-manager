@@ -9,6 +9,8 @@ import type { CharacterRepository } from "../../../domain/ports/character.reposi
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import { CharacterNotFoundError } from "../../../domain/errors"
+import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
+import { isMessageStyle } from "@workspace/shared/lib/message-style"
 import { findCharacterConversations } from "../conversation/find-character-conversations"
 import type { UpdateConversationSettingsUseCase } from "../conversation/update-conversation-settings.use-case"
 
@@ -142,6 +144,21 @@ function toSettingsUpdate(
   }
   if (settings.memoryDecaySpeed !== undefined) {
     update.memoryDecaySpeed = settings.memoryDecaySpeed
+  }
+  if (isMessageStyle(settings.messageStyle)) {
+    update.messageStyle = settings.messageStyle
+  }
+  if (
+    settings.characterDialogueColor === null ||
+    isValidDialogueColor(settings.characterDialogueColor)
+  ) {
+    update.characterDialogueColor = settings.characterDialogueColor ?? null
+  }
+  if (
+    settings.userDialogueColor === null ||
+    isValidDialogueColor(settings.userDialogueColor)
+  ) {
+    update.userDialogueColor = settings.userDialogueColor ?? null
   }
 
   return update

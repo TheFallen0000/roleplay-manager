@@ -58,6 +58,9 @@ const origin = Conversation.create({
   backgroundImageAssetId: "asset-bg",
   backgroundFit: "contain",
   backgroundScrim: 25,
+  messageStyle: "novel",
+  characterDialogueColor: "#ec4899",
+  userDialogueColor: "#0ea5e9",
   memoryDecayMode: "manual",
   memoryDecayThreshold: 4,
   memoryDecayAgeThreshold: 40,
@@ -281,6 +284,9 @@ describe("BranchConversationUseCase", () => {
     expect(created.backgroundImageAssetId).toBe("asset-bg")
     expect(created.backgroundFit).toBe("contain")
     expect(created.backgroundScrim).toBe(25)
+    expect(created.messageStyle).toBe("novel")
+    expect(created.characterDialogueColor).toBe("#ec4899")
+    expect(created.userDialogueColor).toBe("#0ea5e9")
   })
 
   it("lanza ConversationNotFoundError si el origen no existe", async () => {

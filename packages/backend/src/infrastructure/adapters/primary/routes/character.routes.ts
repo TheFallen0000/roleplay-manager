@@ -103,6 +103,9 @@ const ExportSettingsSchema = z.object({
   memoryDecayThreshold: z.number(),
   memoryDecayAgeThreshold: z.number(),
   memoryDecaySpeed: z.number(),
+  messageStyle: z.enum(["bubble", "document", "novel"]),
+  characterDialogueColor: z.string().nullable(),
+  userDialogueColor: z.string().nullable(),
 })
 
 const ApplySettingsTemplateSchema = z

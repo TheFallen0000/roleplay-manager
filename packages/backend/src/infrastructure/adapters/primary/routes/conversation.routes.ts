@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { z } from "zod"
 
+import { DIALOGUE_COLOR_PATTERN } from "@workspace/shared/lib/dialogue-color"
 import type { CreateConversationUseCase } from "../../../../application/use-cases/conversation/create-conversation.use-case"
 import type { BranchConversationUseCase } from "../../../../application/use-cases/conversation/branch-conversation.use-case"
 import type { GetConversationUseCase } from "../../../../application/use-cases/conversation/get-conversation.use-case"
@@ -59,6 +60,17 @@ const UpdateConversationSettingsSchema = z.object({
   backgroundImageAssetId: z.string().nullable().optional(),
   backgroundFit: z.enum(["cover", "contain"]).optional(),
   backgroundScrim: z.number().int().min(0).max(100).optional(),
+  messageStyle: z.enum(["bubble", "document", "novel"]).optional(),
+  characterDialogueColor: z
+    .string()
+    .regex(DIALOGUE_COLOR_PATTERN)
+    .nullable()
+    .optional(),
+  userDialogueColor: z
+    .string()
+    .regex(DIALOGUE_COLOR_PATTERN)
+    .nullable()
+    .optional(),
   playerCharacterId: z.string().nullable().optional(),
   memoryDecayMode: z.enum(["silent", "manual", "off"]).optional(),
   memoryDecayThreshold: z.number().int().min(1).max(10).optional(),
