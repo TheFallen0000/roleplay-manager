@@ -1,0 +1,14 @@
+# Keeps the release workflow actions current (Node runtimes, security fixes)
+# so they do not silently age into deprecation. Grouped into one weekly PR.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      workflow-actions:
+        patterns:
+          - "*"
