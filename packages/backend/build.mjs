@@ -7,6 +7,9 @@ import { build } from "esbuild"
  *
  * - Native modules (`better-sqlite3`, `sharp`) stay external; they ship in the
  *   package's `node_modules`.
+ * - `pino` and its transports stay external too: the logger spawns a worker and
+ *   loads transports by name while the app runs, so the real package (with its
+ *   worker files) must be present in `node_modules`.
  * - `pino-pretty` is dev-only (production uses plain pino), so it stays external.
  * - The banner provides `require` for CJS dependencies that use dynamic
  *   requires (express/body-parser/depd), which ESM bundles cannot resolve.
@@ -21,7 +24,7 @@ await build({
   target: "node22",
   outfile: "dist/server.mjs",
   sourcemap: true,
-  external: ["better-sqlite3", "sharp", "@img/*", "pino-pretty"],
+  external: ["better-sqlite3", "sharp", "@img/*", "pino-pretty", "pino"],
   banner: {
     js: [
       "import { createRequire as __createRequire } from 'node:module';",
