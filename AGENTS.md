@@ -262,6 +262,17 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 
 - `docs/10-slices/PM-backlog.md` is the source of deferred work. When a slice completes a PM, mark its row and add a `> **PM.X (SX) — done (date, vX.Y.Z)**` note pointing to the slice doc. When deferring a PM, add a note with the rationale and what would be needed to pick it up.
 
+### Branch and pull request
+
+- `master` is **protected**: never push to it directly. Every slice is developed
+  on a branch (`feat/…`, `fix/…`, `docs/…`, `chore/…`) pushed to `origin`, and
+  opened as a pull request.
+- The `CI` workflow (job **Checks**) must be green before merging. Merge with
+  **squash** and delete the branch; the agent merges the PR after a green CI
+  unless the user says otherwise.
+- The release commit (version bump + `CHANGELOG.md`) travels in that same pull
+  request: merging it to `master` triggers the release workflow.
+
 ### Version bump + CHANGELOG
 
 - Bump the root `package.json` version following semver: **minor** for features, **patch** for fixes, **major** for breaking changes.
