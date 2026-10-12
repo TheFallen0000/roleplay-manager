@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/TheFallen0000/roleplay-manager/blob/master/CONTRIBUTING.md
+    about: How to set up the repo, run the checks and open a pull request.
+  - name: Questions and ideas
+    url: https://github.com/TheFallen0000/roleplay-manager/discussions
+    about: For open-ended questions, showcases or design ideas, use Discussions.

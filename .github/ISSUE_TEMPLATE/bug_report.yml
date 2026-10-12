@@ -1,0 +1,60 @@
+name: Bug report
+description: Something is not working as expected.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this! Please fill in as much as you can;
+        a reproduction beats a description.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us what you expected to happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. See …
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How do you run the app?
+      options:
+        - Packaged release (Windows)
+        - Packaged release (Linux)
+        - Packaged release (macOS)
+        - From source (`pnpm dev`)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown in System → Updates (packaged) or in `package.json` (from source).
+      placeholder: "ex. 1.40.2"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "ex. Windows 11 24H2, Ubuntu 24.04, macOS 15"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Console output, logs or screenshots that show the problem (drag files here).
+    validations:
+      required: false
