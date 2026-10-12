@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.42.0] - 2026-10-12
+
+### Added
+
+- **Application logs on disk, with a viewer**: pino now writes rotating files
+  to `data/logs` (5 MB × 5, ≈30 MB at most) next to the console output, and
+  **System → Logs** shows the most recent entries with a level filter
+  (all / info+ / warnings+ / errors), auto-refresh, copy and a download button
+  for the whole history.
+  - Credentials are redacted (`authorization`, `cookie`, `x-api-key`,
+    `set-cookie`) before anything reaches the disk.
+  - `LOG_DIR` overrides the folder (defaults to `<DATA_DIR>/logs`).
+
+### Fixed
+
+- The portable package now ships `pino` and its transport (`pino-roll`): with
+  the new file logging they must exist at runtime, because the logger loads its
+  transport by name and spawns a worker. The package smoke test checks that the
+  rotating log file is written inside the portable folder.
+
 ## [1.41.0] - 2026-10-12
 
 ### Added

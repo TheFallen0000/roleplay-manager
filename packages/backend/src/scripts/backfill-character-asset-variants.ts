@@ -1,3 +1,5 @@
+import { join } from "node:path"
+
 import { buildContainer } from "../containers/app-container"
 import { PinoLoggerAdapter } from "../infrastructure/adapters/secondary/logger/pino-logger.adapter"
 import { buildDatabase, runMigrations } from "../infrastructure/config/database"
@@ -6,7 +8,12 @@ import { buildLogger } from "../infrastructure/config/logger.config"
 
 async function main(): Promise<void> {
   const env = loadEnv()
-  const pino = buildLogger({ level: env.LOG_LEVEL, nodeEnv: env.NODE_ENV })
+  const logDir = env.LOG_DIR ?? join(env.DATA_DIR, "logs")
+  const pino = buildLogger({
+    level: env.LOG_LEVEL,
+    nodeEnv: env.NODE_ENV,
+    logDir,
+  })
   const logger = new PinoLoggerAdapter(pino)
   const database = buildDatabase(env.DATABASE_PATH)
   const dryRun = process.argv.includes("--dry-run")
@@ -32,6 +39,7 @@ async function main(): Promise<void> {
       updateInstall: env.UPDATE_INSTALL,
       backupDir: env.BACKUP_DIR,
       gitBin: env.GIT_BIN,
+      logDir,
     })
     const result = report
       ? await container.backfillCharacterAssetVariants.report()

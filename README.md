@@ -210,4 +210,5 @@ Open an [issue](https://github.com/TheFallen0000/roleplay-manager/issues) with:
 - Steps to reproduce (for bugs) and the expected vs. actual behaviour.
 - Your operating system, the app version and your Node.js version
   (`node --version`) if you run it from source.
-- Relevant logs or screenshots.
+- Relevant logs — open **System → Logs** and use *Copy* or *Download* — or
+  screenshots.

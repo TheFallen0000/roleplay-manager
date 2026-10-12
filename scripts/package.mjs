@@ -433,8 +433,14 @@ console.log("- Installing the runtime dependencies...")
 const externalPackages = collectExternalPackages(
   join(repoRoot, "packages/frontend/dist/server"),
 )
+/**
+ * The bundle scan cannot see everything the app loads by name while it runs:
+ * native modules (better-sqlite3, sharp) and pino's runtime pieces (the logger
+ * spawns a transport worker and resolves `pino-roll` at runtime).
+ */
+const RUNTIME_DEPENDENCIES = ["better-sqlite3", "sharp", "pino", "pino-roll"]
 const dependencies = Object.fromEntries(
-  [...externalPackages, "better-sqlite3", "sharp"]
+  [...externalPackages, ...RUNTIME_DEPENDENCIES]
     .sort()
     .map((name) => [name, resolveInstalledVersion(name)]),
 )

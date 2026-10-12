@@ -1,4 +1,4 @@
-import { dirname, resolve } from "node:path"
+import { dirname, join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { buildServer, type WebHandler } from "./infrastructure/adapters/primary/server"
@@ -39,7 +39,12 @@ const loadWebHandler = async (
 
 const main = async (): Promise<void> => {
   const env = loadEnv()
-  const pino = buildLogger({ level: env.LOG_LEVEL, nodeEnv: env.NODE_ENV })
+  const logDir = env.LOG_DIR ?? join(env.DATA_DIR, "logs")
+  const pino = buildLogger({
+    level: env.LOG_LEVEL,
+    nodeEnv: env.NODE_ENV,
+    logDir,
+  })
   const logger = new PinoLoggerAdapter(pino)
 
   logger.info("Starting roleplay-manager backend", {
@@ -81,6 +86,7 @@ const main = async (): Promise<void> => {
     updateApiBaseUrl: env.RM_UPDATE_API_URL,
     backupDir: env.BACKUP_DIR,
     gitBin: env.GIT_BIN,
+    logDir,
   })
   const webHandler = env.WEB_HANDLER_PATH
     ? await loadWebHandler(env.WEB_HANDLER_PATH, logger)

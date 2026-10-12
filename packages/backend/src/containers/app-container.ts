@@ -24,6 +24,7 @@ import { PromptContextBuilderImpl } from "../infrastructure/adapters/secondary/p
 import type { ProviderRegistry } from "../domain/ports/provider.port"
 import type { SettingsRepository } from "../domain/ports/settings.repository"
 import type { PhoneAccessActivity } from "../domain/ports/phone-access-activity"
+import type { LogReader } from "../domain/ports/log-reader"
 import type { CharacterRepository } from "../domain/ports/character.repository"
 import type { PlayerCharacterRepository } from "../domain/ports/player-character.repository"
 import type {
@@ -69,6 +70,9 @@ import { GetPhoneAccessPreferencesUseCase } from "../application/use-cases/phone
 import { UpdatePhoneAccessPreferencesUseCase } from "../application/use-cases/phone-access/update-phone-access-preferences.use-case"
 import { PhoneAccessService } from "../application/services/phone-access.service"
 import { InMemoryPhoneAccessActivity } from "../infrastructure/adapters/secondary/phone-access/in-memory-phone-access-activity.adapter"
+import { FileLogReader } from "../infrastructure/adapters/secondary/logs/file-log-reader.adapter"
+import { GetRecentLogsUseCase } from "../application/use-cases/logs/get-recent-logs.use-case"
+import { ListLogFilesUseCase } from "../application/use-cases/logs/list-log-files.use-case"
 import { GetUpdateStatusUseCase } from "../application/use-cases/updates/get-update-status.use-case"
 import { CheckUpdatesUseCase } from "../application/use-cases/updates/check-updates.use-case"
 import { ApplyUpdateUseCase } from "../application/use-cases/updates/apply-update.use-case"
@@ -194,6 +198,10 @@ export interface AppContainer {
   phoneAccess: PhoneAccessService
   phoneAccessActivity: PhoneAccessActivity
 
+  // Logs (in-app viewer and downloadable bundle)
+  getRecentLogs: GetRecentLogsUseCase
+  listLogFiles: ListLogFilesUseCase
+
   // Updates
   getUpdateStatus: GetUpdateStatusUseCase
   checkUpdates: CheckUpdatesUseCase
@@ -241,6 +249,8 @@ export interface BuildContainerOptions {
   updateApiBaseUrl?: string
   backupDir: string
   gitBin?: string
+  /** Folder with the rotating log files (for the in-app viewer). */
+  logDir: string
 }
 
 export const buildContainer = ({
@@ -264,6 +274,7 @@ export const buildContainer = ({
   updateApiBaseUrl,
   backupDir,
   gitBin,
+  logDir,
 }: BuildContainerOptions): AppContainer => {
   const settings: SettingsRepository = new DrizzleSettingsRepository(database)
   const providerRegistry: ProviderRegistry = new ProviderRegistryImpl({
@@ -329,6 +340,10 @@ export const buildContainer = ({
     // Auto-enable on start only runs in the packaged app.
     packaged: Boolean(updatePackagedRoot),
   })
+
+  const logReader: LogReader = new FileLogReader(logDir)
+  const getRecentLogs = new GetRecentLogsUseCase(logReader)
+  const listLogFiles = new ListLogFilesUseCase(logReader)
 
   const backupService = new BackupService({
     // drizzle keeps the raw better-sqlite3 client on `$client` (not typed).
@@ -495,6 +510,8 @@ export const buildContainer = ({
     updatePhoneAccessPreferences,
     phoneAccess,
     phoneAccessActivity,
+    getRecentLogs,
+    listLogFiles,
     getUpdateStatus,
     checkUpdates,
     applyUpdate,

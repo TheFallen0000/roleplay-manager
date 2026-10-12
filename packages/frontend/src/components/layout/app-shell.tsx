@@ -14,7 +14,7 @@ import {
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
 import { Toaster } from "@workspace/ui/components/sonner"
-import { UsersIcon, CogIcon, UserRoundIcon, RefreshCwIcon } from "lucide-react"
+import { UsersIcon, CogIcon, UserRoundIcon, RefreshCwIcon, ScrollTextIcon } from "lucide-react"
 import { useSidebar } from "@workspace/ui/components/sidebar"
 import { BrandFace } from "./brand"
 import { useEffect } from "react"
@@ -157,6 +157,17 @@ function AppShellContent({
                   {updatesAvailable ? (
                     <SidebarMenuBadge>{t("updates.badge")}</SidebarMenuBadge>
                   ) : null}
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    render={<a href="/settings/logs" />}
+                    tooltip={t("nav.logs")}
+                    isActive={isActive("/settings/logs")}
+                    aria-current={isActive("/settings/logs") ? "page" : undefined}
+                  >
+                    <ScrollTextIcon />
+                    <span>{t("nav.logs")}</span>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
