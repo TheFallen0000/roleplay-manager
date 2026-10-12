@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.41.0] - 2026-10-12
+
+### Added
+
+- **Fullscreen focus mode for the chat**: pick *Pantalla completa* in the
+  conversation settings menu and the chat overlays the whole app — sidebar,
+  header and padding included — with the background image stretched edge to
+  edge and only the messages, their context menus and the composer visible.
+  Leave it with the floating button or `Escape`, and the composer turns
+  translucent so the background reaches the bottom.
+
+### Fixed
+
+- The avatar link in the chat header had a hardcoded Spanish label; it is
+  translated now.
+
+### Changed
+
+- The chat header lives in its own component (`chat-header.tsx`).
+
 ## [1.40.5] - 2026-10-12
 
 ### Fixed
