@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.43.0] - 2026-10-12
+
+### Added
+
+- **Memories grouped by actor**: the dynamic-memory section now shows a
+  collapsible section per actor — initial avatar, count, and the *Character* /
+  *You* badges when they can be resolved — ordered with the conversation's
+  character first and remembered per conversation.
+- **Search inside the section**: filters by actor, title or description and
+  auto-expands the groups with matches without overwriting your saved
+  open/closed state.
+
+### Changed
+
+- Memory cards no longer repeat the actor (it heads the group) and lead with the
+  priority badge; the section header summarises the totals.
+
 ## [1.42.0] - 2026-10-12
 
 ### Added
