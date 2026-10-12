@@ -751,6 +751,11 @@ export const en = {
     editProposalDescription:
       "Review and modify the fields before accepting the proposal.",
     acceptChanges: "Accept changes",
+    summary: "{count} memories · {actors} actors",
+    searchPlaceholder: "Search actor, title or description",
+    noResults: "No memories match the search.",
+    badgeCharacter: "Character",
+    badgeYou: "You",
   },
   logs: {
     title: "Logs",

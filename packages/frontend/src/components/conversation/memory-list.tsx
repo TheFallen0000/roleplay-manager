@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@workspace/ui/components/accordion"
 import { FieldSet } from "@workspace/ui/components/field"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
@@ -22,7 +23,10 @@ import { toast } from "@workspace/ui/components/sonner"
 import { useMemoryStore } from "@/lib/stores/memory.store"
 import { useChatStore } from "@/lib/stores/chat.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { usePersistedStringList } from "@/lib/hooks/use-persisted-string-list"
 import { memoryDecayInfo } from "@/lib/format-memory"
+import { groupMemoriesByActor } from "@/lib/group-memories"
+import { listPlayerCharacters } from "@/lib/api/player-characters"
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 import type { MemoryDTO } from "@workspace/shared/types/memory"
 
@@ -55,6 +59,32 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState(5)
+  const [query, setQuery] = useState("")
+  const [playerCharacterName, setPlayerCharacterName] = useState<string | null>(null)
+  const [openGroups, setOpenGroups] = usePersistedStringList({
+    scope: conversationId,
+    key: "memory-groups",
+    defaultValue: [],
+    validateItem: (value) => value.length > 0,
+  })
+
+  useEffect(() => {
+    let active = true
+    const playerCharacterId = conversation.playerCharacterId
+    if (!playerCharacterId) return
+    ;(async () => {
+      try {
+        const items = await listPlayerCharacters()
+        const player = items.find((item) => item.id === playerCharacterId)
+        if (active && player) setPlayerCharacterName(player.name)
+      } catch {
+        // The "you" badge is optional: a failed lookup leaves the actor unmarked.
+      }
+    })()
+    return () => {
+      active = false
+    }
+  }, [conversation.playerCharacterId])
 
   const resetForm = () => {
     setActor("")
@@ -130,10 +160,45 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
     )
   }
 
+  const normalizedQuery = query.trim().toLowerCase()
+  const visibleMemories = normalizedQuery
+    ? memories.filter((memory) =>
+        `${memory.actor} ${memory.title} ${memory.description}`
+          .toLowerCase()
+          .includes(normalizedQuery),
+      )
+    : memories
+
+  const priorityOf = (memory: MemoryDTO) =>
+    memoryDecayInfo(memory, conversation, chatMessages).effectivePriority
+
+  const groups = groupMemoriesByActor(visibleMemories, {
+    characterName: conversation.characterName,
+    priorityOf,
+  })
+  const totalActors = new Set(memories.map((memory) => memory.actor)).size
+  const expanded = normalizedQuery
+    ? groups.map((group) => group.actor)
+    : openGroups
+
+  // While searching, the expansion follows the matches; only real toggles persist.
+  const handleOpenChange = (next: string[]) => {
+    if (normalizedQuery) return
+    setOpenGroups(next)
+  }
+
   return (
     <>
       <FieldSet>
-        <Button onClick={openCreate} className="self-end mt-2">{t("memory.create")}</Button>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            {t("memory.summary", {
+              count: memories.length,
+              actors: totalActors,
+            })}
+          </p>
+          <Button onClick={openCreate}>{t("memory.create")}</Button>
+        </div>
         {lastDecay ? (
           <p className="text-xs text-muted-foreground">
             {t("memory.lastDecay", {
@@ -142,51 +207,124 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
             })}
           </p>
         ) : null}
-        <div className="flex flex-col gap-3">
-          {memories.length === 0 ? (
-            <Empty className="p-2">
-              <EmptyHeader>
-                <EmptyTitle>{t("memory.emptyTitle")}</EmptyTitle>
-                <EmptyDescription>
-                  {t("memory.emptyDescription")}
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            memories.map((memory) => {
-              const info = memoryDecayInfo(memory, conversation, chatMessages)
-              const badgeVariant =
-                info.isDeletionCandidate
-                  ? "destructive"
-                  : info.isPromptEligible
-                    ? "outline"
-                    : "secondary"
-              const badgeTitle = info.hasDecayed
-                ? t("memory.priorityDecayed", {
-                    stored: memory.priority,
-                    effective: info.effectivePriority,
-                    count: info.turns,
-                  })
-                : t("memory.priority", { priority: info.effectivePriority })
-              return (
-                <div key={memory.id} className="flex flex-col gap-2 rounded-lg border p-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{memory.actor}</span>
-                    <Badge variant={badgeVariant} title={badgeTitle}>
-                      {info.effectivePriority}
-                    </Badge>
-                  </div>
-                  <span className="text-sm font-semibold">{memory.title}</span>
-                  <p className="text-sm text-muted-foreground">{memory.description}</p>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(memory)}>{t("common.edit")}</Button>
-                    <Button size="sm" variant="destructive" onClick={() => openDelete(memory)}>{t("common.delete")}</Button>
-                  </div>
-                </div>
-              )
-            })
-          )}
-        </div>
+        {memories.length === 0 ? (
+          <Empty className="p-2">
+            <EmptyHeader>
+              <EmptyTitle>{t("memory.emptyTitle")}</EmptyTitle>
+              <EmptyDescription>
+                {t("memory.emptyDescription")}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <>
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t("memory.searchPlaceholder")}
+              aria-label={t("memory.searchPlaceholder")}
+              className="mt-2 h-8"
+            />
+            {groups.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {t("memory.noResults")}
+              </p>
+            ) : (
+              <Accordion
+                value={expanded}
+                onValueChange={handleOpenChange}
+                multiple
+              >
+                {groups.map((group) => (
+                  <AccordionItem key={group.actor} value={group.actor}>
+                    <AccordionTrigger>
+                      <span className="flex min-w-0 flex-1 items-center gap-2">
+                        <span
+                          aria-hidden
+                          className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold uppercase"
+                        >
+                          {group.actor.slice(0, 1)}
+                        </span>
+                        <span className="truncate">{group.actor}</span>
+                        {playerCharacterName &&
+                        group.actor === playerCharacterName ? (
+                          <Badge variant="secondary">
+                            {t("memory.badgeYou")}
+                          </Badge>
+                        ) : null}
+                        {group.actor === conversation.characterName ? (
+                          <Badge variant="outline">
+                            {t("memory.badgeCharacter")}
+                          </Badge>
+                        ) : null}
+                        <span className="ml-auto pl-2 text-xs text-muted-foreground tabular-nums">
+                          {group.memories.length}
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="flex flex-col gap-3 pt-1">
+                      {group.memories.map((memory) => {
+                        const info = memoryDecayInfo(
+                          memory,
+                          conversation,
+                          chatMessages,
+                        )
+                        const badgeVariant = info.isDeletionCandidate
+                          ? "destructive"
+                          : info.isPromptEligible
+                            ? "outline"
+                            : "secondary"
+                        const badgeTitle = info.hasDecayed
+                          ? t("memory.priorityDecayed", {
+                              stored: memory.priority,
+                              effective: info.effectivePriority,
+                              count: info.turns,
+                            })
+                          : t("memory.priority", {
+                              priority: info.effectivePriority,
+                            })
+                        return (
+                          <div
+                            key={memory.id}
+                            className="flex flex-col gap-2 rounded-lg border p-3"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Badge variant={badgeVariant} title={badgeTitle}>
+                                {info.effectivePriority}
+                              </Badge>
+                              <span className="text-sm font-semibold">
+                                {memory.title}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {memory.description}
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openEdit(memory)}
+                              >
+                                {t("common.edit")}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => openDelete(memory)}
+                              >
+                                {t("common.delete")}
+                              </Button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
+          </>
+        )}
       </FieldSet>
 
       <Dialog open={dialogMode === "create" || dialogMode === "edit"} onOpenChange={(open) => { if (!open) { setDialogMode(null); resetForm() } }}>

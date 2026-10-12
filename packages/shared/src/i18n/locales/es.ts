@@ -752,6 +752,11 @@ export const es: Dictionary = {
     editProposalDescription:
       "Revisa y modifica los campos antes de aceptar la propuesta.",
     acceptChanges: "Aceptar cambios",
+    summary: "{count} memorias · {actors} actores",
+    searchPlaceholder: "Buscar por actor, título o descripción",
+    noResults: "Ninguna memoria coincide con la búsqueda.",
+    badgeCharacter: "Personaje",
+    badgeYou: "Tú",
   },
   logs: {
     title: "Registro",
