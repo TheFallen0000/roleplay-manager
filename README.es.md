@@ -200,8 +200,11 @@ posterior** (AGPL-3.0-or-later) — ver [LICENSE](LICENSE). En la práctica:
 ## Contribuir
 
 ¡Las contribuciones son bienvenidas! Mira [CONTRIBUTING.md](CONTRIBUTING.md)
-para preparar el entorno, los tests y el flujo de pull requests. Al contribuir,
-aceptas que tus contribuciones se licencien bajo la AGPL v3 (o posterior).
+para preparar el entorno, los tests y el flujo de pull requests. `master` está
+protegida: abre un pull request (el CI debe pasar) en lugar de empujar directo.
+
+Al contribuir, aceptas que tus contribuciones se licencien bajo la AGPL v3 (o
+posterior).
 
 ## Reportar errores y pedir funciones
 

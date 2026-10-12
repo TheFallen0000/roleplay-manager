@@ -1,0 +1,57 @@
+name: CI
+
+# Quality gates for every pull request and for `master` after a merge.
+#
+# `master` is protected: a PR cannot be merged until the `Checks` job passes.
+# Keep this workflow free of `paths-ignore`; a required check that never runs
+# would block docs-only PRs forever.
+#
+# Runner images are pinned to explicit labels (never `-latest`) so a label
+# migration cannot change the OS unnoticed; bump them deliberately after
+# checking https://github.com/actions/runner-images#available-images.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          # Same version that gets bundled in the packages.
+          node-version: "24.18.0"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Quality gates
+        run: pnpm check
+
+      - name: Backend tests
+        run: pnpm --filter @workspace/backend test
+
+      - name: Frontend tests
+        run: pnpm --filter @workspace/frontend exec vitest run
+
+      - name: Build
+        run: pnpm build

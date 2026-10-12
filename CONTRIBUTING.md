@@ -63,6 +63,33 @@ conventions, and quality gates enforced by `pnpm check:arch`.
 | `pnpm format`        | Run Prettier on the whole repo. |
 | `pnpm --filter @workspace/backend test` | Run the backend test suite (Vitest). |
 
+## Git flow
+
+`master` is the stable branch and is **protected**: changes only land through
+pull requests, and a PR cannot be merged until the **Checks** workflow
+(architecture, typecheck, lint, tests and build) passes. Direct pushes to
+`master` are rejected — even for the maintainer.
+
+1. **Fork** the repository (or branch directly if you have write access) and
+   branch from the latest `master` with a short, descriptive name:
+   `feat/…`, `fix/…`, `docs/…` or `chore/…`.
+2. **Make your changes**. Keep commits small and descriptive; use conventional
+   prefixes: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`.
+3. **Run the checks locally** before pushing:
+   ```bash
+   pnpm check
+   pnpm --filter @workspace/backend test
+   pnpm --filter @workspace/frontend exec vitest run
+   ```
+4. **Push your branch** and open a pull request against `master`. The template
+   asks for what changed, why it is needed and how you tested it. Mention any
+   breaking change.
+5. Wait for **Checks** to go green and address review comments. The maintainer
+   merges with **squash** and deletes the branch.
+
+Please **do not** bump the version in `package.json` or edit `CHANGELOG.md` in
+your pull request: releases are prepared by the maintainer from `master`.
+
 ## Testing
 
 Tests live next to the code they exercise (`*.test.ts` files). The backend
@@ -74,29 +101,6 @@ pnpm --filter @workspace/backend test -- src/path/to/file.test.ts
 
 When adding a new use case, add a `*.test.ts` next to it that mocks the
 domain ports. See the existing tests for examples.
-
-## Submitting a pull request
-
-1. **Fork** the repository and create a branch from `master`:
-   ```bash
-   git checkout -b feat/my-feature
-   ```
-2. **Make your changes**. Keep commits small and descriptive. Use
-   conventional prefixes: `feat:`, `fix:`, `refactor:`, `docs:`,
-   `chore:`, `test:`.
-3. **Run all checks** before pushing:
-   ```bash
-   pnpm check
-   ```
-4. **Push your branch** and open a pull request against `master`.
-5. **Describe your change** in the PR description:
-   - What does it do?
-   - Why is it needed?
-   - How did you test it?
-   - Any breaking changes?
-
-The CI will run `pnpm check` on every push. PRs with failing checks will
-not be merged.
 
 ## Reporting bugs
 
