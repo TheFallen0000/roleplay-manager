@@ -25,6 +25,8 @@ export const en = {
     groupSystem: "System",
     updates: "Updates",
     logs: "Logs",
+    groupHelp: "Help",
+    tutorials: "Tutorials",
   },
   theme: {
     label: "Theme and appearance",
@@ -53,6 +55,7 @@ export const en = {
     tagline:
       "Write with your characters for as long as you like: they live on your machine and remember what happened.",
     privacy: "No accounts, no cloud: your stories stay with you.",
+    help: "Need help? Check the tutorials",
   },
   players: {
     title: "Player characters",
@@ -777,8 +780,23 @@ export const en = {
     context: "Context",
     count: "{count} entries",
   },
+  tutorials: {
+    heading: "Tutorials",
+    description:
+      "Step-by-step guides for the tricky parts: the phone, AI, characters and your data.",
+    searchPlaceholder: "Search the tutorials",
+    noResultsTitle: "No results",
+    noResults: "No tutorial matches your search.",
+    steps: { one: "1 step", other: "{count} steps" },
+    tipsTitle: "Tips",
+    categoryMobile: "Phone and remote access",
+    categoryAi: "Artificial intelligence",
+    categoryPlay: "Characters and conversations",
+    categoryCustom: "Customization and data",
+  },
   pages: {
     characters: "My characters",
+    tutorials: "Tutorials",
     newCharacter: "Create character",
     providers: "Providers",
     playerCharacters: "Played characters",

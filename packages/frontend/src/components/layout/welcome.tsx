@@ -154,6 +154,12 @@ function WelcomeContent() {
             <p className="text-center text-xs text-muted-foreground">
               {t("welcome.privacy")}
             </p>
+            <a
+              href="/tutorials"
+              className="text-center text-xs font-medium text-primary underline underline-offset-4"
+            >
+              {t("welcome.help")}
+            </a>
           </div>
         </div>
       </section>

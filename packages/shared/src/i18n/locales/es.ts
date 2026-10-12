@@ -22,6 +22,8 @@ export const es: Dictionary = {
     groupSystem: "Sistema",
     updates: "Actualizaciones",
     logs: "Registro",
+    groupHelp: "Ayuda",
+    tutorials: "Tutoriales",
   },
   theme: {
     label: "Tema y apariencia",
@@ -51,6 +53,7 @@ export const es: Dictionary = {
     tagline:
       "Escribe con tus personajes tanto como quieras: viven en tu equipo y recuerdan lo que pasó.",
     privacy: "Sin cuentas, sin nube: tus historias se quedan contigo.",
+    help: "¿Necesitas ayuda? Mira los tutoriales",
   },
   players: {
     title: "Personajes jugados",
@@ -778,8 +781,23 @@ export const es: Dictionary = {
     context: "Contexto",
     count: "{count} entradas",
   },
+  tutorials: {
+    heading: "Tutoriales",
+    description:
+      "Guías paso a paso para lo que no es evidente: el móvil, la IA, los personajes y tus datos.",
+    searchPlaceholder: "Buscar en los tutoriales",
+    noResultsTitle: "Sin resultados",
+    noResults: "Ningún tutorial coincide con la búsqueda.",
+    steps: { one: "1 paso", other: "{count} pasos" },
+    tipsTitle: "Consejos",
+    categoryMobile: "Móvil y acceso remoto",
+    categoryAi: "Inteligencia artificial",
+    categoryPlay: "Personajes y conversaciones",
+    categoryCustom: "Personalización y datos",
+  },
   pages: {
     characters: "Mis personajes",
+    tutorials: "Tutoriales",
     newCharacter: "Crear personaje",
     providers: "Proveedores",
     playerCharacters: "Personajes jugados",

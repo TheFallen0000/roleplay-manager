@@ -14,7 +14,7 @@ import {
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
 import { Toaster } from "@workspace/ui/components/sonner"
-import { UsersIcon, CogIcon, UserRoundIcon, RefreshCwIcon, ScrollTextIcon } from "lucide-react"
+import { UsersIcon, CogIcon, UserRoundIcon, RefreshCwIcon, ScrollTextIcon, BookOpenIcon } from "lucide-react"
 import { useSidebar } from "@workspace/ui/components/sidebar"
 import { BrandFace } from "./brand"
 import { useEffect } from "react"
@@ -167,6 +167,24 @@ function AppShellContent({
                   >
                     <ScrollTextIcon />
                     <span>{t("nav.logs")}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel>{t("nav.groupHelp")}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    render={<a href="/tutorials" />}
+                    tooltip={t("nav.tutorials")}
+                    isActive={isActive("/tutorials")}
+                    aria-current={isActive("/tutorials") ? "page" : undefined}
+                  >
+                    <BookOpenIcon />
+                    <span>{t("nav.tutorials")}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
