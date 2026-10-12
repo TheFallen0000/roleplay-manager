@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.40.4] - 2026-10-12
+
+### Fixed
+
+- **The Windows package now extracts with Windows' built-in zip tool.** bsdtar
+  archived the stage as `.`, which prefixed every entry with `./`, and Explorer
+  drops such entries (it showed the zip as invalid; 7-Zip and `tar` worked
+  around it). The zip is now created listing the top-level entries explicitly,
+  and the package smoke test fails if a `./` prefix ever comes back.
+- The **v1.40.3 Windows asset was rebuilt** with the same fix (identical app
+  content) and its release notes were updated, so that version can be extracted
+  too.
+
 ## [1.40.3] - 2026-10-12
 
 ### Fixed
