@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.44.0] - 2026-10-12
+
+### Added
+
+- **Tutorials screen** (`/tutorials`): nine step-by-step guides for the tricky
+  parts — phone access with Tailscale, installing the app on the phone, home
+  network access, AI providers, creating/exporting/importing characters,
+  conversation branches, memories & summaries, customizing the chat, and your
+  data & updates.
+- Cards grouped by category with a search box; each guide opens in a dialog
+  with numbered steps, tips and a button that jumps to the matching feature.
+  Guides are **bilingual** (es/en) and directly linkable
+  (`/tutorials?t=branches`).
+- New **Help** section in the sidebar and a link from the welcome screen.
+
+### Changed
+
+- `/tutorials` renders inside the app shell even before onboarding is finished,
+  so the welcome-screen link works.
+
 ## [1.43.0] - 2026-10-12
 
 ### Added
