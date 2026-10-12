@@ -213,6 +213,13 @@ try {
         "manifest served with the install criteria",
       )
 
+      const swResponse = await fetch(`${base}/sw.js`)
+      const swSource = swResponse.ok ? await swResponse.text() : ""
+      check(
+        swResponse.status === 200 && swSource.includes("fetch"),
+        "pass-through service worker served (installable PWA)",
+      )
+
       // The logger must write its rotating file inside the portable folder.
       const logsDir = join(dir, "data", "logs")
       let logContent = ""

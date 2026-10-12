@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui/components/menubar"
 
 import { PhoneAccessDialog } from "@/components/tunnel/phone-access-dialog"
+import { useInstallPrompt } from "@/lib/hooks/use-install-prompt"
 import { useTheme } from "@/lib/hooks/use-theme"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { useTunnelStore } from "@/lib/stores/tunnel.store"
@@ -39,6 +40,16 @@ export function AppMenubar() {
   const lanStatus = useTunnelStore((state) => state.lanStatus)
   const hydrateTunnelStatus = useTunnelStore((state) => state.hydrateFromCache)
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false)
+  const install = useInstallPrompt()
+  const showInstall = !install.installed && (install.canPrompt || install.isIos)
+
+  const handleInstall = () => {
+    if (install.canPrompt) {
+      void install.promptInstall()
+      return
+    }
+    window.location.assign("/tutorials?t=pwa-install")
+  }
 
   useEffect(() => {
     hydrateTunnelStatus()
@@ -126,6 +137,16 @@ export function AppMenubar() {
                 {t("tunnel.menuOpen")}
               </MenubarItem>
             </MenubarGroup>
+            {showInstall ? (
+              <>
+                <MenubarSeparator />
+                <MenubarGroup>
+                  <MenubarItem onClick={handleInstall}>
+                    {t("install.button")}
+                  </MenubarItem>
+                </MenubarGroup>
+              </>
+            ) : null}
           </MenubarContent>
         </MenubarMenu>
       </Menubar>
