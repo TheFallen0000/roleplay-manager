@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process"
 import { existsSync } from "node:fs"
 import { createWriteStream } from "node:fs"
-import { chmod, cp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises"
+import { chmod, cp, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { Readable, Transform } from "node:stream"
 import { pipeline } from "node:stream/promises"
@@ -116,7 +116,9 @@ export class ReleaseUpdateAdapter implements UpdateController {
   }
 
   async getStatus(): Promise<UpdateStatusDTO> {
-    const base = this.status ?? emptyStatus(await this.localVersion())
+    const base =
+      this.status ??
+      (await this.withRollbackTarget(emptyStatus(await this.localVersion())))
     return { ...base, job: this.job }
   }
 
@@ -126,6 +128,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
       checkedAt: new Date().toISOString(),
     }
 
+    let next: UpdateStatusDTO
     try {
       const release = await this.fetchLatestRelease(await this.resolveRepository())
       const latestVersion = release.tag_name.replace(/^v/, "")
@@ -135,7 +138,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
       const behind = isNewerVersion(latestVersion, base.currentVersion)
       const notes = release.body?.trim()
 
-      this.status = {
+      next = {
         ...base,
         latestVersion,
         behind,
@@ -144,9 +147,10 @@ export class ReleaseUpdateAdapter implements UpdateController {
         blockedReason: behind && !asset ? "no-asset" : null,
       }
     } catch (error) {
-      this.status = { ...base, checkError: describeError(error) }
+      next = { ...base, checkError: describeError(error) }
     }
 
+    this.status = await this.withRollbackTarget(next)
     return this.getStatus()
   }
 
@@ -181,6 +185,56 @@ export class ReleaseUpdateAdapter implements UpdateController {
       throw new UpdateFailedError("Backups are not available.")
     }
     return this.backup()
+  }
+
+  async rollback(): Promise<UpdateStatusDTO> {
+    if (this.job?.running) {
+      throw new UpdateFailedError("An update is already running.")
+    }
+
+    const status = await this.getStatus()
+    if (!status.rollbackTarget) {
+      throw new UpdateFailedError("There is no previous version to roll back to.")
+    }
+
+    await writeFile(join(this.root, "current"), status.rollbackTarget, "utf8")
+    return this.check()
+  }
+
+  private async withRollbackTarget(
+    status: UpdateStatusDTO,
+  ): Promise<UpdateStatusDTO> {
+    return {
+      ...status,
+      rollbackTarget: await this.rollbackTargetFor(status.currentVersion),
+    }
+  }
+
+  /**
+   * Previous version still on disk: the highest `versions/<v>` numerically
+   * lower than the running one. Rolling back only goes down; going forward is
+   * the regular update flow.
+   */
+  private async rollbackTargetFor(
+    currentVersion: string,
+  ): Promise<string | null> {
+    try {
+      const entries = await readdir(join(this.root, "versions"), {
+        withFileTypes: true,
+      })
+      const older = entries
+        .filter(
+          (entry) =>
+            entry.isDirectory() &&
+            /^\d+\./.test(entry.name) &&
+            compareVersions(entry.name, currentVersion) < 0,
+        )
+        .map((entry) => entry.name)
+        .sort((a, b) => compareVersions(b, a))
+      return older[0] ?? null
+    } catch {
+      return null
+    }
   }
 
   private async runJob(withBackup: boolean, version: string): Promise<void> {
@@ -398,6 +452,7 @@ const emptyStatus = (currentVersion: string): UpdateStatusDTO => ({
   canApply: false,
   // This adapter only runs from the packaged app (launcher present).
   canRestart: true,
+  rollbackTarget: null,
   blockedReason: null,
   checkError: null,
   checkedAt: null,
@@ -411,25 +466,28 @@ const formatBytes = (bytes: number): string =>
   `${(bytes / 1024 / 1024).toFixed(1)} MB`
 
 /**
- * Numeric version comparison, so a lower tag is never offered as an update
- * and equal versions do not look "behind".
+ * Numeric version comparison (`1.10.0 > 1.9.0`), so a lower tag is never
+ * offered as an update, equal versions do not look "behind" and rolling back
+ * always picks the closest lower version. Missing parts count as 0.
  */
-const isNewerVersion = (candidate: string, current: string): boolean => {
+const compareVersions = (left: string, right: string): number => {
   const parse = (value: string): number[] =>
     value
       .split(/[.+-]/)
       .map((part) => Number.parseInt(part, 10))
       .map((part) => (Number.isNaN(part) ? 0 : part))
-  const left = parse(candidate)
-  const right = parse(current)
-  const length = Math.max(left.length, right.length)
+  const a = parse(left)
+  const b = parse(right)
+  const length = Math.max(a.length, b.length)
   for (let index = 0; index < length; index += 1) {
-    const a = left[index] ?? 0
-    const b = right[index] ?? 0
-    if (a !== b) return a > b
+    const diff = (a[index] ?? 0) - (b[index] ?? 0)
+    if (diff !== 0) return diff
   }
-  return false
+  return 0
 }
+
+const isNewerVersion = (candidate: string, current: string): boolean =>
+  compareVersions(candidate, current) > 0
 
 const defaultRunner: CommandRunner = (command, args, cwd) =>
   new Promise((resolve, reject) => {

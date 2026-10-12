@@ -152,6 +152,18 @@ export const es: Dictionary = {
     backupLabel: "Crear un respaldo antes de actualizar",
     backupNow: "Crear respaldo ahora",
     backupCreated: "Respaldo creado en {path}",
+    rollbackTitle: "Volver a una versión anterior",
+    rollbackDescription:
+      "La versión {version} sigue guardada en el equipo. Volver atrás no toca tus datos.",
+    rollback: "Volver a v{version}",
+    rollbackConfirmTitle: "¿Volver a la versión anterior?",
+    rollbackConfirmDescription:
+      "La app volverá a la versión {version} al reiniciar. Podrás actualizar de nuevo cuando quieras.",
+    rollbackConfirm: "Volver a la anterior",
+    rollingBack: "Volviendo…",
+    rollbackDone: "La versión {version} se aplicará al reiniciar.",
+    rollbackRestartHint: "Reinicia la app para usar la versión anterior.",
+    rollbackFailed: "No se pudo volver a la versión anterior",
     apply: "Actualizar",
     applying: "Actualizando…",
     stepBackup: "Creando respaldo…",
@@ -794,6 +806,10 @@ export const es: Dictionary = {
     categoryAi: "Inteligencia artificial",
     categoryPlay: "Personajes y conversaciones",
     categoryCustom: "Personalización y datos",
+  },
+  install: {
+    button: "Instalar la app",
+    iosHint: "Añádela a la pantalla de inicio",
   },
   pages: {
     characters: "Mis personajes",

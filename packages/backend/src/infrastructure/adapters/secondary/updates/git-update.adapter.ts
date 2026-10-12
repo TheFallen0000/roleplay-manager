@@ -161,6 +161,12 @@ export class GitUpdateAdapter implements UpdateController {
     return this.backup()
   }
 
+  async rollback(): Promise<UpdateStatusDTO> {
+    throw new UpdateFailedError(
+      "Rollback is only available in the packaged app.",
+    )
+  }
+
   private async runJob(withBackup: boolean): Promise<void> {
     try {
       if (withBackup && this.backup) {
@@ -237,6 +243,7 @@ const emptyStatus = (currentVersion: string): UpdateStatusDTO => ({
   canApply: false,
   // Restarting is a packaged-app feature (the git adapter runs in development).
   canRestart: false,
+  rollbackTarget: null,
   blockedReason: null,
   checkError: null,
   checkedAt: null,

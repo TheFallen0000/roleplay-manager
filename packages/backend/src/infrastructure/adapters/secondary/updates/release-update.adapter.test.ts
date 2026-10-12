@@ -170,6 +170,38 @@ describe("ReleaseUpdateAdapter", () => {
     expect(status.behind).toBe(false)
   })
 
+  it("reports the closest lower version as rollback target", async () => {
+    const root = await createRoot()
+    await mkdir(join(root, "versions", "1.1.0", "app"), { recursive: true })
+    await writeFile(join(root, "current"), "1.1.0", "utf8")
+
+    const status = await buildAdapter(root).getStatus()
+
+    expect(status.currentVersion).toBe("1.1.0")
+    expect(status.rollbackTarget).toBe("1.0.0")
+  })
+
+  it("rolls back by switching the current pointer", async () => {
+    const root = await createRoot()
+    await mkdir(join(root, "versions", "1.1.0", "app"), { recursive: true })
+    await writeFile(join(root, "current"), "1.1.0", "utf8")
+    const adapter = buildAdapter(root)
+
+    const status = await adapter.rollback()
+
+    expect((await readFile(join(root, "current"), "utf8")).trim()).toBe("1.0.0")
+    expect(status.currentVersion).toBe("1.0.0")
+    // The latest release is newer again, so the regular flow offers the way back up.
+    expect(status.behind).toBe(true)
+    expect(status.rollbackTarget).toBeNull()
+  })
+
+  it("refuses to roll back without a previous version", async () => {
+    const adapter = buildAdapter(await createRoot())
+
+    await expect(adapter.rollback()).rejects.toThrow(UpdateFailedError)
+  })
+
   it("blocks when the release has no asset for the platform", async () => {
     const status = await buildAdapter(await createRoot(), {
       release: releaseFixture({

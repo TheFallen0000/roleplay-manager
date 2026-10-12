@@ -14,6 +14,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { Switch } from "@workspace/ui/components/switch"
 
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
@@ -56,6 +64,7 @@ function UpdatesPanelContent() {
   const check = useUpdatesStore((state) => state.check)
   const refresh = useUpdatesStore((state) => state.refresh)
   const apply = useUpdatesStore((state) => state.apply)
+  const rollback = useUpdatesStore((state) => state.rollback)
   const createBackup = useUpdatesStore((state) => state.createBackup)
   const restart = useUpdatesStore((state) => state.restart)
 
@@ -64,6 +73,9 @@ function UpdatesPanelContent() {
   const [backup, setBackup] = useState<BackupResultDTO | null>(null)
   const [busy, setBusy] = useState(false)
   const [restarting, setRestarting] = useState(false)
+  const [rollbackOpen, setRollbackOpen] = useState(false)
+  const [rollingBack, setRollingBack] = useState(false)
+  const [rolledBack, setRolledBack] = useState<string | null>(null)
 
   useEffect(() => {
     hydrateFromCache()
@@ -121,6 +133,23 @@ function UpdatesPanelContent() {
     }
   }
 
+  const runRollback = async () => {
+    setError(null)
+    setRollingBack(true)
+    try {
+      const updated = await rollback()
+      setRollbackOpen(false)
+      setRolledBack(updated.currentVersion)
+    } catch (rollbackError) {
+      setRollbackOpen(false)
+      setError(
+        translateApiError(rollbackError, tRaw, t("updates.rollbackFailed")),
+      )
+    } finally {
+      setRollingBack(false)
+    }
+  }
+
   const runRestart = async () => {
     setError(null)
     setRestarting(true)
@@ -158,6 +187,21 @@ function UpdatesPanelContent() {
         return t("updates.failed", { message: job.message ?? "" })
     }
   }
+
+  const restartBlock = (hint: string) => (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm text-muted-foreground">{hint}</p>
+      {status?.canRestart ? (
+        <Button
+          variant="secondary"
+          onClick={() => void runRestart()}
+          disabled={restarting}
+        >
+          {restarting ? t("updates.restarting") : t("updates.restart")}
+        </Button>
+      ) : null}
+    </div>
+  )
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
@@ -247,6 +291,29 @@ function UpdatesPanelContent() {
             </p>
           ) : null}
 
+          {status?.rollbackTarget ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">
+                  {t("updates.rollbackTitle")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("updates.rollbackDescription", {
+                    version: status.rollbackTarget,
+                  })}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRollbackOpen(true)}
+                disabled={busy || applying}
+              >
+                {t("updates.rollback", { version: status.rollbackTarget })}
+              </Button>
+            </div>
+          ) : null}
+
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </CardContent>
       </Card>
@@ -331,27 +398,55 @@ function UpdatesPanelContent() {
               </p>
             ) : null}
 
-            {job.step === "done" ? (
-              <div className="flex flex-col gap-2">
-                <p className="text-sm text-muted-foreground">
-                  {t("updates.restartHint")}
-                </p>
-                {status?.canRestart ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() => void runRestart()}
-                    disabled={restarting}
-                  >
-                    {restarting
-                      ? t("updates.restarting")
-                      : t("updates.restart")}
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
+            {job.step === "done"
+              ? restartBlock(t("updates.restartHint"))
+              : null}
           </CardContent>
         </Card>
       ) : null}
+
+      {rolledBack ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              {t("updates.rollbackTitle")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-sm">
+              {t("updates.rollbackDone", { version: rolledBack })}
+            </p>
+            {restartBlock(t("updates.rollbackRestartHint"))}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Dialog open={rollbackOpen} onOpenChange={setRollbackOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("updates.rollbackConfirmTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("updates.rollbackConfirmDescription", {
+                version: status?.rollbackTarget ?? "",
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRollbackOpen(false)}
+              disabled={rollingBack}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={() => void runRollback()} disabled={rollingBack}>
+              {rollingBack
+                ? t("updates.rollingBack")
+                : t("updates.rollbackConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

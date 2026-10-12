@@ -10,6 +10,7 @@ const cached = {
   notes: null,
   canApply: true,
   canRestart: false,
+  rollbackTarget: null,
   blockedReason: null,
   checkError: null,
   checkedAt: "2026-10-07T10:00:00.000Z",

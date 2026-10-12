@@ -154,6 +154,18 @@ export const en = {
     backupLabel: "Create a backup before updating",
     backupNow: "Create a backup now",
     backupCreated: "Backup created at {path}",
+    rollbackTitle: "Roll back to a previous version",
+    rollbackDescription:
+      "Version {version} is still on disk. Rolling back does not touch your data.",
+    rollback: "Roll back to v{version}",
+    rollbackConfirmTitle: "Roll back to the previous version?",
+    rollbackConfirmDescription:
+      "The app will go back to version {version} on restart. You can update again whenever you want.",
+    rollbackConfirm: "Roll back",
+    rollingBack: "Rolling back…",
+    rollbackDone: "Version {version} will apply on restart.",
+    rollbackRestartHint: "Restart the app to use the previous version.",
+    rollbackFailed: "Could not roll back to the previous version",
     apply: "Update",
     applying: "Updating…",
     stepBackup: "Creating a backup…",
@@ -793,6 +805,10 @@ export const en = {
     categoryAi: "Artificial intelligence",
     categoryPlay: "Characters and conversations",
     categoryCustom: "Customization and data",
+  },
+  install: {
+    button: "Install the app",
+    iosHint: "Add it to your home screen",
   },
   pages: {
     characters: "My characters",

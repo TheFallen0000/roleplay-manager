@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   getUpdateStatus: vi.fn(),
   checkUpdates: vi.fn(),
   applyUpdate: vi.fn(),
+  rollbackUpdate: vi.fn(),
   createBackup: vi.fn(),
   restartApp: vi.fn(),
   getHealth: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock("@/lib/api/updates", () => ({
   getUpdateStatus: mocks.getUpdateStatus,
   checkUpdates: mocks.checkUpdates,
   applyUpdate: mocks.applyUpdate,
+  rollbackUpdate: mocks.rollbackUpdate,
   createBackup: mocks.createBackup,
   restartApp: mocks.restartApp,
 }))
@@ -35,6 +37,7 @@ const behind = {
   notes: null,
   canApply: true,
   canRestart: true,
+  rollbackTarget: null,
   blockedReason: null,
   checkError: null,
   checkedAt: "2026-10-07T10:00:00.000Z",
@@ -259,5 +262,51 @@ describe("UpdatesPanel", () => {
         "Tienes cambios locales; guárdalos o descártalos antes de actualizar.",
       ),
     ).toBeInTheDocument()
+  })
+
+  it("ofrece volver a la versión anterior y la aplica tras confirmar", async () => {
+    mocks.checkUpdates.mockResolvedValue({ ...behind, rollbackTarget: "0.9.0" })
+    mocks.rollbackUpdate.mockResolvedValue({
+      ...behind,
+      currentVersion: "0.9.0",
+      rollbackTarget: null,
+    })
+    renderPanel()
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Volver a v0.9.0" }),
+    )
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Volver a la anterior" }),
+    )
+
+    await waitFor(() => expect(mocks.rollbackUpdate).toHaveBeenCalledTimes(1))
+    expect(
+      await screen.findByText("La versión 0.9.0 se aplicará al reiniciar."),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Reiniciar ahora" }),
+    ).toBeInTheDocument()
+  })
+
+  it("permite cancelar el rollback sin llamar a la API", async () => {
+    mocks.checkUpdates.mockResolvedValue({ ...behind, rollbackTarget: "0.9.0" })
+    renderPanel()
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Volver a v0.9.0" }),
+    )
+    await userEvent.click(screen.getByRole("button", { name: "Cancelar" }))
+
+    expect(mocks.rollbackUpdate).not.toHaveBeenCalled()
+  })
+
+  it("no ofrece rollback cuando no hay versión anterior", async () => {
+    renderPanel()
+
+    expect(await screen.findByText("1.0.0")).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: /Volver a v/ }),
+    ).not.toBeInTheDocument()
   })
 })

@@ -193,6 +193,7 @@ export const buildServer = ({
       getUpdateStatus: container.getUpdateStatus,
       checkUpdates: container.checkUpdates,
       applyUpdate: container.applyUpdate,
+      rollbackUpdate: container.rollbackUpdate,
       createBackup: container.createBackup,
       restartApp: container.restartApp,
     }),

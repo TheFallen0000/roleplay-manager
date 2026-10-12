@@ -27,6 +27,7 @@ const behind = {
   notes: null,
   canApply: true,
   canRestart: true,
+  rollbackTarget: null,
   blockedReason: null,
   checkError: null,
   checkedAt: "2026-10-07T10:00:00.000Z",

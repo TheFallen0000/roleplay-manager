@@ -16,6 +16,7 @@ const status = {
   notes: null,
   canApply: true,
   canRestart: false,
+  rollbackTarget: null,
   blockedReason: null,
   checkError: null,
   checkedAt: "2026-10-07T10:00:00.000Z",
@@ -65,6 +66,7 @@ describe("update routes", () => {
       getUpdateStatus: { execute } as never,
       checkUpdates: unused,
       applyUpdate: unused,
+      rollbackUpdate: unused,
       createBackup: unused,
       restartApp: unused,
     })
@@ -81,6 +83,7 @@ describe("update routes", () => {
       getUpdateStatus: unused,
       checkUpdates: { execute } as never,
       applyUpdate: unused,
+      rollbackUpdate: unused,
       createBackup: unused,
       restartApp: unused,
     })
@@ -100,6 +103,7 @@ describe("update routes", () => {
       getUpdateStatus: unused,
       checkUpdates: unused,
       applyUpdate: { execute } as never,
+      rollbackUpdate: unused,
       createBackup: unused,
       restartApp: unused,
     })
@@ -129,6 +133,7 @@ describe("update routes", () => {
       getUpdateStatus: unused,
       checkUpdates: unused,
       applyUpdate: unused,
+      rollbackUpdate: unused,
       createBackup: { execute } as never,
       restartApp: unused,
     })
@@ -149,6 +154,7 @@ describe("update routes", () => {
       getUpdateStatus: unused,
       checkUpdates: unused,
       applyUpdate: unused,
+      rollbackUpdate: unused,
       createBackup: unused,
       restartApp: { execute } as never,
     })
@@ -160,6 +166,28 @@ describe("update routes", () => {
     expect(execute).toHaveBeenCalledTimes(1)
   })
 
+  it("rolls back to the previous version", async () => {
+    const execute = vi.fn(async () => ({
+      ...status,
+      currentVersion: "0.9.0",
+      latestVersion: "2.0.0",
+    }))
+    const base = await start({
+      getUpdateStatus: unused,
+      checkUpdates: unused,
+      applyUpdate: unused,
+      rollbackUpdate: { execute } as never,
+      createBackup: unused,
+      restartApp: unused,
+    })
+
+    const response = await fetch(`${base}/updates/rollback`, { method: "POST" })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ currentVersion: "0.9.0" })
+    expect(execute).toHaveBeenCalledTimes(1)
+  })
+
   it("maps a dirty worktree error to 409 with its code", async () => {
     const execute = vi.fn(async () => {
       throw new UpdateDirtyWorktreeError()
@@ -168,6 +196,7 @@ describe("update routes", () => {
       getUpdateStatus: unused,
       checkUpdates: unused,
       applyUpdate: { execute } as never,
+      rollbackUpdate: unused,
       createBackup: unused,
       restartApp: unused,
     })
