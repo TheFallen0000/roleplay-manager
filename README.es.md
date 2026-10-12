@@ -215,4 +215,5 @@ Abre un [issue](https://github.com/TheFallen0000/roleplay-manager/issues) con:
   real.
 - Tu sistema operativo, la versión de la app y tu versión de Node.js
   (`node --version`) si la ejecutas desde el código.
-- Logs o capturas relevantes.
+- Logs relevantes (en **Sistema → Registro**, con *Copiar* o *Descargar*) o
+  capturas.
