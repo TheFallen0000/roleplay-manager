@@ -8,16 +8,8 @@ import {
   MessageScrollerContent,
   MessageScrollerItem,
 } from "@workspace/ui/components/message-scroller"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@workspace/ui/components/context-menu"
-import { SettingsIcon, Pencil, RefreshCw } from "lucide-react"
+import { Minimize2 } from "lucide-react"
 
 import { useChatStore } from "../../lib/stores/chat.store"
 import {
@@ -25,7 +17,6 @@ import {
   deleteMessage,
   rewindConversation,
   cycleAlternative,
-  setConversationTitle,
   branchConversation,
 } from "../../lib/api/conversations"
 import { useChatStreaming } from "./use-chat-streaming"
@@ -36,14 +27,15 @@ import { cn } from "@workspace/ui/lib/utils"
 import { MessageBubble } from "./message"
 import { MessageInput } from "./message-input"
 import { ContextPreviewDialog } from "./context-preview-dialog"
-import { SettingsPanel } from "./settings-panel"
 import { ChatConfirmDialogs } from "./chat-confirm-dialogs"
+import { ChatHeader } from "./chat-header"
 import { useMemoryStore } from "@/lib/stores/memory.store"
 import { useSummaryStore } from "@/lib/stores/summary.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import type { Locale } from "@workspace/shared/i18n"
 import { MascotPose } from "../layout/brand"
+import { useFullscreenFocus } from "./use-fullscreen-focus"
 
 export function Chat({
   conversation,
@@ -69,8 +61,8 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
   const [previewContext, setPreviewContext] = useState<PromptContextDTO | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewContent, setPreviewContent] = useState<string | undefined>()
-  const [editingTitle, setEditingTitle] = useState(false)
-  const [titleInput, setTitleInput] = useState("")
+  const { fullscreen, enter: enterFullscreen, exit: exitFullscreen } =
+    useFullscreenFocus()
 
   const {
     messages,
@@ -222,26 +214,6 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
     [conv.id, setError],
   )
 
-  const handleRegenerateTitle = useCallback(async () => {
-    try {
-      const result = await setConversationTitle(conv.id)
-      setConv((prev) => ({ ...prev, title: result.title }))
-    } catch (err) {
-      setError((err as Error).message)
-    }
-  }, [conv.id, setError])
-
-  const handleManualTitle = useCallback(async () => {
-    if (!titleInput.trim()) return
-    try {
-      const result = await setConversationTitle(conv.id, titleInput.trim())
-      setConv((prev) => ({ ...prev, title: result.title }))
-      setEditingTitle(false)
-    } catch (err) {
-      setError((err as Error).message)
-    }
-  }, [conv.id, titleInput, setError])
-
   const handlePreview = useCallback(
     async (content?: string) => {
       setPreviewContent(content)
@@ -270,76 +242,33 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
   }, [previewContent, handleSend, handleContinue])
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="flex items-center gap-3 border-b px-4 py-3">
-        <a
-          href={`/characters/${conv.characterId}`}
-          className="block size-8 overflow-hidden rounded-full bg-muted transition-shadow hover:ring-2 hover:ring-primary/50"
-          aria-label={`Ir a la definición de ${conv.characterName}`}
+    <div
+      data-fullscreen={fullscreen ? "true" : "false"}
+      className={cn(
+        "flex h-full flex-col",
+        fullscreen && "fixed inset-0 z-50 bg-background",
+      )}
+    >
+      {fullscreen ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={exitFullscreen}
+          aria-label={t("chat.fullscreenExit")}
+          className="absolute top-3 right-3 z-20 bg-background/60 opacity-70 backdrop-blur-sm transition-opacity hover:opacity-100 focus-visible:opacity-100"
         >
-          {conv.profileImageAssetId ? (
-            <img
-              src={getCharacterAssetUrl(
-                conv.characterId,
-                conv.profileImageAssetId,
-                "thumbnail",
-              )}
-              width={32}
-              height={32}
-              decoding="async"
-              alt={`${conv.characterName} avatar`}
-              className="size-full object-cover"
-            />
-          ) : null}
-        </a>
-        <div className="flex flex-col">
-          {editingTitle ? (
-            <form onSubmit={(e) => { e.preventDefault(); handleManualTitle() }} className="flex items-center gap-1">
-              <Input value={titleInput} onChange={(e) => setTitleInput(e.target.value)} className="h-7 text-sm" autoFocus onBlur={() => setEditingTitle(false)} />
-            </form>
-          ) : (
-            <ContextMenu>
-              <ContextMenuTrigger>
-                <h2 className="flex items-center gap-2 text-sm font-semibold">
-                  {conv.title ?? conv.characterName}
-                  {pendingCount > 0 && (
-                    <Badge variant="destructive">{pendingCount}</Badge>
-                  )}
-                </h2>
-              </ContextMenuTrigger>
-              <ContextMenuContent>
-                <ContextMenuItem
-                  onClick={() => {
-                    setTitleInput(conv.title ?? "")
-                    setEditingTitle(true)
-                  }}
-                >
-                  <Pencil className="size-4" />
-                  {t("chat.titleEditManually")}
-                </ContextMenuItem>
-                <ContextMenuItem onClick={handleRegenerateTitle}>
-                  <RefreshCw className="size-4" />
-                  {t("chat.titleRegenerate")}
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
-          )}
-          <p className="flex items-center gap-2 text-xs text-muted-foreground">
-            {conv.characterName}
-          </p>
-        </div>
-        <div className="ml-auto">
-          <SettingsPanel
-            conversationId={conv.id}
-            current={conv}
-            onSettingsChanged={setConv}
-          >
-            <Button variant="ghost" size="icon" data-icon="inline-start">
-              <SettingsIcon className="size-4" />
-            </Button>
-          </SettingsPanel>
-        </div>
-      </header>
+          <Minimize2 className="size-4" />
+        </Button>
+      ) : null}
+      <ChatHeader
+        conversation={conv}
+        pendingCount={pendingCount}
+        hidden={fullscreen}
+        onEnterFullscreen={enterFullscreen}
+        onConversationUpdated={setConv}
+        onError={setError}
+      />
 
       <MessageScrollerProvider autoScroll={isStreaming}>
         <MessageScroller
@@ -459,7 +388,12 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
         </MessageScroller>
       </MessageScrollerProvider>
 
-      <footer className="border-t">
+      <footer
+        className={cn(
+          "border-t",
+          fullscreen && "border-transparent bg-background/80 backdrop-blur-md",
+        )}
+      >
         <MessageInput
           key={inputKey}
           onSend={handleSend}

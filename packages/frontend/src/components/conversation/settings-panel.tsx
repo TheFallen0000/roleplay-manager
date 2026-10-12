@@ -12,6 +12,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import {
@@ -23,7 +24,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { BookOpenTextIcon, CpuIcon, PaletteIcon, SettingsIcon, UserRoundIcon } from "lucide-react"
+import { BookOpenTextIcon, CpuIcon, Maximize2Icon, PaletteIcon, SettingsIcon, UserRoundIcon } from "lucide-react"
 
 import type { ConversationDetail, ConversationSettingsUpdate, MemoryProposalMode } from "@workspace/shared/types/conversation"
 import type { ProviderId } from "@workspace/shared/types/provider"
@@ -51,6 +52,8 @@ interface SettingsPanelProps {
   conversationId: string
   current: ConversationDetail
   onSettingsChanged: (updated: ConversationDetail) => void
+  /** Shows the "Fullscreen" entry in the menu when provided. */
+  onEnterFullscreen?: () => void
   children?: React.ReactNode
 }
 
@@ -81,6 +84,7 @@ export function SettingsPanel({
   conversationId,
   current,
   onSettingsChanged,
+  onEnterFullscreen,
   children,
 }: SettingsPanelProps) {
   const { t } = useTranslation()
@@ -268,6 +272,15 @@ export function SettingsPanel({
             <UserRoundIcon />
             {t("settings.menuPersona")}
           </DropdownMenuItem>
+          {onEnterFullscreen ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onEnterFullscreen}>
+                <Maximize2Icon />
+                {t("chat.fullscreen")}
+              </DropdownMenuItem>
+            </>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
 

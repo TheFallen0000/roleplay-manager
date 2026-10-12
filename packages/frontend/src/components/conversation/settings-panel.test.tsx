@@ -92,13 +92,14 @@ const baseConversation = (overrides: Partial<ConversationDetail> = {}): Conversa
   ...overrides,
 })
 
-const renderPanel = () => {
+const renderPanel = (options: { onEnterFullscreen?: () => void } = {}) => {
   const onSettingsChanged = vi.fn()
   render(
     <SettingsPanel
       conversationId="conv-1"
       current={baseConversation()}
       onSettingsChanged={onSettingsChanged}
+      onEnterFullscreen={options.onEnterFullscreen}
     >
       <button type="button">Settings</button>
     </SettingsPanel>,
@@ -136,6 +137,27 @@ describe("SettingsPanel", () => {
     expect(await screen.findByRole("menuitem", { name: "Historia" })).toBeInTheDocument()
     expect(screen.getByRole("menuitem", { name: "Modelo" })).toBeInTheDocument()
     expect(screen.getByRole("menuitem", { name: "Personalización" })).toBeInTheDocument()
+  })
+
+  it("shows the Fullscreen entry with a handler and calls it", async () => {
+    const onEnterFullscreen = vi.fn()
+    renderPanel({ onEnterFullscreen })
+    await openMenu()
+
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: "Pantalla completa" }),
+    )
+
+    expect(onEnterFullscreen).toHaveBeenCalledTimes(1)
+  })
+
+  it("hides the Fullscreen entry when no handler is provided", async () => {
+    renderPanel()
+    await openMenu()
+
+    expect(
+      screen.queryByRole("menuitem", { name: "Pantalla completa" }),
+    ).not.toBeInTheDocument()
   })
 
   it("opens the Historia dialog with the accordion and a footer", async () => {
