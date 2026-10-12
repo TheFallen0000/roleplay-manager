@@ -23,6 +23,7 @@ import { buildSummaryRouter } from "./routes/summary.routes"
 import { buildTunnelRouter } from "./routes/tunnel.routes"
 import { buildLanRouter } from "./routes/lan.routes"
 import { buildPhoneAccessRouter } from "./routes/phone-access.routes"
+import { buildLogsRouter } from "./routes/logs.routes"
 import { buildPhoneAccessActivityMiddleware } from "./middlewares/phone-access-activity"
 import { buildUpdateRouter } from "./routes/update.routes"
 
@@ -177,6 +178,13 @@ export const buildServer = ({
     buildPhoneAccessRouter({
       getPhoneAccessPreferences: container.getPhoneAccessPreferences,
       updatePhoneAccessPreferences: container.updatePhoneAccessPreferences,
+    }),
+  )
+  app.use(
+    "/api",
+    buildLogsRouter({
+      getRecentLogs: container.getRecentLogs,
+      listLogFiles: container.listLogFiles,
     }),
   )
   app.use(

@@ -9,6 +9,8 @@ const envSchema = z.object({
   HOST: z.string().min(1).optional(),
   DATABASE_PATH: z.string().min(1).default("./data/roleplay.db"),
   DATA_DIR: z.string().min(1).default("./data"),
+  /** Folder for the rotating log files (defaults to `<DATA_DIR>/logs`). */
+  LOG_DIR: z.string().min(1).optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("debug"),
   CORS_ORIGIN: z.string().url().default("http://localhost:4321"),
   TUNNEL_TARGET_URL: z.string().url().default("http://localhost:4321"),
