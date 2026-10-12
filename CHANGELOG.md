@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.45.0] - 2026-10-12
+
+### Added
+
+- **Roll back to a previous version**: the updates panel now offers returning to
+  the `versions/<v>` folder the last update left on disk, with a confirmation
+  step and the same restart guidance. Going forward again is the regular update
+  flow, and your data is never touched.
+- **Install button for the PWA**: the welcome screen and the Phone menu offer
+  the native install prompt when the browser captured it (Chrome/Android) and
+  link to the tutorial on iOS. A minimal pass-through service worker is now
+  registered so Chrome Android can offer a real (WebAPK) install.
+
+### Fixed
+
+- The PWA tutorial claimed the app could be installed over the home network:
+  installation needs a secure connection (HTTPS), so it only works with the
+  Tailscale address. Both tutorials now say so.
+
 ## [1.44.0] - 2026-10-12
 
 ### Added
