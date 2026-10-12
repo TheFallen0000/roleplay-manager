@@ -107,9 +107,19 @@ pages/ (Astro) ─→ components/ (React) ─→ lib/
   components: `components/<feature>/use-<kebab>.ts` (e.g.
   `components/character/use-character-form.ts`).
 
+### `lib/tutorials/`
+
+- Long-form tutorial content (`content.es.ts`, `content.en.ts`) plus its catalog
+  (order, categories, icons and search) for the `/tutorials` screen.
+- This is the **only** copy that lives outside the i18n dictionaries: those hold
+  short labels; a tutorial is a page. Both content files are typed against
+  `TutorialContent`, so a missing translation fails typecheck.
+- **Rule**: the steps must match the real UI. When a screen or menu entry is
+  renamed, update its tutorial.
+
 ### `components/`
 
-- React components, organized by feature (`conversation/`, `character/`, `player-character/`, `provider/`, `updates/`, `tunnel/`), plus the app shell (`layout/`) and the cross-feature modules (`shared/`).
+- React components, organized by feature (`conversation/`, `character/`, `player-character/`, `provider/`, `updates/`, `tunnel/`, `logs/`, `tutorials/`), plus the app shell (`layout/`) and the cross-feature modules (`shared/`).
 - Use shadcn primitives from `@workspace/ui`.
 - Feature hooks live here (`use-character-list.ts`, `use-chat-streaming.ts`).
 - **Rules** (enforced by `pnpm check:arch`):
