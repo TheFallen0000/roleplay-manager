@@ -94,7 +94,7 @@ function CharacterFormContent({ character }: Props) {
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="mx-auto flex max-w-2xl flex-col gap-6">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">
             {isEditing ? t("characters.editTitle") : t("characters.createTitle")}
@@ -118,7 +118,7 @@ function CharacterFormContent({ character }: Props) {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isEditing ? (
             <>
               <Button type="button" variant="secondary" onClick={handleStartConversation}>
