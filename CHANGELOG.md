@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.40.2] - 2026-10-12
+
+### Added
+
+- **Contribution flow**: a `CI` workflow now runs the quality gates, tests and
+  build on every pull request (and on `master` after a merge), plus
+  pull-request and issue templates.
+- **`master` is protected**: changes only land through pull requests that pass
+  the `Checks` job; force-pushes and deletions are blocked, merges are
+  squash-only and the branch is deleted on merge. Discussions are enabled for
+  questions and ideas.
+
+### Changed
+
+- `CONTRIBUTING.md`, `AGENTS.md` and both READMEs document the
+  branch → PR → checks → squash-merge flow, and ask contributors not to bump
+  the version or edit the changelog.
+
 ## [1.40.1] - 2026-10-09
 
 ### Changed
