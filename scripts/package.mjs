@@ -500,7 +500,18 @@ console.log("- Archiving...")
 mkdirSync(releaseDir, { recursive: true })
 rmSync(archivePath, { force: true })
 if (IS_WINDOWS) {
-  run(tarBinary(), ["-a", "-c", "-f", archivePath, "-C", stage, "."])
+  // Archiving `.` makes bsdtar prefix every entry with "./", and Windows' own
+  // extractor drops those entries (Explorer shows an empty, "invalid" zip).
+  // List the top-level entries explicitly so the name stays a clean path.
+  run(tarBinary(), [
+    "-a",
+    "-c",
+    "-f",
+    archivePath,
+    "-C",
+    stage,
+    ...readdirSync(stage),
+  ])
 } else {
   run("tar", ["-czf", archivePath, "-C", stage, "."])
 }
