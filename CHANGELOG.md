@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.40.5] - 2026-10-12
+
+### Fixed
+
+- The **character edit header** no longer overflows on small screens: below
+  640px the title and the actions stack, and the buttons wrap, so *Delete* and
+  *Save changes* stay inside the card (at 320px the page used to scroll
+  sideways by 179px and the title broke into two squeezed lines).
+
 ## [1.40.4] - 2026-10-12
 
 ### Fixed
