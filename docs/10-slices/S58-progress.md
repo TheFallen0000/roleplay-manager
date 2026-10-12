@@ -32,8 +32,9 @@ metadatos de GitHub (descripción y topics) y detalles obsoletos de
     silenciosamente (probado con `Invoke-RestMethod` y `curl.exe`, con el media
     type clásico `mercy-preview`, un solo topic y la lista completa). Con el
     dueño del repo, permisos admin, `repo` scope y topics válidos, es una
-    restricción de GitHub sobre la cuenta. Queda pendiente intentarlo desde la
-    web (About → ⚙️ → Topics) y reintentar más adelante.
+    restricción de GitHub sobre la cuenta. **Actualización (2026-10-12):** los
+    topics se aplicaron a mano desde la web (About → ⚙️ → Topics); tarea
+    cerrada.
 - **`CONTRIBUTING.md`**: corregido el puerto del backend (3000 → 3001) y la
   versión de pnpm del bloque corepack (11.15.1 → 11.21.0, la del
   `packageManager`).
@@ -44,14 +45,14 @@ metadatos de GitHub (descripción y topics) y detalles obsoletos de
       actualizado (instalación de usuario, funciones, teléfono, actualizaciones).
 - [x] Descripción del repositorio aplicada en GitHub.
 - [x] Detalles obsoletos de `CONTRIBUTING.md` corregidos.
-- [ ] Topics aplicados (bloqueado por GitHub; se reintentará desde la web).
+- [x] Topics aplicados a mano desde la web (2026-10-12).
 
 ## Verificación
 
 - Gates no aplican (docs), pero se mantiene `pnpm check` verde y el flujo de
   release publica los paquetes con normalidad.
 - Metadatos: `GET /repos/...` devuelve la descripción de 323 caracteres ✓;
-  topics siguen vacíos tras 4 intentos documentados.
+  los topics quedaron aplicados a mano (2026-10-12).
 
 ## Commits
 
