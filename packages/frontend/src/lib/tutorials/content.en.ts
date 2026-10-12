@@ -21,7 +21,7 @@ export const tutorialsEn: TutorialContent = {
       },
       {
         title: "Add it to your home screen",
-        body: "To open it like an app, save it from the phone browser; the “Install the app on your phone” tutorial walks you through it.",
+        body: "With this Tailscale address open, save it from the phone browser: it will open with its own icon and no browser bar (HTTPS is required). The “Install the app on your phone” tutorial walks you through it.",
       },
     ],
     tips: [
@@ -36,8 +36,8 @@ export const tutorialsEn: TutorialContent = {
       "Add it to your home screen and open it in its own window, without the browser bar.",
     steps: [
       {
-        title: "Open the app in the phone browser",
-        body: "Use the shared address (Tailscale or home network) and wait until it fully loads before installing.",
+        title: "Open the app with the Tailscale address",
+        body: "Installation needs a secure connection (HTTPS), so use the Tailscale address and not the home-network one: over http:// the browser will not offer to install it.",
       },
       {
         title: "Android (Chrome)",
@@ -54,7 +54,7 @@ export const tutorialsEn: TutorialContent = {
     ],
     tips: [
       "The phone is a window into the app: characters and conversations still live on your computer.",
-      "If you connect through the home network, the shortcut only works while you are on that WiFi.",
+      "Over the home network the app only runs in the browser: to really install it, always use Tailscale.",
     ],
   },
   "lan-access": {
@@ -78,6 +78,7 @@ export const tutorialsEn: TutorialContent = {
     tips: [
       "It only works inside your local network; use Tailscale when you are away from home.",
       "Closing the app cuts the access and the address stops responding.",
+      "Here the app runs in the browser: installing it as an app only works with the Tailscale address (it needs HTTPS).",
     ],
   },
   providers: {
