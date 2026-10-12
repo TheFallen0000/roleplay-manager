@@ -5,6 +5,7 @@ import type { ApplyUpdateUseCase } from "../../../../application/use-cases/updat
 import type { CheckUpdatesUseCase } from "../../../../application/use-cases/updates/check-updates.use-case"
 import type { CreateBackupUseCase } from "../../../../application/use-cases/updates/create-backup.use-case"
 import type { GetUpdateStatusUseCase } from "../../../../application/use-cases/updates/get-update-status.use-case"
+import type { RollbackUpdateUseCase } from "../../../../application/use-cases/updates/rollback-update.use-case"
 import type { RestartAppUseCase } from "../../../../application/use-cases/app/restart-app.use-case"
 
 const ApplyBodySchema = z.object({
@@ -15,6 +16,7 @@ export const buildUpdateRouter = (deps: {
   getUpdateStatus: GetUpdateStatusUseCase
   checkUpdates: CheckUpdatesUseCase
   applyUpdate: ApplyUpdateUseCase
+  rollbackUpdate: RollbackUpdateUseCase
   createBackup: CreateBackupUseCase
   restartApp: RestartAppUseCase
 }): Router => {
@@ -42,6 +44,14 @@ export const buildUpdateRouter = (deps: {
       res.json(
         await deps.applyUpdate.execute({ withBackup: body.withBackup ?? true }),
       )
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.post("/updates/rollback", async (_req, res, next) => {
+    try {
+      res.json(await deps.rollbackUpdate.execute())
     } catch (error) {
       next(error)
     }

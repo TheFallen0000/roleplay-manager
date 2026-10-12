@@ -76,6 +76,7 @@ import { ListLogFilesUseCase } from "../application/use-cases/logs/list-log-file
 import { GetUpdateStatusUseCase } from "../application/use-cases/updates/get-update-status.use-case"
 import { CheckUpdatesUseCase } from "../application/use-cases/updates/check-updates.use-case"
 import { ApplyUpdateUseCase } from "../application/use-cases/updates/apply-update.use-case"
+import { RollbackUpdateUseCase } from "../application/use-cases/updates/rollback-update.use-case"
 import { CreateBackupUseCase } from "../application/use-cases/updates/create-backup.use-case"
 import { GitUpdateAdapter } from "../infrastructure/adapters/secondary/updates/git-update.adapter"
 import { ReleaseUpdateAdapter } from "../infrastructure/adapters/secondary/updates/release-update.adapter"
@@ -206,6 +207,7 @@ export interface AppContainer {
   getUpdateStatus: GetUpdateStatusUseCase
   checkUpdates: CheckUpdatesUseCase
   applyUpdate: ApplyUpdateUseCase
+  rollbackUpdate: RollbackUpdateUseCase
   createBackup: CreateBackupUseCase
   restartApp: RestartAppUseCase
 
@@ -368,6 +370,7 @@ export const buildContainer = ({
   const getUpdateStatus = new GetUpdateStatusUseCase(updateController)
   const checkUpdates = new CheckUpdatesUseCase(updateController)
   const applyUpdate = new ApplyUpdateUseCase(updateController)
+  const rollbackUpdate = new RollbackUpdateUseCase(updateController)
   const createBackup = new CreateBackupUseCase(updateController)
   const restartApp = new RestartAppUseCase(
     new ProcessRestarter({ packagedRoot: updatePackagedRoot }),
@@ -515,6 +518,7 @@ export const buildContainer = ({
     getUpdateStatus,
     checkUpdates,
     applyUpdate,
+    rollbackUpdate,
     createBackup,
     restartApp,
     settings,

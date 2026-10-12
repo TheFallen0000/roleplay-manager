@@ -33,6 +33,8 @@ export interface UpdateStatusDTO {
   canApply: boolean
   /** Whether the app can restart itself (packaged launcher present). */
   canRestart: boolean
+  /** Previous version still on disk to roll back to (packaged app only). */
+  rollbackTarget: string | null
   /** Why it cannot be applied, when it is a known state. */
   blockedReason: UpdateBlockedReason | null
   /** Message when the check itself failed (offline, no remote, ...). */

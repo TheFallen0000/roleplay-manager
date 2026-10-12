@@ -252,4 +252,13 @@ describe("GitUpdateAdapter", () => {
     })
     await expect(withoutBackup.createBackup()).rejects.toThrow(UpdateFailedError)
   })
+
+  it("does not offer rollback (packaged-app feature)", async () => {
+    const adapter = buildAdapter(runnerFromMap({}))
+
+    const status = await adapter.getStatus()
+
+    expect(status.rollbackTarget).toBeNull()
+    await expect(adapter.rollback()).rejects.toThrow(UpdateFailedError)
+  })
 })

@@ -45,6 +45,8 @@ export interface UpdatesState {
   /** Reads the last known status without touching the network. */
   refresh: () => Promise<UpdateStatusDTO>
   apply: (withBackup: boolean) => Promise<UpdateStatusDTO>
+  /** Switches `current` back to the previous version (needs a restart). */
+  rollback: () => Promise<UpdateStatusDTO>
   createBackup: () => Promise<BackupResultDTO>
   restart: () => Promise<RestartAppResult>
   wasNotified: (version: string) => boolean
@@ -92,6 +94,13 @@ export const useUpdatesStore = create<UpdatesState>((set, get) => ({
 
   apply: async (withBackup) => {
     const status = await updatesApi.applyUpdate(withBackup)
+    persist(status)
+    set({ status })
+    return status
+  },
+
+  rollback: async () => {
+    const status = await updatesApi.rollbackUpdate()
     persist(status)
     set({ status })
     return status

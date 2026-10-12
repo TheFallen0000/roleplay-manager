@@ -12,6 +12,7 @@ import { useTranslation } from "@/lib/hooks/use-translation"
 import { setOnboardedCookie } from "@/lib/onboarding"
 import { COLOR_MODES, THEMES, type ColorMode } from "@/lib/themes"
 import { BrandMascot } from "./brand"
+import { InstallAppButton } from "./install-app-button"
 
 const MODE_ICONS = {
   light: SunIcon,
@@ -151,6 +152,7 @@ function WelcomeContent() {
             >
               {t("welcome.continue")}
             </Button>
+            <InstallAppButton buttonClassName="w-full" />
             <p className="text-center text-xs text-muted-foreground">
               {t("welcome.privacy")}
             </p>

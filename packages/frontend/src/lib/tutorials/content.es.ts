@@ -26,7 +26,7 @@ export const tutorialsEs: TutorialContent = {
       },
       {
         title: "Añádela a la pantalla de inicio",
-        body: "Para que se abra como una app, guárdala desde el navegador del móvil; lo tienes paso a paso en el tutorial «Instalar la app en el móvil».",
+        body: "Con esta dirección de Tailscale abierta, guárdala desde el navegador del móvil: se abrirá con su propio icono y sin barra del navegador (hace falta HTTPS). Lo tienes paso a paso en el tutorial «Instalar la app en el móvil».",
       },
     ],
     tips: [
@@ -41,8 +41,8 @@ export const tutorialsEs: TutorialContent = {
       "Añádela a la pantalla de inicio y ábrela en su propia ventana, sin barra del navegador.",
     steps: [
       {
-        title: "Abre la app en el navegador del móvil",
-        body: "Usa la dirección compartida (Tailscale o red doméstica) y espera a que cargue del todo antes de instalarla.",
+        title: "Abre la app con la dirección de Tailscale",
+        body: "La instalación necesita una conexión segura (HTTPS), así que usa la dirección de Tailscale y no la de la red doméstica: con http:// el navegador no ofrece instalarla.",
       },
       {
         title: "Android (Chrome)",
@@ -59,7 +59,7 @@ export const tutorialsEs: TutorialContent = {
     ],
     tips: [
       "El móvil es una ventana a la app: los personajes y las conversaciones siguen viviendo en tu computadora.",
-      "Si te conectas por la red doméstica, el acceso directo solo funciona mientras estés en esa WiFi.",
+      "Por la red doméstica la app solo se abre en el navegador: para instalarla de verdad, usa siempre Tailscale.",
     ],
   },
   "lan-access": {
@@ -83,6 +83,7 @@ export const tutorialsEs: TutorialContent = {
     tips: [
       "Solo funciona dentro de tu red local; para conectarte de fuera de casa usa Tailscale.",
       "Al cerrar la app, el acceso se corta y la dirección deja de responder.",
+      "Por aquí la app se usa en el navegador: la instalación como app solo funciona con la dirección de Tailscale (requiere HTTPS).",
     ],
   },
   providers: {

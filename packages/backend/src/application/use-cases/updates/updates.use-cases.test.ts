@@ -7,6 +7,7 @@ import { ApplyUpdateUseCase } from "./apply-update.use-case"
 import { CheckUpdatesUseCase } from "./check-updates.use-case"
 import { CreateBackupUseCase } from "./create-backup.use-case"
 import { GetUpdateStatusUseCase } from "./get-update-status.use-case"
+import { RollbackUpdateUseCase } from "./rollback-update.use-case"
 
 const status: UpdateStatusDTO = {
   currentVersion: "1.0.0",
@@ -16,6 +17,7 @@ const status: UpdateStatusDTO = {
   notes: null,
   canApply: true,
   canRestart: false,
+  rollbackTarget: null,
   blockedReason: null,
   checkError: null,
   checkedAt: null,
@@ -29,6 +31,7 @@ const buildController = (): UpdateController => ({
     ...status,
     job: { running: true, step: "pull" as const, message: null, retry: null },
   })),
+  rollback: vi.fn(async () => status),
   createBackup: vi.fn(async () => ({ path: "/tmp/backup", files: 2, bytes: 20 })),
 })
 
@@ -71,5 +74,14 @@ describe("CreateBackupUseCase", () => {
       files: 2,
       bytes: 20,
     })
+  })
+})
+
+describe("RollbackUpdateUseCase", () => {
+  it("delegates the rollback to the controller", async () => {
+    const controller = buildController()
+
+    expect(await new RollbackUpdateUseCase(controller).execute()).toEqual(status)
+    expect(controller.rollback).toHaveBeenCalledTimes(1)
   })
 })

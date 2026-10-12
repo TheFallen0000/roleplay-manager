@@ -16,6 +16,8 @@ export interface UpdateController {
   check(): Promise<UpdateStatusDTO>
   /** Starts applying the update in the background (progress in `status.job`). */
   apply(options: { withBackup: boolean }): Promise<UpdateStatusDTO>
+  /** Rolls back to the previous version still on disk (packaged app only). */
+  rollback(): Promise<UpdateStatusDTO>
   /** Creates a backup of the app data. */
   createBackup(): Promise<BackupResultDTO>
 }

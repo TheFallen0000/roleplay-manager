@@ -54,6 +54,24 @@ const showShell = onboarded || Astro.url.pathname.startsWith("/tutorials")
         }
       })()
     </script>
+    <script is:inline>
+      ;(() => {
+        // The install prompt can fire before React hydrates; capture it here so
+        // the in-app button never misses it. The pass-through `sw.js` is what
+        // lets Chrome Android offer a real install (WebAPK).
+        window.__rmInstallPrompt = null
+        window.addEventListener("beforeinstallprompt", (event) => {
+          event.preventDefault()
+          window.__rmInstallPrompt = event
+          window.dispatchEvent(new Event("rm:install-ready"))
+        })
+        if ("serviceWorker" in navigator && window.isSecureContext) {
+          navigator.serviceWorker.register("/sw.js").catch(() => {
+            /* best effort: only the install promotion depends on it */
+          })
+        }
+      })()
+    </script>
   </head>
   <body class="bg-background text-foreground min-h-svh">
     {

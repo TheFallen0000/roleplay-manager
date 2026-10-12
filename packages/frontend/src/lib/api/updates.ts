@@ -17,6 +17,9 @@ export const applyUpdate = (withBackup: boolean): Promise<UpdateStatusDTO> =>
     body: JSON.stringify({ withBackup }),
   })
 
+export const rollbackUpdate = (): Promise<UpdateStatusDTO> =>
+  apiRequest<UpdateStatusDTO>("/api/updates/rollback", { method: "POST" })
+
 export const createBackup = (): Promise<BackupResultDTO> =>
   apiRequest<BackupResultDTO>("/api/updates/backup", { method: "POST" })
 
