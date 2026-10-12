@@ -34,6 +34,14 @@ on:
 permissions:
   contents: write
 
+# Serialize release runs: two pushes can land close together (a merge plus a
+# branch or settings operation, for example) and two concurrent runs would race
+# to create the same release. Queue instead of cancelling, because cancelling
+# halfway through publishing would leave the release incomplete.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   prepare:
     name: Decide what to do
@@ -194,6 +202,12 @@ jobs:
           set -euo pipefail
           tag="${{ needs.prepare.outputs.tag }}"
           ls -l release
+          # Idempotent: a concurrent or retried run must not fail after one of
+          # them has already published this version.
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            echo "::notice::Release ${tag} already exists; nothing to do."
+            exit 0
+          fi
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" >/dev/null 2>&1; then
             # The tag already exists (tag push): publish against it.
             gh release create "${tag}" release/* \
