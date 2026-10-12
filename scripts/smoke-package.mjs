@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process"
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -133,7 +133,8 @@ try {
       TEMP: tmpdir(),
       RM_NO_BROWSER: "1",
       PORT: String(port),
-      LOG_LEVEL: "error",
+      // `info` so the rotating log file check has something to look for.
+      LOG_LEVEL: "info",
     },
     stdio: ["ignore", "pipe", "pipe"],
   })
@@ -210,6 +211,25 @@ try {
           icons.some((icon) => icon.sizes === "512x512") &&
           icons.some((icon) => icon.purpose === "maskable"),
         "manifest served with the install criteria",
+      )
+
+      // The logger must write its rotating file inside the portable folder.
+      const logsDir = join(dir, "data", "logs")
+      let logContent = ""
+      for (
+        let attempt = 0;
+        attempt < 20 && !logContent.includes("Server listening");
+        attempt += 1
+      ) {
+        const files = existsSync(logsDir) ? readdirSync(logsDir) : []
+        if (files.length > 0) {
+          logContent = readFileSync(join(logsDir, files[0]), "utf8")
+        }
+        if (!logContent.includes("Server listening")) await sleep(250)
+      }
+      check(
+        logContent.includes("Server listening"),
+        "rotating log file written inside the portable folder",
       )
 
       const create = await fetch(`${base}/api/characters`, {
