@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The persona card actions no longer overflow in Spanish: Editar, Exportar and
   Eliminar now live in an **Options** dropdown menu (the same component the rest
   of the app uses for action lists), leaving a single button in the card footer.
+- **Memory-proposal blocks from local models no longer get lost or leak into the
+  chat**: extraction tolerates drifted labels (caps, hyphens, spaces),
+  unterminated blocks (a response cut mid-block), trailing commas, prose around
+  the array, an object wrapper and lower-cased operations — every block is
+  stripped, and a warning with a sample is logged when one cannot be read.
 
 ## [1.45.0] - 2026-10-12
 
