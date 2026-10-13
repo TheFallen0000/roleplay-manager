@@ -112,6 +112,42 @@ describe("ApplySettingsDialog", () => {
       expect(mocks.applySettingsTemplate).toHaveBeenCalledWith(
         "char-1",
         expect.objectContaining({ model: "gpt-4o-mini", temperature: 0.9 }),
+        undefined,
+      ),
+    )
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it("lleva la imagen de la plantilla al aplicarla y la anuncia", async () => {
+    mocks.applySettingsTemplate.mockResolvedValue({ applied: 2, warnings: [] })
+    const { onOpenChange } = renderDialog()
+
+    dropTemplate({
+      ...template,
+      standaloneSettings: {
+        ...template.standaloneSettings,
+        customProfileImageAssetId: "asset-9",
+      },
+      standaloneSettingsImage: {
+        assetId: "asset-9",
+        mimeType: "image/png",
+        base64: "aGk=",
+      },
+    })
+
+    expect(
+      await screen.findByText("Imagen personalizada del chat incluida"),
+    ).toBeInTheDocument()
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Aplicar ajustes" }),
+    )
+
+    await waitFor(() =>
+      expect(mocks.applySettingsTemplate).toHaveBeenCalledWith(
+        "char-1",
+        expect.objectContaining({ customProfileImageAssetId: "asset-9" }),
+        { assetId: "asset-9", mimeType: "image/png", base64: "aGk=" },
       ),
     )
     expect(onOpenChange).toHaveBeenCalledWith(false)

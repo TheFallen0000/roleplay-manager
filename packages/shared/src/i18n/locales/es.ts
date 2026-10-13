@@ -557,6 +557,9 @@ export const es: Dictionary = {
       "La instancia de proveedor de la plantilla no existe en esta instalación; se conservaron el proveedor y el modelo.",
     settingsProviderUnsupported:
       "El proveedor de la plantilla no es compatible; se conservaron el proveedor y el modelo.",
+    settingsImageIncluded: "Imagen personalizada del chat incluida",
+    settingsImageSkipped:
+      "La imagen personalizada del chat no está disponible y se omitió.",
     validationName: "El nombre es obligatorio",
     validationImage: "La imagen de perfil es obligatoria",
     validationDescription: "La descripción es obligatoria",

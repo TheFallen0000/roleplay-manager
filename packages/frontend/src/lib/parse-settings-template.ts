@@ -1,4 +1,8 @@
-import type { CharacterExport, ExportSettings } from "@workspace/shared/types/export"
+import type {
+  CharacterExport,
+  ExportImage,
+  ExportSettings,
+} from "@workspace/shared/types/export"
 import {
   EXPORT_KIND,
   EXPORT_SCHEMA_VERSION,
@@ -11,7 +15,7 @@ import {
 } from "@workspace/shared/i18n"
 
 export type ParseSettingsTemplateResult =
-  | { ok: true; settings: Partial<ExportSettings> }
+  | { ok: true; settings: Partial<ExportSettings>; image?: ExportImage }
   | { ok: false; error: string }
 
 /** Parses an exported settings template (`standaloneSettings`). */
@@ -56,5 +60,9 @@ export function parseSettingsTemplate(
     return { ok: false, error: tr("characters.settingsMissingTemplate") }
   }
 
-  return { ok: true, settings: payload.standaloneSettings }
+  return {
+    ok: true,
+    settings: payload.standaloneSettings,
+    image: payload.standaloneSettingsImage,
+  }
 }

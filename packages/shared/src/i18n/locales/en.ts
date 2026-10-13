@@ -559,6 +559,9 @@ export const en = {
       "The template's provider instance does not exist in this installation; provider and model were kept.",
     settingsProviderUnsupported:
       "The template's provider is not supported; provider and model were kept.",
+    settingsImageIncluded: "Custom chat image included",
+    settingsImageSkipped:
+      "The custom chat image is not available and was skipped.",
     validationName: "Name is required",
     validationImage: "The profile image is required",
     validationDescription: "The description is required",
