@@ -10,13 +10,6 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -24,8 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { PencilIcon, PlusIcon, Trash2Icon, UserRoundIcon } from "lucide-react"
+import { PlusIcon } from "lucide-react"
 
+import { MascotPose } from "@/components/layout/brand"
 import {
   createPlayerCharacter,
   deletePlayerCharacter,
@@ -36,6 +30,7 @@ import { useTranslation } from "@/lib/hooks/use-translation"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import type { Locale } from "@workspace/shared/i18n"
 import { translateApiError } from "@/lib/translate-api-error"
+import { PlayerCharacterCard } from "./player-character-card"
 
 interface FormState {
   id: string | null
@@ -149,13 +144,13 @@ function PlayerCharacterManagerContent() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">{t("players.title")}</h1>
-          <p className="text-muted-foreground text-sm">
-            {t("players.subtitle")}
-          </p>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-2">
+          <h1 className="font-heading text-3xl font-black tracking-tight">
+            {t("players.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">{t("players.subtitle")}</p>
         </div>
         <Button onClick={() => setForm(EMPTY_FORM)}>
           <PlusIcon />
@@ -164,45 +159,36 @@ function PlayerCharacterManagerContent() {
       </header>
 
       {playerCharacters.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-12 text-center">
-          <UserRoundIcon className="text-muted-foreground size-8" />
-          <p className="text-muted-foreground text-sm">
-            {t("players.emptyTitle")}
-          </p>
+        <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
+          <MascotPose pose="hello" className="h-36 w-36" />
+          <div className="grid gap-1.5">
+            <h2 className="font-heading text-xl font-bold">
+              {t("players.emptyTitle")}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {t("players.emptyDescription")}
+            </p>
+          </div>
+          <Button onClick={() => setForm(EMPTY_FORM)}>
+            <PlusIcon />
+            {t("players.create")}
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {playerCharacters.map((playerCharacter) => (
-            <Card key={playerCharacter.id}>
-              <CardHeader>
-                <CardTitle>{playerCharacter.name}</CardTitle>
-                <CardDescription>{playerCharacter.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setForm({
-                      id: playerCharacter.id,
-                      name: playerCharacter.name,
-                      description: playerCharacter.description,
-                    })
-                  }
-                >
-                  <PencilIcon />
-                  {t("players.edit")}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeleteTarget(playerCharacter)}
-                >
-                  <Trash2Icon />
-                  {t("players.delete")}
-                </Button>
-              </CardContent>
-            </Card>
+            <PlayerCharacterCard
+              key={playerCharacter.id}
+              playerCharacter={playerCharacter}
+              onEdit={(persona) =>
+                setForm({
+                  id: persona.id,
+                  name: persona.name,
+                  description: persona.description,
+                })
+              }
+              onDelete={setDeleteTarget}
+            />
           ))}
         </div>
       )}
