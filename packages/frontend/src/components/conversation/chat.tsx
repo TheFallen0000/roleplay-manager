@@ -7,6 +7,7 @@ import {
   MessageScrollerViewport,
   MessageScrollerContent,
   MessageScrollerItem,
+  useMessageScroller,
 } from "@workspace/ui/components/message-scroller"
 import { Button } from "@workspace/ui/components/button"
 import { Minimize2 } from "lucide-react"
@@ -36,6 +37,25 @@ import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import type { Locale } from "@workspace/shared/i18n"
 import { MascotPose } from "../layout/brand"
 import { useFullscreenFocus } from "./use-fullscreen-focus"
+
+/**
+ * The scroller's raw end includes the primitive's trailing spacer, so parking
+ * it there would leave the last message well above the composer (PM.33).
+ * Align the last message's end with the viewport once it changes.
+ */
+function AnchorChatToEnd({ lastMessageId }: { lastMessageId: string | null }) {
+  const { scrollToEnd } = useMessageScroller()
+
+  useEffect(() => {
+    if (!lastMessageId) return
+    const frame = requestAnimationFrame(() => {
+      scrollToEnd({ align: "end", behavior: "instant" })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [lastMessageId, scrollToEnd])
+
+  return null
+}
 
 export function Chat({
   conversation,
@@ -271,6 +291,11 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       />
 
       <MessageScrollerProvider autoScroll={isStreaming}>
+        <AnchorChatToEnd
+          lastMessageId={
+            messages.length > 0 ? messages[messages.length - 1].id : null
+          }
+        />
         <MessageScroller
           className="flex-1 p-2"
           data-message-style={conv.messageStyle}
