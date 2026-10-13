@@ -60,7 +60,7 @@ describe("PlayerCharacterManager", () => {
     renderManager()
 
     expect(
-      await screen.findByText(/Todavía no has creado ninguna persona/),
+      await screen.findByText("Tu elenco está vacío"),
     ).toBeInTheDocument()
   })
 
@@ -69,7 +69,10 @@ describe("PlayerCharacterManager", () => {
     mocks.createPlayerCharacter.mockResolvedValue(alice)
 
     renderManager()
-    fireEvent.click(await screen.findByText("Crear persona"))
+    const createButtons = await screen.findAllByRole("button", {
+      name: "Crear persona",
+    })
+    fireEvent.click(createButtons[0])
 
     fireEvent.change(screen.getByLabelText("Nombre"), {
       target: { value: "Alice" },

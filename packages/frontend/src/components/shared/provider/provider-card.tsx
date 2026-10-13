@@ -1,17 +1,18 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import { Card } from "@workspace/ui/components/card"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
-import { Separator } from "@workspace/ui/components/separator"
-import { CheckCircle2Icon, AlertCircleIcon, RefreshCwIcon, ServerIcon, CircleDotIcon, StarIcon } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { cn } from "@workspace/ui/lib/utils"
+import {
+  AlertCircleIcon,
+  CircleDotIcon,
+  CpuIcon,
+  PlugIcon,
+  RefreshCwIcon,
+  StarIcon,
+} from "lucide-react"
 
 import type { ProviderId, ProviderModel, ProviderStatus } from "@workspace/shared/types/provider"
 
@@ -31,15 +32,13 @@ const STATUS_LABEL_KEYS: Record<CardStatus, TranslationKey> = {
   loading: "providers.statusLoading",
 }
 
-const STATUS_VARIANT: Record<
-  CardStatus,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  available: "default",
-  unavailable: "destructive",
-  unconfigured: "outline",
-  unknown: "outline",
-  loading: "secondary",
+/** The dot carries the colour; the label stays ink and readable. */
+const STATUS_DOT: Record<CardStatus, string> = {
+  available: "bg-emerald-500",
+  unavailable: "bg-destructive",
+  unconfigured: "bg-muted-foreground/50",
+  unknown: "bg-muted-foreground/50",
+  loading: "bg-muted-foreground/50",
 }
 
 interface BaseProps {
@@ -88,22 +87,43 @@ export function ProviderCard(props: ProviderCardProps) {
     props.providerId === "ollama"
       ? t("providers.ollamaDescription")
       : t("providers.openaiDescription")
+  const Icon = props.providerId === "ollama" ? CpuIcon : PlugIcon
+
+  const verifyButton = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={props.onVerify}
+      disabled={
+        props.verifying ||
+        (props.providerId === "openai-compatible" && props.verifyDisabled)
+      }
+    >
+      {props.verifying ? <Spinner /> : <RefreshCwIcon />}
+      {t("providers.testConnection")}
+    </Button>
+  )
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ServerIcon className="size-4 text-muted-foreground" />
-              {title}
-            </CardTitle>
-            <CardDescription>{description}</CardDescription>
+    <Card className="gap-0 py-0">
+      <div className="flex flex-wrap items-start justify-between gap-3 p-4">
+        <div className="flex items-start gap-3">
+          <span
+            aria-hidden
+            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary"
+          >
+            <Icon className="size-5" />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <h2 className="font-heading text-base font-bold">{title}</h2>
+            <p className="text-sm text-muted-foreground">{description}</p>
           </div>
-          <StatusBadge status={props.status} />
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+        <StatusChip status={props.status} />
+      </div>
+
+      <div className="flex flex-col gap-4 border-t p-4">
         {props.statusMessage && props.status !== "available" ? (
           <Alert variant={props.status === "unavailable" ? "destructive" : "default"}>
             {props.status === "unavailable" ? <AlertCircleIcon /> : <CircleDotIcon />}
@@ -150,73 +170,53 @@ export function ProviderCard(props: ProviderCardProps) {
           </Field>
         </FieldGroup>
 
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={props.onVerify}
-            disabled={
-              props.verifying ||
-              (props.providerId === "openai-compatible" && props.verifyDisabled)
-            }
-          >
-            {props.verifying ? <Spinner /> : <RefreshCwIcon />}
-            {t("providers.testConnection")}
-          </Button>
-        </div>
-
         {props.mode !== "local" ? (
-          <>
-            <Separator />
-
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant={props.isCurrentDefault ? "secondary" : "outline"}
-                size="sm"
-                onClick={props.onSetDefault}
-                disabled={props.savingDefault || props.status !== "available"}
-              >
-                {props.savingDefault ? <Spinner /> : <StarIcon className="size-3.5" />}
-                {props.isCurrentDefault ? t("providers.isDefault") : t("providers.setDefault")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={props.onSetModel}
-                disabled={props.savingModel || !props.model.trim() || props.status !== "available"}
-              >
-                {props.savingModel ? <Spinner /> : null}
-                {props.hasModel ? t("providers.updateModel") : t("providers.setModel")}
-              </Button>
-            </div>
-          </>
-        ) : null}
-      </CardContent>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {verifyButton}
+            <Button
+              type="button"
+              variant={props.isCurrentDefault ? "secondary" : "outline"}
+              size="sm"
+              onClick={props.onSetDefault}
+              disabled={props.savingDefault || props.status !== "available"}
+            >
+              {props.savingDefault ? <Spinner /> : <StarIcon className="size-3.5" />}
+              {props.isCurrentDefault ? t("providers.isDefault") : t("providers.setDefault")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={props.onSetModel}
+              disabled={props.savingModel || !props.model.trim() || props.status !== "available"}
+            >
+              {props.savingModel ? <Spinner /> : null}
+              {props.hasModel ? t("providers.updateModel") : t("providers.setModel")}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex justify-end">{verifyButton}</div>
+        )}
+      </div>
     </Card>
   )
 }
 
-function StatusBadge({ status }: { status: CardStatus }) {
+function StatusChip({ status }: { status: CardStatus }) {
   const { t } = useTranslation()
-  if (status === "loading") {
-    return (
-      <Badge variant="secondary" className="gap-1">
-        <Spinner /> {t(STATUS_LABEL_KEYS.loading)}
-      </Badge>
-    )
-  }
-  if (status === "available") {
-    return (
-      <Badge variant="default" className="gap-1">
-        <CheckCircle2Icon className="size-3" /> {t(STATUS_LABEL_KEYS.available)}
-      </Badge>
-    )
-  }
+
   return (
-    <Badge variant={STATUS_VARIANT[status]}>{t(STATUS_LABEL_KEYS[status])}</Badge>
+    <Badge variant="outline" className="gap-1.5 text-muted-foreground">
+      {status === "loading" ? (
+        <Spinner />
+      ) : (
+        <span
+          aria-hidden
+          className={cn("size-1.5 rounded-full", STATUS_DOT[status])}
+        />
+      )}
+      {t(STATUS_LABEL_KEYS[status])}
+    </Badge>
   )
 }
 

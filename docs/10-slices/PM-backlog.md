@@ -257,7 +257,14 @@ Last updated: 2026-10-12
 |---|----------|--------------|
 | PM.17 | Settings panel responsive redesign: Sheet → DropdownMenu of three dialogs (Historia / Modelo / Personalización). <br>*Done as S14 (v1.5.0) — see `S14-progress.md`.* | — |
 | PM.18 | Character list toolbar: a search bar and a sort `Select` (by most recent conversation → oldest and vice versa) below the header, plus a masonry grid layout for the character cards. <br>*Done as S19 (v1.10.0) — see `S19-progress.md`.* | — |
-| PM.27 | Redesign the **Providers** and **Player characters** screens with the Ink & Violet language: they inherit the tokens but kept the pre-redesign layout. <br>*Deferred in S60 (v1.38.0); S62 closed the redesign without them.* | S59 (tokens) |
+| PM.27 | Redesign the **Providers** and **Player characters** screens with the Ink & Violet language: they inherit the tokens but kept the pre-redesign layout. <br>*Done as S73 (pending release) — see `S73-progress.md`.* | S59 (tokens) |
+
+> **PM.27 (S73) — done (2026-10-13, pending release):** Proveedores and Personajes jugados now
+> speak the Ink & Violet language — display headings with a lede, an ink plate for the current
+> provider/model, icon plates and state-dot chips on the provider cards, instances as rows (no
+> nested card) and persona plates with a Dela Gothic monogram plus a mascot empty state. No
+> functional changes. This is the first slice shipped through the batched `[Unreleased]` flow.
+> See `S73-progress.md`.
 
 > **PM.17 (S14) — done (2026-08-12, v1.5.0):** The chat settings panel grew to three tabs and the
 > right-side Sheet breaks text layout on small phone screens. It was reworked into a

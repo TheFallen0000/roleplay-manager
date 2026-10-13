@@ -262,13 +262,17 @@ function ProviderManagerContent() {
   )
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 sm:gap-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold">{t("providers.defaultTitle")}</h1>
-        <p className="text-muted-foreground text-sm">
-          {t("providers.defaultDescription")}
-        </p>
-        <CurrentConfigPill
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <header className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
+          <h1 className="font-heading text-3xl font-black tracking-tight">
+            {t("providers.heading")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("providers.defaultDescription")}
+          </p>
+        </div>
+        <CurrentConfigPlate
           provider={defaultConfig.provider}
           instanceName={selectedInstanceName}
           models={defaultConfig.models}
@@ -335,7 +339,7 @@ function ProviderManagerContent() {
   )
 }
 
-function CurrentConfigPill({
+function CurrentConfigPlate({
   provider,
   instanceName,
   models,
@@ -345,26 +349,35 @@ function CurrentConfigPill({
   models: Partial<Record<ProviderId, string>>
 }) {
   const { t } = useTranslation()
-
-  if (provider === null) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant="outline">{t("providers.unconfigured")}</Badge>
-        <span>{t("providers.unconfiguredHint")}</span>
-      </div>
-    )
-  }
   const currentModel = provider ? models[provider] : null
+
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="text-muted-foreground">{t("providers.currentProvider")}</span>
-      <Badge variant="secondary">
-        {provider === "ollama" ? "Ollama" : instanceName ?? "OpenAI-compatible"}
-      </Badge>
-      {currentModel ? (
-        <code className="bg-muted rounded px-1.5 py-0.5 text-xs">{currentModel}</code>
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card px-3 py-2.5 text-sm">
+      <span className="text-muted-foreground">
+        {t("providers.currentProvider")}
+      </span>
+      {provider === null ? (
+        <>
+          <Badge variant="outline">{t("providers.unconfigured")}</Badge>
+          <span className="text-xs text-muted-foreground">
+            {t("providers.unconfiguredHint")}
+          </span>
+        </>
       ) : (
-        <Badge variant="outline">{t("providers.noModel")}</Badge>
+        <>
+          <span className="font-heading font-bold">
+            {provider === "ollama"
+              ? "Ollama"
+              : (instanceName ?? "OpenAI-compatible")}
+          </span>
+          {currentModel ? (
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
+              {currentModel}
+            </code>
+          ) : (
+            <Badge variant="outline">{t("providers.noModel")}</Badge>
+          )}
+        </>
       )}
     </div>
   )

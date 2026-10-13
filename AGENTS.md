@@ -257,7 +257,10 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 ### Plan first
 
 - **Ask when in doubt.** If scope, UX or architecture choices are ambiguous, use the `ask`/question tool before planning — do not guess.
-- Present a plan for approval. It must include the scope, the areas touched, a **version bump**, a **CHANGELOG entry**, and a **new slice doc**. Call out anything deferred or out of scope.
+- Present a plan for approval. It must include the scope, the areas touched, a
+  **CHANGELOG entry** (under `[Unreleased]`) and a **new slice doc**. Since
+  v1.45.0 slices do **not** bump the version: releases are batched (see below).
+  Call out anything deferred or out of scope.
 
 ### Slice doc
 
@@ -280,13 +283,21 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 - The `CI` workflow (job **Checks**) must be green before merging. Merge with
   **squash** and delete the branch; the agent merges the PR after a green CI
   unless the user says otherwise.
-- The release commit (version bump + `CHANGELOG.md`) travels in that same pull
-  request: merging it to `master` triggers the release workflow.
+- Pull requests **never** bump the version on their own: the release commit
+  (version bump + `CHANGELOG.md`) travels in a dedicated
+  `chore(release): vX.Y.Z` pull request prepared on demand (see below).
 
-### Version bump + CHANGELOG
+### Version bump + CHANGELOG (batched releases)
 
-- Bump the root `package.json` version following semver: **minor** for features, **patch** for fixes, **major** for breaking changes.
-- Add the entry to `CHANGELOG.md` under the new version in [Keep a Changelog](https://keepachangelog.com/) format (`Added` / `Changed` / `Fixed` / `Removed`).
+- Every slice adds its entries to `CHANGELOG.md` under **`[Unreleased]`** in
+  [Keep a Changelog](https://keepachangelog.com/) format (`Added` / `Changed` /
+  `Fixed` / `Removed`). No version bump happens here.
+- Releases are **batched and on demand**: when the user asks (or a few slices
+  pile up), prepare a `chore(release): vX.Y.Z` pull request that bumps the root
+  `package.json` (semver: **minor** for features, **patch** for fixes, **major**
+  for breaking changes), moves `[Unreleased]` up under the new version with its
+  date and merges it. Merging that PR is what triggers the release workflow:
+  only pushes to `master` that touch `package.json` publish a release.
 
 ### Commits
 

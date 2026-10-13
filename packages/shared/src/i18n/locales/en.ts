@@ -62,8 +62,9 @@ export const en = {
     subtitle:
       "Who you play. The AI will know it in the conversations where you pick one.",
     create: "Create persona",
-    emptyTitle:
-      "You have not created any persona yet. Create one so the AI knows who you are.",
+    emptyTitle: "Your cast is empty",
+    emptyDescription:
+      "Create your first persona so the AI knows who you are playing.",
     edit: "Edit",
     delete: "Delete",
     editTitle: "Edit persona",
@@ -583,7 +584,7 @@ export const en = {
     cardActive: "Active",
   },
   providers: {
-    defaultTitle: "Default provider",
+    heading: "Providers",
     defaultDescription:
       "Configure which AI model the app uses by default. Providers are validated when you press Test.",
     currentProvider: "Current provider:",

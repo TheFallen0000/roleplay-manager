@@ -60,8 +60,9 @@ export const es: Dictionary = {
     subtitle:
       "A quién interpretas tú. La IA lo sabrá en las conversaciones donde lo elijas.",
     create: "Crear persona",
-    emptyTitle:
-      "Todavía no has creado ninguna persona. Crea una para que la IA sepa quién eres.",
+    emptyTitle: "Tu elenco está vacío",
+    emptyDescription:
+      "Crea tu primera persona para que la IA sepa a quién interpretas.",
     edit: "Editar",
     delete: "Eliminar",
     editTitle: "Editar persona",
@@ -581,7 +582,7 @@ export const es: Dictionary = {
     cardActive: "Activa",
   },
   providers: {
-    defaultTitle: "Proveedor por defecto",
+    heading: "Proveedores",
     defaultDescription:
       "Configura qué modelo de IA usará la aplicación por defecto. Los proveedores se validan al pulsar Probar.",
     currentProvider: "Proveedor actual:",
