@@ -281,7 +281,52 @@ try {
         `${base}/api/characters/${character.id}/assets`,
         { method: "POST", headers: { origin: base }, body: form },
       )
+      const uploaded = upload.status === 201 ? await upload.json() : null
       check(upload.status === 201, `image upload works (${upload.status})`)
+
+      const setProfile = await fetch(
+        `${base}/api/characters/${character.id}/profile-image`,
+        {
+          method: "PATCH",
+          headers: { "content-type": "application/json", origin: base },
+          body: JSON.stringify({ profileImageAssetId: uploaded?.assetId }),
+        },
+      )
+      check(setProfile.status === 200, `profile image set (${setProfile.status})`)
+
+      const conversationResponse = await fetch(`${base}/api/conversations`, {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: base },
+        body: JSON.stringify({ characterId: character.id }),
+      })
+      const conversation = (await conversationResponse.json()).conversation
+      check(
+        conversationResponse.status === 201 && Boolean(conversation?.id),
+        `conversation created (${conversationResponse.status})`,
+      )
+
+      // Remote clients (LAN, Tailscale, tunnels) resolve these URLs against
+      // their own origin. An absolute base baked at SSR — the packaged app
+      // sets PUBLIC_API_URL to localhost — would point every one of them at
+      // their own localhost and break the images (S80).
+      const chatPage = await fetch(
+        `${base}/conversations/${conversation?.id}`,
+        {
+          headers: { cookie: "rm_onboarded=1" },
+        },
+      )
+      const chatHtml = await chatPage.text()
+      check(
+        chatPage.status === 200 &&
+          chatHtml.includes(
+            `src="/api/characters/${character.id}/assets/${uploaded?.assetId}?variant=thumbnail"`,
+          ),
+        "SSR chat markup embeds avatars with relative URLs",
+      )
+      check(
+        !chatHtml.includes("http://localhost:"),
+        "SSR chat markup has no absolute localhost URLs",
+      )
 
       check(
         existsSync(join(dir, "data", "roleplay.db")),
