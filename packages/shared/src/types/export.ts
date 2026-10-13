@@ -65,6 +65,8 @@ export interface ExportSettings {
   messageStyle: MessageStyle
   characterDialogueColor: string | null
   userDialogueColor: string | null
+  /** Conversation-scoped image; the binary travels in `conversationImages`. */
+  customProfileImageAssetId: string | null
 }
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
@@ -87,6 +89,7 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   messageStyle: "bubble",
   characterDialogueColor: null,
   userDialogueColor: null,
+  customProfileImageAssetId: null,
 }
 
 export interface ExportConversation {
@@ -100,18 +103,21 @@ export interface ExportConversation {
   backgroundImageAssetId?: string | null
   backgroundFit?: BackgroundFit
   backgroundScrim?: number
-  settings?: ExportSettings & { customProfileImageAssetId?: string | null }
+  settings?: ExportSettings
   messages?: MessageDTO[]
   memories?: MemoryDTO[]
   summaries?: SummaryDTO[]
 }
 
-/** A unique conversation-scoped image, exported once even if branches share it. */
-export interface ExportConversationImage {
+/** Binary payload of an exported image (base64 encoded). */
+export interface ExportImage {
   assetId: string
   mimeType: string
   base64: string
 }
+
+/** A unique conversation-scoped image, exported once even if branches share it. */
+export type ExportConversationImage = ExportImage
 
 export interface CharacterExport {
   schemaVersion: number
@@ -133,12 +139,18 @@ export interface CharacterExport {
   conversations?: ExportConversation[]
   conversationImages?: ExportConversationImage[]
   standaloneSettings?: ExportSettings
+  /**
+   * Custom chat image of the settings template, so applying it on another
+   * installation can recreate the asset (the template only carries its id).
+   */
+  standaloneSettingsImage?: ExportImage
 }
 
 export type SettingsTemplateWarning =
   | "PROVIDER_INSTANCE_NOT_FOUND"
   | "PROVIDER_UNSUPPORTED"
   | "NO_CONVERSATIONS"
+  | "CUSTOM_IMAGE_NOT_FOUND"
 
 export interface ApplySettingsTemplateResult {
   /** Conversations that received the template. */

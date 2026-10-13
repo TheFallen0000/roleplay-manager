@@ -278,12 +278,12 @@ describe("ExportCharacterUseCase", () => {
 
     expect(result.standaloneSettings?.temperature).toBe(0.9)
     expect(result.standaloneSettings?.memoryDecayThreshold).toBe(4)
-    expect(
-      Object.prototype.hasOwnProperty.call(
-        result.standaloneSettings ?? {},
-        "customProfileImageAssetId",
-      ),
-    ).toBe(false)
+    // The template carries the custom chat image (id plus binary).
+    expect(result.standaloneSettings?.customProfileImageAssetId).toBe("asset-9")
+    expect(result.standaloneSettingsImage?.assetId).toBe("asset-9")
+    expect(result.standaloneSettingsImage?.base64).toBe(
+      Buffer.from("image-bytes").toString("base64"),
+    )
   })
 
   it("deduplica imágenes compartidas entre ramas y exporta ajuste y velo", async () => {
@@ -315,6 +315,22 @@ describe("ExportCharacterUseCase", () => {
     expect(exportedBranch?.backgroundScrim).toBe(30)
   })
 
+  it("no incluye imagen en la plantilla si la conversación no tiene una", async () => {
+    const plain = Conversation.create({
+      ...conversationProps,
+      customProfileImageAssetId: null,
+    })
+    const result = await buildUseCase(
+      buildConversationRepo([plain]),
+    ).execute({
+      characterId: "char-1",
+      sections: ["standaloneSettings"],
+    })
+
+    expect(result.standaloneSettings?.customProfileImageAssetId).toBeNull()
+    expect(result.standaloneSettingsImage).toBeUndefined()
+  })
+
   it("no exporta imágenes de conversación si la sección no está seleccionada", async () => {
     const result = await buildUseCase().execute({
       characterId: "char-1",
@@ -323,9 +339,11 @@ describe("ExportCharacterUseCase", () => {
 
     expect(result.conversationImages).toBeUndefined()
     expect(result.conversations?.[0].customProfileImageAssetId).toBeUndefined()
+    // The settings carry the image id; the binary only travels with the images
+    // section.
     expect(
       result.conversations?.[0].settings?.customProfileImageAssetId,
-    ).toBeUndefined()
+    ).toBe("asset-9")
   })
 
   it("permite exportar solo la configuración standalone (plantilla)", async () => {

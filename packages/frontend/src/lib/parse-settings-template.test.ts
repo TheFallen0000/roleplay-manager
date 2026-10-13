@@ -85,4 +85,17 @@ describe("parseSettingsTemplate", () => {
       expect(result.error).toContain("valid JSON")
     }
   })
+
+  it("keeps the custom chat image when it travels with the template", () => {
+    const image = { assetId: "asset-9", mimeType: "image/png", base64: "aGk=" }
+    const result = parseSettingsTemplate(
+      JSON.stringify({ ...template, standaloneSettingsImage: image }),
+      "es",
+    )
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.image).toEqual(image)
+    }
+  })
 })

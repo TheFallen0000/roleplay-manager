@@ -81,7 +81,7 @@ Last updated: 2026-10-12
 | PM.10 | Export manager: export character definition, specific versions, associated conversations, dynamic memory, summaries, settings. Accessible from the ContextMenu of the character list. <br>*Done as S17 (v1.8.0) — see `S17-progress.md`.* | PM.8, PM.9 |
 | PM.20 | Apply an exported settings template (`standaloneSettings`) to all conversations of an existing character. <br>*Done as S29 (v1.21.0) — see `S29-progress.md`.* | PM.10 |
 | PM.28 | Export/import **personas** (user-level, so they do not travel inside a character export). <br>*Done as S74 (pending release) — see `S74-progress.md`.* | — |
-| PM.29 | Carry `customProfileImageAssetId` inside the settings template (`standaloneSettings`) so “Apply settings…” also brings the custom chat image. <br>*Deferred in S29 (v1.21.0); conversation images already travel in the character export (S31).* | PM.20 |
+| PM.29 | Carry `customProfileImageAssetId` inside the settings template (`standaloneSettings`) so “Apply settings…” also brings the custom chat image. <br>*Done as S78 (pending release) — see `S78-progress.md`.* | PM.20 |
 | PM.30 | Import conflict handling by name (replace/merge) instead of always creating duplicates. <br>*Discarded (2026-10-13): duplicates are acceptable for now; revisit only if a real issue shows up.* | PM.8 |
 
 > **PM.8 (S18) — done (2026-08-12, v1.9.0):** A JSON exported from the S17 export manager can be
@@ -118,6 +118,12 @@ Last updated: 2026-10-12
 > that validates kind, schema version and fields with translated errors; duplicates are allowed
 > (conflict handling stays in PM.30). No backend changes: the existing create endpoint does the
 > work. See `S74-progress.md`.
+
+> **PM.29 (S78) — done (2026-10-13, pending release):** Settings templates carry the custom chat
+> image (id plus base64); applying one recreates the asset on the destination character (or
+> reuses a local one, or warns `CUSTOM_IMAGE_NOT_FOUND`), and `null` removes it. The E2E that
+> verified it also uncovered a long-standing double-encoding of `stop_sequences` on settings
+> saves, fixed in the same slice (rows heal on read). See `S78-progress.md`.
 
 > **PM.30 — discarded (2026-10-13):** Import conflict handling (replace/merge by name) is
 > dropped: the user is fine with duplicates for now, and the feature would add a decision step to
@@ -281,7 +287,7 @@ Last updated: 2026-10-12
 | PM.17 | Settings panel responsive redesign: Sheet → DropdownMenu of three dialogs (Historia / Modelo / Personalización). <br>*Done as S14 (v1.5.0) — see `S14-progress.md`.* | — |
 | PM.18 | Character list toolbar: a search bar and a sort `Select` (by most recent conversation → oldest and vice versa) below the header, plus a masonry grid layout for the character cards. <br>*Done as S19 (v1.10.0) — see `S19-progress.md`.* | — |
 | PM.27 | Redesign the **Providers** and **Player characters** screens with the Ink & Violet language: they inherit the tokens but kept the pre-redesign layout. <br>*Done as S73 (pending release) — see `S73-progress.md`.* | S59 (tokens) |
-| PM.33 | Chat scroll polish: the `MessageScroller` content closes with a ~400px trailing spacer, so opening a conversation parks the last message well above the composer (one scroll fixes it). Consider anchoring the end just above the composer on load. <br>*Found while capturing PM.32 (S77, 2026-10-13); measured: viewport 558px, spacer 396px, `scrollTop` at max with the gap visible.* | — |
+| PM.33 | Chat scroll polish: the `MessageScroller` content closes with a ~400px trailing spacer, so opening a conversation parks the last message well above the composer (one scroll fixes it). Consider anchoring the end just above the composer on load. <br>*Done as S78 (pending release) — see `S78-progress.md`.* | — |
 
 > **PM.27 (S73) — done (2026-10-13, pending release):** Proveedores and Personajes jugados now
 > speak the Ink & Violet language — display headings with a lede, an ink plate for the current
@@ -289,6 +295,11 @@ Last updated: 2026-10-12
 > nested card) and persona plates with a Dela Gothic monogram plus a mascot empty state. No
 > functional changes. This is the first slice shipped through the batched `[Unreleased]` flow.
 > See `S73-progress.md`.
+
+> **PM.33 (S78) — done (2026-10-13, pending release):** The chat aligns the last message's end
+> with the viewport when a conversation loads (`scrollToEnd({ align: "end" })` through the
+> primitive's own hook), removing the ~400px gap the trailing spacer produced. Measured with a
+> 12-message conversation: gap 0 (before: +396). See `S78-progress.md`.
 
 > **PM.17 (S14) — done (2026-08-12, v1.5.0):** The chat settings panel grew to three tabs and the
 > right-side Sheet breaks text layout on small phone screens. It was reworked into a

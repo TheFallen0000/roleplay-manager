@@ -20,6 +20,22 @@ import { conversations, messages } from "../schema"
 type ConversationRow = typeof conversations.$inferSelect
 type MessageRow = typeof messages.$inferSelect
 
+/**
+ * The column is `json` mode, so values arrive parsed; legacy rows corrupted by
+ * a double encoding (a JSON string of a JSON string) are healed on read.
+ */
+const normalizeStopSequences = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.map((item) => String(item))
+  if (typeof value === "string") {
+    try {
+      return normalizeStopSequences(JSON.parse(value))
+    } catch {
+      return []
+    }
+  }
+  return []
+}
+
 const toConversation = (row: ConversationRow): Conversation =>
   Conversation.create({
     id: row.id,
@@ -36,7 +52,7 @@ const toConversation = (row: ConversationRow): Conversation =>
     topP: row.topP ?? 0.9,
     frequencyPenalty: row.frequencyPenalty ?? 0,
     presencePenalty: row.presencePenalty ?? 0,
-    stopSequences: row.stopSequences ?? [],
+    stopSequences: normalizeStopSequences(row.stopSequences),
     memoryProposalMode: (row.memoryProposalMode ?? "auto") as MemoryProposalMode,
     customProfileImageAssetId: row.customProfileImageAssetId ?? null,
     backgroundImageAssetId: row.backgroundImageAssetId ?? null,
@@ -187,7 +203,7 @@ export class DrizzleConversationRepository implements ConversationRepository {
     if (settings.presencePenalty !== undefined)
       values.presencePenalty = settings.presencePenalty
     if (settings.stopSequences !== undefined)
-      values.stopSequences = JSON.stringify(settings.stopSequences)
+      values.stopSequences = settings.stopSequences
     if (settings.memoryProposalMode !== undefined)
       values.memoryProposalMode = settings.memoryProposalMode
     if (settings.customProfileImageAssetId !== undefined)

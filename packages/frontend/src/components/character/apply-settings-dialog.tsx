@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 
 import type { CharacterSummary } from "@workspace/shared/types/character"
 import type {
+  ExportImage,
   ExportSettings,
   SettingsTemplateWarning,
 } from "@workspace/shared/types/export"
@@ -32,6 +33,7 @@ const WARNING_KEYS: Record<SettingsTemplateWarning, TranslationKey> = {
   PROVIDER_INSTANCE_NOT_FOUND: "characters.settingsProviderSkipped",
   PROVIDER_UNSUPPORTED: "characters.settingsProviderUnsupported",
   NO_CONVERSATIONS: "characters.settingsNoConversations",
+  CUSTOM_IMAGE_NOT_FOUND: "characters.settingsImageSkipped",
 }
 
 const DECAY_MODE_KEYS = {
@@ -56,6 +58,7 @@ export function ApplySettingsDialog({
   const { t, locale } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [settings, setSettings] = useState<Partial<ExportSettings> | null>(null)
+  const [image, setImage] = useState<ExportImage | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
   const [applying, setApplying] = useState(false)
@@ -63,6 +66,7 @@ export function ApplySettingsDialog({
   const handleOpenChange = (next: boolean) => {
     if (!next) {
       setSettings(null)
+      setImage(null)
       setError(null)
       setDragging(false)
       setApplying(false)
@@ -75,17 +79,23 @@ export function ApplySettingsDialog({
     const parsed = parseSettingsTemplate(await file.text(), locale)
     if (!parsed.ok) {
       setSettings(null)
+      setImage(null)
       setError(parsed.error)
       return
     }
     setSettings(parsed.settings)
+    setImage(parsed.image ?? null)
   }
 
   const handleApply = async () => {
     if (!settings) return
     setApplying(true)
     try {
-      const result = await applySettingsTemplate(character.id, settings)
+      const result = await applySettingsTemplate(
+        character.id,
+        settings,
+        image ?? undefined,
+      )
       toast.success(
         t("characters.settingsApplied", { count: result.applied }),
       )
@@ -192,6 +202,11 @@ export function ApplySettingsDialog({
               {settings.memoryDecayMode ? (
                 <Badge variant="outline">
                   {t(DECAY_MODE_KEYS[settings.memoryDecayMode])}
+                </Badge>
+              ) : null}
+              {image ? (
+                <Badge variant="outline">
+                  {t("characters.settingsImageIncluded")}
                 </Badge>
               ) : null}
             </div>

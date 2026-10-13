@@ -4,9 +4,11 @@ import type { ConversationSettingsUpdate } from "@workspace/shared/types/convers
 
 import { ApplySettingsTemplateUseCase } from "./apply-settings-template.use-case"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
+import type { CharacterAssetRepository } from "../../../domain/ports/character-asset.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { UpdateConversationSettingsUseCase } from "../conversation/update-conversation-settings.use-case"
+import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import { Conversation } from "../../../domain/entities/conversation.entity"
@@ -76,17 +78,29 @@ const buildUpdateSettings = () => {
   return { useCase: { execute } as unknown as UpdateConversationSettingsUseCase, execute }
 }
 
+const buildAssetRepository = (
+  existing: string[] = ["asset-local"],
+): CharacterAssetRepository =>
+  ({
+    findById: async (id: string) => (existing.includes(id) ? { id } : null),
+  }) as unknown as CharacterAssetRepository
+
 const buildUseCase = (
   options: { characterExists?: boolean; instanceExists?: boolean } = {},
 ) => {
   const updateSettings = buildUpdateSettings()
+  const store = {
+    store: vi.fn(async () => ({ id: "asset-new" })),
+  } as unknown as CharacterAssetWriter
   const useCase = new ApplySettingsTemplateUseCase(
     buildCharacterRepo(options.characterExists ?? true),
     buildConversationRepo(),
     buildProviderInstances(options.instanceExists ?? true),
     updateSettings.useCase,
+    buildAssetRepository(),
+    store,
   )
-  return { useCase, updateSettings }
+  return { useCase, updateSettings, store }
 }
 
 describe("ApplySettingsTemplateUseCase", () => {
@@ -213,6 +227,8 @@ describe("ApplySettingsTemplateUseCase", () => {
       { list: async () => [] } as unknown as ConversationRepository,
       buildProviderInstances(true),
       updateSettings.useCase,
+      buildAssetRepository(),
+      { store: vi.fn() } as unknown as CharacterAssetWriter,
     )
 
     const result = await useCase.execute({
@@ -230,5 +246,71 @@ describe("ApplySettingsTemplateUseCase", () => {
     await expect(
       useCase.execute({ characterId: "missing", settings: { temperature: 0.3 } }),
     ).rejects.toThrow("not found")
+  })
+
+  it("recrea la imagen personalizada que viaja en la plantilla", async () => {
+    const { useCase, updateSettings, store } = buildUseCase()
+
+    const result = await useCase.execute({
+      characterId: "char-1",
+      settings: { temperature: 0.5, customProfileImageAssetId: "asset-old" },
+      image: { assetId: "asset-old", mimeType: "image/png", base64: "aGk=" },
+    })
+
+    expect(store.store).toHaveBeenCalledWith(
+      expect.objectContaining({
+        characterId: "char-1",
+        mimeType: "image/png",
+      }),
+    )
+    expect(updateSettings.execute).toHaveBeenCalledWith(
+      "conv-1",
+      expect.objectContaining({ customProfileImageAssetId: "asset-new" }),
+    )
+    expect(result.warnings).toEqual([])
+  })
+
+  it("reutiliza la imagen local si la plantilla solo trae el id", async () => {
+    const { useCase, updateSettings, store } = buildUseCase()
+
+    const result = await useCase.execute({
+      characterId: "char-1",
+      settings: { customProfileImageAssetId: "asset-local" },
+    })
+
+    expect(store.store).not.toHaveBeenCalled()
+    expect(updateSettings.execute).toHaveBeenCalledWith(
+      "conv-1",
+      expect.objectContaining({ customProfileImageAssetId: "asset-local" }),
+    )
+    expect(result.warnings).toEqual([])
+  })
+
+  it("avisa y omite la imagen si no se puede resolver", async () => {
+    const { useCase, updateSettings } = buildUseCase()
+
+    const result = await useCase.execute({
+      characterId: "char-1",
+      settings: { customProfileImageAssetId: "missing-asset" },
+    })
+
+    expect(result.warnings).toContain("CUSTOM_IMAGE_NOT_FOUND")
+    expect(updateSettings.execute.mock.calls[0][1]).not.toHaveProperty(
+      "customProfileImageAssetId",
+    )
+  })
+
+  it("quita la imagen personalizada cuando la plantilla la deja vacía", async () => {
+    const { useCase, updateSettings } = buildUseCase()
+
+    await useCase.execute({
+      characterId: "char-1",
+      settings: { customProfileImageAssetId: null },
+    })
+
+    expect(updateSettings.execute).toHaveBeenCalledWith(
+      "conv-1",
+      expect.objectContaining({ customProfileImageAssetId: null }),
+    )
   })
 })

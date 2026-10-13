@@ -123,8 +123,20 @@ export class ExportCharacterUseCase {
     if (selected.has("standaloneSettings")) {
       const source = characterConversations[0]
       exportData.standaloneSettings = source
-        ? toSettings(source)
+        ? {
+            ...toSettings(source),
+            customProfileImageAssetId: source.customProfileImageAssetId,
+          }
         : { ...DEFAULT_EXPORT_SETTINGS }
+
+      // The custom chat image also travels as base64 so applying the template on
+      // another installation can recreate the asset the template points to.
+      const templateImage = source?.customProfileImageAssetId
+        ? await this.readAssetBase64(source.customProfileImageAssetId)
+        : null
+      if (templateImage) {
+        exportData.standaloneSettingsImage = templateImage
+      }
     }
 
     return exportData
@@ -213,42 +225,21 @@ export class ExportCharacterUseCase {
 
     const images: ExportConversationImage[] = []
     for (const assetId of assetIds) {
-      const asset = await this.assetRepository.findById(assetId)
-      if (!asset) continue
-
-      const stream = await this.assetStorage.read(
-        asset.characterId,
-        asset.id,
-        asset.extension,
-      )
-      const chunks: Buffer[] = []
-      for await (const chunk of stream) {
-        chunks.push(Buffer.from(chunk))
+      const image = await this.readAssetBase64(assetId)
+      if (image) {
+        images.push(image)
       }
-
-      images.push({
-        assetId,
-        mimeType: asset.mimeType,
-        base64: Buffer.concat(chunks).toString("base64"),
-      })
     }
 
     return images
   }
 
-  private async buildProfileImage(
-    version: CharacterVersion,
-    includeBase64: boolean,
-  ): Promise<CharacterExport["profileImage"] | null> {
-    const assetId = version.profileImageAssetId
-    if (!assetId) return null
-
+  /** Reads an asset's bytes as base64, ready to travel inside an export. */
+  private async readAssetBase64(
+    assetId: string,
+  ): Promise<ExportConversationImage | null> {
     const asset = await this.assetRepository.findById(assetId)
     if (!asset) return null
-
-    if (!includeBase64) {
-      return { assetId, mimeType: asset.mimeType }
-    }
 
     const stream = await this.assetStorage.read(
       asset.characterId,
@@ -265,6 +256,21 @@ export class ExportCharacterUseCase {
       mimeType: asset.mimeType,
       base64: Buffer.concat(chunks).toString("base64"),
     }
+  }
+
+  private async buildProfileImage(
+    version: CharacterVersion,
+    includeBase64: boolean,
+  ): Promise<CharacterExport["profileImage"] | null> {
+    const assetId = version.profileImageAssetId
+    if (!assetId) return null
+
+    if (!includeBase64) {
+      const asset = await this.assetRepository.findById(assetId)
+      return asset ? { assetId, mimeType: asset.mimeType } : null
+    }
+
+    return this.readAssetBase64(assetId)
   }
 }
 
@@ -289,6 +295,7 @@ function toSettings(conversation: Conversation): ExportSettings {
     messageStyle: conversation.messageStyle,
     characterDialogueColor: conversation.characterDialogueColor,
     userDialogueColor: conversation.userDialogueColor,
+    customProfileImageAssetId: conversation.customProfileImageAssetId,
   }
 }
 

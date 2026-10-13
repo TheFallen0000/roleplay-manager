@@ -106,6 +106,7 @@ const ExportSettingsSchema = z.object({
   messageStyle: z.enum(["bubble", "document", "novel"]),
   characterDialogueColor: z.string().nullable(),
   userDialogueColor: z.string().nullable(),
+  customProfileImageAssetId: z.string().nullable(),
 })
 
 const ApplySettingsTemplateSchema = z
@@ -113,6 +114,13 @@ const ApplySettingsTemplateSchema = z
     kind: z.literal(EXPORT_KIND),
     schemaVersion: z.literal(EXPORT_SCHEMA_VERSION),
     standaloneSettings: ExportSettingsSchema.partial(),
+    standaloneSettingsImage: z
+      .object({
+        assetId: z.string(),
+        mimeType: z.string(),
+        base64: z.string(),
+      })
+      .optional(),
   })
   .passthrough()
 
@@ -216,6 +224,7 @@ export const buildCharacterRouter = (deps: {
       const result = await deps.applySettingsTemplate.execute({
         characterId: req.params.id,
         settings: input.standaloneSettings,
+        image: input.standaloneSettingsImage,
       })
       res.json(result)
     } catch (error) {

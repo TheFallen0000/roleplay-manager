@@ -6,6 +6,7 @@ import type {
 } from "@workspace/shared/types/character"
 import type {
   CharacterExport,
+  ExportImage,
   ExportSection,
   ExportSettings,
   ApplySettingsTemplateResult,
@@ -72,6 +73,7 @@ export const importCharacter = (payload: CharacterExport): Promise<CharacterSumm
 export const applySettingsTemplate = (
   id: string,
   settings: Partial<ExportSettings>,
+  image?: ExportImage,
 ): Promise<ApplySettingsTemplateResult> =>
   apiRequest(`/api/characters/${id}/settings-imports`, {
     method: "POST",
@@ -79,5 +81,6 @@ export const applySettingsTemplate = (
       kind: EXPORT_KIND,
       schemaVersion: EXPORT_SCHEMA_VERSION,
       standaloneSettings: settings,
+      ...(image ? { standaloneSettingsImage: image } : {}),
     }),
   })

@@ -6,6 +6,7 @@ import type {
 } from "@workspace/shared/types/export"
 
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
+import type { CharacterAssetRepository } from "../../../domain/ports/character-asset.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import { CharacterNotFoundError } from "../../../domain/errors"
@@ -13,10 +14,13 @@ import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { isMessageStyle } from "@workspace/shared/lib/message-style"
 import { findCharacterConversations } from "../conversation/find-character-conversations"
 import type { UpdateConversationSettingsUseCase } from "../conversation/update-conversation-settings.use-case"
+import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
 
 export interface ApplySettingsTemplateInput {
   characterId: string
   settings: Partial<ExportSettings>
+  /** Custom chat image of the template, when it travels with one. */
+  image?: { assetId: string; mimeType: string; base64: string }
 }
 
 export class ApplySettingsTemplateUseCase {
@@ -25,6 +29,8 @@ export class ApplySettingsTemplateUseCase {
     private readonly conversationRepository: ConversationRepository,
     private readonly providerInstanceRepository: ProviderInstanceRepository,
     private readonly updateConversationSettings: UpdateConversationSettingsUseCase,
+    private readonly assetRepository: CharacterAssetRepository,
+    private readonly storeCharacterAsset: CharacterAssetWriter,
   ) {}
 
   async execute(
@@ -46,9 +52,17 @@ export class ApplySettingsTemplateUseCase {
       warnings.push("NO_CONVERSATIONS")
     }
 
+    const customProfileImageAssetId = await this.resolveCustomImageUpdate(
+      input,
+      warnings,
+    )
+
     const baseUpdate: ConversationSettingsUpdate = {
       ...toSettingsUpdate(input.settings),
       ...(await this.resolveProviderUpdate(input.settings, warnings)),
+      ...(customProfileImageAssetId !== undefined
+        ? { customProfileImageAssetId }
+        : {}),
       force: true,
     }
 
@@ -61,6 +75,38 @@ export class ApplySettingsTemplateUseCase {
     }
 
     return { applied: conversations.length, warnings }
+  }
+
+  /**
+   * The template's custom chat image: recreated from the base64 it carries, or
+   * reused when the referenced asset already exists locally. A template that
+   * cannot resolve its image is applied without it (with a warning).
+   */
+  private async resolveCustomImageUpdate(
+    input: ApplySettingsTemplateInput,
+    warnings: SettingsTemplateWarning[],
+  ): Promise<string | null | undefined> {
+    const requested = input.settings.customProfileImageAssetId
+    if (requested === undefined) return undefined
+    if (requested === null) return null
+
+    if (input.image && input.image.assetId === requested) {
+      const asset = await this.storeCharacterAsset.store({
+        characterId: input.characterId,
+        mimeType: input.image.mimeType,
+        data: Buffer.from(input.image.base64, "base64"),
+        createdAt: new Date(),
+        usage: ["profile"],
+      })
+      return asset.id
+    }
+
+    if (await this.assetRepository.findById(requested)) {
+      return requested
+    }
+
+    warnings.push("CUSTOM_IMAGE_NOT_FOUND")
+    return undefined
   }
 
   private async resolveProviderUpdate(
