@@ -62,6 +62,27 @@ export const en = {
     subtitle:
       "Who you play. The AI will know it in the conversations where you pick one.",
     create: "Create persona",
+    export: "Export",
+    exportDone: "Persona exported",
+    exportFailed: "The persona could not be exported.",
+    imported: 'Persona "{name}" imported.',
+    import: "Import persona",
+    importTitle: "Import persona",
+    importDescription:
+      "Drop a JSON file exported from Roleplay Manager to recreate the persona.",
+    importDropHere: "Drop the JSON file here",
+    importChooseHint: "or click to pick a file",
+    importChooseFile: "Choose file",
+    importFailed: "The persona could not be imported.",
+    importInvalidJson: "The file is not valid JSON.",
+    importInvalidObject: "The file does not contain a valid JSON object.",
+    importIncompatible: "The file is not a compatible persona export.",
+    importUnsupportedVersion:
+      "Unsupported file version ({version}). Expected {expected}.",
+    importMissingName: "The file is missing the persona name.",
+    importMissingDescription: "The file is missing the persona description.",
+    unknownVersion: "unknown",
+    slugFallback: "persona",
     emptyTitle: "Your cast is empty",
     emptyDescription:
       "Create your first persona so the AI knows who you are playing.",

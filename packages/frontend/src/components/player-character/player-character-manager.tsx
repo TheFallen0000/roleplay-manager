@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "@workspace/ui/components/sonner"
 
+import type { PlayerCharacterExport } from "@workspace/shared/types/export"
 import type {
   PlayerCharacterDTO,
   UpdatePlayerCharacterInput,
@@ -17,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, UploadIcon } from "lucide-react"
 
 import { MascotPose } from "@/components/layout/brand"
 import {
@@ -29,7 +30,13 @@ import {
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import type { Locale } from "@workspace/shared/i18n"
+import { downloadJson } from "@/lib/download-json"
+import {
+  buildPlayerCharacterExport,
+  playerCharacterExportFilename,
+} from "@/lib/player-character-export"
 import { translateApiError } from "@/lib/translate-api-error"
+import { ImportPlayerCharacterDialog } from "./import-player-character-dialog"
 import { PlayerCharacterCard } from "./player-character-card"
 
 interface FormState {
@@ -56,6 +63,7 @@ function PlayerCharacterManagerContent() {
   )
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState<FormState | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<PlayerCharacterDTO | null>(
     null,
@@ -135,6 +143,40 @@ function PlayerCharacterManagerContent() {
     }
   }
 
+  const handleExport = (playerCharacter: PlayerCharacterDTO) => {
+    try {
+      downloadJson(
+        playerCharacterExportFilename(
+          playerCharacter.name,
+          t("players.slugFallback"),
+        ),
+        buildPlayerCharacterExport(playerCharacter),
+      )
+      toast.success(t("players.exportDone"))
+    } catch {
+      toast.error(t("players.exportFailed"))
+    }
+  }
+
+  const handleImport = async (
+    payload: PlayerCharacterExport,
+  ): Promise<{ ok: boolean; error?: string }> => {
+    try {
+      const imported = await createPlayerCharacter({
+        name: payload.playerCharacter.name.trim(),
+        description: payload.playerCharacter.description.trim(),
+      })
+      await refresh()
+      toast.success(t("players.imported", { name: imported.name }))
+      return { ok: true }
+    } catch (error) {
+      return {
+        ok: false,
+        error: translateApiError(error, tRaw, t("players.importFailed")),
+      }
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -152,10 +194,16 @@ function PlayerCharacterManagerContent() {
           </h1>
           <p className="text-sm text-muted-foreground">{t("players.subtitle")}</p>
         </div>
-        <Button onClick={() => setForm(EMPTY_FORM)}>
-          <PlusIcon />
-          {t("players.create")}
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <UploadIcon />
+            {t("players.import")}
+          </Button>
+          <Button onClick={() => setForm(EMPTY_FORM)}>
+            <PlusIcon />
+            {t("players.create")}
+          </Button>
+        </div>
       </header>
 
       {playerCharacters.length === 0 ? (
@@ -187,6 +235,7 @@ function PlayerCharacterManagerContent() {
                   description: persona.description,
                 })
               }
+              onExport={handleExport}
               onDelete={setDeleteTarget}
             />
           ))}
@@ -262,6 +311,12 @@ function PlayerCharacterManagerContent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ImportPlayerCharacterDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImport={handleImport}
+      />
     </div>
   )
 }

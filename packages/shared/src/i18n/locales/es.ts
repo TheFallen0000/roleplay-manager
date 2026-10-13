@@ -60,6 +60,27 @@ export const es: Dictionary = {
     subtitle:
       "A quién interpretas tú. La IA lo sabrá en las conversaciones donde lo elijas.",
     create: "Crear persona",
+    export: "Exportar",
+    exportDone: "Persona exportada",
+    exportFailed: "No se pudo exportar la persona.",
+    imported: 'Persona "{name}" importada.',
+    import: "Importar persona",
+    importTitle: "Importar persona",
+    importDescription:
+      "Suelta un archivo JSON exportado desde Roleplay Manager para recrear la persona.",
+    importDropHere: "Suelta aquí el archivo JSON",
+    importChooseHint: "o pulsa para elegir un archivo",
+    importChooseFile: "Elegir archivo",
+    importFailed: "No se pudo importar la persona.",
+    importInvalidJson: "El archivo no es un JSON válido.",
+    importInvalidObject: "El archivo no contiene un objeto JSON válido.",
+    importIncompatible: "El archivo no es una exportación de persona compatible.",
+    importUnsupportedVersion:
+      "Versión de archivo no soportada ({version}). Se esperaba {expected}.",
+    importMissingName: "El archivo no incluye el nombre de la persona.",
+    importMissingDescription: "El archivo no incluye la descripción de la persona.",
+    unknownVersion: "desconocida",
+    slugFallback: "persona",
     emptyTitle: "Tu elenco está vacío",
     emptyDescription:
       "Crea tu primera persona para que la IA sepa a quién interpretas.",
