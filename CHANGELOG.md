@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **PWA install previews and shortcuts**: the manifest declares real screenshots
+  (character library, visual-novel chat and a phone shot) for Chrome's rich
+  install dialog, plus quick shortcuts on the installed icon (Tutorials,
+  Providers, Logs). `display_override` was left out on purpose: with no
+  window-controls-overlay UI it would not change anything visible.
 - **Export and import personas**: each persona plate has an Export action that
   downloads a standalone `player-character-export` JSON file, and the header has
   an Import button with a drop-or-pick dialog (kind, schema version and fields
