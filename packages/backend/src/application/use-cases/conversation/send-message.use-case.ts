@@ -280,6 +280,14 @@ export class SendMessageUseCase {
       const fallback = extractProposals(cleanState.fullContent)
       cleanedContent = fallback.cleanedContent
       proposals = fallback.proposals
+      if (fallback.foundBlock && fallback.proposals.length === 0) {
+        // The block was stripped but nothing could be read: keep a sample so a
+        // model drifting on the format can be diagnosed.
+        this.logger.warn("Memory proposal block could not be parsed", {
+          conversationId: input.conversationId,
+          sample: cleanState.fullContent.slice(0, 500),
+        })
+      }
     }
 
     if (!cleanedContent.trim()) {

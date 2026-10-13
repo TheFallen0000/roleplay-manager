@@ -137,6 +137,86 @@ describe("extractProposals", () => {
     expect(result.proposals).toHaveLength(1)
     expect(result.cleanedContent).toBe("")
   })
+
+  it("detecta la etiqueta con mayúsculas o separadores distintos", () => {
+    const upper = extractProposals(
+      "Hola.\n\n```MEMORY_PROPOSALS\n" +
+        '[ { "operation": "CREATE", "actor": "A", "title": "t", "description": "d" } ]\n```',
+    )
+    expect(upper.foundBlock).toBe(true)
+    expect(upper.proposals).toHaveLength(1)
+    expect(upper.cleanedContent).toBe("Hola.")
+
+    const hyphen = extractProposals("```memory-proposals\n[]\n```")
+    expect(hyphen.foundBlock).toBe(true)
+    expect(hyphen.proposals).toEqual([])
+  })
+
+  it("recupera un bloque sin cerrar (respuesta cortada)", () => {
+    const result = extractProposals(
+      "Texto.\n\n```memory_proposals\n" +
+        '[ { "operation": "CREATE", "actor": "A", "title": "t", "description": "d" } ]',
+    )
+
+    expect(result.foundBlock).toBe(true)
+    expect(result.proposals).toHaveLength(1)
+    expect(result.cleanedContent).toBe("Texto.")
+  })
+
+  it("tolera las reparaciones seguras de JSON", () => {
+    const trailing = extractProposals(
+      "```memory_proposals\n" +
+        '[\n  { "operation": "CREATE", "actor": "A", "title": "t", "description": "d" },\n]\n' +
+        "```",
+    )
+    expect(trailing.proposals).toHaveLength(1)
+
+    const prose = extractProposals(
+      "```memory_proposals\n" +
+        'Aquí van las propuestas:\n[ { "operation": "CREATE", "actor": "A", "title": "t", "description": "d" } ]\nEspero que sirva.\n' +
+        "```",
+    )
+    expect(prose.proposals).toHaveLength(1)
+
+    const wrapped = extractProposals(
+      "```memory_proposals\n" +
+        '{ "proposals": [ { "operation": "CREATE", "actor": "A", "title": "t", "description": "d" } ] }\n' +
+        "```",
+    )
+    expect(wrapped.proposals).toHaveLength(1)
+  })
+
+  it("normaliza operación, prioridad y espacios", () => {
+    const result = extractProposals(
+      "```memory_proposals\n" +
+        '[ { "operation": " create ", "actor": " A ", "title": " t ", "description": " d ", "priority": "7" } ]\n' +
+        "```",
+    )
+
+    expect(result.proposals).toEqual([
+      {
+        operation: "CREATE",
+        targetMemoryId: undefined,
+        actor: "A",
+        title: "t",
+        description: "d",
+        priority: 7,
+      },
+    ])
+  })
+
+  it("limpia y extrae varios bloques", () => {
+    const result = extractProposals(
+      "Uno.\n\n" + SIMPLE_BLOCK + "\n\nDos.\n\n" + MULTI_BLOCK + "\n\nFin.",
+    )
+
+    expect(result.foundBlock).toBe(true)
+    expect(result.proposals).toHaveLength(4)
+    expect(result.cleanedContent).not.toContain("memory_proposals")
+    expect(result.cleanedContent).toContain("Uno.")
+    expect(result.cleanedContent).toContain("Dos.")
+    expect(result.cleanedContent).toContain("Fin.")
+  })
 })
 
 function makeStream(chunks: string[]): AsyncIterable<{ content: string }> {
@@ -226,6 +306,32 @@ describe("createCleanStream", () => {
     expect(yielded).toEqual(["Antes.\n\n"])
     expect(fullContent).toContain("memory_proposals")
     expect(fullContent).toContain("incompleto")
+  })
+
+  it("oculta un bloque con la etiqueta en mayúsculas", async () => {
+    const { yielded } = await collectFromStream([
+      "Antes.\n\n",
+      "```MEMORY_PROPOSALS\n[]\n```",
+      "\n\nDespues.",
+    ])
+
+    expect(yielded.join("")).toBe("Antes.\n\n\n\nDespues.")
+  })
+
+  it("oculta dos bloques en el mismo stream", async () => {
+    const { yielded } = await collectFromStream([
+      "Uno.\n",
+      SIMPLE_BLOCK,
+      "\nDos.\n",
+      SIMPLE_BLOCK,
+      "\nFin.",
+    ])
+
+    const text = yielded.join("")
+    expect(text).not.toContain("memory_proposals")
+    expect(text).toContain("Uno.")
+    expect(text).toContain("Dos.")
+    expect(text).toContain("Fin.")
   })
 
   it("maneja stream con bloque al inicio", async () => {
