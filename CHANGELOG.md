@@ -5,15 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.46.1] - 2026-10-13
 
 ### Removed
 
 - **Press launch kit retired**: the announcement drafts, artwork and README
   screenshots added in #17 were reverted before release; the material stays in
   the git history.
-
-## [Unreleased]
 
 ### Fixed
 
