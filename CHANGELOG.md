@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   screenshots added in #17 were reverted before release; the material stays in
   the git history.
 
+## [Unreleased]
+
+### Fixed
+
+- **Character export no longer fails with a validation error**: the export
+  route's schema now derives its accepted sections from the shared list, so
+  `conversations.images` — sent by the dialog since S31 but rejected by the API —
+  is valid again.
+
 ## [1.46.0] - 2026-10-13
 
 ### Added
