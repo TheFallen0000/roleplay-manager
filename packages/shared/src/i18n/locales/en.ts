@@ -88,6 +88,7 @@ export const en = {
       "Create your first persona so the AI knows who you are playing.",
     edit: "Edit",
     delete: "Delete",
+    options: "Options",
     editTitle: "Edit persona",
     createTitle: "New persona",
     formDescription: "Name and description of your played character. No versions.",

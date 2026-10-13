@@ -86,6 +86,7 @@ export const es: Dictionary = {
       "Crea tu primera persona para que la IA sepa a quién interpretas.",
     edit: "Editar",
     delete: "Eliminar",
+    options: "Opciones",
     editTitle: "Editar persona",
     createTitle: "Nueva persona",
     formDescription:
