@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **Providers & Player characters redesign** (PM.27, closes the Ink & Violet
+  rollout): both screens get display headings with a lede; providers show the
+  current model in an ink plate, each card carries an icon plate, a state-dot
+  chip and hairline-divided sections (instances are rows now, no card nested in
+  a card), and personas become plates with a Dela Gothic monogram, quiet
+  actions and a mascot empty state.
+
 ## [1.45.0] - 2026-10-12
 
 ### Added
