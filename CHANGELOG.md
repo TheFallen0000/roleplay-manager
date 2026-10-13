@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Chat images now load on remote clients (LAN, Tailscale, tunnels)**: asset
+  URLs embedded in server-rendered markup are always relative, so every client
+  resolves them through its own origin and the same-origin `/api` proxy instead
+  of the packaged app's `http://localhost:<port>`.
+
 ## [1.46.1] - 2026-10-13
 
 ### Removed
