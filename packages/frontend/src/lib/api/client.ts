@@ -51,18 +51,21 @@ export const getBaseUrl = (): string => {
 }
 
 /**
- * Base URL for URLs embedded in HTML (`img src`, links). Always browser-visible:
- * relative in the browser so it resolves against the current origin and goes
- * through the `/api` proxy; `PUBLIC_API_URL` still overrides.
+ * URL for a character asset embedded in HTML (`img src`, `srcSet`).
+ *
+ * Always relative on purpose: the browser resolves it against its own origin
+ * and the same-origin `/api` proxy forwards it, so a single build works on
+ * localhost, the LAN, Tailscale and tunnels. An absolute base would be baked
+ * into server-rendered markup — the packaged app sets `PUBLIC_API_URL` to
+ * `http://localhost:<port>` — and every remote client would request the asset
+ * from *its own* localhost (S80: chat avatars and backgrounds broke on phones).
  */
-export const getPublicBaseUrl = (): string => getConfiguredBaseUrl() ?? ""
-
 export const getCharacterAssetUrl = (
   characterId: string,
   assetId: string,
   variant?: CharacterAssetVariant,
 ): string => {
-  const url = `${getPublicBaseUrl()}/api/characters/${characterId}/assets/${assetId}`
+  const url = `/api/characters/${characterId}/assets/${assetId}`
   return variant ? `${url}?variant=${variant}` : url
 }
 

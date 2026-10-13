@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest"
 
-import { getBaseUrl, getCharacterAssetUrl, getPublicBaseUrl } from "./client"
+import { getBaseUrl, getCharacterAssetUrl } from "./client"
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -41,20 +41,6 @@ describe("getBaseUrl", () => {
   // branch is unreachable outside the server (and is gated by `window`).
 })
 
-describe("getPublicBaseUrl", () => {
-  it("stays relative during SSR so embedded URLs resolve against the page origin", () => {
-    vi.stubGlobal("window", undefined)
-
-    expect(getPublicBaseUrl()).toBe("")
-  })
-
-  it("honors PUBLIC_API_URL", () => {
-    vi.stubEnv("PUBLIC_API_URL", "https://api.example.com")
-
-    expect(getPublicBaseUrl()).toBe("https://api.example.com")
-  })
-})
-
 describe("getCharacterAssetUrl", () => {
   it("builds a relative asset URL so it goes through the same-origin proxy", () => {
     expect(getCharacterAssetUrl("char-1", "asset-1")).toBe(
@@ -66,5 +52,23 @@ describe("getCharacterAssetUrl", () => {
     expect(getCharacterAssetUrl("char-1", "asset-1", "small")).toBe(
       "/api/characters/char-1/assets/asset-1?variant=small",
     )
+  })
+
+  it("stays relative even when PUBLIC_API_URL is configured", () => {
+    vi.stubEnv("PUBLIC_API_URL", "https://api.example.com")
+    expect(getCharacterAssetUrl("char-1", "asset-1", "thumbnail")).toBe(
+      "/api/characters/char-1/assets/asset-1?variant=thumbnail",
+    )
+
+    // Server context (SSR): the runtime variable must never reach markup.
+    vi.stubGlobal("window", undefined)
+    process.env.PUBLIC_API_URL = "http://localhost:3001"
+    try {
+      expect(getCharacterAssetUrl("char-1", "asset-1")).toBe(
+        "/api/characters/char-1/assets/asset-1",
+      )
+    } finally {
+      delete process.env.PUBLIC_API_URL
+    }
   })
 })
