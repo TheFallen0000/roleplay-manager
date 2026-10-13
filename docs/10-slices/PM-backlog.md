@@ -80,7 +80,7 @@ Last updated: 2026-10-12
 | PM.9 | Export conversations. <br>*Done as part of S17 (v1.8.0) — see `S17-progress.md`.* | — |
 | PM.10 | Export manager: export character definition, specific versions, associated conversations, dynamic memory, summaries, settings. Accessible from the ContextMenu of the character list. <br>*Done as S17 (v1.8.0) — see `S17-progress.md`.* | PM.8, PM.9 |
 | PM.20 | Apply an exported settings template (`standaloneSettings`) to all conversations of an existing character. <br>*Done as S29 (v1.21.0) — see `S29-progress.md`.* | PM.10 |
-| PM.28 | Export/import **personas** (user-level, so they do not travel inside a character export). <br>*Deferred in S23 (v1.14.0).* | — |
+| PM.28 | Export/import **personas** (user-level, so they do not travel inside a character export). <br>*Done as S74 (pending release) — see `S74-progress.md`.* | — |
 | PM.29 | Carry `customProfileImageAssetId` inside the settings template (`standaloneSettings`) so “Apply settings…” also brings the custom chat image. <br>*Deferred in S29 (v1.21.0); conversation images already travel in the character export (S31).* | PM.20 |
 | PM.30 | Import conflict handling by name (replace/merge) instead of always creating duplicates. <br>*Deferred in S18 (v1.9.0).* | PM.8 |
 
@@ -112,6 +112,12 @@ Last updated: 2026-10-12
 > provider instance does not exist locally, the destination provider and model are kept and the
 > user is warned; unsupported providers behave the same. This closes the S18 gap where the
 > template was exported but never imported. See `S29-progress.md`.
+
+> **PM.28 (S74) — done (2026-10-13, pending release):** Personas export as standalone
+> `player-character-export` JSON files from each card and import through a drop-or-pick dialog
+> that validates kind, schema version and fields with translated errors; duplicates are allowed
+> (conflict handling stays in PM.30). No backend changes: the existing create endpoint does the
+> work. See `S74-progress.md`.
 
 ## Multi-language & themes
 
