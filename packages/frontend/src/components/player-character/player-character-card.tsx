@@ -7,7 +7,14 @@ import {
   CardFooter,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { PencilIcon, Trash2Icon, DownloadIcon } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
+import { DownloadIcon, EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
 
 import { useTranslation } from "@/lib/hooks/use-translation"
 
@@ -47,35 +54,31 @@ export function PlayerCharacterCard({
           </CardDescription>
         </div>
       </CardContent>
-      <CardFooter className="mt-auto justify-end gap-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onEdit(playerCharacter)}
-        >
-          <PencilIcon />
-          {t("players.edit")}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onExport(playerCharacter)}
-        >
-          <DownloadIcon />
-          {t("players.export")}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground hover:text-destructive"
-          onClick={() => onDelete(playerCharacter)}
-        >
-          <Trash2Icon />
-          {t("players.delete")}
-        </Button>
+      <CardFooter className="mt-auto justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+            <EllipsisIcon />
+            {t("players.options")}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-44">
+            <DropdownMenuItem onClick={() => onEdit(playerCharacter)}>
+              <PencilIcon />
+              {t("players.edit")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onExport(playerCharacter)}>
+              <DownloadIcon />
+              {t("players.export")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(playerCharacter)}
+            >
+              <Trash2Icon />
+              {t("players.delete")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardFooter>
     </Card>
   )

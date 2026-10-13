@@ -110,6 +110,7 @@ describe("PlayerCharacterManager", () => {
     mocks.deletePlayerCharacter.mockResolvedValue(undefined)
 
     renderManager()
+    fireEvent.click(await screen.findByText("Opciones"))
     fireEvent.click(await screen.findByText("Eliminar"))
 
     expect(await screen.findByText("¿Eliminar persona?")).toBeInTheDocument()
@@ -125,6 +126,7 @@ describe("PlayerCharacterManager", () => {
     mocks.listPlayerCharacters.mockResolvedValue([alice])
 
     renderManager()
+    fireEvent.click(await screen.findByText("Opciones"))
     fireEvent.click(await screen.findByText("Exportar"))
 
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1)
