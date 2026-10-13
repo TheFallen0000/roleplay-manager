@@ -16,8 +16,12 @@ import type { GetCharacterAssetUseCase } from "../../../../application/use-cases
 import type { ApplySettingsTemplateUseCase } from "../../../../application/use-cases/character/apply-settings-template.use-case"
 import { parseMultipartBody } from "../middlewares/multipart"
 
-import type { CharacterExport } from "@workspace/shared/types/export"
-import { EXPORT_KIND, EXPORT_SCHEMA_VERSION } from "@workspace/shared/types/export"
+import type { CharacterExport, ExportSection } from "@workspace/shared/types/export"
+import {
+  ALL_EXPORT_SECTIONS,
+  EXPORT_KIND,
+  EXPORT_SCHEMA_VERSION,
+} from "@workspace/shared/types/export"
 
 const CardSchema = z.object({
   title: z.string().min(1, "Card title is required"),
@@ -59,19 +63,10 @@ const UpdateCharacterProfileImageSchema = z.object({
 
 const ExportCharacterSchema = z.object({
   sections: z
-    .array(
-      z.enum([
-        "definition",
-        "profileImage",
-        "versions",
-        "conversations",
-        "conversations.messages",
-        "conversations.memories",
-        "conversations.summaries",
-        "conversations.settings",
-        "standaloneSettings",
-      ]),
-    )
+    // Derived from the shared list so a new section can never be rejected here:
+    // the hand-written enum drifted once (conversations.images entered the
+    // types in S31 but not this schema).
+    .array(z.enum(ALL_EXPORT_SECTIONS as [ExportSection, ...ExportSection[]]))
     .min(1, "At least one section is required"),
   includeProfileImageBase64: z.boolean().optional(),
 })
