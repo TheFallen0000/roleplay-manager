@@ -7,7 +7,7 @@ import {
   CardFooter,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { PencilIcon, Trash2Icon } from "lucide-react"
+import { PencilIcon, Trash2Icon, DownloadIcon } from "lucide-react"
 
 import { useTranslation } from "@/lib/hooks/use-translation"
 
@@ -15,6 +15,7 @@ export interface PlayerCharacterCardProps {
   playerCharacter: PlayerCharacterDTO
   onEdit: (playerCharacter: PlayerCharacterDTO) => void
   onDelete: (playerCharacter: PlayerCharacterDTO) => void
+  onExport: (playerCharacter: PlayerCharacterDTO) => void
 }
 
 /** Persona plate: monogram, name and description with its actions on a hairline footer. */
@@ -22,6 +23,7 @@ export function PlayerCharacterCard({
   playerCharacter,
   onEdit,
   onDelete,
+  onExport,
 }: PlayerCharacterCardProps) {
   const { t } = useTranslation()
   const initial =
@@ -54,6 +56,15 @@ export function PlayerCharacterCard({
         >
           <PencilIcon />
           {t("players.edit")}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onExport(playerCharacter)}
+        >
+          <DownloadIcon />
+          {t("players.export")}
         </Button>
         <Button
           type="button"

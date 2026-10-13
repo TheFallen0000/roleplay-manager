@@ -15,6 +15,16 @@ const alice: PlayerCharacterDTO = {
   updatedAt: "2026-08-12T10:00:00.000Z",
 }
 
+const validExport = {
+  schemaVersion: 1,
+  kind: "player-character-export",
+  exportedAt: "2026-10-13T12:00:00.000Z",
+  playerCharacter: {
+    name: "Alice",
+    description: "Una exploradora curiosa.",
+  },
+}
+
 const mocks = vi.hoisted(() => ({
   listPlayerCharacters: vi.fn(),
   createPlayerCharacter: vi.fn(),
@@ -38,10 +48,15 @@ beforeEach(() => {
   mocks.createPlayerCharacter.mockReset()
   mocks.updatePlayerCharacter.mockReset()
   mocks.deletePlayerCharacter.mockReset()
+
+  URL.createObjectURL = vi.fn(() => "blob:mock-export")
+  URL.revokeObjectURL = vi.fn()
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
+  vi.restoreAllMocks()
 })
 
 describe("PlayerCharacterManager", () => {
@@ -103,6 +118,44 @@ describe("PlayerCharacterManager", () => {
 
     await waitFor(() =>
       expect(mocks.deletePlayerCharacter).toHaveBeenCalledWith("pc-1"),
+    )
+  })
+
+  it("exporta una persona y descarga el JSON", async () => {
+    mocks.listPlayerCharacters.mockResolvedValue([alice])
+
+    renderManager()
+    fireEvent.click(await screen.findByText("Exportar"))
+
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1)
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
+  })
+
+  it("importa una persona desde el diálogo", async () => {
+    mocks.listPlayerCharacters.mockResolvedValue([])
+    mocks.createPlayerCharacter.mockResolvedValue(alice)
+
+    renderManager()
+    fireEvent.click(await screen.findByText("Importar persona"))
+
+    const input = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement
+    fireEvent.change(input, {
+      target: {
+        files: [
+          new File([JSON.stringify(validExport)], "persona.json", {
+            type: "application/json",
+          }),
+        ],
+      },
+    })
+
+    await waitFor(() =>
+      expect(mocks.createPlayerCharacter).toHaveBeenCalledWith({
+        name: "Alice",
+        description: "Una exploradora curiosa.",
+      }),
     )
   })
 })

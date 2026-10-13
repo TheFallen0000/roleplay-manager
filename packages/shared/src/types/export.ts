@@ -150,3 +150,20 @@ export interface ExportCharacterInput {
   sections: ExportSection[]
   includeProfileImageBase64?: boolean
 }
+
+export const PLAYER_CHARACTER_EXPORT_KIND = "player-character-export"
+export const PLAYER_CHARACTER_EXPORT_SCHEMA_VERSION = 1
+
+/**
+ * Personas are user-level and tiny on purpose: the file is standalone (it does
+ * not travel inside a character export) and carries no local ids or dates.
+ */
+export interface PlayerCharacterExport {
+  schemaVersion: number
+  kind: string
+  exportedAt: string
+  playerCharacter: {
+    name: string
+    description: string
+  }
+}

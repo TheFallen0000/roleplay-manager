@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Export and import personas**: each persona plate has an Export action that
+  downloads a standalone `player-character-export` JSON file, and the header has
+  an Import button with a drop-or-pick dialog (kind, schema version and fields
+  validated with translated messages; duplicates are allowed, like characters).
+
 ### Changed
 
 - **Providers & Player characters redesign** (PM.27, closes the Ink & Violet
