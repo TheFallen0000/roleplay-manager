@@ -220,6 +220,25 @@ try {
         "pass-through service worker served (installable PWA)",
       )
 
+      const screenshots = manifest?.screenshots ?? []
+      const shortcuts = manifest?.shortcuts ?? []
+      check(
+        screenshots.some((shot) => shot.form_factor === "wide") &&
+          screenshots.some((shot) => shot.form_factor === "narrow") &&
+          screenshots.every((shot) => Boolean(shot.src && shot.sizes && shot.label)) &&
+          shortcuts.length >= 2 &&
+          shortcuts.every((shortcut) => Boolean(shortcut.name && shortcut.url)),
+        "manifest declares install screenshots and shortcuts",
+      )
+      for (const shot of screenshots) {
+        const response = await fetch(`${base}${shot.src}`)
+        const type = response.headers.get("content-type") ?? ""
+        check(
+          response.status === 200 && type.includes("image/png"),
+          `install screenshot served (${shot.src})`,
+        )
+      }
+
       // The logger must write its rotating file inside the portable folder.
       const logsDir = join(dir, "data", "logs")
       let logContent = ""
@@ -282,7 +301,17 @@ try {
     }
   }
 } finally {
-  rmSync(dir, { recursive: true, force: true })
+  // Windows releases the portable folder's file handles a moment after the
+  // process is killed, so removing it needs bounded retries.
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      rmSync(dir, { recursive: true, force: true })
+      break
+    } catch (error) {
+      if (attempt >= 9) throw error
+      await sleep(500)
+    }
+  }
 }
 
 console.log(failed ? "RESULT: FAIL" : "RESULT: PASS")
