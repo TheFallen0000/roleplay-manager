@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Settings templates now carry the custom chat image**: exporting
+  `standaloneSettings` includes the image id plus its binary, and applying the
+  template recreates the asset on the destination character (or reuses a local
+  one, warning when it cannot be resolved). `null` removes the image.
 - **PWA install previews and shortcuts**: the manifest declares real screenshots
   (character library, visual-novel chat and a phone shot) for Chrome's rich
   install dialog, plus quick shortcuts on the installed icon (Tutorials,
@@ -30,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **The chat opens anchored to the last message**: the scroller's trailing
+  spacer left a ~400px gap under the last message when a conversation loaded;
+  the end is now aligned just above the composer.
+- **Stop sequences are no longer double-encoded when saving settings** (a bug
+  since S5: the JSON column was stringified twice, which corrupted conversations
+  — and crashed their chat — whenever `stopSequences` was sent, including every
+  "Apply settings" run). Corrupted rows heal on read; no migration needed.
 - The persona card actions no longer overflow in Spanish: Editar, Exportar and
   Eliminar now live in an **Options** dropdown menu (the same component the rest
   of the app uses for action lists), leaving a single button in the card footer.
