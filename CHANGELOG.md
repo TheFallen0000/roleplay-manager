@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added
+### Removed
 
-- **Press kit**: ready-to-post announcement drafts (EN/ES), a social preview
-  card, phone-flow artwork and screenshots in the README (documentation only, no
-  app changes).
+- **Press launch kit retired**: the announcement drafts, artwork and README
+  screenshots added in #17 were reverted before release; the material stays in
+  the git history.
 
 ## [1.46.0] - 2026-10-13
 
