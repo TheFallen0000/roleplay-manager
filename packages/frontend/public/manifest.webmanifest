@@ -23,5 +23,51 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/brand/screenshots/library-wide.png",
+      "sizes": "1440x810",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tu biblioteca de personajes"
+    },
+    {
+      "src": "/brand/screenshots/chat-wide.png",
+      "sizes": "1440x810",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Chat en estilo novela visual"
+    },
+    {
+      "src": "/brand/screenshots/chat-narrow.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Escribe desde el teléfono"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tutoriales",
+      "short_name": "Tutoriales",
+      "description": "Guías paso a paso",
+      "url": "/tutorials",
+      "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Proveedores",
+      "short_name": "Proveedores",
+      "description": "Configura tu proveedor de IA",
+      "url": "/settings/providers",
+      "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Registro",
+      "short_name": "Registro",
+      "description": "Historial para diagnosticar problemas",
+      "url": "/settings/logs",
+      "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }

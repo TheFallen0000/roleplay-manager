@@ -40,6 +40,26 @@ every served image from the source:
 The manifest that references the install icons lives at
 `packages/frontend/public/manifest.webmanifest`.
 
+## Install screenshots (committed)
+
+`packages/frontend/public/brand/screenshots/` holds the previews declared as
+`screenshots` in the manifest (Chrome's rich install dialog):
+
+| File | Size | Content |
+|---|---|---|
+| `library-wide.png` | 1440x810 | the character library |
+| `chat-wide.png` | 1440x810 | the chat in visual-novel style |
+| `chat-narrow.png` | 720x1280 | the chat on a phone |
+
+**Provenance:** generated on 2026-10-13 from the packaged app (v1.45.0 build)
+with headless Chromium and **synthetic content** seeded through the
+character-import API — two characters (Lyra with the mascot as profile image,
+Kael showing the monogram placeholder) and a four-message conversation in
+visual-novel style with dialogue colours. The UI is captured in Spanish; the
+manifest is static, so its labels cannot follow the in-app language. These are
+showcase art, not fixtures: regenerate them with the same capture after a
+redesign changes these screens.
+
 To regenerate after replacing the source art, run `pnpm brand:generate` and
 commit the results. If the crop no longer frames the face, adjust `FACE` in the
 script.

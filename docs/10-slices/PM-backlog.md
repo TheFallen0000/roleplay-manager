@@ -82,7 +82,7 @@ Last updated: 2026-10-12
 | PM.20 | Apply an exported settings template (`standaloneSettings`) to all conversations of an existing character. <br>*Done as S29 (v1.21.0) — see `S29-progress.md`.* | PM.10 |
 | PM.28 | Export/import **personas** (user-level, so they do not travel inside a character export). <br>*Done as S74 (pending release) — see `S74-progress.md`.* | — |
 | PM.29 | Carry `customProfileImageAssetId` inside the settings template (`standaloneSettings`) so “Apply settings…” also brings the custom chat image. <br>*Deferred in S29 (v1.21.0); conversation images already travel in the character export (S31).* | PM.20 |
-| PM.30 | Import conflict handling by name (replace/merge) instead of always creating duplicates. <br>*Deferred in S18 (v1.9.0).* | PM.8 |
+| PM.30 | Import conflict handling by name (replace/merge) instead of always creating duplicates. <br>*Discarded (2026-10-13): duplicates are acceptable for now; revisit only if a real issue shows up.* | PM.8 |
 
 > **PM.8 (S18) — done (2026-08-12, v1.9.0):** A JSON exported from the S17 export manager can be
 > imported by dropping it over the character list (an overlay invites you to drop the file) or
@@ -118,6 +118,11 @@ Last updated: 2026-10-12
 > that validates kind, schema version and fields with translated errors; duplicates are allowed
 > (conflict handling stays in PM.30). No backend changes: the existing create endpoint does the
 > work. See `S74-progress.md`.
+
+> **PM.30 — discarded (2026-10-13):** Import conflict handling (replace/merge by name) is
+> dropped: the user is fine with duplicates for now, and the feature would add a decision step to
+> a flow that is currently one click. It can be revisited if duplicates ever become an issue in
+> practice.
 
 ## Multi-language & themes
 
@@ -167,7 +172,7 @@ Last updated: 2026-10-12
 | PM.21 | Access the app from a phone anywhere while it keeps running on the user's computer, without deploying to a server or exposing ports. <br>*Done as S33 (v1.25.0): **Tailscale + Serve** (private, no domain), toggled from the app's Phone menu with a QR. See `S33-progress.md`.* | — |
 | PM.22 | Quick phone connection over the home network (same Wi-Fi): a "Home network" tab in the Phone dialog with its own URL and QR, alongside the Tailscale one. <br>*Done as S38 (v1.26.0): toggleable LAN sharing through a backend proxy (`LAN_PORT`, default 4322), with QR, address selector and firewall notes. See `S38-progress.md`.* | PM.21 |
 | PM.26 | Own **PWA install button** in the app (`beforeinstallprompt`, with a tutorial fallback for iOS and hidden once installed), plus the minimal pass-through service worker Chrome Android needs for a real (WebAPK) install. <br>*Done as S72 (v1.45.0) — see `S72-progress.md`.* | S54 (manifest) |
-| PM.32 | Manifest extras for the install experience: `screenshots` (rich install dialog on Android), `shortcuts` and `display_override`. <br>*Deferred in S54 (v1.35.0).* | PM.26 |
+| PM.32 | Manifest extras for the install experience: `screenshots` (rich install dialog on Android), `shortcuts` and `display_override`. <br>*Done as S77 (pending release) — see `S77-progress.md`.* | PM.26 |
 
 > **PM.21 (S32 + S33) — done (2026-10-06, v1.24.0 / v1.25.0):** **Tailscale + Serve** was
 > chosen (private tailnet, nothing exposed to the internet, no domain, phone installs the
@@ -205,6 +210,12 @@ Last updated: 2026-10-12
 > to the tutorial on iOS. A minimal pass-through service worker (no caching) makes Chrome
 > Android offer a real WebAPK install, and the PWA tutorial was corrected: installing requires
 > the HTTPS Tailscale address, not the home network. See `S72-progress.md`.
+
+> **PM.32 (S77) — done (2026-10-13, pending release):** The manifest declares real install
+> screenshots (library and visual-novel chat wide at 1440x810, chat narrow at 720x1280) captured
+> from the packaged app with synthetic, import-seeded content, plus three shortcuts (Tutoriales,
+> Proveedores, Registro). `display_override` was dropped: with no window-controls-overlay UI it
+> adds nothing visible. See `S77-progress.md`.
 
 > **PM.31 (S76) — done (2026-10-13, pending release):** The `memory_proposals` block parser now
 > tolerates drifted labels (caps, hyphens, spaces), unterminated blocks (responses cut
@@ -270,6 +281,7 @@ Last updated: 2026-10-12
 | PM.17 | Settings panel responsive redesign: Sheet → DropdownMenu of three dialogs (Historia / Modelo / Personalización). <br>*Done as S14 (v1.5.0) — see `S14-progress.md`.* | — |
 | PM.18 | Character list toolbar: a search bar and a sort `Select` (by most recent conversation → oldest and vice versa) below the header, plus a masonry grid layout for the character cards. <br>*Done as S19 (v1.10.0) — see `S19-progress.md`.* | — |
 | PM.27 | Redesign the **Providers** and **Player characters** screens with the Ink & Violet language: they inherit the tokens but kept the pre-redesign layout. <br>*Done as S73 (pending release) — see `S73-progress.md`.* | S59 (tokens) |
+| PM.33 | Chat scroll polish: the `MessageScroller` content closes with a ~400px trailing spacer, so opening a conversation parks the last message well above the composer (one scroll fixes it). Consider anchoring the end just above the composer on load. <br>*Found while capturing PM.32 (S77, 2026-10-13); measured: viewport 558px, spacer 396px, `scrollTop` at max with the gap visible.* | — |
 
 > **PM.27 (S73) — done (2026-10-13, pending release):** Proveedores and Personajes jugados now
 > speak the Ink & Violet language — display headings with a lede, an ink plate for the current
