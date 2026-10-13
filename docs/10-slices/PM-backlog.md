@@ -196,7 +196,7 @@ Last updated: 2026-10-12
 | PM.24 | Packaging & distribution: decide and build how the app ships to end users (portable folder with a bundled runtime, desktop shell or Docker), including the GitHub Releases pipeline the updater consumes. <br>*Done as S40/S41/S42/S43 (v1.28.0 / v1.29.0 / v1.30.0 / v1.31.0): single-process build, portable Windows x64 package, release CI and the release-based updater. See `S40-progress.md` … `S43-progress.md`.* | — |
 | PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Done as S39/S43 (v1.27.0 / v1.31.0): git-based detection + apply for developers, and the release-based updater for the packaged build (download → install in `versions/<v>` → switch `current` → restart), automatic backups, updates screen, sidebar badge and one-time notice. See `S39-progress.md` and `S43-progress.md`.* | PM.24 |
 | PM.25 | **Rollback button** in the Updates panel: switch `current` back to the previous `versions/<v>` folder (the mechanics exist; only the endpoint and the UI are missing). <br>*Done as S72 (v1.45.0) — see `S72-progress.md`.* | PM.23, PM.24 |
-| PM.31 | More tolerant parser for the `memory_proposals` block (LLM format variations), with tests for odd shapes. <br>*Deferred in S6 (v1.1.0).* | — |
+| PM.31 | More tolerant parser for the `memory_proposals` block (LLM format variations), with tests for odd shapes. <br>*Done as S76 (pending release) — see `S76-progress.md`.* | — |
 
 > **PM.25 + PM.26 (S72) — done (2026-10-12, v1.45.0):** The Updates panel can roll back to the
 > previous `versions/<v>` (confirmation dialog, restart needed, data untouched; the git adapter
@@ -205,6 +205,12 @@ Last updated: 2026-10-12
 > to the tutorial on iOS. A minimal pass-through service worker (no caching) makes Chrome
 > Android offer a real WebAPK install, and the PWA tutorial was corrected: installing requires
 > the HTTPS Tailscale address, not the home network. See `S72-progress.md`.
+
+> **PM.31 (S76) — done (2026-10-13, pending release):** The `memory_proposals` block parser now
+> tolerates drifted labels (caps, hyphens, spaces), unterminated blocks (responses cut
+> mid-block), trailing commas, prose around the array, an object wrapper and lower-cased
+> operations; it strips every block and logs a warning with a sample when one cannot be read.
+> See `S76-progress.md`.
 
 > **PM.23 — phase 1 done (S39, 2026-10-07, v1.27.0):** The **Updates** screen (System), the
 > sidebar badge, the one-time notice on the characters screen and the automatic backup are in
