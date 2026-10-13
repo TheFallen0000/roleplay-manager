@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   a card), and personas become plates with a Dela Gothic monogram, quiet
   actions and a mascot empty state.
 
+### Fixed
+
+- The persona card actions no longer overflow in Spanish: Editar, Exportar and
+  Eliminar now live in an **Options** dropdown menu (the same component the rest
+  of the app uses for action lists), leaving a single button in the card footer.
+
 ## [1.45.0] - 2026-10-12
 
 ### Added
