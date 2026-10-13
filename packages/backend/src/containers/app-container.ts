@@ -651,6 +651,8 @@ export const buildContainer = ({
       conversationRepository,
       providerInstanceRepository,
       updateConversationSettings,
+      characterAssetRepository,
+      storeCharacterAsset,
     ),
     uploadConversationCustomImage: new UploadConversationCustomImageUseCase(
       conversationRepository,
