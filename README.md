@@ -29,20 +29,6 @@ local SQLite database under `data/`, and the app talks to the AI provider
 OpenAI-compatible endpoint with your own API key. There is no account, no login
 and nothing is sent to a service we control.
 
-## Screenshots
-
-<p align="center">
-  <img src="packages/frontend/public/brand/screenshots/library-wide.png" alt="Character library" width="49%" />
-  <img src="packages/frontend/public/brand/screenshots/chat-wide.png" alt="Chat in visual-novel style" width="49%" />
-</p>
-<p align="center">
-  <img src="packages/frontend/public/brand/screenshots/chat-narrow.png" alt="Chat on a phone" width="24%" />
-</p>
-
-From your PC to your phone — one toggle, a QR code and it installs as an app:
-see the [phone flow](docs/press/phone-flow.png) or the
-[Phone access](#phone-access) section.
-
 ## Features
 
 - **Versioned characters** — profile, description, greeting, cards and images;
