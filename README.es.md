@@ -29,6 +29,20 @@ que **tú** elijas: una instancia local de [Ollama](https://ollama.com/) o
 cualquier endpoint compatible con OpenAI con tu propia clave. No hay cuenta, ni
 login, ni nada que se envíe a un servicio nuestro.
 
+## Capturas
+
+<p align="center">
+  <img src="packages/frontend/public/brand/screenshots/library-wide.png" alt="Biblioteca de personajes" width="49%" />
+  <img src="packages/frontend/public/brand/screenshots/chat-wide.png" alt="Chat en estilo novela visual" width="49%" />
+</p>
+<p align="center">
+  <img src="packages/frontend/public/brand/screenshots/chat-narrow.png" alt="Chat en el teléfono" width="24%" />
+</p>
+
+De tu PC a tu teléfono — un interruptor, un QR y se instala como app:
+mira el [flujo del teléfono](docs/press/phone-flow.png) o la sección
+[Acceso desde el teléfono](#acceso-desde-el-teléfono).
+
 ## Funciones
 
 - **Personajes versionados** — perfil, descripción, saludo, tarjetas e imágenes;
