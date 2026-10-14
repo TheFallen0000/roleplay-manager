@@ -14,7 +14,9 @@ const ACTION_REGEX = /\*[^*\n]+\*/g
 const OOC_REGEX = new RegExp(OOC_REGEX_SOURCE, "g")
 
 export function parseMessage(content: string): MessageSegment[] {
-  if (!content) {
+  // Legacy rows and live streams may still carry padded edges: never show them.
+  const text = content ? content.replace(/\r\n?/g, "\n").trim() : ""
+  if (!text) {
     return []
   }
 
@@ -24,7 +26,7 @@ export function parseMessage(content: string): MessageSegment[] {
   const matches: Array<{ start: number; end: number; type: "action" | "ooc"; inner: string }> = []
 
   let match: RegExpExecArray | null
-  while ((match = actionRegex.exec(content)) !== null) {
+  while ((match = actionRegex.exec(text)) !== null) {
     matches.push({
       start: match.index,
       end: actionRegex.lastIndex,
@@ -33,7 +35,7 @@ export function parseMessage(content: string): MessageSegment[] {
     })
   }
 
-  while ((match = oocRegex.exec(content)) !== null) {
+  while ((match = oocRegex.exec(text)) !== null) {
     matches.push({
       start: match.index,
       end: oocRegex.lastIndex,
@@ -47,7 +49,7 @@ export function parseMessage(content: string): MessageSegment[] {
   let lastIndex = 0
   for (const m of matches) {
     if (m.start > lastIndex) {
-      const before = content.slice(lastIndex, m.start)
+      const before = text.slice(lastIndex, m.start)
       if (before) segments.push({ type: "dialogue", content: before })
     }
     if (m.type === "ooc") {
@@ -60,13 +62,13 @@ export function parseMessage(content: string): MessageSegment[] {
     lastIndex = m.end
   }
 
-  if (lastIndex < content.length) {
-    const remaining = content.slice(lastIndex)
+  if (lastIndex < text.length) {
+    const remaining = text.slice(lastIndex)
     if (remaining) segments.push({ type: "dialogue", content: remaining })
   }
 
   if (segments.length === 0) {
-    segments.push({ type: "dialogue", content })
+    segments.push({ type: "dialogue", content: text })
   }
 
   return segments

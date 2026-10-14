@@ -73,4 +73,14 @@ describe("parseMessage", () => {
   it("devuelve array vacio si el contenido esta vacio", () => {
     expect(parseMessage("")).toEqual([])
   })
+
+  it("recorta los bordes para que los saltos no se muestren", () => {
+    const result = parseMessage("\n\n  *Camina.*\n\n")
+    expect(result).toEqual([{ type: "action", content: "Camina." }])
+  })
+
+  it("normaliza CRLF antes de parsear", () => {
+    const result = parseMessage("Uno.\r\n\r\nDos.")
+    expect(result).toEqual([{ type: "dialogue", content: "Uno.\n\nDos." }])
+  })
 })
