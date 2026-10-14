@@ -904,6 +904,107 @@ describe("SendMessageUseCase — memory proposal flow", () => {
   })
 })
 
+describe("SendMessageUseCase — output guardrails", () => {
+  const buildNastyProvider = (chunks: string[]): ProviderRegistry => ({
+    listRegistered: () => ["ollama"],
+    createAdapter: vi.fn(),
+    getAdapter: async () => ({
+      validateConnection: async () => "available" as const,
+      listModels: async () => ({ models: [], manualEntryRequired: false }),
+      generateStreaming: function (): AsyncIterable<StreamChunk> {
+        return {
+          [Symbol.asyncIterator]: () => {
+            let i = 0
+            return {
+              next: async () => {
+                if (i < chunks.length) {
+                  return { value: { content: chunks[i++] }, done: false } as const
+                }
+                return { value: undefined, done: true } as const
+              },
+            }
+          },
+        }
+      },
+    }),
+  })
+
+  const buildUseCase = (
+    provider: ProviderRegistry,
+    repo: MessageRepository,
+    characterRepo: CharacterRepository = buildCharacterRepo(),
+  ): SendMessageUseCase =>
+    new SendMessageUseCase(
+      buildConversationRepo(),
+      repo,
+      characterRepo,
+      buildMemoryRepo(),
+      memoryChangeProposalRepository,
+      buildPromptContextBuilder(),
+      playerCharacterRepository,
+      provider,
+      buildLogger(),
+      buildDefaultProvider(),
+      providerInstanceRepository,
+      applyAllMemoryChanges,
+      buildSummaryRepo(),
+      buildGenerateSummary(),
+      buildGenerateConversationTitle(),
+      decayMemories,
+    )
+
+  it("limpia Markdown, emojis y bordes antes de guardar la respuesta", async () => {
+    const savedAssistantContents: string[] = []
+    const useCase = buildUseCase(
+      buildNastyProvider(["\n\n## Título\n", "**Hola** 😊\n", "- uno\n- dos"]),
+      buildCapturingMessageRepo(savedAssistantContents),
+    )
+
+    const chunks: string[] = []
+    const gen = useCase.execute({ conversationId: "conv-1", content: "Hola" })
+    for await (const event of gen) {
+      if (event.type === "chunk") chunks.push(event.content)
+    }
+
+    expect(chunks[0]).toBe("## Título\n")
+    expect(savedAssistantContents[0]).toBe("Título\nHola\nuno\ndos")
+  })
+
+  it("conserva los emojis cuando las Instrucciones del personaje los mencionan", async () => {
+    const versionWithEmojis = CharacterVersion.create({
+      id: "ver-emoji",
+      characterId: "char-1",
+      name: "Test",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "A test character",
+      instructions: "Puede usar emojis cuando esté contenta.",
+      greeting: "Hello!",
+      versionNumber: 1,
+      createdAt: now,
+      cards: [],
+    })
+    const characterRepo: CharacterRepository = {
+      ...buildCharacterRepo(),
+      findById: async () => ({ character, currentVersion: versionWithEmojis }),
+    }
+
+    const savedAssistantContents: string[] = []
+    const useCase = buildUseCase(
+      buildNastyProvider(["¡Qué alegría! 😊\n\n"]),
+      buildCapturingMessageRepo(savedAssistantContents),
+      characterRepo,
+    )
+
+    const gen = useCase.execute({ conversationId: "conv-1", content: "Hola" })
+    for await (const _ of gen) {
+      // consume
+    }
+
+    expect(savedAssistantContents[0]).toBe("¡Qué alegría! 😊")
+  })
+})
+
 function buildSendMessageUseCase(repo: ConversationRepository): SendMessageUseCase {
   return new SendMessageUseCase(
     repo,
@@ -942,4 +1043,20 @@ function buildApplyAllForOoc(): ApplyAllMemoryChangesUseCase {
   return {
     execute: async () => [],
   } as unknown as ApplyAllMemoryChangesUseCase
+}
+
+function buildCapturingMessageRepo(savedAssistantContents: string[]): MessageRepository {
+  return {
+    create: async (m) => {
+      if (m.role === "assistant") savedAssistantContents.push(m.content)
+      return m
+    },
+    findByConversationId: async () => existingMessages,
+    findById: async () => null,
+    findLastByConversationId: async () => null,
+    update: async (m) => m,
+    deleteById: async () => {},
+    deleteAfterPosition: async () => {},
+    clearAlternatives: async () => {},
+  }
 }

@@ -7,6 +7,7 @@ import {
   ConversationNotFoundError,
   MessageNotFoundError,
 } from "../../../domain/errors"
+import { normalizeUserContent } from "../../../lib/reply-format"
 
 export interface EditMessageInput {
   conversationId: string
@@ -33,7 +34,7 @@ export class EditMessageUseCase {
       throw new MessageNotFoundError(input.messageId)
     }
 
-    const updated = message.withContent(input.content)
+    const updated = message.withContent(normalizeUserContent(input.content))
     await this.messageRepository.update(updated)
 
     return toMessageDTO(updated)

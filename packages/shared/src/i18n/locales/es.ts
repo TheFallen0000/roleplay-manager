@@ -433,6 +433,17 @@ export const es: Dictionary = {
     styleLine:
       "Debes responder siempre en el tono y estilo de {name}, manteniendo la personalidad descrita arriba. Escribe de forma narrativa y detallada, como si estuvieras interpretando al personaje en una historia.",
     styleExample: "Ejemplo del estilo de {name}:",
+    format: "## Formato del mensaje",
+    formatActions:
+      "Usa asteriscos solo para las acciones del personaje: *así*. Nunca los uses para títulos ni énfasis; para eso, escribe en prosa o entre comillas.",
+    formatNoMarkdown:
+      "No uses Markdown: nada de títulos con #, negritas con **, listas, tablas ni bloques de código (salvo el bloque `memory_proposals` cuando se te pida).",
+    formatNoEmoji:
+      "No uses emojis. Solo si tus Instrucciones indican lo contrario.",
+    formatEdges:
+      "Empieza y termina el mensaje directamente: sin líneas en blanco al principio ni al final. Separa los párrafos con una sola línea en blanco.",
+    formatInCharacter:
+      "Mantente siempre en personaje: nada de viñetas, resúmenes ni comentarios de asistente.",
     ooc: "## Meta-instrucciones del usuario (OOC)",
     oocHint:
       "El usuario puede incluir meta-instrucciones entre `//...//` (out-of-character) en sus mensajes, normalmente al final. Estas son instrucciones para ti, no parte del roleplay.",

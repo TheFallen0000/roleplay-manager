@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Reply format rules in the system prompt**: asterisks are reserved for
+  actions, Markdown (headings, bold, lists, tables, code blocks) is banned
+  except for the `memory_proposals` block, and emojis are off unless the
+  character Instructions say otherwise. Replies must start and end directly,
+  with at most one blank line between paragraphs.
+- **Deterministic reply cleanup**: generated replies are normalized before
+  they are stored — padded edges, excess blank lines, heading/bold/bullet
+  markers and emojis are removed (emojis survive when the character
+  Instructions mention them), while `*actions*` are respected. User text is
+  trimmed, the live stream hides leading blank lines, and the message renderer
+  trims legacy rows.
+
 ## [1.46.2] - 2026-10-14
 
 ### Fixed
