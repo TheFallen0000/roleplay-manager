@@ -434,6 +434,16 @@ export const en = {
     styleLine:
       "You must always reply in the tone and style of {name}, keeping the personality described above. Write in a narrative and detailed way, as if you were playing the character in a story.",
     styleExample: "Example of {name}'s style:",
+    format: "## Message format",
+    formatActions:
+      "Use asterisks only for the character's actions: *like this*. Never for titles or emphasis; write those as prose or in quotes.",
+    formatNoMarkdown:
+      "Do not use Markdown: no # headings, no **bold**, no lists, no tables, no code blocks (except the `memory_proposals` block when asked for it).",
+    formatNoEmoji: "Do not use emojis. Only if your Instructions say otherwise.",
+    formatEdges:
+      "Start and end the message directly: no blank lines at the beginning or the end. Separate paragraphs with a single blank line.",
+    formatInCharacter:
+      "Always stay in character: no bullet points, summaries or assistant-like commentary.",
     ooc: "## User meta-instructions (OOC)",
     oocHint:
       "The user may include meta-instructions between `//...//` (out-of-character) in their messages, usually at the end. These are instructions for you, not part of the roleplay.",
