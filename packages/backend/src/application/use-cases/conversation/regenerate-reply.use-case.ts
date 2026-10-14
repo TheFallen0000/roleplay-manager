@@ -22,6 +22,10 @@ import type { ProviderInstanceRepository } from "../../../domain/ports/provider-
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { ApplyAllMemoryChangesUseCase } from "../memory/apply-all-memory-changes.use-case"
 import { extractProposals, createCleanStream, type CleanStreamState } from "../../../lib/memory-proposal-extractor"
+import {
+  mentionsEmojis,
+  normalizeAssistantReply,
+} from "../../../lib/reply-format"
 import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
 import { propagateToolCalls, type ToolCallState } from "../../../lib/propagate-tool-calls"
 import {
@@ -260,7 +264,11 @@ export class RegenerateReplyUseCase {
       proposals = fallback.proposals
     }
 
-    if (!cleanedContent.trim()) {
+    const normalizedContent = normalizeAssistantReply(cleanedContent, {
+      allowEmojis: mentionsEmojis(characterResult.currentVersion.instructions),
+    })
+
+    if (!normalizedContent) {
       yield {
         type: "error",
         error: {
@@ -271,7 +279,7 @@ export class RegenerateReplyUseCase {
       return
     }
 
-    const regenerated = message.regenerate(cleanedContent)
+    const regenerated = message.regenerate(normalizedContent)
     await this.messageRepository.update(regenerated)
 
     yield { type: "done", message: toMessageDTO(regenerated) }

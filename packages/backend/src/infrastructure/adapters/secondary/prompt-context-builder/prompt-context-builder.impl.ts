@@ -139,6 +139,13 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
     systemParts.push("")
     systemParts.push(tr("prompt.styleExample", { name: cv.name }))
     systemParts.push(`"${cv.greeting}"`)
+    systemParts.push("")
+    systemParts.push(tr("prompt.format"))
+    systemParts.push(tr("prompt.formatActions"))
+    systemParts.push(tr("prompt.formatNoMarkdown"))
+    systemParts.push(tr("prompt.formatNoEmoji"))
+    systemParts.push(tr("prompt.formatEdges"))
+    systemParts.push(tr("prompt.formatInCharacter"))
 
     if (filterOocFromHistory) {
       systemParts.push("")

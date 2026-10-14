@@ -28,6 +28,11 @@ import { extractProposals, createCleanStream, type CleanStreamState } from "../.
 import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
 import { propagateToolCalls, type ToolCallState } from "../../../lib/propagate-tool-calls"
 import {
+  mentionsEmojis,
+  normalizeAssistantReply,
+  normalizeUserContent,
+} from "../../../lib/reply-format"
+import {
   accumulateToolCallDeltas,
   buildProposeMemoryChangesTool,
   toolCallsToRawProposals,
@@ -121,7 +126,7 @@ export class SendMessageUseCase {
       id: randomUUIDv7(),
       conversationId: input.conversationId,
       role: "user",
-      content: input.content,
+      content: normalizeUserContent(input.content),
       position: nextPosition,
       alternatives: [],
       alternativesCursor: 0,
@@ -290,7 +295,11 @@ export class SendMessageUseCase {
       }
     }
 
-    if (!cleanedContent.trim()) {
+    const normalizedContent = normalizeAssistantReply(cleanedContent, {
+      allowEmojis: mentionsEmojis(characterResult.currentVersion.instructions),
+    })
+
+    if (!normalizedContent) {
       yield {
         type: "error",
         error: {
@@ -305,7 +314,7 @@ export class SendMessageUseCase {
       id: randomUUIDv7(),
       conversationId: input.conversationId,
       role: "assistant",
-      content: cleanedContent,
+      content: normalizedContent,
       position: nextPosition + 1,
       alternatives: [],
       alternativesCursor: 0,

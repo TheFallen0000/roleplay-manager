@@ -18,6 +18,7 @@ import {
   InvalidVersionForCharacterError,
 } from "../../../domain/errors"
 import { resolveEffectiveProfileImageAssetId } from "../../../domain/value-objects/effective-profile-image"
+import { normalizeUserContent } from "../../../lib/reply-format"
 
 export class CreateConversationUseCase {
   constructor(
@@ -74,7 +75,7 @@ export class CreateConversationUseCase {
       id: randomUUIDv7(),
       conversationId,
       role: "assistant",
-      content: version.greeting,
+      content: normalizeUserContent(version.greeting),
       position: 0,
       alternatives: [],
       alternativesCursor: 0,

@@ -190,6 +190,7 @@ export async function* createCleanStream(
   state: CleanStreamState,
 ): AsyncGenerator<{ content: string }> {
   let cursor = 0
+  let started = false
 
   for await (const chunk of stream) {
     if (chunk.content) {
@@ -199,9 +200,17 @@ export async function* createCleanStream(
     const { visible, nextCursor } = resolveVisible(state.fullContent, cursor)
     cursor = nextCursor
     for (const part of visible) {
-      if (part) {
+      if (!part) continue
+      if (started) {
         yield { content: part }
+        continue
       }
+      // Leading blank lines are padding the chat should never show: hold them
+      // back until the reply actually starts.
+      const trimmed = part.replace(/^\s+/, "")
+      if (!trimmed) continue
+      started = true
+      yield { content: trimmed }
     }
   }
 }
