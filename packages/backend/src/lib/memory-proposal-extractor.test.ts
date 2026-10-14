@@ -339,8 +339,19 @@ describe("createCleanStream", () => {
       SIMPLE_BLOCK,
       "\n\nSolo esto queda.",
     ])
-    expect(yielded).toEqual(["\n\nSolo esto queda."])
+    expect(yielded).toEqual(["Solo esto queda."])
     expect(fullContent).toContain("memory_proposals")
+  })
+
+  it("oculta los blancos iniciales hasta que empieza el texto", async () => {
+    const { yielded, fullContent } = await collectFromStream([
+      "\n\n",
+      "  ",
+      "*Mira.* ",
+      "Hola.",
+    ])
+    expect(yielded).toEqual(["*Mira.* ", "Hola."])
+    expect(fullContent).toBe("\n\n  *Mira.* Hola.")
   })
 
   it("fullContent contiene el texto completo incluso con partes filtradas", async () => {
