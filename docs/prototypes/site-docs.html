@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Install on Windows — Roleplay Manager Docs</title>
+    <meta
+      name="description"
+      content="Install Roleplay Manager on Windows: download the portable package, unzip it, run the launcher and connect your AI provider."
+    />
+    <meta name="theme-color" content="#f8f6f9" />
+    <link
+      rel="icon"
+      href="../../packages/frontend/public/favicon-32x32.png"
+      sizes="32x32"
+    />
+    <script>
+      ;(() => {
+        const zones = [
+          "America/Mexico",
+          "America/Bogota",
+          "America/Lima",
+          "America/Santiago",
+          "America/Argentina",
+          "America/Caracas",
+          "America/Panama",
+          "America/Costa_Rica",
+          "America/El_Salvador",
+          "America/Guatemala",
+          "America/Havana",
+          "America/La_Paz",
+          "America/Asuncion",
+          "America/Montevideo",
+          "America/Puerto_Rico",
+          "America/Santo_Domingo",
+          "Europe/Madrid",
+          "Atlantic/Canary",
+          "Africa/Ceuta",
+          "Pacific/Galapagos",
+        ]
+        const params = new URLSearchParams(location.search)
+        const stored = localStorage.getItem("rm-site-lang")
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+        const langs = navigator.languages || [navigator.language]
+        const spanish =
+          langs.some((lang) => lang && lang.toLowerCase().startsWith("es")) ||
+          zones.some((zone) => tz.startsWith(zone))
+        const lang = params.get("lang") || stored || (spanish ? "es" : "en")
+        document.documentElement.dataset.lang = lang
+        document.documentElement.lang = lang
+        const theme = localStorage.getItem("rm-site-theme") || "system"
+        const dark =
+          theme === "dark" ||
+          (theme === "system" &&
+            matchMedia("(prefers-color-scheme: dark)").matches)
+        document.documentElement.classList.toggle("dark", dark)
+        document.documentElement.dataset.theme = theme
+      })()
+    </script>
+    <link
+      rel="preload"
+      href="assets/fonts/zen-kaku-gothic-new-latin-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/zen-maru-gothic-latin-900-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="site.css" />
+    <link rel="stylesheet" href="site-docs.css" />
+  </head>
+  <body class="docs-page">
+    <svg class="sprite" width="0" height="0" aria-hidden="true">
+      <symbol
+        id="i-download"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 3v12" />
+        <path d="m7 10 5 5 5-5" />
+        <path d="M5 21h14" />
+      </symbol>
+      <symbol
+        id="i-arrow"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M5 12h14" />
+        <path d="m13 6 6 6-6 6" />
+      </symbol>
+      <symbol
+        id="i-chevron"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </symbol>
+      <symbol
+        id="i-github"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18 0 15 1.6a13.4 13.4 0 0 0-6 0C6 0 4.7.5 4.7.5A5 5 0 0 0 4.6 4a5.4 5.4 0 0 0-1.4 3.7c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 9 18v4"
+        />
+        <path d="M9 19c-3 .9-3-1.5-4-2" />
+      </symbol>
+      <symbol
+        id="i-sun"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <circle cx="12" cy="12" r="4" />
+        <path
+          d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+        />
+      </symbol>
+      <symbol
+        id="i-moon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z" />
+      </symbol>
+      <symbol
+        id="i-menu"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+      <symbol
+        id="i-close"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <path d="m6 6 12 12M18 6 6 18" />
+      </symbol>
+      <symbol
+        id="i-search"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="m16.5 16.5 4 4" />
+      </symbol>
+      <symbol
+        id="i-check"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m5 12 4 4L19 6" />
+      </symbol>
+      <symbol
+        id="i-info"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5M12 8h.01" />
+      </symbol>
+      <symbol
+        id="i-alert"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M10.3 3.8 2.4 17.3A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.7L13.7 3.8a2 2 0 0 0-3.4 0Z"
+        />
+        <path d="M12 9v4M12 17h.01" />
+      </symbol>
+      <symbol
+        id="i-book"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path
+          d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"
+        />
+      </symbol>
+      <symbol
+        id="i-copy"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="9" y="9" width="12" height="12" rx="2" />
+        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+      </symbol>
+      <symbol id="i-windows" viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M3 4.5 10.5 3v8H3V4.5Zm0 8.5h7.5v8L3 19.5V13Zm9-10L21 2v9h-9V3Zm0 10h9v9l-9-1.5V13Z"
+        />
+      </symbol>
+    </svg>
+
+    <header class="site-header docs-header">
+      <div class="header-inner container">
+        <a class="brand" href="site.html" data-docs-link="site.html">
+          <img
+            src="../../packages/frontend/public/brand/face-96.png"
+            alt=""
+            width="96"
+            height="96"
+          />
+          <span class="wordmark">Roleplay Manager</span>
+        </a>
+        <span class="docs-brand-note" data-i18n="docs.brandNote"
+          >Documentation</span
+        >
+        <a
+          class="version-chip"
+          href="https://github.com/TheFallen0000/roleplay-manager/releases/latest"
+          data-i18n="hero.micro.version"
+          >v1.47.0</a
+        >
+
+        <button class="docs-search" type="button" data-open-search>
+          <svg class="ico"><use href="#i-search" /></svg>
+          <span data-i18n="docs.search">Search</span>
+          <span class="kbd">Ctrl K</span>
+        </button>
+
+        <div class="header-actions">
+          <div
+            class="lang-toggle desktop-only"
+            role="group"
+            data-i18n-aria="header.lang"
+            aria-label="Language"
+          >
+            <button type="button" data-lang-set="en" aria-pressed="true">
+              EN
+            </button>
+            <button type="button" data-lang-set="es" aria-pressed="false">
+              ES
+            </button>
+          </div>
+          <button
+            class="header-icon"
+            type="button"
+            data-theme-toggle
+            data-i18n-aria="theme.toggle"
+            aria-label="Toggle light and dark mode"
+          >
+            <svg class="ico theme-icon-moon"><use href="#i-moon" /></svg>
+            <svg class="ico theme-icon-sun"><use href="#i-sun" /></svg>
+          </button>
+          <a
+            class="header-icon desktop-only"
+            href="https://github.com/TheFallen0000/roleplay-manager"
+            data-i18n-aria="header.github"
+            aria-label="GitHub repository"
+          >
+            <svg class="ico"><use href="#i-github" /></svg>
+          </a>
+          <a
+            class="btn btn--primary btn--sm"
+            href="https://github.com/TheFallen0000/roleplay-manager/releases/latest"
+          >
+            <svg class="ico"><use href="#i-download" /></svg>
+            <span class="download-label" data-i18n="docs.download"
+              >Download</span
+            >
+          </a>
+          <button
+            class="header-icon docs-menu-btn"
+            type="button"
+            data-docs-menu
+            aria-expanded="false"
+            data-i18n-aria="docs.menu"
+            aria-label="Docs menu"
+          >
+            <svg class="ico"><use href="#i-menu" /></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="docs-overlay" aria-hidden="true"></div>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-nav-group">
+          <div
+            class="docs-nav-label"
+            id="docs-nav-getting"
+            data-i18n="docs.sidebar.getting"
+          >
+            Getting started
+          </div>
+          <nav class="docs-nav" aria-labelledby="docs-nav-getting">
+            <a href="#" data-i18n="docs.sidebar.what"
+              >What is Roleplay Manager?</a
+            >
+            <a href="#" data-i18n="docs.sidebar.install">Installation</a>
+            <a
+              class="sub"
+              href="#"
+              data-i18n="docs.sidebar.windows"
+              aria-current="page"
+              >Windows</a
+            >
+            <a class="sub" href="#" data-i18n="docs.sidebar.linux">Linux</a>
+            <a class="sub" href="#" data-i18n="docs.sidebar.mac">macOS</a>
+            <a href="#" data-i18n="docs.sidebar.first">First steps</a>
+            <a href="#" data-i18n="docs.sidebar.updates">Updating</a>
+          </nav>
+        </div>
+
+        <div class="docs-nav-group">
+          <div
+            class="docs-nav-label"
+            id="docs-nav-guides"
+            data-i18n="docs.sidebar.guides"
+          >
+            Guides
+          </div>
+          <nav class="docs-nav" aria-labelledby="docs-nav-guides">
+            <a href="#" data-i18n="docs.sidebar.characters"
+              >Characters and versions</a
+            >
+            <a href="#" data-i18n="docs.sidebar.chats">Chats and branches</a>
+            <a href="#" data-i18n="docs.sidebar.memory">Memory and summaries</a>
+            <a href="#" data-i18n="docs.sidebar.providers">Providers</a>
+            <a href="#" data-i18n="docs.sidebar.custom">Chat customization</a>
+            <a href="#" data-i18n="docs.sidebar.phone">Phone access</a>
+            <a href="#" data-i18n="docs.sidebar.data">Data and backups</a>
+            <a href="#" data-i18n="docs.sidebar.trouble">Troubleshooting</a>
+          </nav>
+        </div>
+
+        <div class="docs-nav-group">
+          <div
+            class="docs-nav-label"
+            id="docs-nav-reference"
+            data-i18n="docs.sidebar.reference"
+          >
+            Reference
+          </div>
+          <nav class="docs-nav" aria-labelledby="docs-nav-reference">
+            <a href="#" data-i18n="docs.sidebar.settings">Settings</a>
+            <a href="#" data-i18n="docs.sidebar.env">Environment variables</a>
+            <a href="#" data-i18n="docs.sidebar.folder">Portable folder</a>
+            <a href="#" data-i18n="docs.sidebar.format">Character format</a>
+            <a href="#" data-i18n="docs.sidebar.glossary">Glossary</a>
+          </nav>
+        </div>
+
+        <div class="docs-nav-group">
+          <div
+            class="docs-nav-label"
+            id="docs-nav-contrib"
+            data-i18n="docs.sidebar.contrib"
+          >
+            Contributing
+          </div>
+          <nav class="docs-nav" aria-labelledby="docs-nav-contrib">
+            <a href="#" data-i18n="docs.sidebar.dev">Development</a>
+            <a href="#" data-i18n="docs.sidebar.arch">Architecture</a>
+            <a href="#" data-i18n="docs.sidebar.releases">Releases</a>
+            <a
+              href="https://github.com/TheFallen0000/roleplay-manager/blob/master/LICENSE"
+              data-i18n="docs.sidebar.license"
+              >License</a
+            >
+          </nav>
+        </div>
+
+        <div class="docs-sidebar-foot">
+          <span data-lang-block="en"
+            >Missing something? Open an issue on GitHub. The docs live in the
+            same repository as the app.</span
+          >
+          <span data-lang-block="es"
+            >¿Falta algo? Abre un issue en GitHub. La documentación vive en el
+            mismo repositorio que la app.</span
+          >
+          <br />
+          <a
+            href="https://github.com/TheFallen0000/roleplay-manager/issues"
+            data-lang-block="en"
+            >Open an issue →</a
+          >
+          <a
+            href="https://github.com/TheFallen0000/roleplay-manager/issues"
+            data-lang-block="es"
+            >Abrir un issue →</a
+          >
+        </div>
+      </aside>
+
+      <main class="docs-main">
+        <nav class="docs-breadcrumbs" aria-label="Breadcrumb">
+          <a
+            href="site-docs.html"
+            data-docs-link="site-docs.html"
+            data-i18n="docs.brandNote"
+            >Documentation</a
+          >
+          <span class="sep">/</span>
+          <a href="#" data-i18n="docs.sidebar.getting">Getting started</a>
+          <span class="sep">/</span>
+          <a href="#" data-i18n="docs.sidebar.install">Installation</a>
+          <span class="sep">/</span>
+          <span>Windows</span>
+        </nav>
+
+        <article class="docs-article" data-lang-block="en">
+          <h1>Install on Windows</h1>
+          <p class="docs-lede">
+            Download the portable package, unzip it and run the launcher. No
+            Node.js, no installer, no account.
+          </p>
+          <div class="docs-meta">
+            <span class="chip"
+              ><svg class="ico"><use href="#i-windows" /></svg>Windows 10/11 ·
+              x64</span
+            >
+            <span>Version 1.47.0</span>
+            <span>·</span>
+            <span>About 5 minutes</span>
+          </div>
+
+          <h2 id="before">Before you start</h2>
+          <p>
+            Roleplay Manager runs on your computer. You need a 64-bit Windows 10
+            or 11 PC and an AI provider: Ollama on the same machine, or any
+            OpenAI-compatible endpoint with your own key.
+          </p>
+
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>What</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Download</td>
+                <td>62 MB ZIP</td>
+              </tr>
+              <tr>
+                <td>Unzipped</td>
+                <td>About 200 MB</td>
+              </tr>
+              <tr>
+                <td>Admin rights</td>
+                <td>Not required</td>
+              </tr>
+              <tr>
+                <td>Node.js</td>
+                <td>Not required — the runtime is included</td>
+              </tr>
+              <tr>
+                <td>Your data</td>
+                <td><code>data/</code> inside the app folder</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <svg class="ico"><use href="#i-info" /></svg>
+            <div>
+              <span class="callout__title"
+                >Keep the folder somewhere permanent</span
+              >
+              <p>
+                Use a folder you can write to, such as
+                <code>Documents\RoleplayManager</code>. Avoid running it from
+                inside the ZIP: Windows unpacks to a temporary folder and your
+                data becomes harder to find.
+              </p>
+            </div>
+          </div>
+
+          <h2 id="download">1. Download the package</h2>
+          <p>
+            Download the Windows x64 package from the latest release. The file
+            is called <code>roleplay-manager-1.47.0-win-x64.zip</code>.
+          </p>
+          <p>
+            <a
+              class="btn btn--primary"
+              href="https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-win-x64.zip"
+            >
+              <svg class="ico"><use href="#i-download" /></svg>
+              Download for Windows (x64) · 62 MB
+            </a>
+          </p>
+          <p class="small muted">
+            Need Linux or macOS?
+            <a href="site.html#platforms">See all platforms</a>.
+          </p>
+
+          <h2 id="unzip">2. Unzip it somewhere permanent</h2>
+          <p>
+            Right-click the ZIP and choose <strong>Extract All…</strong>, then
+            move the folder to <code>Documents\RoleplayManager</code>. Keep the
+            whole folder together; the launcher, runtime and versions live
+            inside it.
+          </p>
+          <div class="code-block">
+            <pre><code>RoleplayManager/
+├── data/        ← your story
+├── backups/     ← safety copies
+├── versions/    ← installed versions
+└── start.cmd</code></pre>
+            <button
+              class="copy-btn"
+              type="button"
+              data-copy="RoleplayManager/&#10;├── data/&#10;├── backups/&#10;├── versions/&#10;└── start.cmd"
+            >
+              <svg class="ico"><use href="#i-copy" /></svg
+              ><span data-copy-label>Copy</span>
+            </button>
+          </div>
+
+          <h2 id="run">3. Open the launcher</h2>
+          <p>
+            Double-click <code>start.cmd</code>. A console window opens and the
+            browser should open at <code>http://localhost:3001</code> when the
+            app is ready.
+          </p>
+          <div class="code-block">
+            <pre><code>start.cmd</code></pre>
+            <button class="copy-btn" type="button" data-copy="start.cmd">
+              <svg class="ico"><use href="#i-copy" /></svg
+              ><span data-copy-label>Copy</span>
+            </button>
+          </div>
+          <p>
+            If the browser does not open, visit
+            <a href="http://localhost:3001">http://localhost:3001</a> manually.
+            Keep the console window open while you use the app; closing it stops
+            the server.
+          </p>
+
+          <h2 id="connect">4. Connect your AI</h2>
+          <p>
+            In the app, open <strong>System → Providers</strong>, add Ollama or
+            an OpenAI-compatible endpoint, and use
+            <strong>Test connection</strong>. Then choose a default model and
+            create your first character.
+          </p>
+          <p><a href="#">Next: connect a provider →</a></p>
+
+          <h2 id="warning">If Windows warns you</h2>
+          <div class="callout callout--warn">
+            <svg class="ico"><use href="#i-alert" /></svg>
+            <div>
+              <span class="callout__title">“Windows protected your PC”</span>
+              <p>
+                The app is not code-signed, so SmartScreen may show a warning on
+                first launch. Only continue if you downloaded the file from the
+                official GitHub release.
+              </p>
+              <p>
+                Click <strong>More info</strong> → <strong>Run anyway</strong>.
+                This is a one-time step for the launcher.
+              </p>
+            </div>
+          </div>
+
+          <h2 id="troubleshoot">If something goes wrong</h2>
+          <ul>
+            <li>
+              <strong>The browser does not open:</strong> go to
+              <code>http://localhost:3001</code> manually. If it still fails,
+              check the console window for an error.
+            </li>
+            <li>
+              <strong>Port 3001 is already in use:</strong> close the app using
+              it, or start Roleplay Manager with a different <code>PORT</code>.
+            </li>
+            <li>
+              <strong>The launcher closes immediately:</strong> unzip the
+              package again; running <code>start.cmd</code> from inside the ZIP
+              is the most common cause.
+            </li>
+            <li>
+              <strong>You use macOS or Linux:</strong> follow the
+              platform-specific guide instead.
+            </li>
+          </ul>
+        </article>
+
+        <article class="docs-article" data-lang-block="es">
+          <h1>Instalar en Windows</h1>
+          <p class="docs-lede">
+            Descarga el paquete portátil, descomprímelo y ejecuta el lanzador.
+            Sin Node.js, sin instalador, sin cuenta.
+          </p>
+          <div class="docs-meta">
+            <span class="chip"
+              ><svg class="ico"><use href="#i-windows" /></svg>Windows 10/11 ·
+              x64</span
+            >
+            <span>Versión 1.47.0</span>
+            <span>·</span>
+            <span>Unos 5 minutos</span>
+          </div>
+
+          <h2 id="before-es">Antes de empezar</h2>
+          <p>
+            Roleplay Manager se ejecuta en tu ordenador. Necesitas un PC con
+            Windows 10 u 11 de 64 bits y un proveedor de IA: Ollama en el mismo
+            equipo, o cualquier endpoint compatible con OpenAI con tu propia
+            clave.
+          </p>
+
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Qué</th>
+                <th>Detalles</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Descarga</td>
+                <td>ZIP de 62 MB</td>
+              </tr>
+              <tr>
+                <td>Descomprimido</td>
+                <td>Unos 200 MB</td>
+              </tr>
+              <tr>
+                <td>Permisos de admin</td>
+                <td>No hacen falta</td>
+              </tr>
+              <tr>
+                <td>Node.js</td>
+                <td>No hace falta: el runtime va incluido</td>
+              </tr>
+              <tr>
+                <td>Tus datos</td>
+                <td><code>data/</code> dentro de la carpeta de la app</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <svg class="ico"><use href="#i-info" /></svg>
+            <div>
+              <span class="callout__title"
+                >Guarda la carpeta en un sitio permanente</span
+              >
+              <p>
+                Usa una carpeta donde puedas escribir, como
+                <code>Documentos\RoleplayManager</code>. Evita ejecutarlo desde
+                dentro del ZIP: Windows descomprime en una carpeta temporal y
+                tus datos se vuelven más difíciles de encontrar.
+              </p>
+            </div>
+          </div>
+
+          <h2 id="download-es">1. Descarga el paquete</h2>
+          <p>
+            Descarga el paquete de Windows x64 desde la última release. El
+            archivo se llama <code>roleplay-manager-1.47.0-win-x64.zip</code>.
+          </p>
+          <p>
+            <a
+              class="btn btn--primary"
+              href="https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-win-x64.zip"
+            >
+              <svg class="ico"><use href="#i-download" /></svg>
+              Descargar para Windows (x64) · 62 MB
+            </a>
+          </p>
+          <p class="small muted">
+            ¿Necesitas Linux o macOS?
+            <a href="site.html#platforms">Ver todas las plataformas</a>.
+          </p>
+
+          <h2 id="unzip-es">2. Descomprímelo en un sitio permanente</h2>
+          <p>
+            Haz clic derecho en el ZIP y elige <strong>Extraer todo…</strong>, y
+            luego mueve la carpeta a <code>Documentos\RoleplayManager</code>.
+            Mantén la carpeta completa: el lanzador, el runtime y las versiones
+            viven dentro.
+          </p>
+          <div class="code-block">
+            <pre><code>RoleplayManager/
+├── data/        ← tu historia
+├── backups/     ← copias
+├── versions/    ← versiones
+└── start.cmd</code></pre>
+            <button
+              class="copy-btn"
+              type="button"
+              data-copy="RoleplayManager/&#10;├── data/&#10;├── backups/&#10;├── versions/&#10;└── start.cmd"
+            >
+              <svg class="ico"><use href="#i-copy" /></svg
+              ><span data-copy-label>Copiar</span>
+            </button>
+          </div>
+
+          <h2 id="run-es">3. Abre el lanzador</h2>
+          <p>
+            Haz doble clic en <code>start.cmd</code>. Se abre una ventana de
+            consola y el navegador debería abrir
+            <code>http://localhost:3001</code> cuando la app esté lista.
+          </p>
+          <div class="code-block">
+            <pre><code>start.cmd</code></pre>
+            <button class="copy-btn" type="button" data-copy="start.cmd">
+              <svg class="ico"><use href="#i-copy" /></svg
+              ><span data-copy-label>Copiar</span>
+            </button>
+          </div>
+          <p>
+            Si el navegador no se abre, visita
+            <a href="http://localhost:3001">http://localhost:3001</a> a mano.
+            Mantén la consola abierta mientras usas la app; al cerrarla se
+            detiene el servidor.
+          </p>
+
+          <h2 id="connect-es">4. Conecta tu IA</h2>
+          <p>
+            En la app, abre <strong>Sistema → Proveedores</strong>, añade Ollama
+            o un endpoint compatible con OpenAI y usa
+            <strong>Probar conexión</strong>. Después elige un modelo por
+            defecto y crea tu primer personaje.
+          </p>
+          <p><a href="#">Siguiente: conectar un proveedor →</a></p>
+
+          <h2 id="warning-es">Si Windows te avisa</h2>
+          <div class="callout callout--warn">
+            <svg class="ico"><use href="#i-alert" /></svg>
+            <div>
+              <span class="callout__title">«Windows protegió tu PC»</span>
+              <p>
+                La app no está firmada, así que SmartScreen puede mostrar un
+                aviso en el primer arranque. Continúa solo si descargaste el
+                archivo desde la release oficial de GitHub.
+              </p>
+              <p>
+                Pulsa <strong>Más información</strong> →
+                <strong>Ejecutar de todas formas</strong>. Es un paso único para
+                el lanzador.
+              </p>
+            </div>
+          </div>
+
+          <h2 id="troubleshoot-es">Si algo falla</h2>
+          <ul>
+            <li>
+              <strong>El navegador no se abre:</strong> entra en
+              <code>http://localhost:3001</code> a mano. Si sigue fallando, mira
+              el error en la ventana de consola.
+            </li>
+            <li>
+              <strong>El puerto 3001 está ocupado:</strong> cierra la app que lo
+              usa o arranca Roleplay Manager con otro <code>PORT</code>.
+            </li>
+            <li>
+              <strong>El lanzador se cierra al instante:</strong> vuelve a
+              descomprimir el paquete; ejecutar <code>start.cmd</code> desde
+              dentro del ZIP es la causa más común.
+            </li>
+            <li>
+              <strong>Usas macOS o Linux:</strong> sigue la guía de tu
+              plataforma.
+            </li>
+          </ul>
+        </article>
+
+        <div class="docs-nextprev">
+          <a href="#">
+            <span class="dir" data-i18n="docs.prev">Previous</span>
+            <span class="name" data-i18n="docs.prevTitle">Installation</span>
+          </a>
+          <a class="next" href="#">
+            <span class="dir" data-i18n="docs.next">Next</span>
+            <span class="name" data-i18n="docs.nextTitle">Linux and macOS</span>
+          </a>
+        </div>
+
+        <div class="docs-feedback">
+          <span data-i18n="docs.helpful">Was this page helpful?</span>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            data-feedback="yes"
+            aria-pressed="false"
+            data-i18n="docs.yes"
+          >
+            Yes
+          </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            data-feedback="no"
+            aria-pressed="false"
+            data-i18n="docs.no"
+          >
+            No
+          </button>
+          <span class="thanks" hidden data-i18n="docs.thanks"
+            >Thanks for the feedback.</span
+          >
+        </div>
+
+        <a
+          class="docs-edit"
+          href="https://github.com/TheFallen0000/roleplay-manager"
+        >
+          <svg class="ico"><use href="#i-github" /></svg>
+          <span data-i18n="docs.edit">Edit this page on GitHub</span>
+        </a>
+      </main>
+
+      <aside class="docs-toc">
+        <h2 data-i18n="docs.toc">On this page</h2>
+        <nav data-lang-block="en" aria-label="On this page">
+          <a href="#before">Before you start</a>
+          <a href="#download">1. Download the package</a>
+          <a href="#unzip">2. Unzip it somewhere permanent</a>
+          <a href="#run">3. Open the launcher</a>
+          <a href="#connect">4. Connect your AI</a>
+          <a href="#warning">If Windows warns you</a>
+          <a href="#troubleshoot">If something goes wrong</a>
+        </nav>
+        <nav data-lang-block="es" aria-label="En esta página">
+          <a href="#before-es">Antes de empezar</a>
+          <a href="#download-es">1. Descarga el paquete</a>
+          <a href="#unzip-es">2. Descomprímelo en un sitio permanente</a>
+          <a href="#run-es">3. Abre el lanzador</a>
+          <a href="#connect-es">4. Conecta tu IA</a>
+          <a href="#warning-es">Si Windows te avisa</a>
+          <a href="#troubleshoot-es">Si algo falla</a>
+        </nav>
+      </aside>
+    </div>
+
+    <dialog
+      class="search-dialog"
+      id="search-dialog"
+      aria-labelledby="search-title"
+    >
+      <div class="dialog-head">
+        <div>
+          <h2 id="search-title" data-i18n="docs.search">Search</h2>
+        </div>
+        <button
+          class="dialog-close"
+          type="button"
+          data-dialog-close
+          aria-label="Close"
+        >
+          <svg class="ico"><use href="#i-close" /></svg>
+        </button>
+      </div>
+      <div class="dialog-body">
+        <label class="search-input-wrap">
+          <svg class="ico"><use href="#i-search" /></svg>
+          <input
+            id="search-input"
+            type="search"
+            autocomplete="off"
+            data-i18n-placeholder="docs.searchPlaceholder"
+            placeholder="Search the documentation…"
+          />
+        </label>
+
+        <div class="search-results" data-lang-block="en">
+          <a
+            class="search-result"
+            href="#download"
+            data-search="install windows download zip smart screen"
+            ><strong>Install on Windows</strong
+            ><span>Download, unzip and run the launcher.</span></a
+          >
+          <a
+            class="search-result"
+            href="#connect"
+            data-search="provider ollama openai api key model"
+            ><strong>Connect a provider</strong
+            ><span>Ollama, OpenAI-compatible endpoints and models.</span></a
+          >
+          <a
+            class="search-result"
+            href="#"
+            data-search="memory summaries context decay"
+            ><strong>Memory and summaries</strong
+            ><span>Keep long chats inside the model's context.</span></a
+          >
+          <a
+            class="search-result"
+            href="#"
+            data-search="phone tailscale lan pwa qr"
+            ><strong>Phone access</strong
+            ><span>Tailscale, home Wi-Fi and PWA install.</span></a
+          >
+          <a
+            class="search-result"
+            href="#"
+            data-search="update backup data folder versions"
+            ><strong>Data and updates</strong
+            ><span>Where your story lives and how updates work.</span></a
+          >
+        </div>
+        <div class="search-results" data-lang-block="es">
+          <a
+            class="search-result"
+            href="#download-es"
+            data-search="instalar windows descargar zip smart screen"
+            ><strong>Instalar en Windows</strong
+            ><span>Descarga, descomprime y ejecuta el lanzador.</span></a
+          >
+          <a
+            class="search-result"
+            href="#connect-es"
+            data-search="proveedor ollama openai clave modelo"
+            ><strong>Conectar un proveedor</strong
+            ><span>Ollama, endpoints compatibles con OpenAI y modelos.</span></a
+          >
+          <a
+            class="search-result"
+            href="#"
+            data-search="memoria resúmenes contexto desgaste"
+            ><strong>Memoria y resúmenes</strong
+            ><span
+              >Mantén los chats largos dentro del contexto del modelo.</span
+            ></a
+          >
+          <a
+            class="search-result"
+            href="#"
+            data-search="teléfono tailscale lan pwa qr"
+            ><strong>Acceso desde el teléfono</strong
+            ><span>Tailscale, WiFi doméstica e instalación PWA.</span></a
+          >
+          <a
+            class="search-result"
+            href="#"
+            data-search="actualizar copia datos carpeta versiones"
+            ><strong>Datos y actualizaciones</strong
+            ><span>Dónde vive tu historia y cómo se actualiza.</span></a
+          >
+        </div>
+        <p class="search-empty" hidden data-i18n="docs.searchEmpty">
+          No results. Try “install”, “Ollama” or “memory”.
+        </p>
+        <p class="search-hint" data-i18n="docs.searchHint">
+          Search by topic, error or feature.
+        </p>
+      </div>
+    </dialog>
+
+    <nav class="proto-bar" aria-label="Prototype pages">
+      <span class="tag">Prototype</span>
+      <a href="site.html">Landing</a>
+      <a href="site-docs.html" aria-current="page">Docs</a>
+      <a href="style-tile.html">Style tile</a>
+      <span class="divider"></span>
+      <button type="button" data-theme-set="light">Light</button>
+      <button type="button" data-theme-set="dark">Dark</button>
+      <button type="button" data-theme-set="system">Auto</button>
+      <span class="divider"></span>
+      <button type="button" data-lang-set="en">EN</button>
+      <button type="button" data-lang-set="es">ES</button>
+    </nav>
+
+    <script src="site.js"></script>
+  </body>
+</html>
