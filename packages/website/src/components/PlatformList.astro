@@ -1,0 +1,76 @@
+---
+import Icon from "../components/Icon.astro"
+import type { Release } from "../data/release"
+import type { Locale, TranslationKey } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+  release: Release
+  showAll?: boolean
+}
+
+const { t, release, showAll = true } = Astro.props
+
+const rows = [
+  {
+    key: "win-x64",
+    icon: "windows",
+    label: "download.win",
+    platform: "platform.win",
+  },
+  {
+    key: "mac-arm64",
+    icon: "apple",
+    label: "download.macArm",
+    platform: "platform.macArm",
+  },
+  {
+    key: "mac-x64",
+    icon: "apple",
+    label: "download.macIntel",
+    platform: "platform.macIntel",
+  },
+  {
+    key: "linux-x64",
+    icon: "linux",
+    label: "download.linuxX64",
+    platform: "platform.linuxX64",
+  },
+  {
+    key: "linux-arm64",
+    icon: "linux",
+    label: "download.linuxArm64",
+    platform: "platform.linuxArm64",
+  },
+]
+  .map((row) => ({ ...row, asset: release.assets[row.key] }))
+  .filter((row) => Boolean(row.asset))
+---
+
+<div class="platform-list">
+  {
+    rows.map((row) => (
+      <a class="platform" href={row.asset.url} data-platform={row.key}>
+        <Icon name={row.icon} />
+        <div>
+          <strong>{t(row.label as TranslationKey)}</strong>
+          <span>
+            {t(row.platform as TranslationKey)} · {row.asset.sizeLabel}
+          </span>
+        </div>
+        <span class="rec" hidden>
+          {t("download.recommended")}
+        </span>
+      </a>
+    ))
+  }
+</div>
+{
+  showAll && (
+    <a class="dialog-all" href={release.htmlUrl}>
+      <span>{t("download.all")}</span>
+      <Icon name="arrow" />
+    </a>
+  )
+}

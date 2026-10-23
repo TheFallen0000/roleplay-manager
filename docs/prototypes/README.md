@@ -12,6 +12,29 @@ navegador. Los datos, nombres y textos son **sintéticos**.
 | `welcome.html` | Onboarding: mascota, idioma, mundo y modo; CTA con destello. |
 | `library.html` | Shell (sidebar + header) y biblioteca de personajes, con estado vacío. |
 | `chat.html` | La misma conversación en **burbuja / documento / novela visual**, color de diálogo y streaming. |
+| `site.html` | Portada de **roleplay-manager.com**: hero, descarga por SO, funciones, datos, móvil, FAQ y cierre. |
+| `site-docs.html` | Página de documentación: sidebar, búsqueda, TOC, callouts, código y feedback. |
+
+### Sitio web (2026-10-23)
+
+`site.html` y `site-docs.html` son una exploración aparte del sitio público. Usan
+`site.css`, `site-docs.css` y `site.js`. El planteamiento completo está en
+[`../11-website/`](../11-website/README.md).
+
+- **Idioma:** inglés por defecto, español con `?lang=es` o autodetección por
+  navegador/zona horaria. El toggle guarda la elección en `localStorage`.
+- **Descarga:** detecta Windows, macOS, Linux o móvil. En escritorio, Windows
+  descarga directo; macOS/Linux abren el selector por arquitectura. En móvil
+  dice «Download for your PC».
+- **Datos:** los enlaces apuntan a la release real `v1.47.0`; en producción se
+  leerán de la API de GitHub en build time.
+- **Rutas de revisión:** `?dialog=platforms`, `?dialog=search&q=ollama`,
+  `?tab=chat`, `?lang=es`.
+- **Limitaciones:** las capturas son las actuales en español; las fuentes son
+  subsets latin self-hosted copiados de Fontsource; la búsqueda es local y
+  simulada; no hay analítica ni backend.
+- **Producción:** Astro + Starlight, Fontsource, Pagefind, Cloudflare Pages.
+  Ver [`../11-website/implementation.md`](../11-website/implementation.md).
 
 La barra inferior de cada página permite cambiar de página y alternar
 claro/oscuro/sistema. En `chat.html`, el panel inferior izquierdo cambia el

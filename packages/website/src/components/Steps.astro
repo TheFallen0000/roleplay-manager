@@ -1,0 +1,37 @@
+---
+import Icon from "../components/Icon.astro"
+import type { TranslationKey } from "../i18n"
+
+interface Props {
+  t: (key: TranslationKey) => string
+}
+
+const { t } = Astro.props
+const steps = [1, 2, 3] as const
+---
+
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-head">
+      <h2>{t("steps.title")}</h2>
+      <p>{t("steps.lede")}</p>
+    </div>
+
+    <div class="steps">
+      {
+        steps.map((step) => (
+          <div class="step">
+            <div class="step-num">{String(step).padStart(2, "0")}</div>
+            <h3>{t(`steps.${step}.title` as TranslationKey)}</h3>
+            <p>{t(`steps.${step}.body` as TranslationKey)}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="steps-note">
+      <Icon name="info" />
+      <span>{t("steps.note")}</span>
+    </p>
+  </div>
+</section>

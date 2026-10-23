@@ -1,0 +1,146 @@
+---
+import "../styles/global.css"
+import Header from "../components/Header.astro"
+import Footer from "../components/Footer.astro"
+import IconSprite from "../components/IconSprite.astro"
+import PlatformDialog from "../components/PlatformDialog.astro"
+import { release } from "../data/release"
+import { localePath, otherLocale, t as translate, type Locale } from "../i18n"
+
+interface Props {
+  locale: Locale
+  title: string
+  description: string
+  paths: Record<Locale, string>
+  noindex?: boolean
+}
+
+const { locale, title, description, paths, noindex = false } = Astro.props
+const t = (key: Parameters<typeof translate>[1]) => translate(locale, key)
+const canonical = new URL(paths[locale], Astro.site)
+const homeHref = localePath(locale, "/")
+const docsHref = localePath(locale, "/docs/")
+const downloadHref = localePath(locale, "/download")
+const alternateHref = paths[otherLocale(locale)]
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="en" href={new URL(paths.en, Astro.site)} />
+    <link rel="alternate" hreflang="es" href={new URL(paths.es, Astro.site)} />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={new URL(paths.en, Astro.site)}
+    />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Roleplay Manager" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale === "es" ? "es_ES" : "en_US"} />
+    <meta
+      property="og:locale:alternate"
+      content={locale === "es" ? "en_US" : "es_ES"}
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="theme-color"
+      content="#f8f6f9"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#191422"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" href="/favicon-16x16.png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script is:inline>
+      ;(() => {
+        const root = document.documentElement
+        const theme = localStorage.getItem("rm-theme") || "system"
+        const dark =
+          theme === "dark" ||
+          (theme === "system" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+        root.classList.toggle("dark", dark)
+
+        if (
+          localStorage.getItem("rm-lang") ||
+          location.pathname === "/es" ||
+          location.pathname.startsWith("/es/")
+        ) {
+          return
+        }
+        const zones = [
+          "America/Mexico",
+          "America/Bogota",
+          "America/Lima",
+          "America/Santiago",
+          "America/Argentina",
+          "America/Caracas",
+          "America/Panama",
+          "America/Costa_Rica",
+          "America/El_Salvador",
+          "America/Guatemala",
+          "America/Havana",
+          "America/La_Paz",
+          "America/Asuncion",
+          "America/Montevideo",
+          "America/Puerto_Rico",
+          "America/Santo_Domingo",
+          "Europe/Madrid",
+          "Atlantic/Canary",
+          "Africa/Ceuta",
+          "Pacific/Galapagos",
+        ]
+        const languages = navigator.languages || [navigator.language]
+        const spanishBrowser = languages.some(
+          (language) => language && language.toLowerCase().startsWith("es")
+        )
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+        const spanishZone = zones.some((zone) => timezone.startsWith(zone))
+        if (!spanishBrowser && !spanishZone) return
+        const path = location.pathname.replace(/\/+$/, "")
+        const target = path === "" ? "/es/" : `/es${path}/`
+        location.replace(`${target}${location.search}${location.hash}`)
+      })()
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t("skip.link")}</a>
+    <IconSprite />
+    <Header
+      locale={locale}
+      t={t}
+      release={release}
+      homeHref={homeHref}
+      docsHref={docsHref}
+      downloadHref={downloadHref}
+      alternateHref={alternateHref}
+      currentHref={paths[locale]}
+    />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer
+      locale={locale}
+      t={t}
+      homeHref={homeHref}
+      docsHref={docsHref}
+      downloadHref={downloadHref}
+    />
+    <PlatformDialog locale={locale} t={t} release={release} />
+    <script src="../scripts/site.ts"></script>
+  </body>
+</html>

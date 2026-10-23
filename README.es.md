@@ -117,7 +117,7 @@ pnpm dev
 
 ### Estructura del proyecto
 
-Monorepo pnpm + turbo con cuatro paquetes:
+Monorepo pnpm + turbo con cinco paquetes:
 
 | Paquete | Propósito |
 |---|---|
@@ -125,6 +125,7 @@ Monorepo pnpm + turbo con cuatro paquetes:
 | `packages/frontend` | Astro + React + shadcn/ui. Habla con el backend por REST + SSE. |
 | `packages/shared` | Tipos TypeScript puros y utilidades sin framework. |
 | `packages/ui` | Componentes reutilizables de shadcn/ui. |
+| `packages/website` | Sitio público (roleplay-manager.com): portada, descargas y docs. |
 
 ### Scripts comunes
 

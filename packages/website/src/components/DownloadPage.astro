@@ -1,0 +1,119 @@
+---
+import Icon from "../components/Icon.astro"
+import PlatformList from "../components/PlatformList.astro"
+import type { Release } from "../data/release"
+import type { Locale, TranslationKey } from "../i18n"
+import { localePath } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+  release: Release
+}
+
+const { locale, t, release } = Astro.props
+const docsHref = localePath(locale, "/docs/")
+const homeHref = localePath(locale, "/")
+const published = release.publishedAt
+  ? new Intl.DateTimeFormat(locale === "es" ? "es" : "en", {
+      dateStyle: "medium",
+    }).format(new Date(release.publishedAt))
+  : null
+---
+
+<section class="section download-page">
+  <div class="container">
+    <p class="back-link">
+      <a href={homeHref}>← {t("downloadPage.backHome")}</a>
+    </p>
+    <h1>{t("downloadPage.title")}</h1>
+    <p class="lede">{t("downloadPage.lede")}</p>
+
+    <div class="download-meta">
+      <span
+        >{t("downloadPage.version")}: <strong>v{release.version}</strong></span
+      >
+      {
+        published && (
+          <span>
+            · {t("downloadPage.updated")}: {published}
+          </span>
+        )
+      }
+    </div>
+
+    <div class="download-layout">
+      <div>
+        <PlatformList locale={locale} t={t} release={release} showAll={false} />
+        <p class="dialog-help">{t("download.help")}</p>
+        <p>
+          <a class="dialog-all" href={release.htmlUrl}>
+            <span>{t("downloadPage.allReleases")}</span>
+            <Icon name="arrow" />
+          </a>
+        </p>
+        <p class="download-note">{t("downloadPage.note")}</p>
+      </div>
+
+      <aside class="download-side">
+        <h2>{t("downloadPage.requirements")}</h2>
+        <table class="info-table">
+          <tbody>
+            <tr
+              ><th>{t("downloadPage.req.os")}</th><td
+                >{t("downloadPage.req.osValue")}</td
+              ></tr
+            >
+            <tr
+              ><th>{t("downloadPage.req.disk")}</th><td
+                >{t("downloadPage.req.diskValue")}</td
+              ></tr
+            >
+            <tr
+              ><th>{t("downloadPage.req.node")}</th><td
+                >{t("downloadPage.req.nodeValue")}</td
+              ></tr
+            >
+            <tr
+              ><th>{t("downloadPage.req.account")}</th><td
+                >{t("downloadPage.req.accountValue")}</td
+              ></tr
+            >
+          </tbody>
+        </table>
+        <h2>{t("downloadPage.firstRunTitle")}</h2>
+        <p>{t("downloadPage.firstRunBody")}</p>
+        <p>
+          <a class="btn btn--ghost" href={docsHref}>
+            <Icon name="book" />
+            <span>{t("downloadPage.docs")}</span>
+          </a>
+        </p>
+      </aside>
+    </div>
+
+    <div class="download-warnings">
+      <div class="callout callout--warn">
+        <Icon name="alert" />
+        <div>
+          <h2>{t("downloadPage.winWarningTitle")}</h2>
+          <p>{t("downloadPage.winWarningBody")}</p>
+        </div>
+      </div>
+      <div class="callout callout--warn">
+        <Icon name="alert" />
+        <div>
+          <h2>{t("downloadPage.macWarningTitle")}</h2>
+          <p>{t("downloadPage.macWarningBody")}</p>
+        </div>
+      </div>
+      <div class="callout">
+        <Icon name="info" />
+        <div>
+          <h2>{t("downloadPage.linuxWarningTitle")}</h2>
+          <p>{t("downloadPage.linuxWarningBody")}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

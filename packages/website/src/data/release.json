@@ -1,0 +1,38 @@
+{
+  "version": "1.47.0",
+  "tag": "v1.47.0",
+  "publishedAt": "2026-10-14T14:17:40Z",
+  "htmlUrl": "https://github.com/TheFallen0000/roleplay-manager/releases/tag/v1.47.0",
+  "assets": {
+    "linux-arm64": {
+      "name": "roleplay-manager-1.47.0-linux-arm64.tar.gz",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-linux-arm64.tar.gz",
+      "size": 64749087,
+      "sizeLabel": "65 MB"
+    },
+    "linux-x64": {
+      "name": "roleplay-manager-1.47.0-linux-x64.tar.gz",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-linux-x64.tar.gz",
+      "size": 65008066,
+      "sizeLabel": "65 MB"
+    },
+    "mac-arm64": {
+      "name": "roleplay-manager-1.47.0-mac-arm64.tar.gz",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-mac-arm64.tar.gz",
+      "size": 60335670,
+      "sizeLabel": "60 MB"
+    },
+    "mac-x64": {
+      "name": "roleplay-manager-1.47.0-mac-x64.tar.gz",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-mac-x64.tar.gz",
+      "size": 62356486,
+      "sizeLabel": "62 MB"
+    },
+    "win-x64": {
+      "name": "roleplay-manager-1.47.0-win-x64.zip",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-win-x64.zip",
+      "size": 62463281,
+      "sizeLabel": "62 MB"
+    }
+  }
+}

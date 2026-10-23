@@ -6,7 +6,7 @@ Conventions and architecture rules for the **roleplay-manager** monorepo. This f
 
 ## 1. Project overview
 
-A roleplay conversation manager with a Node/Express backend, an Astro+React frontend, and shared TypeScript types. Built as a pnpm + turbo monorepo with four packages:
+A roleplay conversation manager with a Node/Express backend, an Astro+React frontend, and shared TypeScript types. Built as a pnpm + turbo monorepo with five packages:
 
 | Package | Purpose |
 |---|---|
@@ -14,8 +14,31 @@ A roleplay conversation manager with a Node/Express backend, an Astro+React fron
 | `packages/frontend` | Astro pages + React components. Talks to the backend via REST + SSE. |
 | `packages/shared` | Pure TypeScript types and framework-agnostic helpers (`ooc-parser`). |
 | `packages/ui` | Reusable shadcn/ui components (button, dialog, etc.). |
+| `packages/website` | Public site (roleplay-manager.com): Astro landing, downloads and docs. Static, no React, deployed on Cloudflare Pages. |
 
 **Node**: ≥ 22.12.0. **Package manager**: pnpm 11.21.0. **Build orchestrator**: turbo 2.x.
+
+### Website (`packages/website`)
+
+- Static Astro site. No React, no backend, no runtime adapter.
+- Landing at `/` and `/es/`, download at `/download` and `/es/download`,
+  documentation under `/docs` and `/es/docs` (Starlight from S83).
+- English is canonical; Spanish is a full mirror. The first visit from a
+  Spanish browser/timezone is redirected to `/es/`; an explicit choice is
+  stored in `localStorage` (`rm-lang`).
+- Download data comes from `src/data/release.json`, refreshed in build by
+  `scripts/fetch-release.mjs`; if the GitHub API fails, the committed snapshot
+  is kept.
+- Build: `pnpm --filter @workspace/website build`. Typecheck:
+  `pnpm --filter @workspace/website typecheck`. Lint:
+  `pnpm --filter @workspace/website lint`.
+- Cloudflare Pages: root `/`, build `pnpm --filter @workspace/website build`,
+  output `packages/website/dist`, `NODE_VERSION=24`, `PNPM_VERSION=11.21.0`.
+- **Release policy:** the website deploys independently on every push to
+  `master` (Cloudflare Pages). It does **not** bump the root `package.json` and
+  does **not** create a GitHub release. Website changes that matter to users go
+  under `[Unreleased]` in `CHANGELOG.md` and ride the next batched app release;
+  a website-only change does not require an app release.
 
 ---
 

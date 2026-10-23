@@ -1,0 +1,89 @@
+---
+import { Image } from "astro:assets"
+import chatWide from "../assets/screenshots/chat-wide.png"
+import mascot from "../assets/brand/mascot-640.webp"
+import Icon from "../components/Icon.astro"
+import type { Release } from "../data/release"
+import type { Locale, TranslationKey } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+  release: Release
+  downloadHref: string
+}
+
+const { t, release, downloadHref } = Astro.props
+const winUrl = release.assets["win-x64"]?.url ?? downloadHref
+---
+
+<section class="hero">
+  <div class="hero-grid container">
+    <div class="hero-copy fade-up">
+      <h1 set:html={t("hero.title")} />
+      <p class="lede">{t("hero.lede")}</p>
+
+      <div class="hero-actions">
+        <a
+          class="btn btn--primary btn--lg"
+          href={downloadHref}
+          data-download-primary
+          data-win-url={winUrl}
+          data-label-win={t("os.win.label")}
+          data-label-mac={t("os.mac.label")}
+          data-label-linux={t("os.linux.label")}
+          data-label-mobile={t("os.mobile.label")}
+          data-label-unknown={t("os.unknown.label")}
+          data-meta-win={t("os.win.meta")}
+          data-meta-mac={t("os.mac.meta")}
+          data-meta-linux={t("os.linux.meta")}
+          data-meta-mobile={t("os.mobile.meta")}
+          data-meta-unknown={t("os.unknown.meta")}
+        >
+          <Icon name="download" />
+          <span data-os-label>{t("os.unknown.label")}</span>
+        </a>
+        <a class="btn btn--ghost btn--lg" href="#platforms" data-open-platforms>
+          <span>{t("hero.other")}</span>
+          <Icon name="chevron" />
+        </a>
+      </div>
+
+      <div class="hero-note">
+        <span>{t("hero.micro.version")}</span>
+        <span class="sep"></span>
+        <span data-os-meta>{t("os.unknown.meta")}</span>
+        <span class="sep"></span>
+        <span>{t("hero.micro.noNode")}</span>
+        <span class="sep"></span>
+        <span>{t("hero.micro.noAccount")}</span>
+      </div>
+    </div>
+
+    <div class="hero-art fade-up">
+      <figure class="shot">
+        <Image
+          src={chatWide}
+          widths={[720, 1080]}
+          sizes="(max-width: 60rem) 90vw, 540px"
+          format="webp"
+          loading="eager"
+          fetchpriority="high"
+          alt={t("hero.imageAlt")}
+        />
+        <figcaption class="shot-caption">
+          <span><span class="dot"></span>Chat · visual novel</span>
+          <span>{t("gallery.caption.note")}</span>
+        </figcaption>
+      </figure>
+      <Image
+        class="hero-mascot"
+        src={mascot}
+        widths={[320, 640]}
+        sizes="(max-width: 60rem) 90px, 144px"
+        format="webp"
+        alt={t("hero.mascotAlt")}
+      />
+    </div>
+  </div>
+</section>

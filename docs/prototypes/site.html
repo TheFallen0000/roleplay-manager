@@ -1,0 +1,1445 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Roleplay Manager — Your story lives on your machine</title>
+    <meta
+      name="description"
+      content="A local-first notebook for long chats with AI characters. Versioned characters, real memory, branches, and your data in a folder you own."
+    />
+    <meta name="theme-color" content="#f8f6f9" />
+    <link
+      rel="icon"
+      href="../../packages/frontend/public/favicon-32x32.png"
+      sizes="32x32"
+    />
+    <script>
+      ;(() => {
+        const zones = [
+          "America/Mexico",
+          "America/Bogota",
+          "America/Lima",
+          "America/Santiago",
+          "America/Argentina",
+          "America/Caracas",
+          "America/Panama",
+          "America/Costa_Rica",
+          "America/El_Salvador",
+          "America/Guatemala",
+          "America/Havana",
+          "America/La_Paz",
+          "America/Asuncion",
+          "America/Montevideo",
+          "America/Puerto_Rico",
+          "America/Santo_Domingo",
+          "Europe/Madrid",
+          "Atlantic/Canary",
+          "Africa/Ceuta",
+          "Pacific/Galapagos",
+        ]
+        const params = new URLSearchParams(location.search)
+        const stored = localStorage.getItem("rm-site-lang")
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+        const langs = navigator.languages || [navigator.language]
+        const spanish =
+          langs.some((lang) => lang && lang.toLowerCase().startsWith("es")) ||
+          zones.some((zone) => tz.startsWith(zone))
+        const lang = params.get("lang") || stored || (spanish ? "es" : "en")
+        document.documentElement.dataset.lang = lang
+        document.documentElement.lang = lang
+        const theme = localStorage.getItem("rm-site-theme") || "system"
+        const dark =
+          theme === "dark" ||
+          (theme === "system" &&
+            matchMedia("(prefers-color-scheme: dark)").matches)
+        document.documentElement.classList.toggle("dark", dark)
+        document.documentElement.dataset.theme = theme
+      })()
+    </script>
+    <link
+      rel="preload"
+      href="assets/fonts/zen-kaku-gothic-new-latin-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/zen-maru-gothic-latin-900-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <svg class="sprite" width="0" height="0" aria-hidden="true">
+      <symbol
+        id="i-download"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 3v12" />
+        <path d="m7 10 5 5 5-5" />
+        <path d="M5 21h14" />
+      </symbol>
+      <symbol
+        id="i-arrow"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M5 12h14" />
+        <path d="m13 6 6 6-6 6" />
+      </symbol>
+      <symbol
+        id="i-chevron"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </symbol>
+      <symbol
+        id="i-github"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18 0 15 1.6a13.4 13.4 0 0 0-6 0C6 0 4.7.5 4.7.5A5 5 0 0 0 4.6 4a5.4 5.4 0 0 0-1.4 3.7c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 9 18v4"
+        />
+        <path d="M9 19c-3 .9-3-1.5-4-2" />
+      </symbol>
+      <symbol
+        id="i-sun"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <circle cx="12" cy="12" r="4" />
+        <path
+          d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+        />
+      </symbol>
+      <symbol
+        id="i-moon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z" />
+      </symbol>
+      <symbol
+        id="i-menu"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+      <symbol
+        id="i-close"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <path d="m6 6 12 12M18 6 6 18" />
+      </symbol>
+      <symbol
+        id="i-search"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="m16.5 16.5 4 4" />
+      </symbol>
+      <symbol
+        id="i-check"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m5 12 4 4L19 6" />
+      </symbol>
+      <symbol
+        id="i-info"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5M12 8h.01" />
+      </symbol>
+      <symbol
+        id="i-alert"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M10.3 3.8 2.4 17.3A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.7L13.7 3.8a2 2 0 0 0-3.4 0Z"
+        />
+        <path d="M12 9v4M12 17h.01" />
+      </symbol>
+      <symbol
+        id="i-book"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path
+          d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"
+        />
+      </symbol>
+      <symbol
+        id="i-chat"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6.2A8 8 0 1 1 21 12Z" />
+      </symbol>
+      <symbol
+        id="i-users"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8" />
+      </symbol>
+      <symbol
+        id="i-branch"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="6" cy="4" r="2" />
+        <circle cx="18" cy="6" r="2" />
+        <circle cx="6" cy="20" r="2" />
+        <path d="M6 6v12M8 6h5a5 5 0 0 1 5 5v0" />
+      </symbol>
+      <symbol
+        id="i-memory"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M12 3a4 4 0 0 0-4 4v.5A4.5 4.5 0 0 0 5 12a4.5 4.5 0 0 0 3 4.2V17a4 4 0 0 0 8 0v-.8A4.5 4.5 0 0 0 19 12a4.5 4.5 0 0 0-3-4.5V7a4 4 0 0 0-4-4Z"
+        />
+        <path d="M12 8v8" />
+      </symbol>
+      <symbol
+        id="i-palette"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M12 3a9 9 0 0 0 0 18h1.5a1.5 1.5 0 0 0 0-3H12a2 2 0 0 1 0-4h2a7 7 0 0 0 0-14Z"
+        />
+        <circle cx="7.5" cy="10.5" r=".8" fill="currentColor" />
+        <circle cx="9.5" cy="6.5" r=".8" fill="currentColor" />
+        <circle cx="14" cy="6.5" r=".8" fill="currentColor" />
+      </symbol>
+      <symbol
+        id="i-phone"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="6" y="2" width="12" height="20" rx="2.5" />
+        <path d="M11 18h2" />
+      </symbol>
+      <symbol
+        id="i-wifi"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      >
+        <path
+          d="M2 8.5a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0M8.5 15.5a6 6 0 0 1 7 0M12 19h.01"
+        />
+      </symbol>
+      <symbol
+        id="i-folder"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"
+        />
+      </symbol>
+      <symbol
+        id="i-copy"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="9" y="9" width="12" height="12" rx="2" />
+        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+      </symbol>
+      <symbol id="i-windows" viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M3 4.5 10.5 3v8H3V4.5Zm0 8.5h7.5v8L3 19.5V13Zm9-10L21 2v9h-9V3Zm0 10h9v9l-9-1.5V13Z"
+        />
+      </symbol>
+      <symbol id="i-apple" viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M16.6 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.9-3-.9-1.5 0-2.9.9-3.7 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.8 2.2 1.1 0 1.6-.7 3-.7s1.8.7 3 .7 2.1-1.1 2.9-2.2c.9-1.3 1.3-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.2ZM14.3 5.6c.6-.8 1.1-1.9 1-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2-.5 2.7-1.3Z"
+        />
+      </symbol>
+      <symbol
+        id="i-linux"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M12 3c-2 0-3 1.5-3 3.5 0 1.4-.5 2.3-1.3 3.4C6.5 11.5 5.5 13 5.5 15c0 2.8 2.9 5 6.5 5s6.5-2.2 6.5-5c0-2-1-3.5-2.2-5.1-.8-1.1-1.3-2-1.3-3.4C15 4.5 14 3 12 3Z"
+        />
+        <path d="M10 8h.01M14 8h.01M10.5 11.5h3" />
+      </symbol>
+    </svg>
+
+    <header class="site-header">
+      <div class="header-inner container">
+        <a class="brand" href="site.html">
+          <img
+            src="../../packages/frontend/public/brand/face-96.png"
+            alt=""
+            width="96"
+            height="96"
+          />
+          <span class="wordmark">Roleplay Manager</span>
+        </a>
+        <a
+          class="version-chip"
+          href="https://github.com/TheFallen0000/roleplay-manager/releases/latest"
+          data-i18n="hero.micro.version"
+          >v1.47.0</a
+        >
+
+        <nav class="main-nav" aria-label="Main">
+          <a
+            href="site-docs.html"
+            data-docs-link="site-docs.html"
+            data-i18n="nav.docs"
+            >Documentation</a
+          >
+          <a href="#how" data-i18n="nav.how">How it works</a>
+          <a href="#features" data-i18n="nav.features">Features</a>
+        </nav>
+
+        <div class="header-actions">
+          <div
+            class="lang-toggle desktop-only"
+            role="group"
+            data-i18n-aria="header.lang"
+            aria-label="Language"
+          >
+            <button type="button" data-lang-set="en" aria-pressed="true">
+              EN
+            </button>
+            <button type="button" data-lang-set="es" aria-pressed="false">
+              ES
+            </button>
+          </div>
+          <button
+            class="header-icon"
+            type="button"
+            data-theme-toggle
+            data-i18n-aria="theme.toggle"
+            aria-label="Toggle light and dark mode"
+          >
+            <svg class="ico theme-icon-moon"><use href="#i-moon" /></svg>
+            <svg class="ico theme-icon-sun"><use href="#i-sun" /></svg>
+          </button>
+          <a
+            class="header-icon desktop-only"
+            href="https://github.com/TheFallen0000/roleplay-manager"
+            data-i18n-aria="header.github"
+            aria-label="GitHub repository"
+          >
+            <svg class="ico"><use href="#i-github" /></svg>
+          </a>
+          <a
+            class="btn btn--primary btn--sm desktop-only"
+            href="#platforms"
+            data-open-platforms
+          >
+            <svg class="ico"><use href="#i-download" /></svg>
+            <span data-i18n="header.download">Download</span>
+          </a>
+          <button
+            class="header-icon menu-toggle"
+            type="button"
+            data-menu-toggle
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+            data-i18n-aria="header.menu"
+            aria-label="Menu"
+          >
+            <svg class="ico"><use href="#i-menu" /></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="mobile-menu" id="mobile-menu" hidden>
+        <nav aria-label="Mobile">
+          <a
+            href="site-docs.html"
+            data-docs-link="site-docs.html"
+            data-i18n="nav.docs"
+            >Documentation</a
+          >
+          <a href="#how" data-i18n="nav.how">How it works</a>
+          <a href="#features" data-i18n="nav.features">Features</a>
+          <a href="#platforms" data-open-platforms data-i18n="nav.download"
+            >Download</a
+          >
+        </nav>
+        <div class="mobile-actions">
+          <div
+            class="lang-toggle"
+            role="group"
+            data-i18n-aria="header.lang"
+            aria-label="Language"
+          >
+            <button type="button" data-lang-set="en" aria-pressed="true">
+              EN
+            </button>
+            <button type="button" data-lang-set="es" aria-pressed="false">
+              ES
+            </button>
+          </div>
+          <div
+            class="lang-toggle"
+            role="group"
+            data-i18n-aria="header.theme"
+            aria-label="Theme"
+          >
+            <button
+              type="button"
+              data-theme-set="light"
+              data-i18n="theme.light"
+            >
+              Light
+            </button>
+            <button type="button" data-theme-set="dark" data-i18n="theme.dark">
+              Dark
+            </button>
+            <button
+              type="button"
+              data-theme-set="system"
+              data-i18n="theme.system"
+            >
+              System
+            </button>
+          </div>
+          <a
+            class="btn btn--ghost btn--sm"
+            href="https://github.com/TheFallen0000/roleplay-manager"
+          >
+            <svg class="ico"><use href="#i-github" /></svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-grid container">
+          <div class="hero-copy fade-up">
+            <h1 data-i18n-html="hero.title">
+              Your story lives <span class="accent">on your machine.</span>
+            </h1>
+            <p class="lede" data-i18n="hero.lede">
+              Roleplay Manager is a local-first notebook for long chats with AI
+              characters: versioned characters, real memory, branches — and your
+              data in a folder you own.
+            </p>
+
+            <div class="hero-actions">
+              <a
+                class="btn btn--primary btn--lg"
+                href="https://github.com/TheFallen0000/roleplay-manager/releases/latest"
+                data-download-primary
+              >
+                <svg class="ico"><use href="#i-download" /></svg>
+                <span data-os-label>Download for Windows</span>
+              </a>
+              <a
+                class="btn btn--ghost btn--lg"
+                href="#platforms"
+                data-open-platforms
+              >
+                <span data-i18n="hero.other">Other platforms</span>
+                <svg class="ico"><use href="#i-chevron" /></svg>
+              </a>
+            </div>
+
+            <div class="hero-note">
+              <span data-i18n="hero.micro.version">v1.47.0</span>
+              <span class="sep"></span>
+              <span data-os-meta>Windows 10/11 · x64 · 62 MB</span>
+              <span class="sep"></span>
+              <span data-i18n="hero.micro.noNode">No Node.js</span>
+              <span class="sep"></span>
+              <span data-i18n="hero.micro.noAccount">No account</span>
+            </div>
+          </div>
+
+          <div class="hero-art fade-up">
+            <figure class="shot">
+              <img
+                src="assets/screenshots/chat-wide-1080.webp"
+                srcset="
+                  assets/screenshots/chat-wide-720.webp   720w,
+                  assets/screenshots/chat-wide-1080.webp 1080w
+                "
+                sizes="(max-width: 60rem) 90vw, 540px"
+                width="1080"
+                height="608"
+                fetchpriority="high"
+                alt="Roleplay Manager chat with a character in visual-novel style"
+              />
+              <figcaption class="shot-caption">
+                <span><span class="dot"></span>Chat · visual novel</span>
+                <span data-i18n="gallery.caption.note"
+                  >Screenshot from the app · synthetic content</span
+                >
+              </figcaption>
+            </figure>
+            <img
+              class="hero-mascot"
+              src="assets/mascot-640.webp"
+              srcset="assets/mascot-320.webp 320w, assets/mascot-640.webp 640w"
+              sizes="(max-width: 60rem) 106px, 168px"
+              width="640"
+              height="640"
+              alt="Roleplay Manager mascot holding an RM sign"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="trust" aria-label="Trust">
+        <div class="trust-grid container">
+          <div class="trust-item">
+            <strong data-i18n="trust.1.title">100% local</strong
+            ><span data-i18n="trust.1.sub">Your data stays in ./data</span>
+          </div>
+          <div class="trust-item">
+            <strong data-i18n="trust.2.title">Open source</strong
+            ><span data-i18n="trust.2.sub">AGPL-3.0 · no telemetry</span>
+          </div>
+          <div class="trust-item">
+            <strong data-i18n="trust.3.title">Windows · Linux · macOS</strong
+            ><span data-i18n="trust.3.sub">Portable package, no installer</span>
+          </div>
+          <div class="trust-item">
+            <strong data-i18n="trust.4.title">Your provider</strong
+            ><span data-i18n="trust.4.sub">Ollama or OpenAI-compatible</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-head">
+            <h2 data-i18n="ledger.title">Why it feels different.</h2>
+            <p data-i18n="ledger.lede">
+              Not another chat wrapper. A notebook that remembers, on a machine
+              you control.
+            </p>
+          </div>
+
+          <div class="ledger">
+            <div class="ledger-row">
+              <span class="ledger-label" data-i18n="ledger.1.label">Local</span>
+              <div>
+                <h3 data-i18n="ledger.1.title">
+                  Your story never leaves your folder.
+                </h3>
+                <p data-i18n="ledger.1.body">
+                  Characters, chats, memories and images live in a SQLite
+                  database inside data/. Move the folder, back it up, or take it
+                  with you.
+                </p>
+              </div>
+            </div>
+            <div class="ledger-row">
+              <span class="ledger-label" data-i18n="ledger.2.label"
+                >Continuity</span
+              >
+              <div>
+                <h3 data-i18n="ledger.2.title">
+                  Long stories don't lose the thread.
+                </h3>
+                <p data-i18n="ledger.2.body">
+                  Versioned characters, dynamic memory, automatic summaries and
+                  branches keep weeks of writing coherent.
+                </p>
+              </div>
+            </div>
+            <div class="ledger-row">
+              <span class="ledger-label" data-i18n="ledger.3.label"
+                >Provider</span
+              >
+              <div>
+                <h3 data-i18n="ledger.3.title">You choose the intelligence.</h3>
+                <p data-i18n="ledger.3.body">
+                  Run Ollama locally or connect any OpenAI-compatible endpoint
+                  with your own key. The app never locks you in.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tight">
+        <div class="container">
+          <div class="section-head">
+            <h2 data-i18n="gallery.title">See the notebook.</h2>
+            <p data-i18n="gallery.lede">
+              Real screens from the app. No mockups, no invented testimonials.
+            </p>
+          </div>
+
+          <div class="gallery">
+            <div class="gallery-tabs" role="tablist" aria-label="Screenshots">
+              <button
+                class="gallery-tab"
+                type="button"
+                role="tab"
+                id="tab-library"
+                aria-controls="panel-library"
+                aria-selected="true"
+                data-gallery-tab="library"
+              >
+                <svg class="ico"><use href="#i-book" /></svg>
+                <span data-i18n="gallery.tab.library">Character library</span>
+              </button>
+              <button
+                class="gallery-tab"
+                type="button"
+                role="tab"
+                id="tab-chat"
+                aria-controls="panel-chat"
+                aria-selected="false"
+                tabindex="-1"
+                data-gallery-tab="chat"
+              >
+                <svg class="ico"><use href="#i-chat" /></svg>
+                <span data-i18n="gallery.tab.chat">Chat</span>
+              </button>
+            </div>
+
+            <div class="gallery-frame">
+              <div
+                class="gallery-panel"
+                role="tabpanel"
+                id="panel-library"
+                aria-labelledby="tab-library"
+                data-gallery-panel="library"
+              >
+                <img
+                  src="assets/screenshots/library-wide-1080.webp"
+                  srcset="
+                    assets/screenshots/library-wide-720.webp   720w,
+                    assets/screenshots/library-wide-1080.webp 1080w
+                  "
+                  sizes="(max-width: 48rem) 92vw, 900px"
+                  width="1080"
+                  height="608"
+                  loading="lazy"
+                  alt="Character library with two characters and version badges"
+                />
+                <div class="gallery-caption">
+                  <span data-i18n="gallery.caption.library"
+                    >Versioned characters with their own art, memory and
+                    conversations.</span
+                  ><span data-i18n="gallery.caption.note"
+                    >Screenshot from the app · synthetic content</span
+                  >
+                </div>
+              </div>
+              <div
+                class="gallery-panel"
+                role="tabpanel"
+                id="panel-chat"
+                aria-labelledby="tab-chat"
+                data-gallery-panel="chat"
+                hidden
+              >
+                <img
+                  src="assets/screenshots/chat-wide-1080.webp"
+                  srcset="
+                    assets/screenshots/chat-wide-720.webp   720w,
+                    assets/screenshots/chat-wide-1080.webp 1080w
+                  "
+                  sizes="(max-width: 48rem) 92vw, 900px"
+                  width="1080"
+                  height="608"
+                  loading="lazy"
+                  alt="Chat with streaming-style replies and dialogue colours"
+                />
+                <div class="gallery-caption">
+                  <span data-i18n="gallery.caption.chat"
+                    >Streaming replies, editable messages and branches when a
+                    scene goes another way.</span
+                  ><span data-i18n="gallery.caption.note"
+                    >Screenshot from the app · synthetic content</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="how">
+        <div class="container">
+          <div class="section-head">
+            <h2 data-i18n="steps.title">From download to first scene.</h2>
+            <p data-i18n="steps.lede">No Node.js, no installer, no account.</p>
+          </div>
+
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">01</div>
+              <h3 data-i18n="steps.1.title">Download and unzip</h3>
+              <p data-i18n="steps.1.body">
+                Pick the package for your system. Keep it in a folder you'll
+                remember, like Documents.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-num">02</div>
+              <h3 data-i18n="steps.2.title">Open the launcher</h3>
+              <p data-i18n="steps.2.body">
+                Run start.cmd on Windows or ./start.sh on Linux and macOS. Your
+                browser opens at localhost:3001.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-num">03</div>
+              <h3 data-i18n="steps.3.title">Connect your AI</h3>
+              <p data-i18n="steps.3.body">
+                Add Ollama or an OpenAI-compatible endpoint, pick a model, and
+                create your first character.
+              </p>
+            </div>
+          </div>
+
+          <p class="steps-note">
+            <svg class="ico"><use href="#i-info" /></svg
+            ><span data-i18n="steps.note"
+              >First launch may show a system warning because the app is not
+              signed. The install guide walks you through it.</span
+            >
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="spread container">
+          <div class="spread-copy">
+            <h2 data-i18n="features.title">A notebook that remembers.</h2>
+            <p class="lede" data-i18n="features.lede">
+              Characters evolve, scenes branch, and the story keeps its context.
+            </p>
+
+            <div class="feature-list">
+              <div class="feature">
+                <svg class="ico"><use href="#i-users" /></svg>
+                <div>
+                  <h3 data-i18n="features.1.title">Versioned characters</h3>
+                  <p data-i18n="features.1.body">
+                    Every edit creates a new version. Import and export
+                    characters as portable JSON.
+                  </p>
+                </div>
+              </div>
+              <div class="feature">
+                <svg class="ico"><use href="#i-branch" /></svg>
+                <div>
+                  <h3 data-i18n="features.2.title">Branches and rewinds</h3>
+                  <p data-i18n="features.2.body">
+                    Go back to any message, regenerate a reply, or open a
+                    parallel line without losing the original.
+                  </p>
+                </div>
+              </div>
+              <div class="feature">
+                <svg class="ico"><use href="#i-memory" /></svg>
+                <div>
+                  <h3 data-i18n="features.3.title">Memory and summaries</h3>
+                  <p data-i18n="features.3.body">
+                    Dynamic memory with decay and automatic summaries keep long
+                    chats inside the model's context.
+                  </p>
+                </div>
+              </div>
+              <div class="feature">
+                <svg class="ico"><use href="#i-palette" /></svg>
+                <div>
+                  <h3 data-i18n="features.4.title">Your reading style</h3>
+                  <p data-i18n="features.4.body">
+                    Bubble, document or visual novel; five color worlds; light
+                    and dark.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="spread-media">
+            <div class="media-card">
+              <img
+                src="assets/screenshots/library-wide-1080.webp"
+                srcset="
+                  assets/screenshots/library-wide-720.webp   720w,
+                  assets/screenshots/library-wide-1080.webp 1080w
+                "
+                sizes="(max-width: 56rem) 92vw, 520px"
+                width="1080"
+                height="608"
+                loading="lazy"
+                alt="Character library in Roleplay Manager"
+              />
+              <div class="media-caption" data-i18n="gallery.caption.library">
+                Versioned characters with their own art, memory and
+                conversations.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="data-band">
+        <div class="data-grid container">
+          <div>
+            <h2 data-i18n="data.title">Your data doesn't live in a cloud.</h2>
+            <p class="lede" data-i18n="data.lede">
+              It lives in a folder you can open, copy and back up. Updates never
+              touch it.
+            </p>
+            <p class="data-note" data-i18n="data.note">
+              If you use a remote provider, only the prompt you send leaves your
+              machine. If you use Ollama, inference stays local.
+            </p>
+            <a
+              class="data-link"
+              href="site-docs.html"
+              data-docs-link="site-docs.html"
+            >
+              <span data-i18n="data.link">How data and updates work</span>
+              <svg class="ico"><use href="#i-arrow" /></svg>
+            </a>
+          </div>
+
+          <figure class="folder-card" aria-labelledby="folder-label">
+            <figcaption class="folder-label" id="folder-label">
+              <svg class="ico"><use href="#i-folder" /></svg
+              ><span data-i18n="data.folderLabel">Your folder</span>
+            </figcaption>
+            <div class="folder-line">RoleplayManager/</div>
+            <div class="folder-line">
+              <span class="tree">├── </span><span class="data">data/</span>
+              <span class="note">← your story</span>
+            </div>
+            <div class="folder-line">
+              <span class="tree">├── </span>backups/
+              <span class="note">← safety copies</span>
+            </div>
+            <div class="folder-line">
+              <span class="tree">├── </span>versions/
+              <span class="note">← installed versions</span>
+            </div>
+            <div class="folder-line">
+              <span class="tree">└── </span>start.sh
+            </div>
+            <div class="folder-foot" data-i18n="data.folderFoot">
+              Updates swap versions and leave data/ and backups/ untouched.
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="phone-grid container">
+          <div class="phone-copy">
+            <h2 data-i18n="phone.title">Your story fits in your pocket.</h2>
+            <p class="lede" data-i18n="phone.lede">
+              The app runs on your computer. Your phone opens it through a
+              private link — no native app required.
+            </p>
+            <ul class="phone-list">
+              <li>
+                <svg class="ico"><use href="#i-check" /></svg
+                ><span data-i18n="phone.1"
+                  >Tailscale: private access from anywhere, with nothing exposed
+                  to the internet.</span
+                >
+              </li>
+              <li>
+                <svg class="ico"><use href="#i-check" /></svg
+                ><span data-i18n="phone.2"
+                  >Home Wi-Fi: open it from the couch on the same network.</span
+                >
+              </li>
+              <li>
+                <svg class="ico"><use href="#i-check" /></svg
+                ><span data-i18n="phone.3"
+                  >Install it as a PWA with its own icon and window.</span
+                >
+              </li>
+            </ul>
+            <a
+              class="btn btn--ghost"
+              href="site-docs.html"
+              data-docs-link="site-docs.html"
+            >
+              <svg class="ico"><use href="#i-phone" /></svg>
+              <span data-i18n="phone.cta">Phone access guide</span>
+            </a>
+          </div>
+
+          <div class="phone-stage">
+            <div class="phone-frame">
+              <img
+                src="assets/screenshots/chat-narrow-720.webp"
+                srcset="
+                  assets/screenshots/chat-narrow-360.webp 360w,
+                  assets/screenshots/chat-narrow-720.webp 720w
+                "
+                sizes="(max-width: 56rem) 80vw, 300px"
+                width="720"
+                height="1280"
+                loading="lazy"
+                alt="Roleplay Manager chat on a phone"
+              />
+            </div>
+            <div class="stage-note">
+              <svg class="ico ico--tiny"><use href="#i-wifi" /></svg> Tailscale
+              · LAN · PWA
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tight" id="docs">
+        <div class="container">
+          <div class="section-head">
+            <h2 data-i18n="docs.title">The manual, without fine print.</h2>
+            <p data-i18n="docs.lede">
+              Installation, providers, memory, branches, backups and the phone.
+              Searchable and written for humans.
+            </p>
+          </div>
+
+          <div class="toc-list">
+            <a
+              class="toc-row"
+              href="site-docs.html"
+              data-docs-link="site-docs.html"
+            >
+              <span class="toc-num">01</span>
+              <span class="toc-title" data-i18n="docs.1"
+                >Install on Windows, Linux or macOS</span
+              >
+              <span class="toc-desc" data-i18n="docs.1.desc"
+                >Portable package · no Node.js</span
+              >
+              <svg class="ico"><use href="#i-arrow" /></svg>
+            </a>
+            <a
+              class="toc-row"
+              href="site-docs.html"
+              data-docs-link="site-docs.html"
+            >
+              <span class="toc-num">02</span>
+              <span class="toc-title" data-i18n="docs.2"
+                >Connect Ollama or an OpenAI-compatible provider</span
+              >
+              <span class="toc-desc" data-i18n="docs.2.desc"
+                >Local or remote · your key</span
+              >
+              <svg class="ico"><use href="#i-arrow" /></svg>
+            </a>
+            <a
+              class="toc-row"
+              href="site-docs.html"
+              data-docs-link="site-docs.html"
+            >
+              <span class="toc-num">03</span>
+              <span class="toc-title" data-i18n="docs.3"
+                >Create a character and start your first chat</span
+              >
+              <span class="toc-desc" data-i18n="docs.3.desc"
+                >Versions · greetings · cards</span
+              >
+              <svg class="ico"><use href="#i-arrow" /></svg>
+            </a>
+            <a
+              class="toc-row"
+              href="site-docs.html"
+              data-docs-link="site-docs.html"
+            >
+              <span class="toc-num">04</span>
+              <span class="toc-title" data-i18n="docs.4"
+                >Use it on your phone with Tailscale or LAN</span
+              >
+              <span class="toc-desc" data-i18n="docs.4.desc"
+                >Private link · PWA install</span
+              >
+              <svg class="ico"><use href="#i-arrow" /></svg>
+            </a>
+          </div>
+
+          <div class="docs-cta">
+            <a
+              class="btn btn--primary"
+              href="site-docs.html"
+              data-docs-link="site-docs.html"
+            >
+              <svg class="ico"><use href="#i-book" /></svg>
+              <span data-i18n="docs.cta">Browse the documentation</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tight">
+        <div class="container">
+          <div class="section-head">
+            <h2 data-i18n="faq.title">The questions that stop people.</h2>
+            <p class="lede" data-i18n="faq.lede">
+              Short answers before you download.
+            </p>
+          </div>
+
+          <div class="faq">
+            <details>
+              <summary>
+                <span data-i18n="faq.1.q">Is it free?</span
+                ><span class="plus" aria-hidden="true"></span>
+              </summary>
+              <div class="answer">
+                <p data-i18n="faq.1.a">
+                  Yes. Roleplay Manager is free and open source under AGPL-3.0.
+                  You only pay your AI provider if you use a paid endpoint.
+                </p>
+              </div>
+            </details>
+            <details>
+              <summary>
+                <span data-i18n="faq.2.q">Do I need Node.js?</span
+                ><span class="plus" aria-hidden="true"></span>
+              </summary>
+              <div class="answer">
+                <p data-i18n="faq.2.a">
+                  No. The portable package includes its own Node runtime. You
+                  only need Node if you want to develop the project.
+                </p>
+              </div>
+            </details>
+            <details>
+              <summary>
+                <span data-i18n="faq.3.q">Do I need an API key?</span
+                ><span class="plus" aria-hidden="true"></span>
+              </summary>
+              <div class="answer">
+                <p data-i18n="faq.3.a">
+                  Not if you run Ollama locally. For a remote provider, bring
+                  your own key.
+                </p>
+              </div>
+            </details>
+            <details>
+              <summary>
+                <span data-i18n="faq.4.q"
+                  >Where are my characters and chats?</span
+                ><span class="plus" aria-hidden="true"></span>
+              </summary>
+              <div class="answer">
+                <p data-i18n="faq.4.a">
+                  In data/ inside the app folder: a SQLite database and your
+                  images. Back up that folder or move the whole app anytime.
+                </p>
+              </div>
+            </details>
+            <details>
+              <summary>
+                <span data-i18n="faq.5.q">Will it run on my computer?</span
+                ><span class="plus" aria-hidden="true"></span>
+              </summary>
+              <div class="answer">
+                <p data-i18n="faq.5.a">
+                  There are packages for Windows x64, Linux x64/arm64 and macOS
+                  Apple Silicon/Intel. A modern 64-bit system is enough; a GPU
+                  only matters if you run large models locally.
+                </p>
+              </div>
+            </details>
+            <details>
+              <summary>
+                <span data-i18n="faq.6.q">Is there a mobile app?</span
+                ><span class="plus" aria-hidden="true"></span>
+              </summary>
+              <div class="answer">
+                <p data-i18n="faq.6.a">
+                  No native app. The app runs on your computer and your phone
+                  opens it through Tailscale or your home network. You can
+                  install it as a PWA.
+                </p>
+              </div>
+            </details>
+            <details>
+              <summary>
+                <span data-i18n="faq.7.q"
+                  >Why does Windows or macOS warn me?</span
+                ><span class="plus" aria-hidden="true"></span>
+              </summary>
+              <div class="answer">
+                <p data-i18n="faq.7.a">
+                  The binaries are not signed. The install guide explains the
+                  one-time steps for SmartScreen and Gatekeeper.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing">
+        <div class="container">
+          <h2 data-i18n-html="closing.title">
+            Open the <span class="accent">notebook.</span>
+          </h2>
+          <p class="lede" data-i18n="closing.lede">
+            Your next story is one folder away.
+          </p>
+          <div class="closing-actions">
+            <a
+              class="btn btn--primary btn--lg"
+              href="#platforms"
+              data-open-platforms
+            >
+              <svg class="ico"><use href="#i-download" /></svg>
+              <span data-i18n="closing.cta">Download Roleplay Manager</span>
+            </a>
+            <a
+              class="btn btn--ghost btn--lg"
+              href="site-docs.html"
+              data-docs-link="site-docs.html"
+            >
+              <svg class="ico"><use href="#i-book" /></svg>
+              <span data-i18n="closing.docs">Read the docs first</span>
+            </a>
+          </div>
+          <p class="closing-note" data-i18n="closing.note">
+            Free and open source · Windows, Linux and macOS
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <a class="brand" href="site.html">
+              <img
+                src="../../packages/frontend/public/brand/face-96.png"
+                alt=""
+                width="96"
+                height="96"
+              />
+              <span class="wordmark">Roleplay Manager</span>
+            </a>
+            <p data-i18n="footer.tagline">
+              A local-first notebook for long stories with AI characters.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h3 id="footer-product" data-i18n="footer.product">Product</h3>
+            <nav aria-labelledby="footer-product">
+              <a href="#features" data-i18n="footer.features">Features</a>
+              <a href="#how" data-i18n="footer.about">What is it?</a>
+              <a
+                href="#platforms"
+                data-open-platforms
+                data-i18n="footer.download"
+                >Download</a
+              >
+            </nav>
+          </div>
+          <div class="footer-col">
+            <h3 id="footer-docs" data-i18n="footer.docs">Documentation</h3>
+            <nav aria-labelledby="footer-docs">
+              <a
+                href="site-docs.html"
+                data-docs-link="site-docs.html"
+                data-i18n="footer.install"
+                >Installation</a
+              >
+              <a
+                href="site-docs.html"
+                data-docs-link="site-docs.html"
+                data-i18n="footer.guides"
+                >Guides</a
+              >
+              <a
+                href="site-docs.html"
+                data-docs-link="site-docs.html"
+                data-i18n="footer.reference"
+                >Reference</a
+              >
+            </nav>
+          </div>
+          <div class="footer-col">
+            <h3 id="footer-project" data-i18n="footer.project">Project</h3>
+            <nav aria-labelledby="footer-project">
+              <a
+                href="https://github.com/TheFallen0000/roleplay-manager"
+                data-i18n="footer.github"
+                >GitHub</a
+              >
+              <a
+                href="https://github.com/TheFallen0000/roleplay-manager/releases"
+                data-i18n="footer.releases"
+                >Releases</a
+              >
+              <a
+                href="https://github.com/TheFallen0000/roleplay-manager/issues"
+                data-i18n="footer.issues"
+                >Issues</a
+              >
+              <a
+                href="https://github.com/TheFallen0000/roleplay-manager/blob/master/LICENSE"
+                data-i18n="footer.license"
+                >License</a
+              >
+            </nav>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span
+            >© <span data-year>2026</span> Roleplay Manager ·
+            AGPL-3.0-or-later</span
+          >
+          <span data-i18n="footer.legal"
+            >Code under AGPL-3.0-or-later. Made for writers, not for
+            clouds.</span
+          >
+        </div>
+      </div>
+    </footer>
+
+    <dialog id="platforms" aria-labelledby="platforms-title">
+      <div class="dialog-head">
+        <div>
+          <h2 id="platforms-title" data-i18n="download.title">
+            Choose your system
+          </h2>
+          <p data-i18n="download.lede">
+            Every package is portable and includes Node.js. No installer, no
+            account.
+          </p>
+        </div>
+        <button
+          class="dialog-close"
+          type="button"
+          data-dialog-close
+          data-i18n-aria="download.close"
+          aria-label="Close"
+        >
+          <svg class="ico"><use href="#i-close" /></svg>
+        </button>
+      </div>
+      <div class="dialog-body">
+        <div class="platform-list">
+          <a
+            class="platform"
+            href="https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-win-x64.zip"
+            data-platform="win-x64"
+          >
+            <svg class="ico"><use href="#i-windows" /></svg>
+            <div>
+              <strong data-i18n="download.win">Windows</strong
+              ><span data-i18n="download.winMeta"
+                >Windows 10/11 · x64 · 62 MB</span
+              >
+            </div>
+            <span class="rec" data-i18n="download.recommended" hidden
+              >Recommended for you</span
+            >
+          </a>
+          <a
+            class="platform"
+            href="https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-mac-arm64.tar.gz"
+            data-platform="mac-arm64"
+          >
+            <svg class="ico"><use href="#i-apple" /></svg>
+            <div>
+              <strong data-i18n="download.macArm">macOS · Apple Silicon</strong
+              ><span data-i18n="download.macArmMeta">M1–M4 · 60 MB</span>
+            </div>
+            <span class="rec" data-i18n="download.recommended" hidden
+              >Recommended for you</span
+            >
+          </a>
+          <a
+            class="platform"
+            href="https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-mac-x64.tar.gz"
+            data-platform="mac-x64"
+          >
+            <svg class="ico"><use href="#i-apple" /></svg>
+            <div>
+              <strong data-i18n="download.macIntel">macOS · Intel</strong
+              ><span data-i18n="download.macIntelMeta">Intel · 62 MB</span>
+            </div>
+            <span class="rec" data-i18n="download.recommended" hidden
+              >Recommended for you</span
+            >
+          </a>
+          <a
+            class="platform"
+            href="https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-linux-x64.tar.gz"
+            data-platform="linux-x64"
+          >
+            <svg class="ico"><use href="#i-linux" /></svg>
+            <div>
+              <strong data-i18n="download.linuxX64">Linux · x64</strong
+              ><span data-i18n="download.linuxX64Meta"
+                >Most distros · 65 MB</span
+              >
+            </div>
+            <span class="rec" data-i18n="download.recommended" hidden
+              >Recommended for you</span
+            >
+          </a>
+          <a
+            class="platform"
+            href="https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.47.0/roleplay-manager-1.47.0-linux-arm64.tar.gz"
+            data-platform="linux-arm64"
+          >
+            <svg class="ico"><use href="#i-linux" /></svg>
+            <div>
+              <strong data-i18n="download.linuxArm64">Linux · arm64</strong
+              ><span data-i18n="download.linuxArm64Meta"
+                >ARM boards · 65 MB</span
+              >
+            </div>
+            <span class="rec" data-i18n="download.recommended" hidden
+              >Recommended for you</span
+            >
+          </a>
+        </div>
+        <p class="dialog-help" data-i18n="download.help">
+          Not sure? Windows x64 for most PCs, Apple Silicon for M1–M4, Linux x64
+          for most distros.
+        </p>
+        <a
+          class="dialog-all"
+          href="https://github.com/TheFallen0000/roleplay-manager/releases/latest"
+        >
+          <span data-i18n="download.all">See all releases on GitHub</span>
+          <svg class="ico"><use href="#i-arrow" /></svg>
+        </a>
+      </div>
+    </dialog>
+
+    <nav class="proto-bar" aria-label="Prototype pages">
+      <span class="tag">Prototype</span>
+      <a href="site.html" aria-current="page">Landing</a>
+      <a href="site-docs.html">Docs</a>
+      <a href="style-tile.html">Style tile</a>
+      <span class="divider"></span>
+      <button type="button" data-theme-set="light">Light</button>
+      <button type="button" data-theme-set="dark">Dark</button>
+      <button type="button" data-theme-set="system">Auto</button>
+      <span class="divider"></span>
+      <button type="button" data-lang-set="en">EN</button>
+      <button type="button" data-lang-set="es">ES</button>
+    </nav>
+
+    <script src="site.js"></script>
+  </body>
+</html>

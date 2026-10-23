@@ -115,7 +115,7 @@ pnpm dev
 
 ### Project layout
 
-pnpm + turbo monorepo with four packages:
+pnpm + turbo monorepo with five packages:
 
 | Package | Purpose |
 |---|---|
@@ -123,6 +123,7 @@ pnpm + turbo monorepo with four packages:
 | `packages/frontend` | Astro + React + shadcn/ui. Talks to the backend via REST + SSE. |
 | `packages/shared` | Pure TypeScript types and framework-agnostic helpers. |
 | `packages/ui` | Reusable shadcn/ui components. |
+| `packages/website` | Public site (roleplay-manager.com): landing, downloads and docs. |
 
 ### Common scripts
 

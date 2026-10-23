@@ -1,0 +1,23 @@
+---
+import LandingPage from "../../components/LandingPage.astro"
+import { release } from "../../data/release"
+import BaseLayout from "../../layouts/BaseLayout.astro"
+import { localePath, t as translate } from "../../i18n"
+
+const locale = "es" as const
+const t = (key: Parameters<typeof translate>[1]) => translate(locale, key)
+---
+
+<BaseLayout
+  locale={locale}
+  title="Roleplay Manager — Tu historia vive en tu equipo"
+  description={t("hero.lede")}
+  paths={{ en: "/", es: "/es/" }}
+>
+  <LandingPage
+    locale={locale}
+    t={t}
+    release={release}
+    downloadHref={localePath(locale, "/download")}
+  />
+</BaseLayout>

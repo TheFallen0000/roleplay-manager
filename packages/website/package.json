@@ -1,0 +1,28 @@
+{
+  "name": "@workspace/website",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "prebuild": "node scripts/fetch-release.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "typecheck": "astro check",
+    "lint": "prettier --check \"src/**/*.{ts,astro,css,md}\"",
+    "format": "prettier --write \"src/**/*.{ts,astro,css,md}\""
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource/dela-gothic-one": "^5.3.0",
+    "@fontsource/zen-kaku-gothic-new": "^5.3.0",
+    "@fontsource/zen-maru-gothic": "^5.3.0",
+    "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "prettier": "^3.8.3",
+    "sharp": "^0.35.5",
+    "typescript": "~6"
+  }
+}

@@ -1,0 +1,36 @@
+---
+import Closing from "../components/Closing.astro"
+import DataBand from "../components/DataBand.astro"
+import DocsTeaser from "../components/DocsTeaser.astro"
+import FAQ from "../components/FAQ.astro"
+import Features from "../components/Features.astro"
+import Gallery from "../components/Gallery.astro"
+import Hero from "../components/Hero.astro"
+import Ledger from "../components/Ledger.astro"
+import Phone from "../components/Phone.astro"
+import Steps from "../components/Steps.astro"
+import Trust from "../components/Trust.astro"
+import type { Release } from "../data/release"
+import type { Locale, TranslationKey } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+  release: Release
+  downloadHref: string
+}
+
+const { locale, t, release, downloadHref } = Astro.props
+---
+
+<Hero locale={locale} t={t} release={release} downloadHref={downloadHref} />
+<Trust t={t} />
+<Ledger t={t} />
+<Gallery t={t} />
+<Steps t={t} />
+<Features t={t} />
+<DataBand locale={locale} t={t} />
+<Phone locale={locale} t={t} />
+<DocsTeaser locale={locale} t={t} />
+<FAQ t={t} />
+<Closing locale={locale} t={t} />

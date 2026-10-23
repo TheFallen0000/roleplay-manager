@@ -1,0 +1,49 @@
+---
+import Icon from "../components/Icon.astro"
+import type { Locale, TranslationKey } from "../i18n"
+import { localePath } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+}
+
+const { locale, t } = Astro.props
+const docsHref = localePath(locale, "/docs/")
+---
+
+<section class="data-band">
+  <div class="data-grid container">
+    <div>
+      <h2>{t("data.title")}</h2>
+      <p class="lede">{t("data.lede")}</p>
+      <p class="data-note">{t("data.note")}</p>
+      <a class="data-link" href={docsHref}>
+        <span>{t("data.link")}</span>
+        <Icon name="arrow" />
+      </a>
+    </div>
+
+    <figure class="folder-card" aria-labelledby="folder-label">
+      <figcaption class="folder-label" id="folder-label">
+        <Icon name="folder" />
+        <span>{t("data.folderLabel")}</span>
+      </figcaption>
+      <div class="folder-line">RoleplayManager/</div>
+      <div class="folder-line">
+        <span class="tree">├── </span><span class="data">data/</span>
+        <span class="note">← {t("data.folderStory")}</span>
+      </div>
+      <div class="folder-line">
+        <span class="tree">├── </span>backups/
+        <span class="note">← {t("data.folderBackups")}</span>
+      </div>
+      <div class="folder-line">
+        <span class="tree">├── </span>versions/
+        <span class="note">← {t("data.folderVersions")}</span>
+      </div>
+      <div class="folder-line"><span class="tree">└── </span>start.sh</div>
+      <div class="folder-foot">{t("data.folderFoot")}</div>
+    </figure>
+  </div>
+</section>
