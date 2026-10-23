@@ -1,0 +1,171 @@
+@import "@fontsource/dela-gothic-one/latin-400.css";
+@import "@fontsource/zen-maru-gothic/latin-500.css";
+@import "@fontsource/zen-maru-gothic/latin-700.css";
+@import "@fontsource/zen-maru-gothic/latin-900.css";
+@import "@fontsource/zen-kaku-gothic-new/latin-400.css";
+@import "@fontsource/zen-kaku-gothic-new/latin-500.css";
+@import "@fontsource/zen-kaku-gothic-new/latin-700.css";
+
+/* Ink & Violet overrides for Starlight. Keep the docs frame branded and the
+   reading column calm. */
+
+:root {
+  --sl-font: "Zen Kaku Gothic New", "Geist", "Segoe UI", system-ui, sans-serif;
+  --sl-font-mono: ui-monospace, "SFMono-Regular", monospace;
+  --sl-content-width: 50rem;
+
+  --sl-color-accent-low: oklch(0.935 0.05 300);
+  --sl-color-accent: oklch(0.54 0.24 300);
+  --sl-color-accent-high: oklch(0.43 0.2 300);
+
+  /* Starlight inverts these two names: in light mode `white` is the text
+     colour and `black` is the paper. Keep that contract. */
+  --sl-color-white: oklch(0.2 0.02 300);
+  --sl-color-gray-1: oklch(0.24 0.025 300);
+  --sl-color-gray-2: oklch(0.3 0.025 300);
+  --sl-color-gray-3: oklch(0.4 0.025 300);
+  --sl-color-gray-4: oklch(0.47 0.024 300);
+  --sl-color-gray-5: oklch(0.51 0.024 300);
+  --sl-color-gray-6: oklch(0.78 0.018 300);
+  --sl-color-gray-7: oklch(0.93 0.01 300);
+  --sl-color-black: oklch(0.98 0.006 300);
+
+  --sl-color-bg: oklch(0.98 0.006 300);
+  --sl-color-bg-nav: oklch(0.98 0.006 300);
+  --sl-color-bg-sidebar: oklch(0.965 0.008 300);
+  --sl-color-bg-inline-code: oklch(0.955 0.008 300);
+  --sl-color-hairline: oklch(0.9 0.012 300);
+  --sl-color-hairline-light: oklch(0.94 0.01 300);
+  --sl-color-hairline-shade: oklch(0.86 0.014 300);
+  --sl-color-text: oklch(0.2 0.02 300);
+  --sl-color-text-accent: oklch(0.43 0.2 300);
+  --sl-color-text-invert: oklch(0.99 0.005 300);
+}
+
+:root[data-theme="dark"] {
+  --sl-color-accent-low: oklch(0.3 0.07 300);
+  --sl-color-accent: oklch(0.76 0.15 300);
+  --sl-color-accent-high: oklch(0.86 0.11 300);
+
+  --sl-color-white: oklch(0.97 0.008 300);
+  --sl-color-gray-1: oklch(0.89 0.01 300);
+  --sl-color-gray-2: oklch(0.78 0.018 300);
+  --sl-color-gray-3: oklch(0.65 0.022 300);
+  --sl-color-gray-4: oklch(0.5 0.024 300);
+  --sl-color-gray-5: oklch(0.35 0.024 300);
+  --sl-color-gray-6: oklch(0.25 0.026 300);
+  --sl-color-gray-7: oklch(0.2 0.026 300);
+  --sl-color-black: oklch(0.16 0.025 300);
+
+  --sl-color-bg: oklch(0.16 0.025 300);
+  --sl-color-bg-nav: oklch(0.16 0.025 300);
+  --sl-color-bg-sidebar: oklch(0.18 0.026 300);
+  --sl-color-bg-inline-code: oklch(0.22 0.028 300);
+  --sl-color-hairline: oklch(1 0 0 / 0.12);
+  --sl-color-hairline-light: oklch(1 0 0 / 0.08);
+  --sl-color-hairline-shade: oklch(1 0 0 / 0.18);
+  --sl-color-text: oklch(0.97 0.008 300);
+  --sl-color-text-accent: oklch(0.8 0.13 300);
+  --sl-color-text-invert: oklch(0.18 0.03 300);
+}
+
+/* The site title keeps the display face; the rest stays a reading face. */
+.site-title {
+  font-family: "Dela Gothic One", system-ui, sans-serif !important;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4 {
+  font-family:
+    "Zen Maru Gothic", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* Calm reading column. */
+.sl-markdown-content {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.sl-markdown-content p,
+.sl-markdown-content li {
+  max-width: 70ch;
+}
+
+.sl-markdown-content a {
+  text-underline-offset: 3px;
+}
+
+/* Cards and callouts use hairlines, not heavy shadows. */
+.card {
+  border-color: var(--sl-color-hairline);
+  border-radius: 1.05rem;
+}
+
+.card:hover {
+  border-color: var(--sl-color-accent);
+}
+
+.starlight-aside {
+  border-inline-start-color: var(--sl-color-accent);
+  border-radius: 0.75rem;
+}
+
+/* Sidebar: paper rail with an ink-violet active item. */
+.sidebar-pane {
+  border-inline-end: 1px solid var(--sl-color-hairline);
+}
+
+.sidebar-content a[aria-current="page"] {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-text-accent);
+  font-weight: 700;
+}
+
+/* Tables read as reference material, not as cards. */
+.sl-markdown-content table {
+  font-size: 0.92rem;
+}
+
+.sl-markdown-content th {
+  color: var(--sl-color-gray-5);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Code blocks: night ink, generous radius. */
+.expressive-code .frame {
+  border-radius: 0.75rem;
+}
+
+/* Docs home: the splash hero carries the product voice. */
+.hero {
+  padding-block: clamp(2.5rem, 6vw, 5rem);
+}
+
+.hero .tagline {
+  max-width: 52ch;
+  color: var(--sl-color-gray-5);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+:root[data-theme="dark"] .hero .tagline {
+  color: var(--sl-color-gray-3);
+}
+
+@media (max-width: 40rem) {
+  .sl-markdown-content {
+    font-size: 0.98rem;
+  }
+
+  .hero .tagline {
+    font-size: 1rem;
+  }
+}

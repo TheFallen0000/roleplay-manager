@@ -1,0 +1,62 @@
+---
+title: Documentation
+description: Install Roleplay Manager, connect your AI provider, and learn how characters, memory, branches and backups work.
+template: splash
+hero:
+  tagline: A local-first notebook for long stories with AI characters. Install it, connect your provider, and keep your data in a folder you own.
+  actions:
+    - text: Install Roleplay Manager
+      link: /docs/getting-started/installation/windows/
+      variant: primary
+    - text: Download for your computer
+      link: /download/
+      variant: secondary
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components"
+
+<CardGrid>
+  <LinkCard
+    title="Install"
+    href="/docs/getting-started/installation/windows/"
+    description="Windows, Linux and macOS. Portable package, no Node.js required."
+  />
+  <LinkCard
+    title="Connect your AI"
+    href="/docs/guides/providers"
+    description="Ollama locally or any OpenAI-compatible endpoint with your own key."
+  />
+  <LinkCard
+    title="Your first character"
+    href="/docs/getting-started/first-steps"
+    description="Create a character, start a chat and learn the basic loop."
+  />
+  <LinkCard
+    title="Use it on your phone"
+    href="/docs/guides/phone-access"
+    description="Tailscale, home Wi-Fi and PWA install. No native app."
+  />
+</CardGrid>
+
+## Start here
+
+Roleplay Manager runs on your computer. Your characters, chats, memories,
+summaries and images live in a SQLite database inside `data/`, and the app talks
+to the AI provider you choose.
+
+If this is your first time:
+
+1. [Install the portable package](/docs/getting-started/installation/windows/).
+2. [Connect Ollama or an OpenAI-compatible provider](/docs/guides/providers).
+3. [Create your first character and chat](/docs/getting-started/first-steps).
+
+## The manual, without fine print
+
+- [Data and updates](/docs/guides/data-and-updates): where your story lives, how
+  backups work and what an update touches.
+- [Troubleshooting](/docs/reference/troubleshooting): SmartScreen, Gatekeeper,
+  ports and logs.
+- [Glossary](/docs/reference/glossary): model, provider, context, memory,
+  branch and other terms.
+- [Development](/docs/contributing/development): run the monorepo, tests and
+  architecture rules.

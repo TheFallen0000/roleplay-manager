@@ -249,17 +249,6 @@ export const en = {
   "downloadPage.note":
     "Keep the whole folder together: data/, backups/, versions/ and the launcher live inside it.",
   "downloadPage.backHome": "Back to the landing page",
-
-  "docsPage.title": "Documentation",
-  "docsPage.lede":
-    "The full documentation is being written for the public site. For now, the README has the installation, provider and phone-access guides.",
-  "docsPage.body":
-    "S83 will bring a searchable, bilingual documentation hub with installation per system, providers, characters, memory, branches, data and updates.",
-  "docsPage.readme": "Open the README",
-  "docsPage.install": "Installation",
-  "docsPage.providers": "Configure a provider",
-  "docsPage.phone": "Phone access",
-  "docsPage.back": "Back to the landing page",
 } as const
 
 export type TranslationKey = keyof typeof en

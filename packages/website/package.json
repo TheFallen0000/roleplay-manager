@@ -9,11 +9,12 @@
     "build": "astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
-    "lint": "prettier --check \"src/**/*.{ts,astro,css,md}\"",
-    "format": "prettier --write \"src/**/*.{ts,astro,css,md}\""
+    "lint": "prettier --check \"src/**/*.{ts,astro,css,md,mdx}\"",
+    "format": "prettier --write \"src/**/*.{ts,astro,css,md,mdx}\""
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
+    "@astrojs/starlight": "^0.42.6",
     "@fontsource/dela-gothic-one": "^5.3.0",
     "@fontsource/zen-kaku-gothic-new": "^5.3.0",
     "@fontsource/zen-maru-gothic": "^5.3.0",
