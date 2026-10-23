@@ -1,0 +1,55 @@
+---
+import { Image } from "astro:assets"
+import libraryWide from "../assets/screenshots/library-wide.png"
+import Icon from "../components/Icon.astro"
+import type { TranslationKey } from "../i18n"
+
+interface Props {
+  t: (key: TranslationKey) => string
+}
+
+const { t } = Astro.props
+const features = [
+  { key: 1, icon: "users" },
+  { key: 2, icon: "branch" },
+  { key: 3, icon: "memory" },
+  { key: 4, icon: "palette" },
+] as const
+---
+
+<section class="section">
+  <div class="spread container">
+    <div class="spread-copy">
+      <h2>{t("features.title")}</h2>
+      <p class="lede">{t("features.lede")}</p>
+
+      <div class="feature-list">
+        {
+          features.map((feature) => (
+            <div class="feature">
+              <Icon name={feature.icon} />
+              <div>
+                <h3>{t(`features.${feature.key}.title` as TranslationKey)}</h3>
+                <p>{t(`features.${feature.key}.body` as TranslationKey)}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="spread-media">
+      <div class="media-card">
+        <Image
+          src={libraryWide}
+          widths={[720, 1080]}
+          sizes="(max-width: 56rem) 92vw, 520px"
+          format="webp"
+          loading="lazy"
+          alt={t("features.imageAlt")}
+        />
+        <div class="media-caption">{t("gallery.caption.library")}</div>
+      </div>
+    </div>
+  </div>
+</section>

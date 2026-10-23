@@ -1,0 +1,96 @@
+---
+import { Image } from "astro:assets"
+import chatWide from "../assets/screenshots/chat-wide.png"
+import libraryWide from "../assets/screenshots/library-wide.png"
+import Icon from "../components/Icon.astro"
+import type { TranslationKey } from "../i18n"
+
+interface Props {
+  t: (key: TranslationKey) => string
+}
+
+const { t } = Astro.props
+---
+
+<section class="section section--tight">
+  <div class="container">
+    <div class="section-head">
+      <h2>{t("gallery.title")}</h2>
+      <p>{t("gallery.lede")}</p>
+    </div>
+
+    <div class="gallery">
+      <div class="gallery-tabs" role="tablist" aria-label="Screenshots">
+        <button
+          class="gallery-tab"
+          type="button"
+          role="tab"
+          id="tab-library"
+          aria-controls="panel-library"
+          aria-selected="true"
+          data-gallery-tab="library"
+        >
+          <Icon name="book" />
+          <span>{t("gallery.tab.library")}</span>
+        </button>
+        <button
+          class="gallery-tab"
+          type="button"
+          role="tab"
+          id="tab-chat"
+          aria-controls="panel-chat"
+          aria-selected="false"
+          tabindex="-1"
+          data-gallery-tab="chat"
+        >
+          <Icon name="chat" />
+          <span>{t("gallery.tab.chat")}</span>
+        </button>
+      </div>
+
+      <div class="gallery-frame">
+        <div
+          class="gallery-panel"
+          role="tabpanel"
+          id="panel-library"
+          aria-labelledby="tab-library"
+          data-gallery-panel="library"
+        >
+          <Image
+            src={libraryWide}
+            widths={[720, 1080]}
+            sizes="(max-width: 48rem) 92vw, 900px"
+            format="webp"
+            loading="lazy"
+            alt={t("gallery.imageAlt.library")}
+          />
+          <div class="gallery-caption">
+            <span>{t("gallery.caption.library")}</span>
+            <span>{t("gallery.caption.note")}</span>
+          </div>
+        </div>
+        <div
+          class="gallery-panel"
+          role="tabpanel"
+          id="panel-chat"
+          aria-labelledby="tab-chat"
+          data-gallery-panel="chat"
+          hidden
+        >
+          <Image
+            src={chatWide}
+            widths={[720, 1080]}
+            sizes="(max-width: 48rem) 92vw, 900px"
+            format="webp"
+            loading="lazy"
+            alt={t("gallery.imageAlt.chat")}
+          />
+          <div class="gallery-caption">
+            <span>{t("gallery.caption.chat")}</span>
+            <span>{t("gallery.caption.note")}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

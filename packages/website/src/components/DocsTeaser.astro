@@ -1,0 +1,45 @@
+---
+import Icon from "../components/Icon.astro"
+import type { Locale, TranslationKey } from "../i18n"
+import { localePath } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+}
+
+const { locale, t } = Astro.props
+const docsHref = localePath(locale, "/docs/")
+const rows = [1, 2, 3, 4] as const
+---
+
+<section class="section section--tight" id="docs">
+  <div class="container">
+    <div class="section-head">
+      <h2>{t("docs.title")}</h2>
+      <p>{t("docs.lede")}</p>
+    </div>
+
+    <div class="toc-list">
+      {
+        rows.map((row) => (
+          <a class="toc-row" href={docsHref}>
+            <span class="toc-num">{String(row).padStart(2, "0")}</span>
+            <span class="toc-title">{t(`docs.${row}` as TranslationKey)}</span>
+            <span class="toc-desc">
+              {t(`docs.${row}.desc` as TranslationKey)}
+            </span>
+            <Icon name="arrow" />
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="docs-cta">
+      <a class="btn btn--primary" href={docsHref}>
+        <Icon name="book" />
+        <span>{t("docs.cta")}</span>
+      </a>
+    </div>
+  </div>
+</section>

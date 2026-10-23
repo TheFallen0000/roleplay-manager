@@ -1,0 +1,23 @@
+---
+import type { TranslationKey } from "../i18n"
+
+interface Props {
+  t: (key: TranslationKey) => string
+}
+
+const { t } = Astro.props
+const items = [1, 2, 3, 4] as const
+---
+
+<section class="trust" aria-label="Trust">
+  <div class="trust-grid container">
+    {
+      items.map((item) => (
+        <div class="trust-item">
+          <strong>{t(`trust.${item}.title` as TranslationKey)}</strong>
+          <span>{t(`trust.${item}.sub` as TranslationKey)}</span>
+        </div>
+      ))
+    }
+  </div>
+</section>

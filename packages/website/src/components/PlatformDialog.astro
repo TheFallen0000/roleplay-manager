@@ -1,0 +1,35 @@
+---
+import Icon from "../components/Icon.astro"
+import PlatformList from "../components/PlatformList.astro"
+import type { Release } from "../data/release"
+import type { Locale, TranslationKey } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+  release: Release
+}
+
+const { locale, t, release } = Astro.props
+---
+
+<dialog id="platforms" aria-labelledby="platforms-title">
+  <div class="dialog-head">
+    <div>
+      <h2 id="platforms-title">{t("download.title")}</h2>
+      <p>{t("download.lede")}</p>
+    </div>
+    <button
+      class="dialog-close"
+      type="button"
+      data-dialog-close
+      aria-label={t("download.close")}
+    >
+      <Icon name="close" />
+    </button>
+  </div>
+  <div class="dialog-body">
+    <PlatformList locale={locale} t={t} release={release} />
+    <p class="dialog-help">{t("download.help")}</p>
+  </div>
+</dialog>

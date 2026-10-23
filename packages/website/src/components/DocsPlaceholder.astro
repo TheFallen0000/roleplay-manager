@@ -1,0 +1,46 @@
+---
+import Icon from "../components/Icon.astro"
+import type { Locale, TranslationKey } from "../i18n"
+import { localePath } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+}
+
+const { locale, t } = Astro.props
+const homeHref = localePath(locale, "/")
+const readme =
+  locale === "es"
+    ? "https://github.com/TheFallen0000/roleplay-manager/blob/master/README.es.md"
+    : "https://github.com/TheFallen0000/roleplay-manager/blob/master/README.md"
+const install =
+  locale === "es" ? `${readme}#instalación` : `${readme}#installation`
+const providers =
+  locale === "es"
+    ? `${readme}#configurar-un-proveedor-de-ia`
+    : `${readme}#configure-an-ai-provider`
+const phone =
+  locale === "es"
+    ? `${readme}#acceso-desde-el-teléfono`
+    : `${readme}#access-from-your-phone`
+---
+
+<section class="section">
+  <div class="placeholder container">
+    <p class="back-link"><a href={homeHref}>← {t("docsPage.back")}</a></p>
+    <p class="label">Roleplay Manager</p>
+    <h1>{t("docsPage.title")}</h1>
+    <p class="lede">{t("docsPage.lede")}</p>
+    <p>{t("docsPage.body")}</p>
+    <div class="placeholder-links">
+      <a class="btn btn--primary" href={readme}>
+        <Icon name="github" />
+        <span>{t("docsPage.readme")}</span>
+      </a>
+      <a class="btn btn--ghost" href={install}>{t("docsPage.install")}</a>
+      <a class="btn btn--ghost" href={providers}>{t("docsPage.providers")}</a>
+      <a class="btn btn--ghost" href={phone}>{t("docsPage.phone")}</a>
+    </div>
+  </div>
+</section>

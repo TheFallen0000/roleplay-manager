@@ -1,0 +1,18 @@
+---
+import DownloadPage from "../../components/DownloadPage.astro"
+import { release } from "../../data/release"
+import BaseLayout from "../../layouts/BaseLayout.astro"
+import { t as translate } from "../../i18n"
+
+const locale = "es" as const
+const t = (key: Parameters<typeof translate>[1]) => translate(locale, key)
+---
+
+<BaseLayout
+  locale={locale}
+  title="Descargar Roleplay Manager — Windows, Linux y macOS"
+  description={t("downloadPage.lede")}
+  paths={{ en: "/download", es: "/es/download" }}
+>
+  <DownloadPage locale={locale} t={t} release={release} />
+</BaseLayout>

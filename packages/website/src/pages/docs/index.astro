@@ -1,0 +1,18 @@
+---
+import DocsPlaceholder from "../../components/DocsPlaceholder.astro"
+import BaseLayout from "../../layouts/BaseLayout.astro"
+import { t as translate } from "../../i18n"
+
+const locale = "en" as const
+const t = (key: Parameters<typeof translate>[1]) => translate(locale, key)
+---
+
+<BaseLayout
+  locale={locale}
+  title="Documentation — Roleplay Manager"
+  description={t("docsPage.lede")}
+  paths={{ en: "/docs/", es: "/es/docs/" }}
+  noindex
+>
+  <DocsPlaceholder locale={locale} t={t} />
+</BaseLayout>

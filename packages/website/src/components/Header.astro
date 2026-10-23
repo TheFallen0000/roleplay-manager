@@ -1,0 +1,131 @@
+---
+import { Image } from "astro:assets"
+import face from "../assets/brand/face-96.png"
+import Icon from "../components/Icon.astro"
+import type { Release } from "../data/release"
+import type { Locale, TranslationKey } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+  release: Release
+  homeHref: string
+  docsHref: string
+  downloadHref: string
+  alternateHref: string
+  currentHref: string
+}
+
+const {
+  locale,
+  t,
+  release,
+  homeHref,
+  docsHref,
+  downloadHref,
+  alternateHref,
+  currentHref,
+} = Astro.props
+---
+
+<header class="site-header">
+  <div class="header-inner container">
+    <a class="brand" href={homeHref}>
+      <Image src={face} width={38} height={38} alt="" />
+      <span class="wordmark">Roleplay Manager</span>
+    </a>
+    <a class="version-chip" href={release.htmlUrl}>{`v${release.version}`}</a>
+
+    <nav class="main-nav" aria-label="Main">
+      <a href={docsHref}>{t("nav.docs")}</a>
+      <a href={`${homeHref}#how`}>{t("nav.how")}</a>
+      <a href={`${homeHref}#features`}>{t("nav.features")}</a>
+    </nav>
+
+    <div class="header-actions">
+      <div
+        class="lang-toggle desktop-only"
+        role="group"
+        aria-label={t("header.lang")}
+      >
+        <a
+          href={locale === "en" ? currentHref : alternateHref}
+          aria-current={locale === "en" ? "page" : undefined}
+          data-lang-set="en">EN</a
+        >
+        <a
+          href={locale === "es" ? currentHref : alternateHref}
+          aria-current={locale === "es" ? "page" : undefined}
+          data-lang-set="es">ES</a
+        >
+      </div>
+      <button
+        class="header-icon"
+        type="button"
+        data-theme-toggle
+        aria-label={t("theme.toggle")}
+      >
+        <Icon name="moon" class="ico theme-icon-moon" />
+        <Icon name="sun" class="ico theme-icon-sun" />
+      </button>
+      <a
+        class="header-icon desktop-only"
+        href="https://github.com/TheFallen0000/roleplay-manager"
+        aria-label={t("header.github")}
+      >
+        <Icon name="github" />
+      </a>
+      <a class="btn btn--primary btn--sm desktop-only" href={downloadHref}>
+        <Icon name="download" />
+        <span>{t("header.download")}</span>
+      </a>
+      <button
+        class="header-icon menu-toggle"
+        type="button"
+        data-menu-toggle
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label={t("header.menu")}
+      >
+        <Icon name="menu" />
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <nav aria-label="Mobile">
+      <a href={docsHref}>{t("nav.docs")}</a>
+      <a href={`${homeHref}#how`}>{t("nav.how")}</a>
+      <a href={`${homeHref}#features`}>{t("nav.features")}</a>
+      <a href={downloadHref}>{t("nav.download")}</a>
+    </nav>
+    <div class="mobile-actions">
+      <div class="lang-toggle" role="group" aria-label={t("header.lang")}>
+        <a
+          href={locale === "en" ? currentHref : alternateHref}
+          aria-current={locale === "en" ? "page" : undefined}
+          data-lang-set="en">EN</a
+        >
+        <a
+          href={locale === "es" ? currentHref : alternateHref}
+          aria-current={locale === "es" ? "page" : undefined}
+          data-lang-set="es">ES</a
+        >
+      </div>
+      <div class="lang-toggle" role="group" aria-label={t("header.theme")}>
+        <button type="button" data-theme-set="light">{t("theme.light")}</button>
+        <button type="button" data-theme-set="dark">{t("theme.dark")}</button>
+        <button type="button" data-theme-set="system"
+          >{t("theme.system")}</button
+        >
+      </div>
+      <a
+        class="btn btn--ghost btn--sm"
+        href="https://github.com/TheFallen0000/roleplay-manager"
+      >
+        <Icon name="github" />
+        GitHub
+      </a>
+    </div>
+  </div>
+</header>

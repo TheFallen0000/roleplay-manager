@@ -1,0 +1,31 @@
+---
+import Icon from "../components/Icon.astro"
+import type { Locale, TranslationKey } from "../i18n"
+import { localePath } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+}
+
+const { locale, t } = Astro.props
+const docsHref = localePath(locale, "/docs/")
+---
+
+<section class="closing">
+  <div class="container">
+    <h2 set:html={t("closing.title")} />
+    <p class="lede">{t("closing.lede")}</p>
+    <div class="closing-actions">
+      <a class="btn btn--primary btn--lg" href="#platforms" data-open-platforms>
+        <Icon name="download" />
+        <span>{t("closing.cta")}</span>
+      </a>
+      <a class="btn btn--ghost btn--lg" href={docsHref}>
+        <Icon name="book" />
+        <span>{t("closing.docs")}</span>
+      </a>
+    </div>
+    <p class="closing-note">{t("closing.note")}</p>
+  </div>
+</section>

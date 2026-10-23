@@ -1,0 +1,50 @@
+---
+import { Image } from "astro:assets"
+import chatNarrow from "../assets/screenshots/chat-narrow.png"
+import Icon from "../components/Icon.astro"
+import type { Locale, TranslationKey } from "../i18n"
+import { localePath } from "../i18n"
+
+interface Props {
+  locale: Locale
+  t: (key: TranslationKey) => string
+}
+
+const { locale, t } = Astro.props
+const docsHref = localePath(locale, "/docs/")
+---
+
+<section class="section">
+  <div class="phone-grid container">
+    <div class="phone-copy">
+      <h2>{t("phone.title")}</h2>
+      <p class="lede">{t("phone.lede")}</p>
+      <ul class="phone-list">
+        <li><Icon name="check" /><span>{t("phone.1")}</span></li>
+        <li><Icon name="check" /><span>{t("phone.2")}</span></li>
+        <li><Icon name="check" /><span>{t("phone.3")}</span></li>
+      </ul>
+      <a class="btn btn--ghost" href={docsHref}>
+        <Icon name="phone" />
+        <span>{t("phone.cta")}</span>
+      </a>
+    </div>
+
+    <div class="phone-stage">
+      <div class="phone-frame">
+        <Image
+          src={chatNarrow}
+          widths={[360, 720]}
+          sizes="(max-width: 56rem) 80vw, 300px"
+          format="webp"
+          loading="lazy"
+          alt={t("phone.imageAlt")}
+        />
+      </div>
+      <div class="stage-note">
+        <Icon name="wifi" class="ico ico--tiny" />
+        Tailscale · LAN · PWA
+      </div>
+    </div>
+  </div>
+</section>

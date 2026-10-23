@@ -1,0 +1,35 @@
+---
+import type { TranslationKey } from "../i18n"
+
+interface Props {
+  t: (key: TranslationKey) => string
+}
+
+const { t } = Astro.props
+const rows = [1, 2, 3] as const
+---
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head">
+      <h2>{t("ledger.title")}</h2>
+      <p>{t("ledger.lede")}</p>
+    </div>
+
+    <div class="ledger">
+      {
+        rows.map((row) => (
+          <div class="ledger-row">
+            <span class="ledger-label">
+              {t(`ledger.${row}.label` as TranslationKey)}
+            </span>
+            <div>
+              <h3>{t(`ledger.${row}.title` as TranslationKey)}</h3>
+              <p>{t(`ledger.${row}.body` as TranslationKey)}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
