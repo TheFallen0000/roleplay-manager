@@ -74,11 +74,13 @@ export const es: Dictionary = {
     importFailed: "No se pudo importar la persona.",
     importInvalidJson: "El archivo no es un JSON válido.",
     importInvalidObject: "El archivo no contiene un objeto JSON válido.",
-    importIncompatible: "El archivo no es una exportación de persona compatible.",
+    importIncompatible:
+      "El archivo no es una exportación de persona compatible.",
     importUnsupportedVersion:
       "Versión de archivo no soportada ({version}). Se esperaba {expected}.",
     importMissingName: "El archivo no incluye el nombre de la persona.",
-    importMissingDescription: "El archivo no incluye la descripción de la persona.",
+    importMissingDescription:
+      "El archivo no incluye la descripción de la persona.",
     unknownVersion: "desconocida",
     slugFallback: "persona",
     emptyTitle: "Tu elenco está vacío",
@@ -131,12 +133,12 @@ export const es: Dictionary = {
     tabLan: "Red doméstica",
     tabTailscale: "Tailscale",
     lanToggleLabel: "Compartir en mi red local",
-    lanStatusActive: "Activo — disponible en tu WiFi",
+    lanStatusActive: "Activo — disponible en tu Wi-Fi",
     lanStatusInactive: "Inactivo",
     lanHint:
-      "Actívalo para abrir la app desde tu teléfono mientras ambos estén en la misma WiFi.",
+      "Actívalo para abrir la app desde tu teléfono mientras ambos estén en la misma Wi-Fi.",
     lanAddressLabel: "Dirección de la red",
-    lanScanHint: "Escanea con la cámara del teléfono (misma red WiFi).",
+    lanScanHint: "Escanea con la cámara del teléfono (misma red Wi-Fi).",
     lanSecurityNote:
       "Cualquier dispositivo en tu red podría abrir la app; úsalo en redes de confianza.",
     lanFirewallHint:
@@ -207,8 +209,7 @@ export const es: Dictionary = {
     notesTitle: "Notas de la versión",
     notARepo:
       "La app no se ejecuta desde un clon de git, así que las actualizaciones automáticas no están disponibles.",
-    noAsset:
-      "La última versión no incluye un paquete para esta plataforma.",
+    noAsset: "La última versión no incluye un paquete para esta plataforma.",
     checkError: "No se pudo comprobar si hay actualizaciones: {message}",
     checkFailed: "No se pudo comprobar si hay actualizaciones.",
     applyFailed: "No se pudo iniciar la actualización.",
@@ -224,7 +225,8 @@ export const es: Dictionary = {
     CONVERSATION_NOT_FOUND: "La conversación ya no existe.",
     CONVERSATION_ALREADY_EXISTS:
       "Ya existe una conversación para este personaje y versión.",
-    INVALID_IMPORT_FILE: "El archivo no es una exportación de personaje válida.",
+    INVALID_IMPORT_FILE:
+      "El archivo no es una exportación de personaje válida.",
     TUNNEL_NOT_AVAILABLE: "Tailscale no está instalado en esta computadora.",
     TUNNEL_NOT_CONNECTED:
       "Tailscale no está en ejecución o no tiene sesión iniciada en esta computadora.",
@@ -350,8 +352,7 @@ export const es: Dictionary = {
     customImageSaving: "Guardando imagen…",
     imageDeleted: "Imagen personalizada eliminada",
     backgroundTitle: "Fondo del chat",
-    backgroundDescription:
-      "Solo se aplica a este chat. Las ramas lo heredan.",
+    backgroundDescription: "Solo se aplica a este chat. Las ramas lo heredan.",
     backgroundAdd: "Añadir fondo",
     backgroundFit: "Ajuste",
     backgroundFitCover: "Cubrir",
@@ -498,7 +499,8 @@ export const es: Dictionary = {
     notFoundDescription:
       "El personaje que buscas no existe o ha sido eliminado.",
     backToList: "Volver a mis personajes",
-    imageInvalidType: "Tipo de archivo no permitido. Usa PNG, JPEG, WEBP o GIF.",
+    imageInvalidType:
+      "Tipo de archivo no permitido. Usa PNG, JPEG, WEBP o GIF.",
     imageTooLarge: "El archivo es demasiado grande (máximo {max}).",
     removeImage: "Quitar imagen",
     uploadImage: "Subir imagen de perfil",
@@ -541,10 +543,12 @@ export const es: Dictionary = {
     importFailed: "No se pudo importar el personaje.",
     importInvalidJson: "El archivo no es un JSON válido.",
     importInvalidObject: "El archivo no contiene un objeto JSON válido.",
-    importIncompatible: "El archivo no es una exportación de personaje compatible.",
+    importIncompatible:
+      "El archivo no es una exportación de personaje compatible.",
     importUnsupportedVersion:
       "Versión de archivo no soportada ({version}). Se esperaba {expected}.",
-    importMissingDefinition: "El archivo no contiene la definición del personaje.",
+    importMissingDefinition:
+      "El archivo no contiene la definición del personaje.",
     importMissingName: "El archivo no incluye el nombre del personaje.",
     unknownVersion: "desconocida",
     applySettings: "Aplicar ajustes…",
@@ -561,8 +565,7 @@ export const es: Dictionary = {
       other: "Ajustes aplicados a {count} conversaciones.",
     },
     settingsFailed: "No se pudieron aplicar los ajustes",
-    settingsMissingTemplate:
-      "El archivo no contiene una plantilla de ajustes.",
+    settingsMissingTemplate: "El archivo no contiene una plantilla de ajustes.",
     settingsNoConversations: "Este personaje aún no tiene conversaciones.",
     settingsProviderSkipped:
       "La instancia de proveedor de la plantilla no existe en esta instalación; se conservaron el proveedor y el modelo.",
