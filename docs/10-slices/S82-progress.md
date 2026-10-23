@@ -47,7 +47,7 @@ La documentación completa del planteamiento está en
   con enlaces al README hasta que S83 monte Starlight. No se publica el sitio
   como «completo» antes de S83.
 - **Cloudflare Pages, no GitHub Pages.** El dominio ya está en Cloudflare. El
-  proyecto y el DNS se configuran a mano; este slice solo deja el build y la
+  proyecto y el DNS se configuran manualmente; este slice solo deja el build y la
   documentación listos.
 - **Changelog y releases.** La web se despliega en cada push a `master`, sin
   tocar la versión de `package.json` ni crear una release de GitHub. La entrada

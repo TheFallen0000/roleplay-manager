@@ -16,36 +16,36 @@ RoleplayManager/
 └── start.cmd | start.sh
 ```
 
-Las actualizaciones nunca reemplazan `data/` ni `backups/`. Podés mover la
+Las actualizaciones nunca reemplazan `data/` ni `backups/`. Puedes mover la
 carpeta entera, copiarla a otro disco o guardarla en una carpeta sincronizada si
-entendés los riesgos de sincronizar una base de datos en uso.
+entiendes los riesgos de sincronizar una base de datos en uso.
 
 ## Copias de seguridad
 
-La app puede crear una copia antes de actualizar. También podés copiar `data/`
-con la app detenida. Para una copia portátil de un solo personaje, usá el
+La app puede crear una copia antes de actualizar. También puedes copiar `data/`
+con la app detenida. Para una copia portátil de un solo personaje, usa el
 diálogo de exportación; puede incluir conversaciones, imágenes y ajustes.
 
 ## Actualizaciones
 
-Abrí **Sistema → Actualizaciones**. La app consulta la última release de GitHub,
+Abre **Sistema → Actualizaciones**. La app consulta la última versión de GitHub,
 descarga el paquete de tu plataforma en `versions/<versión>/`, cambia el puntero
 `current` y ofrece **Reiniciar ahora**.
 
 - Tu `data/` y tus `backups/` no se tocan.
-- La versión anterior queda en disco, así que podés volver.
-- Si algo falla, revisá el registro en **Sistema → Registro**.
+- La versión anterior queda en disco, así que puedes volver.
+- Si algo falla, revisa el registro en **Sistema → Registro**.
 
-## Mover a otro ordenador
+## Mover a otro equipo
 
-1. Detené la app.
-2. Copiá la carpeta completa, incluida `data/`.
-3. Arrancá la app en el ordenador nuevo con el lanzador.
+1. Cierra la app.
+2. Copia la carpeta completa, incluida `data/`.
+3. Inicia la app en el equipo nuevo con el lanzador.
 
-Si solo necesitás un personaje, exportalo como JSON e importalo en la otra
+Si solo necesitas un personaje, expórtalo como JSON e impórtalo en la otra
 máquina.
 
 ## Desinstalar
 
-Detené la app y borrá la carpeta. No hay instalador global ni entrada en el
-registro. Si querés conservar tu historia, copiá `data/` primero.
+Cierra la app y borra la carpeta. No hay instalador global ni entrada en el
+registro. Si quieres conservar tu historia, copia `data/` primero.

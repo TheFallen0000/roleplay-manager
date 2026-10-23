@@ -1,23 +1,23 @@
 ---
 title: Solución de problemas
-description: Resolvé los problemas más comunes de instalación, conexión y arranque.
+description: Resuelve los problemas más comunes de instalación, conexión y inicio.
 ---
 
 ## La app no abre
 
-- Revisá la ventana de consola o terminal por si hay un error.
-- Entrá a `http://localhost:3001` a mano.
-- Si el puerto 3001 está ocupado, cerrá la otra app o arrancá Roleplay Manager
+- Revisa la ventana de consola o terminal por si hay un error.
+- Entra a `http://localhost:3001` manualmente.
+- Si el puerto 3001 está ocupado, cierra la otra app o inicia Roleplay Manager
   con otro `PORT`.
 
 ## SmartScreen de Windows
 
-El lanzador no está firmado. Si lo descargaste desde la release oficial de
-GitHub, elegí **Más información → Ejecutar de todas formas**. Es un paso único.
+El lanzador no está firmado. Si lo descargaste desde la versión oficial de
+GitHub, elige **Más información → Ejecutar de todas formas**. Es un paso único.
 
 ## Gatekeeper de macOS
 
-Permití la app en **Ajustes del Sistema → Privacidad y seguridad**, o ejecutá
+Permite la app en **Ajustes del Sistema → Privacidad y seguridad**, o ejecuta
 esto dentro de la carpeta de la app:
 
 ```bash
@@ -34,26 +34,26 @@ chmod +x start.sh
 
 ## La conexión con el proveedor falla
 
-- **Ollama:** asegurate de que Ollama esté corriendo y de que la URL sea
+- **Ollama:** asegúrate de que Ollama esté en ejecución y de que la URL sea
   `http://localhost:11434`.
-- **Compatible con OpenAI:** revisá la URL base, la API key y si el modelo está
+- **Compatible con OpenAI:** revisa la URL base, la API key y si el modelo está
   disponible para esa clave.
-- Usá **Probar conexión** en **Sistema → Proveedores** antes de empezar un chat.
+- Usa **Probar conexión** en **Sistema → Proveedores** antes de empezar un chat.
 
 ## Una respuesta ignora algo
 
-Abrí la vista previa del contexto de la conversación. Muestra el prompt del
+Abre la vista previa del contexto de la conversación. Muestra el prompt del
 personaje, las memorias, los resúmenes y los mensajes recientes que se enviarán
-al modelo. Si falta el detalle, agregalo a la descripción del personaje, a una
+al modelo. Si falta el detalle, agrégalo a la descripción del personaje, a una
 memoria o a la instrucción actual.
 
 ## ¿Dónde están los registros?
 
-Abrí **Sistema → Registro**. Podés copiar el registro o descargarlo y adjuntarlo
-a un issue de GitHub.
+Abre **Sistema → Registro**. Puedes copiar el registro o descargarlo y adjuntarlo
+a una incidencia de GitHub.
 
-## ¿Seguís atascado?
+## ¿Sigues atascado?
 
-Abrí un issue con tu sistema operativo, la versión de la app, qué esperabas y
-qué pasó. Incluí las líneas relevantes del registro y, si podés, los pasos para
+Abre una incidencia con tu sistema operativo, la versión de la app, qué esperabas y
+qué pasó. Incluye las líneas relevantes del registro y, si puedes, los pasos para
 reproducirlo.

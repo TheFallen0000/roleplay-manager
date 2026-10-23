@@ -1,6 +1,6 @@
 ---
 title: Memoria y resúmenes
-description: Mantené conversaciones largas coherentes con memoria dinámica, desgaste y resúmenes automáticos.
+description: Conserva conversaciones largas coherentes con memoria dinámica, desgaste y resúmenes automáticos.
 ---
 
 Los chats largos terminan superando la ventana de contexto del modelo.
@@ -13,7 +13,7 @@ promesas, relaciones e hilos sin resolver. Según los ajustes de la conversació
 la app puede proponer memorias automáticamente o esperar a que las apruebes.
 
 - **Automática:** la app extrae propuestas de la conversación.
-- **Manual:** vos decidís qué se convierte en memoria.
+- **Manual:** tú decidís qué se convierte en memoria.
 
 Las memorias pueden decaer con el tiempo. El desgaste mantiene la lista útil en
 vez de dejarla crecer para siempre; el comportamiento exacto se configura por
@@ -27,14 +27,14 @@ resúmenes se guardan en local y se pueden revisar desde la conversación.
 
 ## Vista previa del contexto
 
-Antes de enviar un mensaje, abrí la vista previa del contexto para ver qué va a
+Antes de enviar un mensaje, abre la vista previa del contexto para ver qué va a
 recibir el modelo: prompt del personaje, memorias, resúmenes, mensajes recientes
 e instrucción actual. Es la forma más rápida de entender por qué una respuesta
 ignoró algo.
 
 :::tip
-Si un detalle importa para toda la historia, ponelo en la descripción del
-personaje o en una memoria. Si solo importa para esta escena, dejalo en los
+Si un detalle importa para toda la historia, ponlo en la descripción del
+personaje o en una memoria. Si solo importa para esta escena, déjalo en los
 mensajes recientes.
 :::
 

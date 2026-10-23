@@ -48,7 +48,7 @@ login, ni nada que se envíe a un servicio nuestro.
   fuera de personaje y navegación por gestos entre alternativas.
 - **Interfaz en inglés y español.**
 - **Acceso desde el teléfono (opcional)** — comparte la app por tu red privada
-  de Tailscale o por tu WiFi doméstica, escanea un código QR y úsala desde el
+  de Tailscale o por tu Wi-Fi doméstica, escanea un código QR y úsala desde el
   móvil. Se instala como PWA, con su propio icono y ventana.
 - **Paquetes portátiles con actualizaciones desde la app** — paquetes para
   Windows, Linux y macOS con el runtime de Node incluido (no hay que instalar
@@ -154,7 +154,7 @@ Abre **Teléfono** en el menú y elige un modo:
 
 - **Tailscale** — comparte la app en tu tailnet privado
   (`https://<equipo>.<tailnet>.ts.net`). Nada se expone a internet.
-- **Red doméstica (LAN)** — comparte la app en tu WiFi
+- **Red doméstica (LAN)** — comparte la app en tu Wi-Fi
   (`http://<ip-privada>:4322`).
 
 Ambos muestran un código QR para abrir en el teléfono. La sección *Ajustes del
