@@ -117,7 +117,7 @@ tiene su propio fallback de datos, así que una release no depende de este hook.
 4. Crear una **Redirect Rule** en Cloudflare:
    - Si `http.host eq "www.roleplay-manager.com"`.
    - Redirigir a `https://roleplay-manager.com` con 301.
-5. No crear el CNAME a mano antes de asociar el dominio en Pages: el flujo
+5. No crear el CNAME manualmente antes de asociar el dominio en Pages: el flujo
    manual puede dar error 522.
 
 ### SSL/TLS
@@ -347,7 +347,7 @@ Script en `<head>` de `/` (no en `/es/`):
 - Calcula tamaño legible y conserva `browser_download_url`.
 - Escribe `src/data/release.json`.
 - Si falla, no rompe el build: usa `release.fallback.json` y deja un warning.
-- El fallback se actualiza a mano en cada release importante.
+- El fallback se actualiza manualmente en cada release importante.
 
 ### Componente de descarga
 

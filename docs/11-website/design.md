@@ -30,6 +30,9 @@ anfitriona, no un sticker repetido. La acción es una: descargar.
 ## 2. Voz y copy
 
 - **Idioma:** inglés canónico, español completo. Nada de mezclar frases.
+- **Español neutro:** tuteo (`tú`), nunca voseo (`vos`, `instalá`). Usar
+  «equipo» en vez de «ordenador», «Wi-Fi» en vez de «WiFi» y «versión» /
+  «incidencia» en vez de «release» / «issue» en la prosa de usuario.
 - **Tono:** cercano, concreto, sin hype. «Descarga, descomprime, abre».
 - **Palabras prohibidas en la portada:** «LLM», «SSE», «SQLite», «AGPL» como
   argumento principal, «release», «asset», «build», «endpoint» sin explicación.
@@ -197,9 +200,9 @@ Los números 01/02/03 se permiten porque son una secuencia real.
 
 ### 4.9 «Your story fits in your pocket»
 
-- Copy: la app corre en el ordenador; el teléfono la abre por un enlace privado,
+- Copy: la app se ejecuta en el equipo; el teléfono la abre por un enlace privado,
   sin app nativa.
-- Tres bullets: Tailscale, WiFi doméstica, PWA.
+- Tres bullets: Tailscale, Wi-Fi doméstica, PWA.
 - Captura móvil en un marco de teléfono simple sobre fondo violeta suave.
 - CTA: «Phone access guide».
 - No prometer una app móvil que no existe.

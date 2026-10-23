@@ -1,6 +1,6 @@
 ---
 title: Instalar en Linux y macOS
-description: Descargá el paquete portátil para Linux o macOS, descomprimilo y ejecutá el lanzador.
+description: Descarga el paquete portátil para Linux o macOS, descomprímelo y ejecuta el lanzador.
 ---
 
 ## Antes de empezar
@@ -9,39 +9,39 @@ description: Descargá el paquete portátil para Linux o macOS, descomprimilo y 
 - Unos 200 MB de espacio libre después de descomprimir.
 - Un proveedor de IA: Ollama en local o un endpoint compatible con OpenAI.
 
-No necesitás Node.js, un instalador ni una cuenta.
+No necesitas Node.js, un instalador ni una cuenta.
 
 ## Linux
 
-1. [Descargá el paquete de Linux](/es/download/) y descomprimilo en un sitio
+1. [Descarga el paquete de Linux](/es/download/) y descomprímelo en un sitio
    permanente.
-2. Abrí una terminal en la carpeta y dale permiso al lanzador:
+2. Abre una terminal en la carpeta y dale permiso al lanzador:
 
 ```bash
 chmod +x start.sh
 ./start.sh
 ```
 
-3. El navegador debería abrir `http://localhost:3001`.
+3. El navegador debería abrirse en `http://localhost:3001`.
 
-Si el navegador no se abre, entrá a la URL a mano. Mantené la terminal abierta
-mientras la app está corriendo.
+Si el navegador no se abre, entra a la URL manualmente. Conserva la terminal abierta
+mientras la app se está ejecutando.
 
 ## macOS
 
-1. [Descargá el paquete de macOS](/es/download/) para Apple Silicon o Intel.
-2. Descomprimilo y mové la carpeta a un lugar que recuerdes.
-3. Abrí Terminal en la carpeta y ejecutá:
+1. [Descarga el paquete de macOS](/es/download/) para Apple Silicon o Intel.
+2. Descomprímelo y mueve la carpeta a un lugar que recuerdes.
+3. Abre Terminal en la carpeta y ejecuta:
 
 ```bash
 ./start.sh
 ```
 
-4. El navegador debería abrir `http://localhost:3001`.
+4. El navegador debería abrirse en `http://localhost:3001`.
 
-:::caution[Gatekeeper puede bloquear el primer arranque]
-El runtime de Node incluido no está firmado. Permití la app en **Ajustes del
-Sistema → Privacidad y seguridad**, o ejecutá esto dentro de la carpeta:
+:::caution[Gatekeeper puede bloquear el primer inicio]
+El runtime de Node incluido no está firmado. Permite la app en **Ajustes del
+Sistema → Privacidad y seguridad**, o ejecuta esto dentro de la carpeta:
 
 ```bash
 xattr -dr com.apple.quarantine .
@@ -49,10 +49,10 @@ xattr -dr com.apple.quarantine .
 
 :::
 
-## Después del primer arranque
+## Después del primer inicio
 
-Abrí **Sistema → Proveedores**, añadí Ollama o un endpoint compatible con OpenAI,
-probá la conexión y elegí un modelo.
+Abre **Sistema → Proveedores**, añade Ollama o un endpoint compatible con OpenAI,
+prueba la conexión y elige un modelo.
 
 Siguiente: [conectar un proveedor](/es/docs/guides/providers) o
 [primeros pasos](/es/docs/getting-started/first-steps).

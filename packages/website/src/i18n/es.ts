@@ -33,7 +33,7 @@ export const es: Record<TranslationKey, string> = {
   "os.mac.meta": "Apple Silicon o Intel · 60–62 MB",
   "os.linux.label": "Descargar para Linux",
   "os.linux.meta": "x64 o arm64 · 63–65 MB",
-  "os.mobile.label": "Descargar para tu PC",
+  "os.mobile.label": "Descargar para tu equipo",
   "os.mobile.meta": "Windows, Linux o macOS",
   "os.unknown.label": "Descargar",
   "os.unknown.meta": "Elige tu sistema",
@@ -90,7 +90,7 @@ export const es: Record<TranslationKey, string> = {
   "steps.3.body":
     "Añade Ollama o un endpoint compatible con OpenAI, elige un modelo y crea tu primer personaje.",
   "steps.note":
-    "El primer arranque puede mostrar un aviso del sistema porque la app no está firmada. La guía de instalación te acompaña.",
+    "El primer inicio puede mostrar un aviso del sistema porque la app no está firmada. La guía de instalación te acompaña.",
 
   "features.title": "Un cuaderno que recuerda.",
   "features.lede":
@@ -124,10 +124,10 @@ export const es: Record<TranslationKey, string> = {
 
   "phone.title": "Tu historia también cabe en el bolsillo.",
   "phone.lede":
-    "La app corre en tu ordenador. Tu teléfono la abre mediante un enlace privado, sin app nativa.",
+    "La app se ejecuta en tu equipo. Tu teléfono la abre mediante un enlace privado, sin app nativa.",
   "phone.1":
     "Tailscale: acceso privado desde cualquier lugar, sin exponer nada a internet.",
-  "phone.2": "WiFi doméstica: ábrela desde el sofá en la misma red.",
+  "phone.2": "Wi-Fi doméstica: ábrela desde el sofá en la misma red.",
   "phone.3": "Instálala como PWA con su propio icono y ventana.",
   "phone.cta": "Guía de acceso desde el teléfono",
   "phone.imageAlt": "Chat de Roleplay Manager en un teléfono",
@@ -162,9 +162,9 @@ export const es: Record<TranslationKey, string> = {
   "faq.5.q": "¿Funcionará en mi equipo?",
   "faq.5.a":
     "Hay paquetes para Windows x64, Linux x64/arm64 y macOS Apple Silicon/Intel. Un sistema moderno de 64 bits es suficiente; una GPU solo importa si ejecutas modelos grandes en local.",
-  "faq.6.q": "¿Hay app móvil?",
+  "faq.6.q": "¿Hay app para el teléfono?",
   "faq.6.a":
-    "No hay app nativa. La app corre en tu ordenador y el teléfono la abre por Tailscale o tu red doméstica. Puedes instalarla como PWA.",
+    "No hay app nativa. La app se ejecuta en tu equipo y el teléfono la abre por Tailscale o tu red doméstica. Puedes instalarla como PWA.",
   "faq.7.q": "¿Por qué me avisa Windows o macOS?",
   "faq.7.a":
     "Los binarios no están firmados. La guía de instalación explica los pasos de una sola vez para SmartScreen y Gatekeeper.",
@@ -187,8 +187,8 @@ export const es: Record<TranslationKey, string> = {
   "footer.guides": "Guías",
   "footer.reference": "Referencia",
   "footer.github": "GitHub",
-  "footer.releases": "Releases",
-  "footer.issues": "Issues",
+  "footer.releases": "Versiones",
+  "footer.issues": "Incidencias",
   "footer.license": "Licencia",
   "footer.legal":
     "Código bajo AGPL-3.0-or-later. Hecho para escribir, no para nubes.",
@@ -203,23 +203,23 @@ export const es: Record<TranslationKey, string> = {
   "download.macIntel": "macOS · Intel",
   "download.macIntelMeta": "Intel · 62 MB",
   "download.linuxX64": "Linux · x64",
-  "download.linuxX64Meta": "La mayoría de distros · 65 MB",
+  "download.linuxX64Meta": "Distribuciones comunes · 65 MB",
   "download.linuxArm64": "Linux · arm64",
-  "download.linuxArm64Meta": "Placas ARM · 65 MB",
+  "download.linuxArm64Meta": "Equipos ARM · 65 MB",
   "platform.win": "Windows 10/11 · x64",
   "platform.macArm": "Apple Silicon · M1–M4",
   "platform.macIntel": "Intel",
-  "platform.linuxX64": "x64 · la mayoría de distros",
-  "platform.linuxArm64": "arm64 · placas ARM",
+  "platform.linuxX64": "x64 · distribuciones comunes",
+  "platform.linuxArm64": "arm64 · equipos ARM",
   "download.recommended": "Recomendado para ti",
   "download.help":
-    "¿No lo sabes? Windows x64 para la mayoría de PCs, Apple Silicon para M1–M4, Linux x64 para la mayoría de distros.",
-  "download.all": "Ver todas las releases en GitHub",
+    "¿No lo sabes? Windows x64 para la mayoría de los equipos, Apple Silicon para M1–M4, Linux x64 para la mayoría de las distribuciones.",
+  "download.all": "Ver todas las versiones en GitHub",
   "download.close": "Cerrar",
 
   "downloadPage.title": "Descargar Roleplay Manager",
   "downloadPage.lede":
-    "Elige el paquete portátil para tu ordenador. Sin instalador, sin Node.js, sin cuenta.",
+    "Elige el paquete portátil para tu equipo. Sin instalador, sin Node.js, sin cuenta.",
   "downloadPage.requirements": "Antes de empezar",
   "downloadPage.req.os": "Sistema",
   "downloadPage.req.osValue": "Windows 10/11, Linux o macOS (64 bits)",
@@ -229,27 +229,27 @@ export const es: Record<TranslationKey, string> = {
   "downloadPage.req.nodeValue": "No hace falta: el runtime va incluido",
   "downloadPage.req.account": "Cuenta",
   "downloadPage.req.accountValue": "Ninguna. Todo vive en tu carpeta.",
-  "downloadPage.firstRunTitle": "El primer arranque",
+  "downloadPage.firstRunTitle": "El primer inicio",
   "downloadPage.firstRunBody":
-    "Descomprime el paquete, ejecuta start.cmd o ./start.sh y abre http://localhost:3001 si el navegador no se abre solo.",
+    "Descomprime el paquete, ejecuta start.cmd o ./start.sh y abre http://localhost:3001 si el navegador no se abre automáticamente.",
   "downloadPage.winWarningTitle":
     "Windows puede mostrar un aviso de SmartScreen",
   "downloadPage.winWarningBody":
-    "El lanzador no está firmado. Si lo descargaste desde la release oficial de GitHub, elige Más información → Ejecutar de todas formas. Es un paso único.",
-  "downloadPage.macWarningTitle": "macOS puede bloquear el primer arranque",
+    "El lanzador no está firmado. Si lo descargaste desde la versión oficial de GitHub, elige Más información → Ejecutar de todas formas. Solo hay que hacerlo una vez.",
+  "downloadPage.macWarningTitle": "macOS puede bloquear el primer inicio",
   "downloadPage.macWarningBody":
     "El runtime incluido no está firmado. Permítelo en Ajustes del Sistema → Privacidad y seguridad, o ejecuta xattr -dr com.apple.quarantine . dentro de la carpeta.",
   "downloadPage.linuxWarningTitle": "Permisos del lanzador en Linux",
   "downloadPage.linuxWarningBody":
-    "Si start.sh no se ejecuta, dale permiso con chmod +x start.sh dentro de la carpeta de la app.",
+    "Si start.sh no se ejecuta, concede permiso de ejecución con chmod +x start.sh dentro de la carpeta de la app.",
   "downloadPage.docs": "Leer la guía de instalación",
-  "downloadPage.allReleases": "Ver todas las releases en GitHub",
+  "downloadPage.allReleases": "Ver todas las versiones en GitHub",
   "downloadPage.version": "Última versión",
   "downloadPage.updated": "Publicada",
   "downloadPage.platform": "Plataforma",
   "downloadPage.arch": "Arquitectura",
   "downloadPage.size": "Descarga",
   "downloadPage.note":
-    "Mantén la carpeta completa: data/, backups/, versions/ y el lanzador viven dentro.",
+    "Conserva la carpeta completa: data/, backups/, versions/ y el lanzador viven dentro.",
   "downloadPage.backHome": "Volver a la portada",
 }

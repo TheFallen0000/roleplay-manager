@@ -345,10 +345,10 @@
         "Las actualizaciones cambian de versión y no tocan data/ ni backups/.",
       "phone.title": "Tu historia también cabe en el bolsillo.",
       "phone.lede":
-        "La app corre en tu ordenador. Tu teléfono la abre mediante un enlace privado, sin app nativa.",
+        "La app se ejecuta en tu equipo. Tu teléfono la abre mediante un enlace privado, sin app nativa.",
       "phone.1":
         "Tailscale: acceso privado desde cualquier lugar, sin exponer nada a internet.",
-      "phone.2": "WiFi doméstica: ábrela desde el sofá en la misma red.",
+      "phone.2": "Wi-Fi doméstica: ábrela desde el sofá en la misma red.",
       "phone.3": "Instálala como PWA con su propio icono y ventana.",
       "phone.cta": "Guía de acceso desde el teléfono",
       "docs.title": "El manual, sin letra pequeña.",
@@ -382,7 +382,7 @@
         "Hay paquetes para Windows x64, Linux x64/arm64 y macOS Apple Silicon/Intel. Un sistema moderno de 64 bits es suficiente; una GPU solo importa si ejecutas modelos grandes en local.",
       "faq.6.q": "¿Hay app móvil?",
       "faq.6.a":
-        "No hay app nativa. La app corre en tu ordenador y el teléfono la abre por Tailscale o tu red doméstica. Puedes instalarla como PWA.",
+        "No hay app nativa. La app se ejecuta en tu equipo y el teléfono la abre por Tailscale o tu red doméstica. Puedes instalarla como PWA.",
       "faq.7.q": "¿Por qué me avisa Windows o macOS?",
       "faq.7.a":
         "Los binarios no están firmados. La guía de instalación explica los pasos de una sola vez para SmartScreen y Gatekeeper.",
@@ -422,12 +422,12 @@
       "download.macIntel": "macOS · Intel",
       "download.macIntelMeta": "Intel · 62 MB",
       "download.linuxX64": "Linux · x64",
-      "download.linuxX64Meta": "La mayoría de distros · 65 MB",
+      "download.linuxX64Meta": "Distribuciones comunes · 65 MB",
       "download.linuxArm64": "Linux · arm64",
-      "download.linuxArm64Meta": "Placas ARM · 65 MB",
+      "download.linuxArm64Meta": "Equipos ARM · 65 MB",
       "download.recommended": "Recomendado para ti",
       "download.help":
-        "¿No lo sabes? Windows x64 para la mayoría de PCs, Apple Silicon para M1–M4, Linux x64 para la mayoría de distros.",
+        "¿No lo sabes? Windows x64 para la mayoría de los equipos, Apple Silicon para M1–M4, Linux x64 para la mayoría de las distribuciones.",
       "download.all": "Ver todas las releases en GitHub",
       "download.close": "Cerrar",
       "os.win.label": "Descargar para Windows",

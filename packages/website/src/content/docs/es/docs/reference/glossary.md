@@ -4,11 +4,11 @@ description: Los términos que se usan en Roleplay Manager, la app y la document
 ---
 
 **Modelo**
-: La IA que genera las respuestas. Puede correr en local (Ollama) o en un
+: La IA que genera las respuestas. Puede ejecutarse en local (Ollama) o en un
 servicio remoto compatible con OpenAI.
 
 **Proveedor**
-: La conexión a un modelo: una URL, un tipo y, si hace falta, una API key. Podés
+: La conexión a un modelo: una URL, un tipo y, si hace falta, una API key. Puedes
 tener varios proveedores y elegir uno por conversación.
 
 **Contexto**
@@ -22,7 +22,7 @@ suelen expresarse en tokens, no en palabras.
 
 **Memoria**
 : Un hecho que el personaje debería recordar entre mensajes. Las memorias se
-pueden proponer automáticamente o aprobar a mano y pueden decaer con el tiempo.
+pueden proponer automáticamente o aprobar manualmente y pueden decaer con el tiempo.
 
 **Resumen**
 : Una versión comprimida de mensajes antiguos que se mantiene en el prompt en
@@ -42,7 +42,7 @@ original. Las dos historias quedan disponibles.
 
 **PWA**
 : Un sitio instalado en la pantalla de inicio del teléfono con su propio icono y
-ventana. Roleplay Manager la usa para el acceso desde el móvil; no hay app
+ventana. Roleplay Manager la usa para el acceso desde el teléfono; no hay app
 nativa.
 
 **Paquete portátil**

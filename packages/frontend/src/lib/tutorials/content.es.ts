@@ -73,11 +73,11 @@ export const tutorialsEs: TutorialContent = {
       },
       {
         title: "Conéctate desde el otro dispositivo",
-        body: "Escanea el código QR con la cámara (debe estar en la misma WiFi) o escribe la dirección que aparece, similar a http://192.168.1.20:4322.",
+        body: "Escanea el código QR con la cámara (debe estar en la misma Wi-Fi) o escribe la dirección que aparece, similar a http://192.168.1.20:4322.",
       },
       {
         title: "Si no abre, revisa el firewall",
-        body: "Permite las conexiones entrantes de la app en el firewall de tu equipo. Si tienes varias direcciones, elige la de tu red WiFi.",
+        body: "Permite las conexiones entrantes de la app en el firewall de tu equipo. Si tienes varias direcciones, elige la de tu red Wi-Fi.",
       },
     ],
     tips: [
@@ -177,7 +177,7 @@ export const tutorialsEs: TutorialContent = {
       },
       {
         title: "Revisa lo que sabe",
-        body: "En «Memoria dinámica» ves todas las memorias agrupadas por actor; puedes crear, editar y borrar entradas a mano.",
+        body: "En «Memoria dinámica» ves todas las memorias agrupadas por actor; puedes crear, editar y borrar entradas manualmente.",
       },
       {
         title: "Resúmenes que aligeran el contexto",
@@ -190,7 +190,7 @@ export const tutorialsEs: TutorialContent = {
     ],
     tips: [
       "Cuanta más importancia tiene una memoria, más peso tiene al generar la respuesta.",
-      "Crea memorias a mano para fijar detalles que la IA no debe olvidar.",
+      "Crea memorias manualmente para fijar detalles que la IA no debe olvidar.",
     ],
   },
   "chat-customization": {

@@ -1,33 +1,33 @@
 ---
 title: Primeros pasos
-description: Conectá un proveedor, creá un personaje y empezá tu primera conversación.
+description: Conecta un proveedor, crea un personaje y empieza tu primera conversación.
 ---
 
 Roleplay Manager tiene tres piezas: un **proveedor**, un **personaje** y una
 **conversación**. Solo hay que configurarlas una vez.
 
-## 1. Conectá un proveedor
+## 1. Conecta un proveedor
 
-Abrí **Sistema → Proveedores** y añadí una de estas opciones:
+Abre **Sistema → Proveedores** y añade una de estas opciones:
 
 - **Ollama** en el mismo equipo: `http://localhost:11434`.
 - **Compatible con OpenAI**: cualquier endpoint con URL y clave, como LM Studio,
   OpenRouter o una pasarela autoalojada.
 
-Usá **Probar conexión** y elegí un modelo por defecto. Después podés cambiar el
+Usa **Probar conexión** y elige un modelo por defecto. Después puedes cambiar el
 modelo por conversación.
 
-## 2. Creá un personaje
+## 2. Crea un personaje
 
-Abrí **Mis personajes → Crear personaje**. Dale un nombre, una descripción
-corta, un saludo y, si querés, una imagen y tarjetas de personalidad. Cada
-edición crea una versión nueva, así que podés volver atrás.
+Abre **Mis personajes → Crear personaje**. Asigna un nombre, una descripción
+corta, un saludo y, si quieres, una imagen y tarjetas de personalidad. Cada
+edición crea una versión nueva, así que puedes volver atrás.
 
-También podés importar un personaje desde un archivo JSON.
+También puedes importar un personaje desde un archivo JSON.
 
-## 3. Empezá una conversación
+## 3. Empieza una conversación
 
-Abrí el personaje y enviá el primer mensaje. Desde una conversación podés:
+Abre el personaje y escribe el primer mensaje. Desde una conversación puedes:
 
 - Editar o regenerar una respuesta.
 - Rebobinar a un mensaje anterior.

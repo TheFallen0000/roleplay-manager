@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   summaries, phone access, data and updates, troubleshooting, glossary and
   development documentation.
 
+### Changed
+
+- **Neutral Spanish**: public documentation, landing copy and in-app tutorials
+  now use neutral Spanish (tuteo, «equipo», «Wi-Fi», «versión», «incidencia»)
+  instead of voseo and regional wording.
+
 ## [1.47.0] - 2026-10-14
 
 ### Added

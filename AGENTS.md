@@ -174,6 +174,11 @@ All names are English: files, components, exports, variables, types and test
 helpers. Spanish only appears in user-facing copy, and that copy lives in the
 i18n dictionaries (`packages/shared/src/i18n`) — never in identifiers or code.
 
+Spanish copy is **neutral**: use tuteo (`tú`), never voseo (`vos`/`instalá`).
+Prefer `equipo` over `ordenador`, `Wi-Fi` over `WiFi`, and `versión` /
+`incidencia` over `release` / `issue` in user-facing prose. Technical terms
+(model, prompt, endpoint, token, PWA) stay as they are.
+
 ### Backend
 
 | Kind | Pattern | Example |
