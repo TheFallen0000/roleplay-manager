@@ -11,8 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - **Public website (roleplay-manager.com)**: new `packages/website` Astro site
   with a bilingual landing (EN/ES), OS-aware download selector, `/download`
-  page and release snapshot fetched from GitHub. Documentation links point to a
-  temporary placeholder until S83.
+  page and release snapshot fetched from GitHub.
+- **Bilingual documentation**: `/docs` and `/es/docs` now use Starlight, with
+  installation guides, AI providers, characters and branches, memory and
+  summaries, phone access, data and updates, troubleshooting, glossary and
+  development documentation.
 
 ## [1.47.0] - 2026-10-14
 
