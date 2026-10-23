@@ -103,6 +103,5 @@ La documentación completa del planteamiento está en
 ## Commits
 
 1. `docs(website): add research, design and clickable prototype` (`d857f4a`)
-2. `feat(website): scaffold Astro site with bilingual landing`
-3. `feat(website): add OS-aware downloads and download page`
-4. `docs(website): document S82, Cloudflare setup and release policy`
+2. `feat(website): add bilingual Astro landing and download flow` (`bd5f4dd`)
+3. `docs(website): document S82, Cloudflare setup and release policy` (`56555dd`)
