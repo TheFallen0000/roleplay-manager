@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Public website (roleplay-manager.com)**: new `packages/website` Astro site
+  with a bilingual landing (EN/ES), OS-aware download selector, `/download`
+  page and release snapshot fetched from GitHub. Documentation links point to a
+  temporary placeholder until S83.
+
 ## [1.47.0] - 2026-10-14
 
 ### Added

@@ -2,7 +2,7 @@
 
 **Estado:** investigación cerrada + prototipo estático listo para revisión.
 **Fecha:** 2026-10-23.
-**Siguiente paso:** aprobar el prototipo y ejecutar S82 (portada + descarga).
+**Estado:** S82 implementado en `packages/website`; pendiente de Cloudflare Pages y S83.
 
 Este directorio reúne la investigación, las decisiones de diseño y el plan técnico
 para el sitio público de Roleplay Manager. No sustituye a `PRODUCT.md` ni a
@@ -118,22 +118,21 @@ Parámetros útiles del prototipo:
 
 ## Estado de la implementación
 
-| Pieza                                 | Estado |
-| ------------------------------------- | ------ |
-| Investigación y propuesta             | ✅     |
-| Prototipo de portada                  | ✅     |
-| Prototipo de docs                     | ✅     |
-| Paquete `packages/website`            | ⏳ S82 |
-| Proyecto Cloudflare Pages             | ⏳ S82 |
-| DNS y dominio                         | ⏳ S82 |
-| Documentación completa ES/EN          | ⏳ S83 |
-| Capturas localizadas                  | ⏳ S84 |
-| Deploy automático al publicar release | ⏳ S84 |
+| Pieza                                 | Estado         |
+| ------------------------------------- | -------------- |
+| Investigación y propuesta             | ✅             |
+| Prototipo de portada                  | ✅             |
+| Prototipo de docs                     | ✅             |
+| Paquete `packages/website`            | ✅ S82 (local) |
+| Proyecto Cloudflare Pages             | ⏳ manual      |
+| DNS y dominio                         | ⏳ manual      |
+| Documentación completa ES/EN          | ⏳ S83         |
+| Capturas localizadas                  | ⏳ S84         |
+| Deploy automático al publicar release | ⏳ S84         |
 
 ## Próxima sesión
 
-1. Revisar el prototipo en móvil (360–430 px) y escritorio (1280–1600 px).
-2. Aprobar o ajustar el concepto «El cuaderno abierto».
-3. Confirmar el hosting Cloudflare Pages y el orden de las secciones.
-4. Abrir `S82` con su `S82-progress.md` y la entrada de `CHANGELOG.md` bajo
-   `[Unreleased]`.
+1. Revisar la portada implementada en un móvil real y en Safari.
+2. Crear el proyecto de Cloudflare Pages y apuntar el dominio.
+3. Abrir `S83` para montar Starlight y sustituir el placeholder de `/docs`.
+4. Dejar para `S84` las capturas EN/ES, las OG images y el deploy hook.
