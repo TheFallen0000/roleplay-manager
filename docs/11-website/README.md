@@ -2,7 +2,7 @@
 
 **Estado:** investigación cerrada + prototipo estático listo para revisión.
 **Fecha:** 2026-10-23.
-**Estado:** S82 implementado en `packages/website`; pendiente de Cloudflare Pages y S83.
+**Estado:** S82 y S83 implementados en `packages/website`; pendiente de Cloudflare Pages y S84.
 
 Este directorio reúne la investigación, las decisiones de diseño y el plan técnico
 para el sitio público de Roleplay Manager. No sustituye a `PRODUCT.md` ni a
@@ -126,13 +126,14 @@ Parámetros útiles del prototipo:
 | Paquete `packages/website`            | ✅ S82 (local) |
 | Proyecto Cloudflare Pages             | ⏳ manual      |
 | DNS y dominio                         | ⏳ manual      |
-| Documentación completa ES/EN          | ⏳ S83         |
+| Documentación completa ES/EN          | ✅ S83         |
 | Capturas localizadas                  | ⏳ S84         |
 | Deploy automático al publicar release | ⏳ S84         |
 
 ## Próxima sesión
 
-1. Revisar la portada implementada en un móvil real y en Safari.
+1. Revisar la documentación en un móvil real y en Safari.
 2. Crear el proyecto de Cloudflare Pages y apuntar el dominio.
-3. Abrir `S83` para montar Starlight y sustituir el placeholder de `/docs`.
-4. Dejar para `S84` las capturas EN/ES, las OG images y el deploy hook.
+3. Abrir `S84` para capturas EN/ES, OG images, 404 y deploy hook.
+4. Añadir el botón de descarga al header de Starlight si se decide pulir la
+   navegación de docs.

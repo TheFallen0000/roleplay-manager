@@ -22,7 +22,7 @@ pnpm --filter @workspace/website typecheck
 
 - `src/pages/index.astro` y `src/pages/es/index.astro`: portada EN/ES.
 - `src/pages/download.astro` y `src/pages/es/download.astro`: selector completo.
-- `src/pages/docs/`: placeholder hasta S83; después Starlight.
+- `src/content/docs/docs/` y `src/content/docs/es/docs/`: documentación Starlight EN/ES.
 - `src/components/`: componentes de la portada y la descarga.
 - `src/i18n/`: diccionarios EN/ES.
 - `src/data/release.json`: snapshot de la última release.

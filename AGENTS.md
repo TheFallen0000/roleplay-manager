@@ -22,7 +22,8 @@ A roleplay conversation manager with a Node/Express backend, an Astro+React fron
 
 - Static Astro site. No React, no backend, no runtime adapter.
 - Landing at `/` and `/es/`, download at `/download` and `/es/download`,
-  documentation under `/docs` and `/es/docs` (Starlight from S83).
+  documentation under `/docs` and `/es/docs` (Starlight, content in
+  `src/content/docs/docs/` and `src/content/docs/es/docs/`).
 - English is canonical; Spanish is a full mirror. The first visit from a
   Spanish browser/timezone is redirected to `/es/`; an explicit choice is
   stored in `localStorage` (`rm-lang`).

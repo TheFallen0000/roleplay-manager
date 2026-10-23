@@ -252,15 +252,4 @@ export const es: Record<TranslationKey, string> = {
   "downloadPage.note":
     "Mantén la carpeta completa: data/, backups/, versions/ y el lanzador viven dentro.",
   "downloadPage.backHome": "Volver a la portada",
-
-  "docsPage.title": "Documentación",
-  "docsPage.lede":
-    "La documentación completa se está escribiendo para el sitio público. Por ahora, el README tiene las guías de instalación, proveedores y acceso desde el teléfono.",
-  "docsPage.body":
-    "S83 traerá un centro de documentación bilingüe y buscable con instalación por sistema, proveedores, personajes, memoria, ramas, datos y actualizaciones.",
-  "docsPage.readme": "Abrir el README",
-  "docsPage.install": "Instalación",
-  "docsPage.providers": "Configurar un proveedor",
-  "docsPage.phone": "Acceso desde el teléfono",
-  "docsPage.back": "Volver a la portada",
 }
