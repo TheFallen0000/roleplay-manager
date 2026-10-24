@@ -2,7 +2,7 @@
 
 **Estado:** investigación cerrada + prototipo estático listo para revisión.
 **Fecha:** 2026-10-23.
-**Estado:** S82 y S83 implementados en `packages/website`; pendiente de Cloudflare Pages y S84.
+**Estado:** S82–S84 implementados en `packages/website`; pendiente de Cloudflare Pages, dominio y una captura EN de la biblioteca.
 
 Este directorio reúne la investigación, las decisiones de diseño y el plan técnico
 para el sitio público de Roleplay Manager. No sustituye a `PRODUCT.md` ni a
@@ -118,22 +118,22 @@ Parámetros útiles del prototipo:
 
 ## Estado de la implementación
 
-| Pieza                                 | Estado         |
-| ------------------------------------- | -------------- |
-| Investigación y propuesta             | ✅             |
-| Prototipo de portada                  | ✅             |
-| Prototipo de docs                     | ✅             |
-| Paquete `packages/website`            | ✅ S82 (local) |
-| Proyecto Cloudflare Pages             | ⏳ manual      |
-| DNS y dominio                         | ⏳ manual      |
-| Documentación completa ES/EN          | ✅ S83         |
-| Capturas localizadas                  | ⏳ S84         |
-| Deploy automático al publicar release | ⏳ S84         |
+| Pieza                                 | Estado                       |
+| ------------------------------------- | ---------------------------- |
+| Investigación y propuesta             | ✅                           |
+| Prototipo de portada                  | ✅                           |
+| Prototipo de docs                     | ✅                           |
+| Paquete `packages/website`            | ✅ S82                       |
+| Proyecto Cloudflare Pages             | ⏳ manual                    |
+| DNS y dominio                         | ⏳ manual                    |
+| Documentación completa ES/EN          | ✅ S83                       |
+| 404, OG images y CTA de docs          | ✅ S84                       |
+| Capturas localizadas                  | ✅ S84 (falta biblioteca EN) |
+| Deploy automático al publicar release | ✅ S84 (secreto pendiente)   |
 
 ## Próxima sesión
 
 1. Revisar la documentación en un móvil real y en Safari.
 2. Crear el proyecto de Cloudflare Pages y apuntar el dominio.
-3. Abrir `S84` para capturas EN/ES, OG images, 404 y deploy hook.
-4. Añadir el botón de descarga al header de Starlight si se decide pulir la
-   navegación de docs.
+3. Recapturar la biblioteca en inglés y añadir su pestaña.
+4. Revisar el CTA de descarga de docs en un móvil real.
