@@ -25,9 +25,9 @@ producción:
   duplicar la que ya aparece en la captura.
 - **Galería por locale.** En español: Biblioteca, Chat y Teléfono. En inglés:
   Chat y Teléfono, porque `characters-list-eng.png` tiene la UI en español.
-- **Chat de la galería con Alice; hero con Milka.** Las dos conversaciones son
-  sintéticas y están traducidas; Alice aporta contraste en la galería y Milka
-  refuerza la marca de la mascota en el hero.
+- **Chat de la galería con Alice; Milka en el teléfono.** Las dos conversaciones
+  son sintéticas y están traducidas; Alice aporta contraste en la galería y la
+  captura de Milka en el teléfono refuerza la marca de la mascota.
 - **Sección de funciones:** biblioteca en español y chat en inglés hasta tener
   la biblioteca EN.
 - **Sharp sí, pero con criterio.** Astro ya genera las variantes responsive.
