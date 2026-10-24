@@ -13,7 +13,7 @@ interface Props {
 }
 
 const { locale, t, release, downloadHref } = Astro.props
-const image = screenshots[locale].themes
+const image = screenshots[locale].welcome
 const winUrl = release.assets["win-x64"]?.url ?? downloadHref
 ---
 

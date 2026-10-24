@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets"
+import type { ImageMetadata } from "astro"
 import Icon from "../components/Icon.astro"
 import { screenshots } from "../data/screenshots"
 import type { Locale, TranslationKey } from "../i18n"
@@ -12,10 +13,9 @@ interface Props {
 const { locale, t } = Astro.props
 const images = screenshots[locale]
 
-type Tab = "library" | "chat" | "themes" | "phone"
+type Tab = "library" | "chat" | "phone"
 
-const tabs: Tab[] =
-  locale === "es" ? ["library", "chat", "phone"] : ["chat", "phone"]
+const tabs: Tab[] = ["library", "chat", "phone"]
 
 const config: Record<
   Tab,
@@ -24,7 +24,7 @@ const config: Record<
     label: TranslationKey
     caption: TranslationKey
     alt: TranslationKey
-    image: typeof images.chat | undefined
+    image: ImageMetadata
     phone?: boolean
   }
 > = {
@@ -42,19 +42,12 @@ const config: Record<
     alt: "gallery.imageAlt.chat",
     image: images.chat,
   },
-  themes: {
-    icon: "palette",
-    label: "gallery.tab.themes",
-    caption: "gallery.caption.themes",
-    alt: "gallery.imageAlt.themes",
-    image: images.themes,
-  },
   phone: {
     icon: "phone",
     label: "gallery.tab.phone",
     caption: "gallery.caption.phone",
     alt: "gallery.imageAlt.phone",
-    image: images.phone,
+    image: images.galleryPhone,
     phone: true,
   },
 }
@@ -92,7 +85,6 @@ const config: Record<
         {
           tabs.map((tab, index) => {
             const item = config[tab]
-            if (!item.image) return null
             return (
               <div
                 class:list={[

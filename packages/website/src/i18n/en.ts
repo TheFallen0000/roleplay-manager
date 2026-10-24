@@ -65,23 +65,19 @@ export const en = {
     "Real screens from the app. No mockups, no invented testimonials.",
   "gallery.tab.library": "Character library",
   "gallery.tab.chat": "Chat",
-  "gallery.tab.themes": "Themes",
-  "gallery.tab.phone": "On your phone",
+  "gallery.tab.phone": "Phone",
   "gallery.caption.library":
     "Versioned characters with their own art, memory and conversations.",
   "gallery.caption.chat":
     "Streaming replies, editable messages and branches when a scene goes another way.",
   "gallery.caption.note": "Screenshot from the app · synthetic content",
-  "gallery.caption.themes":
-    "Five color worlds with light and dark modes. Sakura is one of them.",
   "gallery.caption.phone":
     "The same story on your phone through Tailscale or Wi-Fi.",
   "gallery.imageAlt.library":
     "Character library with two characters and version badges",
   "gallery.imageAlt.chat":
     "Chat with streaming-style replies and dialogue colours",
-  "gallery.imageAlt.themes": "Welcome screen with the Sakura theme",
-  "gallery.imageAlt.phone": "Chat with Milka on a phone",
+  "gallery.imageAlt.phone": "Chat with Alice on a phone",
 
   "steps.title": "From download to first scene.",
   "steps.lede": "No Node.js, no installer, no account.",

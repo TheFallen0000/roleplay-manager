@@ -1,6 +1,6 @@
 # S84 — Capturas reales, 404, OG y deploy
 
-**Estado:** Implementado en local; pendiente de Cloudflare Pages, dominio y una captura EN de la biblioteca.
+**Estado:** Implementado; pendiente de Cloudflare Pages, dominio y el secreto del deploy hook.
 **Inicio:** 2026-10-23
 **Fin:** 2026-10-23
 
@@ -23,13 +23,14 @@ producción:
 - **Hero con la bienvenida Sakura.** Es la captura más luminosa y la que mejor
   presenta la identidad y los temas. Se eliminó la mascota superpuesta para no
   duplicar la que ya aparece en la captura.
-- **Galería por locale.** En español: Biblioteca, Chat y Teléfono. En inglés:
-  Chat y Teléfono, porque `characters-list-eng.png` tiene la UI en español.
-- **Chat de la galería con Alice; Milka en el teléfono.** Las dos conversaciones
-  son sintéticas y están traducidas; Alice aporta contraste en la galería y la
-  captura de Milka en el teléfono refuerza la marca de la mascota.
-- **Sección de funciones:** biblioteca en español y chat en inglés hasta tener
-  la biblioteca EN.
+- **Galería con tres pestañas en ambos idiomas.** Biblioteca, Chat y Teléfono.
+  Las recapturas EN de la biblioteca y de Alice móvil permiten que la estructura
+  sea idéntica en inglés y español.
+- **Alice en la galería; Milka en la sección del teléfono.** Alice protagoniza
+  la conversación de novela visual y la pestaña Teléfono; Milka refuerza la
+  marca de la mascota en la sección del teléfono.
+- **Sección de funciones:** biblioteca en ambos idiomas, ahora que la captura
+  inglesa está traducida.
 - **Sharp sí, pero con criterio.** Astro ya genera las variantes responsive.
   Sharp se usa para normalizar las fuentes, convertir a WebP y generar las OG.
 - **Fuentes ignoradas por Git.** `screenshots-source/` no se versiona; se
@@ -52,7 +53,7 @@ producción:
 - [x] CTA de descarga localizado en el header de docs.
 - [x] Workflow de deploy hook creado y tolerante a secretos ausentes.
 - [x] `pnpm check`, build, typecheck y lint verdes.
-- [ ] Captura de la biblioteca con UI en inglés (pendiente).
+- [x] Captura de la biblioteca con UI en inglés y capturas móviles de Alice integradas.
 - [ ] Proyecto Cloudflare Pages y dominio (manual).
 - [ ] Secreto `CLOUDFLARE_DEPLOY_HOOK` en GitHub (manual).
 
@@ -62,14 +63,13 @@ producción:
   sitemap e imágenes optimizadas.
 - `pnpm --filter @workspace/website typecheck`: 0 errores.
 - `pnpm check`: arquitectura 7/7, typecheck y lint verdes.
-- Chrome headless: landing EN/ES en escritorio y móvil, 404 en escritorio y
-  móvil, header de docs EN/ES con CTA localizado.
+- Chrome headless: landing EN/ES en escritorio y móvil, galería con tres
+  pestañas en ambos idiomas, pestaña Teléfono con Alice móvil, 404 en escritorio
+  y móvil, header de docs EN/ES con CTA localizado.
 - Sin recursos 404 ni errores de consola en las páginas probadas.
 
 ## Pendiente
 
-- Recapturar `characters-list` con la UI en inglés y añadir la pestaña
-  Biblioteca a `/`.
 - Crear el proyecto de Cloudflare Pages, apuntar el dominio y configurar el
   secreto del deploy hook.
 - Revisar en un iPhone/Safari real.
@@ -79,3 +79,4 @@ producción:
 
 1. `feat(website): add real screenshots, 404 and deploy hook` (`33873ec`)
 2. `docs(website): document S84`
+3. `feat(website): add English library and mobile Alice captures`

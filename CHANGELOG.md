@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   development documentation.
 - **Real app screenshots and social cards**: the landing now uses localized
   captures for the welcome, chat, library and phone sections, plus 1200×630
-  Open Graph images for English and Spanish.
+  Open Graph images for English and Spanish. The English library and both mobile
+  Alice conversations were recaptured with the correct UI language.
 - **Custom 404 and docs download CTA**: a bilingual 404 with the mascot and a
   locale-aware download link in the Starlight header.
 - **Website deploy hook**: a workflow triggers Cloudflare Pages after a release
@@ -159,8 +160,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - **Memories grouped by actor**: the dynamic-memory section now shows a
-  collapsible section per actor — initial avatar, count, and the *Character* /
-  *You* badges when they can be resolved — ordered with the conversation's
+  collapsible section per actor — initial avatar, count, and the _Character_ /
+  _You_ badges when they can be resolved — ordered with the conversation's
   character first and remembered per conversation.
 - **Search inside the section**: filters by actor, title or description and
   auto-expands the groups with matches without overwriting your saved
@@ -195,7 +196,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **Fullscreen focus mode for the chat**: pick *Pantalla completa* in the
+- **Fullscreen focus mode for the chat**: pick _Pantalla completa_ in the
   conversation settings menu and the chat overlays the whole app — sidebar,
   header and padding included — with the background image stretched edge to
   edge and only the messages, their context menus and the composer visible.
@@ -216,8 +217,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - The **character edit header** no longer overflows on small screens: below
-  640px the title and the actions stack, and the buttons wrap, so *Delete* and
-  *Save changes* stay inside the card (at 320px the page used to scroll
+  640px the title and the actions stack, and the buttons wrap, so _Delete_ and
+  _Save changes_ stay inside the card (at 320px the page used to scroll
   sideways by 179px and the title broke into two squeezed lines).
 
 ## [1.40.4] - 2026-10-12
@@ -287,7 +288,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **`DESIGN.md`** at the repo root plus a `.impeccable/design.json` sidecar:
   the built design system is now documented with machine-readable tokens
   (colours, typography, radii, components), a motion vocabulary and named
-  rules such as *The Ink-Before-Chrome* and *The Flat-by-Default*.
+  rules such as _The Ink-Before-Chrome_ and _The Flat-by-Default_.
 
 ### Changed
 
@@ -302,8 +303,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - **Per-conversation chat appearance (S61)**: every conversation now stores its
-  **message style** — *bubble* (classic), *document* (full-width prose) or
-  *visual novel* (name plates over the chat background) — plus **dialogue
+  **message style** — _bubble_ (classic), _document_ (full-width prose) or
+  _visual novel_ (name plates over the chat background) — plus **dialogue
   colours** for the character and for you, chosen from a palette or reset to
   the theme. Branches inherit the look, and it travels in character exports
   and settings templates.
@@ -315,7 +316,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Character dialogue is tinted with its colour in every style; your dialogue
-  colour applies in *document* and *visual novel*.
+  colour applies in _document_ and _visual novel_.
 - Custom dialogue colours are lifted slightly in dark mode so mid tones stay
   readable.
 
@@ -359,7 +360,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (backend, frontend, shared and ui): Spanish JSDoc and inline comments were
   translated, and comments that only restated the code were removed. The
   convention is recorded in `AGENTS.md`: English names and comments, comments
-  used sparingly to explain *why*, no JSX narration comments and configuration
+  used sparingly to explain _why_, no JSX narration comments and configuration
   files preferred as their home.
 
 ## [1.37.0] - 2026-10-09
@@ -399,16 +400,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- The **Phone dialog** no longer grows past the viewport on short screens: the whole dialog scrolls (85% of the visible height) so the QR, the hints and the *Link settings* section stay reachable on a phone or in a small window.
+- The **Phone dialog** no longer grows past the viewport on short screens: the whole dialog scrolls (85% of the visible height) so the QR, the hints and the _Link settings_ section stay reachable on a phone or in a small window.
 
 ## [1.36.0] - 2026-10-08
 
 ### Added
 
-- **Link settings for phone access** (Tailscale and home network), in a collapsible *Link settings* section of the Phone dialog and persisted per mode:
-  - *Turn on when the app starts* — the link comes up by itself when you open the app.
-  - *Turn off when the app closes* (Tailscale only) — `tailscale serve` would otherwise keep serving after the app is gone.
-  - *Turn off after inactivity* — cuts the link after 15/30/60/120 minutes without requests coming from the phone (using the app on the PC does not count); enabling the link restarts the countdown.
+- **Link settings for phone access** (Tailscale and home network), in a collapsible _Link settings_ section of the Phone dialog and persisted per mode:
+  - _Turn on when the app starts_ — the link comes up by itself when you open the app.
+  - _Turn off when the app closes_ (Tailscale only) — `tailscale serve` would otherwise keep serving after the app is gone.
+  - _Turn off after inactivity_ — cuts the link after 15/30/60/120 minutes without requests coming from the phone (using the app on the PC does not count); enabling the link restarts the countdown.
 
 ### Changed
 
@@ -484,7 +485,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- The packaged launcher no longer shows *"Windows cannot find the file ..."* when opening the browser: Node escaped the inner quotes when spawning `cmd.exe`, and `cmd` does not understand that escaping, so `start` got a broken argument. The command is now passed verbatim (`windowsVerbatimArguments`).
+- The packaged launcher no longer shows _"Windows cannot find the file ..."_ when opening the browser: Node escaped the inner quotes when spawning `cmd.exe`, and `cmd` does not understand that escaping, so `start` got a broken argument. The command is now passed verbatim (`windowsVerbatimArguments`).
 
 ## [1.31.4] - 2026-10-07
 

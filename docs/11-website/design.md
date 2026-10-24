@@ -121,10 +121,9 @@ romper enlaces ni duplicar mantenimiento. Los títulos y el contenido se traduce
 - **CTA secundario:** «Other platforms» / «Otras plataformas».
 - **Microcopy:** versión, tamaño, «No Node.js», «No account». En móvil, el
   tamaño se sustituye por «Windows, Linux or macOS».
-- **Visual:** captura real del chat sobre tarjeta de papel; mascota a la
-  izquierda, apoyada en el borde, sin tapar el pie de foto.
-- **Móvil:** primero copy y CTA; después la captura. La mascota se reduce y se
-  coloca a la izquierda de la captura.
+- **Visual:** captura real de la bienvenida Sakura sobre tarjeta de papel. La
+  mascota ya aparece dentro de la captura, así que no se superpone otra.
+- **Móvil:** primero copy y CTA; después la captura, sin mascota adicional.
 
 ### 4.3 Franja de confianza
 
@@ -152,7 +151,7 @@ secuencia.
 
 ### 4.5 «See the notebook»
 
-- Dos pestañas: **Character library** y **Chat**. Sin autoplay.
+- Tres pestañas: **Character library**, **Chat** y **Phone**. Sin autoplay.
 - Una captura grande por pestaña, con pie de foto y nota «Screenshot from the
   app · synthetic content».
 - En móvil, las pestañas se convierten en una fila horizontal y la captura ocupa
@@ -267,7 +266,7 @@ cifras ni casos de uso.
 │ ...                          │
 ├──────────────────────────────┤
 │ Mira el cuaderno             │
-│ [Biblioteca] [Chat]          │
+│ [Biblioteca] [Chat] [Teléfono]│
 │ [captura]                    │
 ├──────────────────────────────┤
 │ De la descarga a la 1ª escena│

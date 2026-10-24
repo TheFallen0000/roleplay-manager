@@ -36,9 +36,10 @@ pnpm --filter @workspace/website typecheck
   `src/assets/screenshots/{en,es}/` con Sharp.
 - `pnpm --filter @workspace/website og` genera `public/og-en.png` y
   `public/og-es.png` a partir de la bienvenida Sakura.
-- **Pendiente:** falta una captura de la biblioteca con la UI en inglés;
-  `characters-list-eng.png` está en español. Mientras tanto, `/es/` muestra la
-  pestaña Biblioteca y `/` muestra Chat y Teléfono.
+- La galería usa la biblioteca, la conversación de Alice en estilo novela
+  visual y la captura móvil de Alice; la sección del teléfono usa la captura
+  móvil de Milka. Las dos bibliotecas y las dos conversaciones móviles están
+  traducidas.
 
 ## Cloudflare Pages
 
