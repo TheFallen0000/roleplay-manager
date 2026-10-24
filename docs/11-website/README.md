@@ -133,5 +133,4 @@ Parámetros útiles del prototipo:
 ## Próxima sesión
 
 1. Revisar la documentación y la portada en un iPhone/Safari real.
-2. Rotar el token de Cloudflare compartido durante la configuración.
-3. Revisar el CTA de descarga de docs en un teléfono real.
+2. Revisar el CTA de descarga de docs en un teléfono real.
