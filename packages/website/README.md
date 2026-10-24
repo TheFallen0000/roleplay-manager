@@ -43,16 +43,24 @@ pnpm --filter @workspace/website typecheck
 
 ## Cloudflare Pages
 
-- Root directory: `/`
-- Build command: `pnpm --filter @workspace/website build`
-- Output directory: `packages/website/dist`
-- Variables: `NODE_VERSION=24`, `PNPM_VERSION=11.21.0`,
-  `GITHUB_TOKEN` (opcional, solo lectura pública, evita el rate limit).
-- Custom domain: `roleplay-manager.com`; `www` redirige al apex con una
-  Redirect Rule 301.
+El proyecto `roleplay-manager` usa **subida directa**: Cloudflare no compila el
+repositorio. El build y el deploy los hace GitHub Actions:
 
-El deploy de producción se dispara al hacer push a `master`. Para actualizar la
-versión que muestra la web sin cambiar código, crear un Deploy Hook de Pages y
-guardar su URL como secreto `CLOUDFLARE_DEPLOY_HOOK` en GitHub. El workflow de
-release lo llama al publicar; `.github/workflows/deploy-website.yml` permite
-relanzarlo manualmente.
+- Workflow: `.github/workflows/deploy-website.yml`.
+- Se ejecuta al cambiar `packages/website/**`, `package.json` o el lockfile, y
+  también con `workflow_dispatch`.
+- Instala dependencias, ejecuta
+  `pnpm --filter @workspace/website build` y publica `packages/website/dist`
+  con Wrangler.
+- Secretos: `CLOUDFLARE_API_TOKEN` (permiso **Pages: Write**) y
+  `CLOUDFLARE_ACCOUNT_ID`.
+- El workflow de release lo relanza con
+  `gh workflow run deploy-website.yml --ref master` para refrescar la versión
+  descargable.
+- Dominio: `roleplay-manager.com`; `www` redirige al apex con una Redirect Rule 301. HTTPS y HSTS están activos en la zona.
+
+Para reproducir el build en local:
+
+```sh
+pnpm --filter @workspace/website build
+```

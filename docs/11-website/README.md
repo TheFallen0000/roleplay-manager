@@ -1,8 +1,7 @@
 # Sitio web — roleplay-manager.com
 
-**Estado:** investigación cerrada + prototipo estático listo para revisión.
 **Fecha:** 2026-10-23.
-**Estado:** S82–S84 implementados en `packages/website`; pendiente de Cloudflare Pages, dominio y el secreto del deploy hook.
+**Estado:** S82–S84 implementados y desplegados en `roleplay-manager.com`; pendiente la revisión final en iPhone/Safari.
 
 Este directorio reúne la investigación, las decisiones de diseño y el plan técnico
 para el sitio público de Roleplay Manager. No sustituye a `PRODUCT.md` ni a
@@ -38,8 +37,8 @@ de las capturas está en español y usa contenido sintético.
 
 1. **Dominio:** `roleplay-manager.com`, comprado en Cloudflare. Los NS ya
    apuntan a Cloudflare; no hay registros A/CNAME configurados todavía.
-2. **Hosting propuesto:** Cloudflare Pages, conectado al repositorio de GitHub.
-   Estático, con previews por rama y deploy hook al publicar una release.
+2. **Hosting:** Cloudflare Pages con subida directa; GitHub Actions construye
+   y despliega, y el workflow de release refresca la versión descargable.
 3. **Idioma:** inglés canónico en `/`; español completo en `/es/`. Si el
    navegador o la zona horaria indican una región hispanohablante, la primera
    visita cambia a español; la elección manual se recuerda.
@@ -118,21 +117,21 @@ Parámetros útiles del prototipo:
 
 ## Estado de la implementación
 
-| Pieza                                 | Estado                     |
-| ------------------------------------- | -------------------------- |
-| Investigación y propuesta             | ✅                         |
-| Prototipo de portada                  | ✅                         |
-| Prototipo de docs                     | ✅                         |
-| Paquete `packages/website`            | ✅ S82                     |
-| Proyecto Cloudflare Pages             | ⏳ manual                  |
-| DNS y dominio                         | ⏳ manual                  |
-| Documentación completa ES/EN          | ✅ S83                     |
-| 404, OG images y CTA de docs          | ✅ S84                     |
-| Capturas localizadas                  | ✅ S84                     |
-| Deploy automático al publicar release | ✅ S84 (secreto pendiente) |
+| Pieza                               | Estado |
+| ----------------------------------- | ------ |
+| Investigación y propuesta           | ✅     |
+| Prototipo de portada                | ✅     |
+| Prototipo de docs                   | ✅     |
+| Paquete `packages/website`          | ✅ S82 |
+| Proyecto Cloudflare Pages           | ✅     |
+| DNS, dominio, HTTPS y HSTS          | ✅     |
+| Documentación completa ES/EN        | ✅ S83 |
+| 404, OG images y CTA de docs        | ✅ S84 |
+| Capturas localizadas                | ✅ S84 |
+| Deploy automático y release refresh | ✅ S84 |
 
 ## Próxima sesión
 
-1. Revisar la documentación en un móvil real y en Safari.
-2. Crear el proyecto de Cloudflare Pages y apuntar el dominio.
-3. Revisar el CTA de descarga de docs en un móvil real.
+1. Revisar la documentación y la portada en un iPhone/Safari real.
+2. Rotar el token de Cloudflare compartido durante la configuración.
+3. Revisar el CTA de descarga de docs en un teléfono real.

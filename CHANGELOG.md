@@ -22,8 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   Alice conversations were recaptured with the correct UI language.
 - **Custom 404 and docs download CTA**: a bilingual 404 with the mascot and a
   locale-aware download link in the Starlight header.
-- **Website deploy hook**: a workflow triggers Cloudflare Pages after a release
-  so the download snapshot stays current.
+- **Website deploy workflow**: GitHub Actions builds and deploys the site to
+  Cloudflare Pages on website changes; a release relaunches it so the download
+  snapshot stays current.
+- **Production site**: `roleplay-manager.com` is live with HTTPS, HSTS and a
+  `www` → apex redirect.
 
 ### Changed
 
