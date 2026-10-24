@@ -1,14 +1,16 @@
 ---
 import { Image } from "astro:assets"
-import libraryWide from "../assets/screenshots/library-wide.png"
 import Icon from "../components/Icon.astro"
-import type { TranslationKey } from "../i18n"
+import { screenshots } from "../data/screenshots"
+import type { Locale, TranslationKey } from "../i18n"
 
 interface Props {
+  locale: Locale
   t: (key: TranslationKey) => string
 }
 
-const { t } = Astro.props
+const { locale, t } = Astro.props
+const image = screenshots[locale].feature
 const features = [
   { key: 1, icon: "users" },
   { key: 2, icon: "branch" },
@@ -41,14 +43,18 @@ const features = [
     <div class="spread-media">
       <div class="media-card">
         <Image
-          src={libraryWide}
+          src={image}
           widths={[720, 1080]}
           sizes="(max-width: 56rem) 92vw, 520px"
           format="webp"
           loading="lazy"
-          alt={t("features.imageAlt")}
+          alt={t(
+            locale === "es"
+              ? "gallery.imageAlt.library"
+              : "gallery.imageAlt.chat"
+          )}
         />
-        <div class="media-caption">{t("gallery.caption.library")}</div>
+        <div class="media-caption">{t("features.imageCaption")}</div>
       </div>
     </div>
   </div>

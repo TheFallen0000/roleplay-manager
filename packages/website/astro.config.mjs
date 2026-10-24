@@ -32,7 +32,11 @@ export default defineConfig({
       },
       lastUpdated: false,
       credits: false,
+      disable404Route: true,
       customCss: ["./src/styles/starlight.css"],
+      components: {
+        Header: "./src/components/starlight/Header.astro",
+      },
       sidebar: [
         {
           label: "Getting started",

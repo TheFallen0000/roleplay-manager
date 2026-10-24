@@ -1,0 +1,62 @@
+---
+import { Image } from "astro:assets"
+import mascot from "../assets/brand/mascot-640.webp"
+import Icon from "../components/Icon.astro"
+import BaseLayout from "../layouts/BaseLayout.astro"
+import { t as translate, type TranslationKey } from "../i18n"
+
+const t = (key: TranslationKey) => translate("en", key)
+const es = (key: TranslationKey) => translate("es", key)
+---
+
+<BaseLayout
+  locale="en"
+  title="Page not found — Roleplay Manager"
+  description={t("notFound.lede")}
+  paths={{ en: "/404", es: "/404" }}
+  noindex
+  autoLang={false}
+>
+  <section class="section notfound">
+    <div class="container">
+      <div class="notfound-card">
+        <div class="notfound-copy">
+          <p class="notfound-code">404</p>
+          <h1>{t("notFound.title")}</h1>
+          <p class="lede">{t("notFound.lede")}</p>
+          <div class="notfound-actions">
+            <a class="btn btn--primary" href="/">
+              <Icon name="arrow" />
+              <span>{t("notFound.home")}</span>
+            </a>
+            <a class="btn btn--ghost" href="/docs/">{t("notFound.docs")}</a>
+            <a class="btn btn--ghost" href="/download/"
+              >{t("notFound.download")}</a
+            >
+          </div>
+        </div>
+        <Image
+          class="notfound-mascot"
+          src={mascot}
+          widths={[320, 640]}
+          sizes="(max-width: 56rem) 140px, 260px"
+          format="webp"
+          alt={t("notFound.imageAlt")}
+        />
+      </div>
+
+      <div class="notfound-es">
+        <p class="label">Español</p>
+        <h2>{es("notFound.title")}</h2>
+        <p>{es("notFound.lede")}</p>
+        <div class="notfound-actions">
+          <a class="btn btn--ghost" href="/es/">{es("notFound.home")}</a>
+          <a class="btn btn--ghost" href="/es/docs/">{es("notFound.docs")}</a>
+          <a class="btn btn--ghost" href="/es/download/"
+            >{es("notFound.download")}</a
+          >
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

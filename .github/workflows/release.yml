@@ -220,3 +220,14 @@ jobs:
               --notes-file release-notes.md \
               --target "${GITHUB_SHA}"
           fi
+
+      - name: Refresh the website
+        shell: bash
+        env:
+          CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$CLOUDFLARE_DEPLOY_HOOK" ]; then
+            echo "CLOUDFLARE_DEPLOY_HOOK is not configured; skipping."
+            exit 0
+          fi
+          curl -fsS -X POST "$CLOUDFLARE_DEPLOY_HOOK"

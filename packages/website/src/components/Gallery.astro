@@ -1,15 +1,63 @@
 ---
 import { Image } from "astro:assets"
-import chatWide from "../assets/screenshots/chat-wide.png"
-import libraryWide from "../assets/screenshots/library-wide.png"
 import Icon from "../components/Icon.astro"
-import type { TranslationKey } from "../i18n"
+import { screenshots } from "../data/screenshots"
+import type { Locale, TranslationKey } from "../i18n"
 
 interface Props {
+  locale: Locale
   t: (key: TranslationKey) => string
 }
 
-const { t } = Astro.props
+const { locale, t } = Astro.props
+const images = screenshots[locale]
+
+type Tab = "library" | "chat" | "themes" | "phone"
+
+const tabs: Tab[] =
+  locale === "es" ? ["library", "chat", "phone"] : ["chat", "phone"]
+
+const config: Record<
+  Tab,
+  {
+    icon: string
+    label: TranslationKey
+    caption: TranslationKey
+    alt: TranslationKey
+    image: typeof images.chat | undefined
+    phone?: boolean
+  }
+> = {
+  library: {
+    icon: "book",
+    label: "gallery.tab.library",
+    caption: "gallery.caption.library",
+    alt: "gallery.imageAlt.library",
+    image: images.library,
+  },
+  chat: {
+    icon: "chat",
+    label: "gallery.tab.chat",
+    caption: "gallery.caption.chat",
+    alt: "gallery.imageAlt.chat",
+    image: images.chat,
+  },
+  themes: {
+    icon: "palette",
+    label: "gallery.tab.themes",
+    caption: "gallery.caption.themes",
+    alt: "gallery.imageAlt.themes",
+    image: images.themes,
+  },
+  phone: {
+    icon: "phone",
+    label: "gallery.tab.phone",
+    caption: "gallery.caption.phone",
+    alt: "gallery.imageAlt.phone",
+    image: images.phone,
+    phone: true,
+  },
+}
 ---
 
 <section class="section section--tight">
@@ -21,75 +69,62 @@ const { t } = Astro.props
 
     <div class="gallery">
       <div class="gallery-tabs" role="tablist" aria-label="Screenshots">
-        <button
-          class="gallery-tab"
-          type="button"
-          role="tab"
-          id="tab-library"
-          aria-controls="panel-library"
-          aria-selected="true"
-          data-gallery-tab="library"
-        >
-          <Icon name="book" />
-          <span>{t("gallery.tab.library")}</span>
-        </button>
-        <button
-          class="gallery-tab"
-          type="button"
-          role="tab"
-          id="tab-chat"
-          aria-controls="panel-chat"
-          aria-selected="false"
-          tabindex="-1"
-          data-gallery-tab="chat"
-        >
-          <Icon name="chat" />
-          <span>{t("gallery.tab.chat")}</span>
-        </button>
+        {
+          tabs.map((tab, index) => (
+            <button
+              class="gallery-tab"
+              type="button"
+              role="tab"
+              id={`tab-${tab}`}
+              aria-controls={`panel-${tab}`}
+              aria-selected={index === 0 ? "true" : "false"}
+              tabindex={index === 0 ? "0" : "-1"}
+              data-gallery-tab={tab}
+            >
+              <Icon name={config[tab].icon} />
+              <span>{t(config[tab].label)}</span>
+            </button>
+          ))
+        }
       </div>
 
       <div class="gallery-frame">
-        <div
-          class="gallery-panel"
-          role="tabpanel"
-          id="panel-library"
-          aria-labelledby="tab-library"
-          data-gallery-panel="library"
-        >
-          <Image
-            src={libraryWide}
-            widths={[720, 1080]}
-            sizes="(max-width: 48rem) 92vw, 900px"
-            format="webp"
-            loading="lazy"
-            alt={t("gallery.imageAlt.library")}
-          />
-          <div class="gallery-caption">
-            <span>{t("gallery.caption.library")}</span>
-            <span>{t("gallery.caption.note")}</span>
-          </div>
-        </div>
-        <div
-          class="gallery-panel"
-          role="tabpanel"
-          id="panel-chat"
-          aria-labelledby="tab-chat"
-          data-gallery-panel="chat"
-          hidden
-        >
-          <Image
-            src={chatWide}
-            widths={[720, 1080]}
-            sizes="(max-width: 48rem) 92vw, 900px"
-            format="webp"
-            loading="lazy"
-            alt={t("gallery.imageAlt.chat")}
-          />
-          <div class="gallery-caption">
-            <span>{t("gallery.caption.chat")}</span>
-            <span>{t("gallery.caption.note")}</span>
-          </div>
-        </div>
+        {
+          tabs.map((tab, index) => {
+            const item = config[tab]
+            if (!item.image) return null
+            return (
+              <div
+                class:list={[
+                  "gallery-panel",
+                  item.phone && "gallery-panel--phone",
+                ]}
+                role="tabpanel"
+                id={`panel-${tab}`}
+                aria-labelledby={`tab-${tab}`}
+                data-gallery-panel={tab}
+                hidden={index !== 0}
+              >
+                <Image
+                  src={item.image}
+                  widths={item.phone ? [360, 720] : [720, 1080, 1440]}
+                  sizes={
+                    item.phone
+                      ? "(max-width: 56rem) 80vw, 300px"
+                      : "(max-width: 48rem) 92vw, 900px"
+                  }
+                  format="webp"
+                  loading="lazy"
+                  alt={t(item.alt)}
+                />
+                <div class="gallery-caption">
+                  <span>{t(item.caption)}</span>
+                  <span>{t("gallery.caption.note")}</span>
+                </div>
+              </div>
+            )
+          })
+        }
       </div>
     </div>
   </div>

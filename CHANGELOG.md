@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   installation guides, AI providers, characters and branches, memory and
   summaries, phone access, data and updates, troubleshooting, glossary and
   development documentation.
+- **Real app screenshots and social cards**: the landing now uses localized
+  captures for the welcome, chat, library and phone sections, plus 1200×630
+  Open Graph images for English and Spanish.
+- **Custom 404 and docs download CTA**: a bilingual 404 with the mascot and a
+  locale-aware download link in the Starlight header.
+- **Website deploy hook**: a workflow triggers Cloudflare Pages after a release
+  so the download snapshot stays current.
 
 ### Changed
 

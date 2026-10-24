@@ -33,6 +33,10 @@ A roleplay conversation manager with a Node/Express backend, an Astro+React fron
 - Build: `pnpm --filter @workspace/website build`. Typecheck:
   `pnpm --filter @workspace/website typecheck`. Lint:
   `pnpm --filter @workspace/website lint`.
+- Screenshots: originals live in `screenshots-source/` (ignored); run
+  `pnpm --filter @workspace/website screenshots` to regenerate the committed
+  WebP files in `src/assets/screenshots/`. Run
+  `pnpm --filter @workspace/website og` for the social cards.
 - Cloudflare Pages: root `/`, build `pnpm --filter @workspace/website build`,
   output `packages/website/dist`, `NODE_VERSION=24`, `PNPM_VERSION=11.21.0`.
 - **Release policy:** the website deploys independently on every push to

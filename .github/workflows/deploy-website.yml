@@ -1,0 +1,23 @@
+name: Deploy website
+
+# Manual website redeploy. Releases trigger the same hook from release.yml,
+# because GitHub does not start workflows from events created with GITHUB_TOKEN.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  deploy:
+    name: Trigger Cloudflare Pages
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Trigger deploy hook
+        env:
+          CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$CLOUDFLARE_DEPLOY_HOOK" ]; then
+            echo "CLOUDFLARE_DEPLOY_HOOK is not configured; skipping."
+            exit 0
+          fi
+          curl -fsS -X POST "$CLOUDFLARE_DEPLOY_HOOK"

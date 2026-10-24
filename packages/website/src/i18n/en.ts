@@ -21,9 +21,8 @@ export const en = {
   "hero.micro.version": "v1.47.0",
   "hero.micro.noNode": "No Node.js",
   "hero.micro.noAccount": "No account",
-  "hero.imageAlt":
-    "Roleplay Manager chat with a character in visual-novel style",
-  "hero.mascotAlt": "Roleplay Manager mascot holding an RM sign",
+  "hero.imageAlt": "Roleplay Manager welcome screen with the Sakura theme",
+  "hero.imageCaption": "Welcome · Sakura theme",
 
   "os.win.label": "Download for Windows",
   "os.win.meta": "Windows 10/11 · x64 · 62 MB",
@@ -66,15 +65,23 @@ export const en = {
     "Real screens from the app. No mockups, no invented testimonials.",
   "gallery.tab.library": "Character library",
   "gallery.tab.chat": "Chat",
+  "gallery.tab.themes": "Themes",
+  "gallery.tab.phone": "On your phone",
   "gallery.caption.library":
     "Versioned characters with their own art, memory and conversations.",
   "gallery.caption.chat":
     "Streaming replies, editable messages and branches when a scene goes another way.",
   "gallery.caption.note": "Screenshot from the app · synthetic content",
+  "gallery.caption.themes":
+    "Five color worlds with light and dark modes. Sakura is one of them.",
+  "gallery.caption.phone":
+    "The same story on your phone through Tailscale or Wi-Fi.",
   "gallery.imageAlt.library":
     "Character library with two characters and version badges",
   "gallery.imageAlt.chat":
     "Chat with streaming-style replies and dialogue colours",
+  "gallery.imageAlt.themes": "Welcome screen with the Sakura theme",
+  "gallery.imageAlt.phone": "Chat with Milka on a phone",
 
   "steps.title": "From download to first scene.",
   "steps.lede": "No Node.js, no installer, no account.",
@@ -106,6 +113,8 @@ export const en = {
   "features.4.body":
     "Bubble, document or visual novel; five color worlds; light and dark.",
   "features.imageAlt": "Character library in Roleplay Manager",
+  "features.imageCaption":
+    "Characters, chats and memories in one local notebook.",
 
   "data.title": "Your data doesn't live in a cloud.",
   "data.lede":
@@ -249,6 +258,13 @@ export const en = {
   "downloadPage.note":
     "Keep the whole folder together: data/, backups/, versions/ and the launcher live inside it.",
   "downloadPage.backHome": "Back to the landing page",
+  "notFound.title": "This page got lost in the woods.",
+  "notFound.lede":
+    "The ink ran out before we found it. Try the home page, the documentation or the download.",
+  "notFound.home": "Back to the home page",
+  "notFound.docs": "Browse the documentation",
+  "notFound.download": "Download Roleplay Manager",
+  "notFound.imageAlt": "Roleplay Manager mascot looking for the missing page",
 } as const
 
 export type TranslationKey = keyof typeof en

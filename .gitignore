@@ -31,3 +31,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# raw screenshot sources (processed into src/assets)
+packages/website/screenshots-source/
