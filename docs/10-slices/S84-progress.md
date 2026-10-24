@@ -74,13 +74,13 @@ producción:
   responden; una ruta inexistente devuelve 404; `http://` redirige a HTTPS;
   `www` redirige al apex con 301 y conserva ruta/query; HSTS activo.
 - Primera publicación manual con Wrangler y token de Pages; el token de deploy
-  está limitado a **Pages: Write**.
+  está limitado a **Pages: Write**. El token amplio usado para configurar la
+  cuenta se revocó después y un deploy manual de GitHub Actions siguió
+  funcionando con el token limitado.
 
 ## Pendiente
 
 - Revisar en un iPhone/Safari real.
-- Rotar el token de Cloudflare que se compartió durante la configuración y
-  actualizar el secreto de GitHub si cambia.
 - Valorar una pose nueva para el 404 cuando exista.
 
 ## Commits
