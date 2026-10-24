@@ -68,23 +68,19 @@ export const es: Record<TranslationKey, string> = {
     "Pantallas reales de la app. Sin mockups ni testimonios inventados.",
   "gallery.tab.library": "Biblioteca",
   "gallery.tab.chat": "Chat",
-  "gallery.tab.themes": "Temas",
-  "gallery.tab.phone": "En tu teléfono",
+  "gallery.tab.phone": "Teléfono",
   "gallery.caption.library":
     "Personajes versionados con su propio arte, memoria y conversaciones.",
   "gallery.caption.chat":
     "Respuestas en streaming, mensajes editables y ramas cuando una escena toma otro camino.",
   "gallery.caption.note": "Captura de la app · contenido sintético",
-  "gallery.caption.themes":
-    "Cinco mundos de color con modo claro y oscuro. Sakura es uno de ellos.",
   "gallery.caption.phone":
     "La misma historia en tu teléfono con Tailscale o Wi-Fi.",
   "gallery.imageAlt.library":
     "Biblioteca de personajes con dos personajes e insignias de versión",
   "gallery.imageAlt.chat":
     "Chat con respuestas en streaming y colores de diálogo",
-  "gallery.imageAlt.themes": "Pantalla de bienvenida con el tema Sakura",
-  "gallery.imageAlt.phone": "Chat con Milka en un teléfono",
+  "gallery.imageAlt.phone": "Chat con Alice en un teléfono",
 
   "steps.title": "De la descarga a la primera escena.",
   "steps.lede": "Sin Node.js, sin instalador, sin cuenta.",

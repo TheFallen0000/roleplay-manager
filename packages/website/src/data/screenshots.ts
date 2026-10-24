@@ -1,39 +1,41 @@
 import type { ImageMetadata } from "astro"
 
+import chatMobileAliceEn from "../assets/screenshots/en/chat-mobile-alice.webp"
 import chatMobileEn from "../assets/screenshots/en/chat-mobile.webp"
 import chatAltEn from "../assets/screenshots/en/chat-visual-novel-alt.webp"
-import chatDesktopEn from "../assets/screenshots/en/chat-visual-novel-desktop.webp"
+import libraryEn from "../assets/screenshots/en/library-dark-desktop.webp"
 import welcomeEn from "../assets/screenshots/en/welcome-sakura-desktop.webp"
+import chatMobileAliceEs from "../assets/screenshots/es/chat-mobile-alice.webp"
 import chatMobileEs from "../assets/screenshots/es/chat-mobile.webp"
 import chatAltEs from "../assets/screenshots/es/chat-visual-novel-alt.webp"
-import chatDesktopEs from "../assets/screenshots/es/chat-visual-novel-desktop.webp"
 import libraryEs from "../assets/screenshots/es/library-dark-desktop.webp"
 import welcomeEs from "../assets/screenshots/es/welcome-sakura-desktop.webp"
 import type { Locale } from "../i18n"
 
 export interface LocaleScreenshots {
-  hero: ImageMetadata
+  welcome: ImageMetadata
+  library: ImageMetadata
   chat: ImageMetadata
-  themes: ImageMetadata
+  galleryPhone: ImageMetadata
   phone: ImageMetadata
   feature: ImageMetadata
-  library?: ImageMetadata
 }
 
 export const screenshots: Record<Locale, LocaleScreenshots> = {
   en: {
-    hero: chatDesktopEn,
+    welcome: welcomeEn,
+    library: libraryEn,
     chat: chatAltEn,
-    themes: welcomeEn,
+    galleryPhone: chatMobileAliceEn,
     phone: chatMobileEn,
-    feature: chatAltEn,
+    feature: libraryEn,
   },
   es: {
-    hero: chatDesktopEs,
+    welcome: welcomeEs,
+    library: libraryEs,
     chat: chatAltEs,
-    themes: welcomeEs,
+    galleryPhone: chatMobileAliceEs,
     phone: chatMobileEs,
     feature: libraryEs,
-    library: libraryEs,
   },
 }
