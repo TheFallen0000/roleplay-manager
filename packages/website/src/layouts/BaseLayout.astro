@@ -13,19 +13,31 @@ interface Props {
   description: string
   paths: Record<Locale, string>
   noindex?: boolean
+  autoLang?: boolean
 }
 
-const { locale, title, description, paths, noindex = false } = Astro.props
+const {
+  locale,
+  title,
+  description,
+  paths,
+  noindex = false,
+  autoLang = true,
+} = Astro.props
 const t = (key: Parameters<typeof translate>[1]) => translate(locale, key)
 const canonical = new URL(paths[locale], Astro.site)
 const homeHref = localePath(locale, "/")
 const docsHref = localePath(locale, "/docs/")
 const downloadHref = localePath(locale, "/download")
 const alternateHref = paths[otherLocale(locale)]
+const ogImage = new URL(
+  locale === "es" ? "/og-es.png" : "/og-en.png",
+  Astro.site
+)
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} data-auto-lang={autoLang ? "true" : "false"}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -45,12 +57,18 @@ const alternateHref = paths[otherLocale(locale)]
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
     <meta property="og:locale" content={locale === "es" ? "es_ES" : "en_US"} />
     <meta
       property="og:locale:alternate"
       content={locale === "es" ? "en_US" : "es_ES"}
     />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={title} />
     <meta
       name="theme-color"
       content="#f8f6f9"
@@ -73,6 +91,8 @@ const alternateHref = paths[otherLocale(locale)]
           (theme === "system" &&
             window.matchMedia("(prefers-color-scheme: dark)").matches)
         root.classList.toggle("dark", dark)
+
+        if (root.dataset.autoLang === "false") return
 
         if (
           localStorage.getItem("rm-lang") ||

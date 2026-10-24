@@ -1,8 +1,7 @@
 ---
 import { Image } from "astro:assets"
-import chatWide from "../assets/screenshots/chat-wide.png"
-import mascot from "../assets/brand/mascot-640.webp"
 import Icon from "../components/Icon.astro"
+import { screenshots } from "../data/screenshots"
 import type { Release } from "../data/release"
 import type { Locale, TranslationKey } from "../i18n"
 
@@ -13,7 +12,8 @@ interface Props {
   downloadHref: string
 }
 
-const { t, release, downloadHref } = Astro.props
+const { locale, t, release, downloadHref } = Astro.props
+const image = screenshots[locale].themes
 const winUrl = release.assets["win-x64"]?.url ?? downloadHref
 ---
 
@@ -63,8 +63,8 @@ const winUrl = release.assets["win-x64"]?.url ?? downloadHref
     <div class="hero-art fade-up">
       <figure class="shot">
         <Image
-          src={chatWide}
-          widths={[720, 1080]}
+          src={image}
+          widths={[720, 1080, 1440]}
           sizes="(max-width: 60rem) 90vw, 540px"
           format="webp"
           loading="eager"
@@ -72,18 +72,10 @@ const winUrl = release.assets["win-x64"]?.url ?? downloadHref
           alt={t("hero.imageAlt")}
         />
         <figcaption class="shot-caption">
-          <span><span class="dot"></span>Chat · visual novel</span>
+          <span><span class="dot"></span>{t("hero.imageCaption")}</span>
           <span>{t("gallery.caption.note")}</span>
         </figcaption>
       </figure>
-      <Image
-        class="hero-mascot"
-        src={mascot}
-        widths={[320, 640]}
-        sizes="(max-width: 60rem) 90px, 144px"
-        format="webp"
-        alt={t("hero.mascotAlt")}
-      />
     </div>
   </div>
 </section>

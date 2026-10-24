@@ -169,3 +169,26 @@
     font-size: 1rem;
   }
 }
+
+/* Locale-aware download CTA in the docs header. */
+.header-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: var(--sl-color-accent);
+  color: var(--sl-color-text-invert);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.header-download:hover {
+  background: var(--sl-color-accent-high);
+}
+.header-download svg {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}

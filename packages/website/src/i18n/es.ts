@@ -23,9 +23,9 @@ export const es: Record<TranslationKey, string> = {
   "hero.micro.version": "v1.47.0",
   "hero.micro.noNode": "Sin Node.js",
   "hero.micro.noAccount": "Sin cuenta",
+  "hero.imageCaption": "Bienvenida · tema Sakura",
   "hero.imageAlt":
-    "Chat de Roleplay Manager con un personaje en estilo novela visual",
-  "hero.mascotAlt": "Mascota de Roleplay Manager sosteniendo un cartel RM",
+    "Pantalla de bienvenida de Roleplay Manager con el tema Sakura",
 
   "os.win.label": "Descargar para Windows",
   "os.win.meta": "Windows 10/11 · x64 · 62 MB",
@@ -68,15 +68,23 @@ export const es: Record<TranslationKey, string> = {
     "Pantallas reales de la app. Sin mockups ni testimonios inventados.",
   "gallery.tab.library": "Biblioteca",
   "gallery.tab.chat": "Chat",
+  "gallery.tab.themes": "Temas",
+  "gallery.tab.phone": "En tu teléfono",
   "gallery.caption.library":
     "Personajes versionados con su propio arte, memoria y conversaciones.",
   "gallery.caption.chat":
     "Respuestas en streaming, mensajes editables y ramas cuando una escena toma otro camino.",
   "gallery.caption.note": "Captura de la app · contenido sintético",
+  "gallery.caption.themes":
+    "Cinco mundos de color con modo claro y oscuro. Sakura es uno de ellos.",
+  "gallery.caption.phone":
+    "La misma historia en tu teléfono con Tailscale o Wi-Fi.",
   "gallery.imageAlt.library":
     "Biblioteca de personajes con dos personajes e insignias de versión",
   "gallery.imageAlt.chat":
     "Chat con respuestas en streaming y colores de diálogo",
+  "gallery.imageAlt.themes": "Pantalla de bienvenida con el tema Sakura",
+  "gallery.imageAlt.phone": "Chat con Milka en un teléfono",
 
   "steps.title": "De la descarga a la primera escena.",
   "steps.lede": "Sin Node.js, sin instalador, sin cuenta.",
@@ -108,6 +116,8 @@ export const es: Record<TranslationKey, string> = {
   "features.4.body":
     "Burbuja, documento o novela visual; cinco mundos de color; claro y oscuro.",
   "features.imageAlt": "Biblioteca de personajes en Roleplay Manager",
+  "features.imageCaption":
+    "Personajes, chats y memorias en un solo cuaderno local.",
 
   "data.title": "Tus datos no viven en una nube.",
   "data.lede":
@@ -252,4 +262,11 @@ export const es: Record<TranslationKey, string> = {
   "downloadPage.note":
     "Conserva la carpeta completa: data/, backups/, versions/ y el lanzador viven dentro.",
   "downloadPage.backHome": "Volver a la portada",
+  "notFound.title": "Esta página se perdió en el bosque.",
+  "notFound.lede":
+    "La tinta se acabó antes de encontrarla. Prueba con la portada, la documentación o la descarga.",
+  "notFound.home": "Volver a la portada",
+  "notFound.docs": "Explorar la documentación",
+  "notFound.download": "Descargar Roleplay Manager",
+  "notFound.imageAlt": "Mascota de Roleplay Manager buscando la página perdida",
 }

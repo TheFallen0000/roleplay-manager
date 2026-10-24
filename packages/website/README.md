@@ -29,6 +29,17 @@ pnpm --filter @workspace/website typecheck
 - `scripts/fetch-release.mjs`: actualiza el snapshot en build.
 - `public/_headers`: seguridad y caché para Cloudflare Pages.
 
+## Capturas y OG
+
+- `screenshots-source/` (ignorada por Git) contiene las capturas originales.
+- `pnpm --filter @workspace/website screenshots` las convierte a WebP en
+  `src/assets/screenshots/{en,es}/` con Sharp.
+- `pnpm --filter @workspace/website og` genera `public/og-en.png` y
+  `public/og-es.png` a partir de la bienvenida Sakura.
+- **Pendiente:** falta una captura de la biblioteca con la UI en inglés;
+  `characters-list-eng.png` está en español. Mientras tanto, `/es/` muestra la
+  pestaña Biblioteca y `/` muestra Chat y Teléfono.
+
 ## Cloudflare Pages
 
 - Root directory: `/`
@@ -40,5 +51,7 @@ pnpm --filter @workspace/website typecheck
   Redirect Rule 301.
 
 El deploy de producción se dispara al hacer push a `master`. Para actualizar la
-versión que muestra la web sin cambiar código, añadir un Deploy Hook de Pages y
-llamarlo desde el workflow de release (S84).
+versión que muestra la web sin cambiar código, crear un Deploy Hook de Pages y
+guardar su URL como secreto `CLOUDFLARE_DEPLOY_HOOK` en GitHub. El workflow de
+release lo llama al publicar; `.github/workflows/deploy-website.yml` permite
+relanzarlo manualmente.
