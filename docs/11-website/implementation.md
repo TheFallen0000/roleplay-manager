@@ -35,7 +35,7 @@ $ dig +short A roleplay-manager.com
 - El dominio ya vive en Cloudflare: el certificado, el DNS y el CDN son un solo
   flujo.
 - Previews por rama/PR, útil para revisar docs y copy antes de mergear.
-- Deploy hooks para reconstruir el sitio cuando se publica una release.
+- Deploy automático desde GitHub Actions; el workflow de release lo relanza para refrescar la versión.
 - Plan gratuito suficiente para un sitio estático pequeño.
 - Sin servidor que mantener y sin adaptador SSR: Astro genera HTML estático.
 
@@ -51,58 +51,56 @@ $ dig +short A roleplay-manager.com
 
 ## 3. Configuración de Cloudflare Pages
 
-Cuando exista `packages/website`:
+El proyecto actual `roleplay-manager` usa **subida directa**: Cloudflare no está
+conectado al repositorio ni ejecuta el build. GitHub Actions construye el sitio y
+publica `packages/website/dist` con Wrangler.
 
-| Campo                  | Valor                                                   |
-| ---------------------- | ------------------------------------------------------- |
-| Repositorio            | `TheFallen0000/roleplay-manager`                        |
-| Rama de producción     | `master`                                                |
-| Root directory         | `/` (raíz del monorepo)                                 |
-| Build command          | `pnpm --filter @workspace/website build`                |
-| Build output directory | `packages/website/dist`                                 |
-| Node version           | `24` (variable `NODE_VERSION=24`)                       |
-| Package manager        | `PNPM_VERSION=11.21.0` (o el `packageManager` del root) |
-| Framework preset       | Astro (o None)                                          |
+| Campo                  | Valor                                             |
+| ---------------------- | ------------------------------------------------- |
+| Repositorio            | `TheFallen0000/roleplay-manager` (lo usa Actions) |
+| Rama de producción     | `master`                                          |
+| Root directory         | `/` (raíz del monorepo)                           |
+| Build command          | `pnpm --filter @workspace/website build`          |
+| Build output directory | `packages/website/dist`                           |
+| Node version           | `24.18.0` en el workflow                          |
+| Package manager        | pnpm `11.21.0`                                    |
+| Framework preset       | Astro                                             |
 
 Notas:
 
-- Cloudflare ejecuta la instalación de dependencias antes del build command. El
-  lockfile de pnpm en la raíz es el que manda.
-- Si el build image no activa Corepack, el build command puede empezar con
-  `corepack enable &&`; documentarlo en el proyecto, no en la UI de Pages.
 - El build debe ser reproducible en local con el mismo comando.
 - No usar `pnpm build` global: construiría backend/frontend y alargaría el deploy.
-- Si se añade un `prebuild` que consulta GitHub, el `GITHUB_TOKEN` debe estar en
-  las variables de entorno del proyecto de Pages (solo lectura pública; el token
-  evita el rate limit).
+- El `prebuild` consulta GitHub; el workflow pasa `GITHUB_TOKEN` para evitar el
+  rate limit.
+- Secretos del repositorio: `CLOUDFLARE_API_TOKEN` (permiso **Pages: Write**) y
+  `CLOUDFLARE_ACCOUNT_ID`.
+- El token de deploy no necesita permisos de DNS; el dominio ya está configurado.
 
 ### Previews
 
-- Cada PR obtiene una URL `*.pages.dev`.
-- Las previews no deben indexarse: `_headers` con `X-Robots-Tag: noindex` para
-  `https://:project.pages.dev/*` y `https://:version.:project.pages.dev/*`.
-- Se pueden proteger con Cloudflare Access si hace falta; para un sitio público
-  no es necesario.
+- No hay previews automáticas por PR todavía. Se pueden añadir desplegando una
+  rama con `wrangler pages deploy --branch=<rama>`; las previews no deben
+  indexarse con `X-Robots-Tag: noindex` en `_headers`.
+- Para un sitio público no hace falta Cloudflare Access.
 
-### Deploy hook
+### Deploy
 
-1. Pages → proyecto → **Settings → Builds → Add deploy hook**.
-2. Nombre: `release`.
-3. Rama: `master`.
-4. Guardar la URL como secreto `CLOUDFLARE_DEPLOY_HOOK` en GitHub.
-5. En el workflow de release, después de publicar:
+`.github/workflows/deploy-website.yml` se ejecuta al cambiar
+`packages/website/**`, `package.json`, el lockfile o el propio workflow, y también
+con `workflow_dispatch`. Instala dependencias, construye el sitio y ejecuta:
 
-```yaml
-- name: Refresh website
-  if: success()
-  continue-on-error: true
-  run: curl -fsS -X POST "$CLOUDFLARE_DEPLOY_HOOK"
-  env:
-    CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+```sh
+pnpm dlx wrangler@4.152.0 pages deploy packages/website/dist \
+  --project-name=roleplay-manager --branch=master
 ```
 
-El `continue-on-error` evita que un fallo del sitio bloquee la release. El sitio
-tiene su propio fallback de datos, así que una release no depende de este hook.
+El workflow de release lo relanza después de publicar con
+`gh workflow run deploy-website.yml --ref master`; el paso usa
+`continue-on-error` para que un fallo del sitio no bloquee la release. El sitio
+tiene su propio fallback de datos, así que una release no depende de este paso.
+
+Cloudflare Pages conserva los deployments; un rollback se hace desde el panel o
+revirtiendo el commit y redesplegando.
 
 ---
 
@@ -111,21 +109,19 @@ tiene su propio fallback de datos, así que una release no depende de este hook.
 ### Apex + www
 
 1. En Pages → **Custom domains**, añadir `roleplay-manager.com`.
-   Cloudflare crea el CNAME del apex (flattening) automáticamente.
-2. Añadir también `www.roleplay-manager.com` si se quiere cubrir el prefijo.
-3. Elegir **apex canónico**: `https://roleplay-manager.com`.
-4. Crear una **Redirect Rule** en Cloudflare:
-   - Si `http.host eq "www.roleplay-manager.com"`.
-   - Redirigir a `https://roleplay-manager.com` con 301.
-5. No crear el CNAME manualmente antes de asociar el dominio en Pages: el flujo
-   manual puede dar error 522.
+2. Si Pages no crea el CNAME del apex, crearlo a mano como CNAME proxied
+   `@ → roleplay-manager.pages.dev` (flattening en el apex).
+3. No añadir `www` como custom domain: crear un CNAME proxied
+   `www → roleplay-manager.pages.dev` y una **Redirect Rule** 301 al apex.
+4. Elegir **apex canónico**: `https://roleplay-manager.com`.
+5. La Redirect Rule debe conservar ruta y query:
+   `concat("https://roleplay-manager.com", http.request.uri.path)`.
 
 ### SSL/TLS
 
 - SSL/TLS mode: **Full (strict)**.
 - **Always Use HTTPS**: on.
-- HSTS: activar solo después de comprobar que apex y www funcionan; empezar con
-  `max-age` bajo e ir subiendo.
+- HSTS: activo con `max-age=31536000`, `includeSubDomains` y `preload` desactivado.
 - Certificado: Cloudflare lo emite automáticamente. No hace falta ACME manual.
 - Si hay CAA, permitir los CA de Cloudflare; si no hay CAA, no crear una que
   bloquee la emisión.
@@ -510,11 +506,11 @@ https://:version.:project.pages.dev/*
 
 ### En release publicada
 
-- Workflow de release publica assets.
-- Paso final `curl -X POST $CLOUDFLARE_DEPLOY_HOOK`.
+- El workflow de release publica los assets.
+- El paso final lanza `deploy-website.yml` con `gh workflow run`.
 - El sitio reconstruye `release.json` con la nueva versión.
-- Si el hook falla, la release sigue siendo válida; el sitio puede actualizarse a
-  mano o en el siguiente push.
+- Si el deploy falla, la release sigue siendo válida; el sitio puede actualizarse
+  a mano o en el siguiente push.
 
 ### Rollback
 
@@ -583,7 +579,7 @@ https://:version.:project.pages.dev/*
 - OG images, 404 con mascota.
 - Auditoría Lighthouse y accesibilidad.
 - `hreflang`, sitemap, JSON-LD.
-- Deploy hook en release.
+- Deploy desde GitHub Actions en release.
 - Dominio y HSTS finales.
 - Revisión de copy con hablantes nativos si es posible.
 
@@ -599,24 +595,24 @@ https://:version.:project.pages.dev/*
 
 ## 13. Riesgos técnicos
 
-| Riesgo                                          | Mitigación                                                                                     |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Cloudflare no detecta pnpm o la versión de Node | Fijar `NODE_VERSION` y `PNPM_VERSION`; probar build en una rama.                               |
-| Conflicto de rutas `/` y `/docs` con Starlight  | Contenido de docs bajo `docs/`; portada en `src/pages/index.astro`; verificar rutas generadas. |
-| Pagefind no indexa español                      | Comprobar `lang` en `<html>` y el índice por locale.                                           |
-| La API de GitHub falla en build                 | `release.fallback.json` y enlace a `/releases/latest`.                                         |
-| CSP rompe scripts de Astro/Starlight            | Empezar permisiva, revisar consola, endurecer con hashes.                                      |
-| Redirect www mal configurado                    | Redirect Rule 301 + prueba con `curl -I`.                                                      |
-| Capturas desactualizadas                        | Script de captura y checklist por release.                                                     |
-| Duplicación tutoriales/docs                     | Regla en `AGENTS.md` y revisión en PR.                                                         |
-| El dominio se renueva en un año                 | Añadir recordatorio de renovación antes de octubre de 2027.                                    |
+| Riesgo                                              | Mitigación                                                                                     |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| GitHub Actions no detecta pnpm o la versión de Node | Fijar la versión en el workflow y probar el build en una rama.                                 |
+| Conflicto de rutas `/` y `/docs` con Starlight      | Contenido de docs bajo `docs/`; portada en `src/pages/index.astro`; verificar rutas generadas. |
+| Pagefind no indexa español                          | Comprobar `lang` en `<html>` y el índice por locale.                                           |
+| La API de GitHub falla en build                     | `release.fallback.json` y enlace a `/releases/latest`.                                         |
+| CSP rompe scripts de Astro/Starlight                | Empezar permisiva, revisar consola, endurecer con hashes.                                      |
+| Redirect www mal configurado                        | Redirect Rule 301 + prueba con `curl -I`.                                                      |
+| Capturas desactualizadas                            | Script de captura y checklist por release.                                                     |
+| Duplicación tutoriales/docs                         | Regla en `AGENTS.md` y revisión en PR.                                                         |
+| El dominio se renueva en un año                     | Añadir recordatorio de renovación antes de octubre de 2027.                                    |
 
 ---
 
 ## 14. Checklist de salida
 
 - [ ] `pnpm --filter @workspace/website build` pasa en local.
-- [ ] Build pasa en Cloudflare Pages.
+- [ ] Build pasa en GitHub Actions.
 - [ ] `roleplay-manager.com` responde 200 con HTTPS.
 - [ ] `www.roleplay-manager.com` responde 301 al apex.
 - [ ] `http://` redirige a `https://`.
@@ -629,7 +625,7 @@ https://:version.:project.pages.dev/*
 - [ ] Sin errores de consola.
 - [ ] `_headers` aplica seguridad y cache.
 - [ ] Previews de PR no se indexan.
-- [ ] Deploy hook probado.
+- [ ] Deploy automático probado.
 - [ ] `CHANGELOG.md` y slice docs actualizados.
 
 ---
@@ -653,12 +649,12 @@ pnpm --filter @workspace/website typecheck
 pnpm build
 ```
 
-## 16. Lo que no se ha hecho todavía
+## 16. Estado de implementación
 
-- No se ha creado el proyecto de Cloudflare Pages.
-- No se ha modificado ningún registro DNS.
-- No se ha creado `packages/website`.
-- No se ha migrado contenido a Markdown/MDX.
-- No se han generado capturas EN/ES ni OG images.
-- No se ha añadido el deploy hook al workflow de release.
-- No se ha tocado `CHANGELOG.md` (se hará en S82, no en esta fase de diseño).
+- Proyecto de Cloudflare Pages, dominio, DNS, HTTPS, HSTS y redirección de `www`
+  configurados.
+- `packages/website` implementado con landing, descarga y documentación ES/EN.
+- Capturas EN/ES, OG images y 404 bilingüe publicados.
+- Deploy automático desde GitHub Actions y refresco tras una release.
+- Pendiente: revisión final en iPhone/Safari y rotación del token compartido
+  durante la configuración.

@@ -33,6 +33,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 # Serialize release runs: two pushes can land close together (a merge plus a
 # branch or settings operation, for example) and two concurrent runs would race
@@ -222,12 +223,8 @@ jobs:
           fi
 
       - name: Refresh the website
+        continue-on-error: true
         shell: bash
         env:
-          CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
-        run: |
-          if [ -z "$CLOUDFLARE_DEPLOY_HOOK" ]; then
-            echo "CLOUDFLARE_DEPLOY_HOOK is not configured; skipping."
-            exit 0
-          fi
-          curl -fsS -X POST "$CLOUDFLARE_DEPLOY_HOOK"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy-website.yml --ref master

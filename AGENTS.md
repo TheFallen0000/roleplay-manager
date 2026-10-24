@@ -8,13 +8,13 @@ Conventions and architecture rules for the **roleplay-manager** monorepo. This f
 
 A roleplay conversation manager with a Node/Express backend, an Astro+React frontend, and shared TypeScript types. Built as a pnpm + turbo monorepo with five packages:
 
-| Package | Purpose |
-|---|---|
-| `packages/backend` | HTTP API (Express) + business logic. Hexagonal architecture. |
-| `packages/frontend` | Astro pages + React components. Talks to the backend via REST + SSE. |
-| `packages/shared` | Pure TypeScript types and framework-agnostic helpers (`ooc-parser`). |
-| `packages/ui` | Reusable shadcn/ui components (button, dialog, etc.). |
-| `packages/website` | Public site (roleplay-manager.com): Astro landing, downloads and docs. Static, no React, deployed on Cloudflare Pages. |
+| Package             | Purpose                                                                                                                |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `packages/backend`  | HTTP API (Express) + business logic. Hexagonal architecture.                                                           |
+| `packages/frontend` | Astro pages + React components. Talks to the backend via REST + SSE.                                                   |
+| `packages/shared`   | Pure TypeScript types and framework-agnostic helpers (`ooc-parser`).                                                   |
+| `packages/ui`       | Reusable shadcn/ui components (button, dialog, etc.).                                                                  |
+| `packages/website`  | Public site (roleplay-manager.com): Astro landing, downloads and docs. Static, no React, deployed on Cloudflare Pages. |
 
 **Node**: ≥ 22.12.0. **Package manager**: pnpm 11.21.0. **Build orchestrator**: turbo 2.x.
 
@@ -37,10 +37,13 @@ A roleplay conversation manager with a Node/Express backend, an Astro+React fron
   `pnpm --filter @workspace/website screenshots` to regenerate the committed
   WebP files in `src/assets/screenshots/`. Run
   `pnpm --filter @workspace/website og` for the social cards.
-- Cloudflare Pages: root `/`, build `pnpm --filter @workspace/website build`,
-  output `packages/website/dist`, `NODE_VERSION=24`, `PNPM_VERSION=11.21.0`.
+- Cloudflare Pages: direct-upload project `roleplay-manager`; the build and
+  deploy run in GitHub Actions (`deploy-website.yml`) with
+  `pnpm --filter @workspace/website build` and Wrangler. Required repository
+  secrets: `CLOUDFLARE_API_TOKEN` (Pages: Write) and `CLOUDFLARE_ACCOUNT_ID`.
 - **Release policy:** the website deploys independently on every push to
-  `master` (Cloudflare Pages). It does **not** bump the root `package.json` and
+  `master` (GitHub Actions → Cloudflare Pages). It does **not** bump the root
+  `package.json` and
   does **not** create a GitHub release. Website changes that matter to users go
   under `[Unreleased]` in `CHANGELOG.md` and ride the next batched app release;
   a website-only change does not require an app release.
@@ -185,40 +188,40 @@ Prefer `equipo` over `ordenador`, `Wi-Fi` over `WiFi`, and `versión` /
 
 ### Backend
 
-| Kind | Pattern | Example |
-|---|---|---|
-| Use case class | `<Verb><Noun>UseCase` | `SendMessageUseCase` |
-| Use case file | `<verb-noun>.use-case.ts` | `send-message.use-case.ts` |
-| Repository interface | `<Resource>Repository` | `SummaryRepository` |
-| Drizzle repository impl | `Drizzle<Resource>Repository` | `DrizzleSummaryRepository` |
-| Domain entity | `<Noun>` (PascalCase, no suffix) | `Conversation`, `Message` |
-| Entity factory | `static create(props)` and `static reconstruct(props)` | — |
-| HTTP route file | `<resource>.routes.ts` | `conversation.routes.ts` |
+| Kind                    | Pattern                                                | Example                    |
+| ----------------------- | ------------------------------------------------------ | -------------------------- |
+| Use case class          | `<Verb><Noun>UseCase`                                  | `SendMessageUseCase`       |
+| Use case file           | `<verb-noun>.use-case.ts`                              | `send-message.use-case.ts` |
+| Repository interface    | `<Resource>Repository`                                 | `SummaryRepository`        |
+| Drizzle repository impl | `Drizzle<Resource>Repository`                          | `DrizzleSummaryRepository` |
+| Domain entity           | `<Noun>` (PascalCase, no suffix)                       | `Conversation`, `Message`  |
+| Entity factory          | `static create(props)` and `static reconstruct(props)` | —                          |
+| HTTP route file         | `<resource>.routes.ts`                                 | `conversation.routes.ts`   |
 
 ### Frontend
 
-| Kind | Pattern | Example |
-|---|---|---|
-| React component file | `<kebab-case>.tsx` | `summary-viewer.tsx` |
-| React component | PascalCase export | `export function SummaryViewer()` |
-| API function | `<verb><Noun>` (camelCase) | `listSummaries`, `setConversationTitle` |
-| Store | `use<Resource>Store` (zustand) | `useSummaryStore` |
+| Kind                 | Pattern                              | Example                                        |
+| -------------------- | ------------------------------------ | ---------------------------------------------- |
+| React component file | `<kebab-case>.tsx`                   | `summary-viewer.tsx`                           |
+| React component      | PascalCase export                    | `export function SummaryViewer()`              |
+| API function         | `<verb><Noun>` (camelCase)           | `listSummaries`, `setConversationTitle`        |
+| Store                | `use<Resource>Store` (zustand)       | `useSummaryStore`                              |
 | Hook (file / export) | `use-<kebab>.ts` / `use<PascalCase>` | `use-persisted-value.ts` / `usePersistedValue` |
-| Formatter | `<verb>-<object>.ts` | `format-message.ts` |
+| Formatter            | `<verb>-<object>.ts`                 | `format-message.ts`                            |
 
 ### Shared
 
-| Kind | Pattern | Example |
-|---|---|---|
-| Type module | `<resource>.ts` (lowercase, singular) | `conversation.ts` |
-| Type export | PascalCase | `ConversationDetail`, `SummaryDTO` |
-| DTO suffix | `DTO` (data transfer object) | `MessageDTO`, `SummaryDTO` |
-| Input suffix | `Input` | `CreateConversationInput` |
+| Kind         | Pattern                               | Example                            |
+| ------------ | ------------------------------------- | ---------------------------------- |
+| Type module  | `<resource>.ts` (lowercase, singular) | `conversation.ts`                  |
+| Type export  | PascalCase                            | `ConversationDetail`, `SummaryDTO` |
+| DTO suffix   | `DTO` (data transfer object)          | `MessageDTO`, `SummaryDTO`         |
+| Input suffix | `Input`                               | `CreateConversationInput`          |
 
 ### Comments
 
 - **English only.** Every comment in the repo is written in English.
-- **Comment sparingly.** A comment explains *why* (a non-obvious decision, a
+- **Comment sparingly.** A comment explains _why_ (a non-obvious decision, a
   workaround, an accessibility choice); it never restates what the code does.
 - **Avoid comments in `.tsx`** unless they carry real information. Narrating
   what a block of JSX renders is noise — delete it.
