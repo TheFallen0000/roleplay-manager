@@ -328,13 +328,19 @@ Last updated: 2026-10-26
 | PM.41 | Evaluate store packaging (TWA/PWABuilder) for Android and the Microsoft Store; the portable folder remains the primary distribution. | S54 |
 | PM.42 | Add bilingual screenshots to the tutorials if the text-only format proves insufficient. | S71 |
 | PM.43 | Review the public website copy with a native speaker and add a new mascot pose to the 404 when the art is available. | S83, S84 |
-| PM.44 | Resolve the S8 title inconsistency: the code generates the title only when `conversation.title === null`, while the S8 doc says it regenerates after each summary. Implement the regeneration or correct the doc. | S7, S8 |
+| PM.44 | Resolve the S8 title inconsistency: the code generates the title only when `conversation.title === null`, while the S8 doc says it regenerates after each summary. Implement the regeneration or correct the doc. <br>*Resolved (2026-10-26, pending release): the title stays first-message-only; the S8 doc was corrected and the automatic path now preserves manual titles. Explicit regeneration can still replace them.* | S7, S8 |
 
 > **PM.34 + PM.35 (S85) — done (2026-10-26, pending release):** The 8 memory use
 > cases and their routes have tests (including the missing-memory 404), and the
 > critical screens were audited with axe in light/dark and desktop/mobile (36
 > audits, 0 violations). Icon labels, contrast, error announcements, retry states
 > and the logs download hydration mismatch were fixed. See `S85-progress.md`.
+
+> **PM.44 — resolved (2026-10-26, pending release):** Title generation remains
+> first-message-only; the S8 note claiming regeneration after each summary was
+> corrected. The automatic path now returns an existing manual title untouched,
+> while the explicit “Regenerate automatically” action passes `force: true` and
+> can replace it.
 
 ### Manual verification pending
 
