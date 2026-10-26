@@ -1,6 +1,6 @@
 # S85 — Calidad: tests de memoria + accesibilidad y estados
 
-**Estado:** Completado
+**Estado:** Completado (v1.48.0)
 **Inicio:** 2026-10-26
 **Fin:** 2026-10-26
 
@@ -63,8 +63,8 @@ corrigieron los fallos concretos que aparecieron.
 
 ### Release
 
-- Sin bump de versión: las entradas van a `[Unreleased]` y viajan en la próxima
-  release batcheada.
+- La release batcheada **v1.48.0** incluye este slice; las entradas ya están
+  bajo `[1.48.0]` en el `CHANGELOG.md`.
 
 ## Criterios de aceptación
 
