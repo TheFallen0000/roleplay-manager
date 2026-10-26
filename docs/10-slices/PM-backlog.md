@@ -338,8 +338,9 @@ Last updated: 2026-10-26
 > and the logs download hydration mismatch were fixed. See `S85-progress.md`.
 
 > **PM.44 + PM.45 (S86) — done (2026-10-26, pending release):** Automatic titles
-> are regenerated after each automatic summary through a new `title-generated`
-> SSE event, while manual titles stay untouched unless the user explicitly asks
+> are regenerated after every summary — automatic or manual — through a new
+> `title-generated` SSE event (the manual summary route returns the title in its
+> response), while manual titles stay untouched unless the user explicitly asks
 > for a regeneration. The prompt no longer hardcodes Spanish: it asks for the
 > language of the conversation and uses the UI locale only as a fallback. See
 > `S86-progress.md`.
