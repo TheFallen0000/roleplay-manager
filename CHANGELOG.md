@@ -34,6 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   now use neutral Spanish (tuteo, «equipo», «Wi-Fi», «versión», «incidencia»)
   instead of voseo and regional wording.
 
+### Fixed
+
+- **Mobile steps spacing**: the first step in “From download to first scene”
+  now keeps the same top padding as the other steps, so the separator is no
+  longer too close to “01”.
+
 ## [1.47.0] - 2026-10-14
 
 ### Added

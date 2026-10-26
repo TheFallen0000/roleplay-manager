@@ -988,7 +988,6 @@ p {
   }
   .step:first-child {
     border-top: 0;
-    padding-top: 0;
   }
   .step p {
     max-width: 60ch;
