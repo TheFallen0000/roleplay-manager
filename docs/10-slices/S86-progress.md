@@ -66,4 +66,5 @@ Corrige dos problemas del título automático:
 
 ## Commits
 
-Pendiente de completar.
+1. `0580630 feat(conversation): regenerate titles after summaries and follow language`
+2. `docs(backlog): reopen PM.44 and add PM.45` (this commit)
