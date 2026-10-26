@@ -147,8 +147,8 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       loadProposals(conv.id)
       loadSummaries(conv.id)
     },
-    onTitleGenerated: (title) => {
-      setConv((prev) => ({ ...prev, title }))
+    onTitleGenerated: (title, titleSource) => {
+      setConv((prev) => ({ ...prev, title, titleSource }))
     },
     onSummaryGenerated: () => {
       loadSummaries(conv.id)

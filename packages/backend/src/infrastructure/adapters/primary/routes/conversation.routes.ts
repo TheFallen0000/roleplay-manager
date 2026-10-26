@@ -182,6 +182,12 @@ export const buildConversationRouter = (deps: {
             res.write(`event: summary-generated\ndata: ${JSON.stringify(event.summary)}\n\n`)
             break
           }
+          case "title-generated": {
+            res.write(
+              `event: title-generated\ndata: ${JSON.stringify({ title: event.title, titleSource: event.titleSource })}\n\n`,
+            )
+            break
+          }
           case "error": {
             res.write(`event: error\ndata: ${JSON.stringify(event.error)}\n\n`)
             break
@@ -275,6 +281,12 @@ export const buildConversationRouter = (deps: {
               res.write(`event: summary-generated\ndata: ${JSON.stringify(event.summary)}\n\n`)
               break
             }
+            case "title-generated": {
+              res.write(
+                `event: title-generated\ndata: ${JSON.stringify({ title: event.title, titleSource: event.titleSource })}\n\n`,
+              )
+              break
+            }
             case "error": {
               res.write(`event: error\ndata: ${JSON.stringify(event.error)}\n\n`)
               break
@@ -349,6 +361,12 @@ export const buildConversationRouter = (deps: {
             }
             case "summary-generated": {
               res.write(`event: summary-generated\ndata: ${JSON.stringify(event.summary)}\n\n`)
+              break
+            }
+            case "title-generated": {
+              res.write(
+                `event: title-generated\ndata: ${JSON.stringify({ title: event.title, titleSource: event.titleSource })}\n\n`,
+              )
               break
             }
             case "error": {

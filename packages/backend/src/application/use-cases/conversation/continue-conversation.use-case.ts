@@ -3,6 +3,7 @@ import { v7 as randomUUIDv7 } from "uuid"
 import type { MessageDTO } from "@workspace/shared/types/message"
 import type { DefaultProviderConfig, ProviderId } from "@workspace/shared/types/provider"
 import type { SummaryDTO } from "@workspace/shared/types/summary"
+import type { TitleSource } from "@workspace/shared/types/conversation"
 
 import { Message } from "../../../domain/entities/message.entity"
 import { MemoryChangeProposal } from "../../../domain/entities/memory-change-proposal.entity"
@@ -13,6 +14,7 @@ import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { MemoryChangeProposalRepository } from "../../../domain/ports/memory-change-proposal.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { GenerateSummaryUseCase } from "../summary/generate-summary.use-case"
+import type { GenerateConversationTitleUseCase } from "./generate-conversation-title.use-case"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 import { resolvePlayerCharacterPrompt } from "./resolve-player-character"
@@ -64,11 +66,18 @@ export interface SummaryGeneratedEvent {
   summary: SummaryDTO
 }
 
+export interface TitleGeneratedEvent {
+  type: "title-generated"
+  title: string
+  titleSource: TitleSource
+}
+
 export type ContinueConversationEvent =
   | StreamChunkEvent
   | StreamDoneEvent
   | StreamErrorEvent
   | SummaryGeneratedEvent
+  | TitleGeneratedEvent
 
 export class ContinueConversationUseCase {
   constructor(
@@ -86,6 +95,7 @@ export class ContinueConversationUseCase {
     private readonly applyAllMemoryChanges: ApplyAllMemoryChangesUseCase,
     private readonly summaryRepository: SummaryRepository,
     private readonly generateSummary: GenerateSummaryUseCase,
+    private readonly generateConversationTitle: GenerateConversationTitleUseCase,
   ) {}
 
   async *execute(
@@ -342,6 +352,25 @@ export class ContinueConversationUseCase {
         )
         if (summaryResult.summary) {
           yield { type: "summary-generated", summary: summaryResult.summary }
+          try {
+            const titleResult = await this.generateConversationTitle.execute(
+              input.conversationId,
+              { locale: input.locale },
+            )
+            if (titleResult.title !== conversation.title) {
+              yield {
+                type: "title-generated",
+                title: titleResult.title,
+                titleSource: "auto",
+              }
+            }
+          } catch (titleError) {
+            this.logger.error(
+              "Failed to regenerate conversation title",
+              titleError as Error,
+              { conversationId: input.conversationId },
+            )
+          }
         }
       }
     } catch (error) {
