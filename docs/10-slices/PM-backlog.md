@@ -318,8 +318,8 @@ Last updated: 2026-10-26
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.34 | Add Vitest coverage for the memory use cases that still have no tests (`create`, `update`, `list`, `list-proposals`, `apply`, `apply-all`) and route tests for the memory endpoints. <br>*Done as S85 (pending release) — see `S85-progress.md`.* | — |
-| PM.35 | Accessibility and loading/error-state audit of the main screens: keyboard/focus, labels, live regions, contrast, touch targets, and consistent spinner/error/empty states. Add regression checks where practical. <br>*Done as S85 (pending release) — see `S85-progress.md`.* | — |
+| PM.34 | Add Vitest coverage for the memory use cases that still have no tests (`create`, `update`, `list`, `list-proposals`, `apply`, `apply-all`) and route tests for the memory endpoints. <br>*Done as S85 (v1.48.0) — see `S85-progress.md`.* | — |
+| PM.35 | Accessibility and loading/error-state audit of the main screens: keyboard/focus, labels, live regions, contrast, touch targets, and consistent spinner/error/empty states. Add regression checks where practical. <br>*Done as S85 (v1.48.0) — see `S85-progress.md`.* | — |
 | PM.36 | Decide whether remote access needs app-level authentication (PIN/session) or whether the network trust model (private tailnet / trusted LAN) is enough; document and implement the chosen option. <br>*Discarded (2026-10-26): Tailscale already restricts access to the user's tailnet and LAN sharing is off by default, opt-in and explicitly warns that any device on the network can open the app. App-level auth would add friction for a local-first personal app; revisit only if LAN sharing is ever used on untrusted networks.* | S38, S56 |
 | PM.37 | Build the version history and comparison view that was deferred in S2, or explicitly discard it. Today there is only the version selector and the context-menu version list. | — |
 | PM.38 | Allow re-cropping an already saved profile image without uploading it again, reusing `ImageCropperDialog`. | PM.2 |
@@ -328,15 +328,15 @@ Last updated: 2026-10-26
 | PM.41 | Evaluate store packaging (TWA/PWABuilder) for Android and the Microsoft Store; the portable folder remains the primary distribution. | S54 |
 | PM.42 | Add bilingual screenshots to the tutorials if the text-only format proves insufficient. | S71 |
 | PM.43 | Review the public website copy with a native speaker and add a new mascot pose to the 404 when the art is available. | S83, S84 |
-| PM.44 | Resolve the S8 title inconsistency: the code generates the title only when `conversation.title === null`, while the S8 doc says it regenerates after each summary. Implement the regeneration or correct the doc. <br>*Resolved (2026-10-26, pending release): the title stays first-message-only; the S8 doc was corrected and the automatic path now preserves manual titles. Explicit regeneration can still replace them.* | S7, S8 |
+| PM.44 | Resolve the S8 title inconsistency: the code generates the title only when `conversation.title === null`, while the S8 doc says it regenerates after each summary. Implement the regeneration or correct the doc. <br>*Resolved (2026-10-26, v1.48.0): the title stays first-message-only; the S8 doc was corrected and the automatic path now preserves manual titles. Explicit regeneration can still replace them.* | S7, S8 |
 
-> **PM.34 + PM.35 (S85) — done (2026-10-26, pending release):** The 8 memory use
+> **PM.34 + PM.35 (S85) — done (2026-10-26, v1.48.0):** The 8 memory use
 > cases and their routes have tests (including the missing-memory 404), and the
 > critical screens were audited with axe in light/dark and desktop/mobile (36
 > audits, 0 violations). Icon labels, contrast, error announcements, retry states
 > and the logs download hydration mismatch were fixed. See `S85-progress.md`.
 
-> **PM.44 — resolved (2026-10-26, pending release):** Title generation remains
+> **PM.44 — resolved (2026-10-26, v1.48.0):** Title generation remains
 > first-message-only; the S8 note claiming regeneration after each summary was
 > corrected. The automatic path now returns an existing manual title untouched,
 > while the explicit “Regenerate automatically” action passes `force: true` and
