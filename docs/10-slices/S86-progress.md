@@ -1,6 +1,6 @@
 # S86 — Títulos: regeneración tras resúmenes e idioma de la conversación
 
-**Estado:** Completado
+**Estado:** Completado (v1.49.0)
 **Inicio:** 2026-10-26
 **Fin:** 2026-10-26
 
