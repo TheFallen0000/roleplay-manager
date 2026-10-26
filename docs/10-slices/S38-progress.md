@@ -34,7 +34,8 @@ propio, botón de copiar con *fallback* y notas de seguridad y firewall. Está
 - **Punto de estado** del menú encendido si **cualquiera** de los dos modos
   está activo; el store cachea ambos estados.
 - **Fuera de alcance**: HMR por el proxy (descartado), PWA (hecha en S54) y
-  autenticación (decisión en **PM.36**).
+  autenticación (descartada en **PM.36**: la red es el límite de confianza;
+  Tailscale es privado y la LAN avisa y está apagada por defecto).
 
 ## Criterios de aceptación
 
