@@ -155,6 +155,8 @@ export const buildServer = ({
       generateSummary: container.generateSummary,
       updateSummary: container.updateSummary,
       deleteSummary: container.deleteSummary,
+      generateConversationTitle: container.generateConversationTitle,
+      logger: container.logger,
     }),
   )
   app.use(

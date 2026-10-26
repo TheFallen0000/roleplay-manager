@@ -1,5 +1,8 @@
 import { create } from "zustand"
-import type { SummaryDTO } from "@workspace/shared/types/summary"
+import type {
+  GenerateSummaryResponse,
+  SummaryDTO,
+} from "@workspace/shared/types/summary"
 
 import * as summariesApi from "@/lib/api/summaries"
 
@@ -9,7 +12,9 @@ export interface SummaryState {
   error: string | null
 
   loadSummaries: (conversationId: string) => Promise<void>
-  generateSummary: (conversationId: string) => Promise<SummaryDTO | null>
+  generateSummary: (
+    conversationId: string,
+  ) => Promise<GenerateSummaryResponse | null>
   updateSummary: (conversationId: string, summaryId: string, content: string) => Promise<SummaryDTO>
   deleteSummary: (conversationId: string, summaryId: string) => Promise<void>
   reset: () => void
@@ -32,9 +37,9 @@ export const useSummaryStore = create<SummaryState>((set) => ({
 
   generateSummary: async (conversationId) => {
     try {
-      const summary = await summariesApi.generateSummary(conversationId)
-      set((state) => ({ summaries: [summary, ...state.summaries] }))
-      return summary
+      const result = await summariesApi.generateSummary(conversationId)
+      set((state) => ({ summaries: [result.summary, ...state.summaries] }))
+      return result
     } catch (e) {
       set({ error: (e as Error).message })
       return null

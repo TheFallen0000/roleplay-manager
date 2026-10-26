@@ -489,7 +489,10 @@ export const buildConversationRouter = (deps: {
           const result = await deps.generateConversationTitle.execute(id, {
             force: true,
           })
-          res.json({ title: result.title, titleSource: "auto" })
+          res.json({
+            title: result.title,
+            titleSource: result.titleSource,
+          })
         }
       } catch (error) {
         next(error)

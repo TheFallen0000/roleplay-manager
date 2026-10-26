@@ -143,6 +143,9 @@ export function ChatHeader({
           conversationId={conversation.id}
           current={conversation}
           onSettingsChanged={onConversationUpdated}
+          onTitleGenerated={(title, titleSource) =>
+            onConversationUpdated({ ...conversation, title, titleSource })
+          }
           onEnterFullscreen={onEnterFullscreen}
         >
           <Button
