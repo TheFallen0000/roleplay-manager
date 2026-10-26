@@ -1,3 +1,5 @@
+import type { TitleSource } from "./conversation"
+
 export type SummaryDTO = {
   id: string
   conversationId: string
@@ -12,6 +14,12 @@ export type SummaryDTO = {
 
 export type UpdateSummaryInput = {
   content: string
+}
+
+export type GenerateSummaryResponse = {
+  summary: SummaryDTO
+  title?: string
+  titleSource?: TitleSource
 }
 
 export type ListSummariesOutput = SummaryDTO[]

@@ -36,10 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - **Conversation titles follow the summary and the conversation language**:
-  after each automatic summary the auto title is regenerated and pushed through
-  a new `title-generated` event. The prompt now asks for the same language as
-  the conversation, with the UI locale only as a fallback, instead of
-  hardcoding Spanish.
+  after every summary — automatic or manual — the auto title is regenerated and
+  pushed through a new `title-generated` event. The prompt now asks for the same
+  language as the conversation, with the UI locale only as a fallback, instead
+  of hardcoding Spanish.
 - **Neutral Spanish**: public documentation, landing copy and in-app tutorials
   now use neutral Spanish (tuteo, «equipo», «Wi-Fi», «versión», «incidencia»)
   instead of voseo and regional wording.

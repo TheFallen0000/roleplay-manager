@@ -9,6 +9,7 @@ import {
   ConversationNotFoundError,
 } from "../../../domain/errors"
 import type { PromptContext } from "../../../domain/value-objects/prompt-context"
+import type { TitleSource } from "@workspace/shared/types/conversation"
 import type { Locale } from "@workspace/shared/i18n"
 
 export interface GenerateConversationTitleOptions {
@@ -37,14 +38,14 @@ export class GenerateConversationTitleUseCase {
   async execute(
     conversationId: string,
     options: GenerateConversationTitleOptions = {},
-  ): Promise<{ title: string }> {
+  ): Promise<{ title: string; titleSource: TitleSource }> {
     const conv = await this.conversationRepository.findById(conversationId)
     if (!conv) {
       throw new ConversationNotFoundError(conversationId)
     }
 
     if (!options.force && conv.titleSource === "manual" && conv.title) {
-      return { title: conv.title }
+      return { title: conv.title, titleSource: "manual" }
     }
 
     const version = await this.characterRepository.findVersionById(conv.versionId)
@@ -149,6 +150,6 @@ export class GenerateConversationTitleUseCase {
     const updated = conv.withTitle(title, "auto")
     await this.conversationRepository.update(updated)
 
-    return { title }
+    return { title, titleSource: "auto" }
   }
 }

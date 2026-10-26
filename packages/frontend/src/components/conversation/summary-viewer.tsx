@@ -14,16 +14,22 @@ import { useSummaryStore } from "@/lib/stores/summary.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { dateLocale } from "@/lib/locale"
 import type { SummaryDTO } from "@workspace/shared/types/summary"
+import type { TitleSource } from "@workspace/shared/types/conversation"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 interface SummaryViewerProps {
   conversationId: string
   summaryFrequency: number
+  onTitleGenerated?: (title: string, titleSource: TitleSource) => void
 }
 
 type DialogMode = null | "view" | "edit" | "delete"
 
-export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewerProps) {
+export function SummaryViewer({
+  conversationId,
+  summaryFrequency,
+  onTitleGenerated,
+}: SummaryViewerProps) {
   const { t, locale } = useTranslation()
   const summaries = useSummaryStore((s) => s.summaries)
   const loading = useSummaryStore((s) => s.loading)
@@ -67,6 +73,9 @@ export function SummaryViewer({ conversationId, summaryFrequency }: SummaryViewe
       const result = await generateSummary(conversationId)
       if (result) {
         toast.success(t("summaries.generated"))
+        if (result.title && result.titleSource) {
+          onTitleGenerated?.(result.title, result.titleSource)
+        }
       } else {
         toast.error(t("summaries.generateFailed"))
       }

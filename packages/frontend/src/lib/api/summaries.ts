@@ -1,11 +1,17 @@
-import type { SummaryDTO, UpdateSummaryInput } from "@workspace/shared/types/summary"
+import type {
+  GenerateSummaryResponse,
+  SummaryDTO,
+  UpdateSummaryInput,
+} from "@workspace/shared/types/summary"
 
 import { apiRequest } from "./client"
 
 export const listSummaries = (conversationId: string): Promise<SummaryDTO[]> =>
   apiRequest(`/api/conversations/${conversationId}/summaries`)
 
-export const generateSummary = (conversationId: string): Promise<SummaryDTO> =>
+export const generateSummary = (
+  conversationId: string,
+): Promise<GenerateSummaryResponse> =>
   apiRequest(`/api/conversations/${conversationId}/summaries/generate`, {
     method: "POST",
   })

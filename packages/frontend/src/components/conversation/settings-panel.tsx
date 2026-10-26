@@ -26,7 +26,12 @@ import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { BookOpenTextIcon, CpuIcon, Maximize2Icon, PaletteIcon, SettingsIcon, UserRoundIcon } from "lucide-react"
 
-import type { ConversationDetail, ConversationSettingsUpdate, MemoryProposalMode } from "@workspace/shared/types/conversation"
+import type {
+  ConversationDetail,
+  ConversationSettingsUpdate,
+  MemoryProposalMode,
+  TitleSource,
+} from "@workspace/shared/types/conversation"
 import type { ProviderId } from "@workspace/shared/types/provider"
 
 import { updateConversationSettings } from "@/lib/api/conversations"
@@ -52,6 +57,7 @@ interface SettingsPanelProps {
   conversationId: string
   current: ConversationDetail
   onSettingsChanged: (updated: ConversationDetail) => void
+  onTitleGenerated?: (title: string, titleSource: TitleSource) => void
   /** Shows the "Fullscreen" entry in the menu when provided. */
   onEnterFullscreen?: () => void
   children?: React.ReactNode
@@ -84,6 +90,7 @@ export function SettingsPanel({
   conversationId,
   current,
   onSettingsChanged,
+  onTitleGenerated,
   onEnterFullscreen,
   children,
 }: SettingsPanelProps) {
@@ -328,7 +335,11 @@ export function SettingsPanel({
                     onRecentMessageCountChange={setRecentMessageCount}
                     onSummaryFrequencyChange={setSummaryFrequency}
                   />
-                  <SummaryViewer conversationId={conversationId} summaryFrequency={summaryFrequency} />
+                  <SummaryViewer
+                    conversationId={conversationId}
+                    summaryFrequency={summaryFrequency}
+                    onTitleGenerated={onTitleGenerated}
+                  />
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="decay">

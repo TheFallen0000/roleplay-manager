@@ -5,6 +5,9 @@ import type { ListSummariesUseCase } from "../../../../application/use-cases/sum
 import type { GenerateSummaryUseCase } from "../../../../application/use-cases/summary/generate-summary.use-case"
 import type { UpdateSummaryUseCase } from "../../../../application/use-cases/summary/update-summary.use-case"
 import type { DeleteSummaryUseCase } from "../../../../application/use-cases/summary/delete-summary.use-case"
+import type { GenerateConversationTitleUseCase } from "../../../../application/use-cases/conversation/generate-conversation-title.use-case"
+import type { Logger } from "../../../../domain/ports/logger.port"
+import { resolveRequestLocale } from "../request-locale"
 import { validate } from "../middlewares/validation"
 
 const UpdateSummarySchema = z.object({
@@ -16,6 +19,8 @@ export const buildSummaryRouter = (deps: {
   generateSummary: GenerateSummaryUseCase
   updateSummary: UpdateSummaryUseCase
   deleteSummary: DeleteSummaryUseCase
+  generateConversationTitle: GenerateConversationTitleUseCase
+  logger: Logger
 }): Router => {
   const router = Router()
 
@@ -39,7 +44,24 @@ export const buildSummaryRouter = (deps: {
           res.status(400).json(result)
           return
         }
-        res.status(201).json(result.summary)
+
+        try {
+          const titleResult = await deps.generateConversationTitle.execute(id, {
+            locale: resolveRequestLocale(req.header("accept-language")),
+          })
+          res.status(201).json({
+            summary: result.summary,
+            title: titleResult.title,
+            titleSource: titleResult.titleSource,
+          })
+        } catch (error) {
+          deps.logger.error(
+            "Failed to generate conversation title after manual summary",
+            error as Error,
+            { conversationId: id },
+          )
+          res.status(201).json({ summary: result.summary })
+        }
       } catch (error) {
         next(error)
       }

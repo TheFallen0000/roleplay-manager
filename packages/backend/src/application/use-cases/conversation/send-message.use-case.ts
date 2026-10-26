@@ -338,7 +338,7 @@ export class SendMessageUseCase {
           input.conversationId,
         )
         title = result.title
-        titleSource = "auto"
+        titleSource = result.titleSource
       } catch (error) {
         this.logger.error(
           "Failed to generate conversation title",
