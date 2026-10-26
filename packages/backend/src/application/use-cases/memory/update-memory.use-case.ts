@@ -1,4 +1,5 @@
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
+import { NotFoundError } from "../../../domain/errors"
 import type { UpdateMemoryInput, MemoryDTO } from "@workspace/shared/types/memory"
 
 export class UpdateMemoryUseCase {
@@ -11,7 +12,7 @@ export class UpdateMemoryUseCase {
   ): Promise<MemoryDTO> {
     const existing = await this.memoryRepository.findById(memoryId)
     if (!existing) {
-      throw new Error(`Memory '${memoryId}' not found`)
+      throw new NotFoundError("MEMORY_NOT_FOUND", `Memory with id '${memoryId}' not found.`)
     }
 
     const updated = existing.update(
