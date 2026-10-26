@@ -320,7 +320,7 @@ Last updated: 2026-10-26
 |---|----------|--------------|
 | PM.34 | Add Vitest coverage for the memory use cases that still have no tests (`create`, `update`, `list`, `list-proposals`, `apply`, `apply-all`) and route tests for the memory endpoints. <br>*Done as S85 (pending release) — see `S85-progress.md`.* | — |
 | PM.35 | Accessibility and loading/error-state audit of the main screens: keyboard/focus, labels, live regions, contrast, touch targets, and consistent spinner/error/empty states. Add regression checks where practical. <br>*Done as S85 (pending release) — see `S85-progress.md`.* | — |
-| PM.36 | Decide whether remote access needs app-level authentication (PIN/session) or whether the network trust model (private tailnet / trusted LAN) is enough; document and implement the chosen option. <br>*Detected in S38/S56.* | S38, S56 |
+| PM.36 | Decide whether remote access needs app-level authentication (PIN/session) or whether the network trust model (private tailnet / trusted LAN) is enough; document and implement the chosen option. <br>*Discarded (2026-10-26): Tailscale already restricts access to the user's tailnet and LAN sharing is off by default, opt-in and explicitly warns that any device on the network can open the app. App-level auth would add friction for a local-first personal app; revisit only if LAN sharing is ever used on untrusted networks.* | S38, S56 |
 | PM.37 | Build the version history and comparison view that was deferred in S2, or explicitly discard it. Today there is only the version selector and the context-menu version list. | — |
 | PM.38 | Allow re-cropping an already saved profile image without uploading it again, reusing `ImageCropperDialog`. | PM.2 |
 | PM.39 | Notify the PC when the phone link is auto-disabled by inactivity; optionally base the idle timer on local use instead of remote requests. | S56 |
@@ -349,6 +349,7 @@ These are not code tasks; they need real hardware or a user confirmation.
 
 ### Reviewed and discarded
 
+- **S38/S56 — App-level authentication for remote access (PM.36):** the network is the trust boundary. Tailscale only admits devices in the user's tailnet; LAN sharing is off by default, opt-in and the Phone dialog warns that any device on the network can open the app. Revisit only if LAN sharing is used on untrusted networks.
 - **S38 — HMR through the LAN/Tailscale proxy:** development-only; the normal dev server already has HMR.
 - **S54 — `display_override`:** already discarded in S77; without a window-controls-overlay UI it changes nothing visible.
 - **S76 — single quotes in `memory_proposals` and user-facing parser warnings:** apostrophes make single quotes ambiguous and could corrupt valid content; warnings would add noise.
