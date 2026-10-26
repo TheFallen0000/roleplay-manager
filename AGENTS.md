@@ -36,17 +36,26 @@ A roleplay conversation manager with a Node/Express backend, an Astro+React fron
 - Screenshots: originals live in `screenshots-source/` (ignored); run
   `pnpm --filter @workspace/website screenshots` to regenerate the committed
   WebP files in `src/assets/screenshots/`. Run
-  `pnpm --filter @workspace/website og` for the social cards.
+  `pnpm --filter @workspace/website og` for the social cards. Commit only the
+  processed WebP files and generated OG images, never the raw JPG/PNG captures.
 - Cloudflare Pages: direct-upload project `roleplay-manager`; the build and
   deploy run in GitHub Actions (`deploy-website.yml`) with
   `pnpm --filter @workspace/website build` and Wrangler. Required repository
   secrets: `CLOUDFLARE_API_TOKEN` (Pages: Write) and `CLOUDFLARE_ACCOUNT_ID`.
+- **Deploy flow:** `deploy-website.yml` runs for `packages/website/**`,
+  `package.json`, `pnpm-lock.yaml` and the workflow itself. The release workflow
+  dispatches it with `gh workflow run deploy-website.yml --ref master` and
+  therefore needs `actions: write`. Do not add a Cloudflare deploy hook: the
+  Pages project is direct-upload.
+- **Standalone pages:** pass `autoLang={false}` to `BaseLayout` for pages
+  outside the normal locale routes (for example the 404). Otherwise the
+  browser-language redirect can target a missing localized route.
 - **Release policy:** the website deploys independently on every push to
-  `master` (GitHub Actions → Cloudflare Pages). It does **not** bump the root
-  `package.json` and
-  does **not** create a GitHub release. Website changes that matter to users go
-  under `[Unreleased]` in `CHANGELOG.md` and ride the next batched app release;
-  a website-only change does not require an app release.
+  `master` that changes website-related paths (GitHub Actions → Cloudflare
+  Pages). It does **not** bump the root `package.json` and does **not** create a
+  GitHub release. Website changes that matter to users go under `[Unreleased]`
+  in `CHANGELOG.md` and ride the next batched app release; a website-only change
+  does not require an app release.
 
 ---
 
@@ -339,3 +348,19 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 
 - When asked to commit, keep commits **small and descriptive**, in conventional-commit style (`feat(scope): …`, `fix(scope): …`, `test(scope): …`, `docs(scope): …`, `release: …`).
 - Typical sequence: shared types → backend → ui → frontend → tests → docs/backlog → release (bump + changelog).
+
+---
+
+## 10. Secrets and credentials
+
+- The repository is public: never commit API tokens, R2 access/secret keys,
+  deploy-hook URLs, `.env` files or private keys.
+- Use GitHub Actions secrets for deploy credentials. The Cloudflare deploy
+  token is scoped to **Pages: Write**; routine website deploys do not need DNS,
+  zone-settings or R2 permissions.
+- Account and zone IDs are identifiers rather than secrets, but keep them out
+  of source code unless a workflow needs them; prefer repository variables.
+- If a secret is exposed in a chat, issue, PR or log, rotate it and update the
+  GitHub secret. Deleting the message is not enough.
+- Do not add `CLOUDFLARE_DEPLOY_HOOK` back; the site uses the direct-upload
+  workflow.
