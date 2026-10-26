@@ -213,9 +213,17 @@ describe("GenerateConversationTitleUseCase", () => {
     expect(updatedConv!.titleSource).toBe("auto")
   })
 
-  it("respeta un título existente con titleSource=manual", async () => {
+  it("no sobrescribe un título manual en el flujo automático", async () => {
     const useCase = buildUseCase()
     const result = await useCase.execute("conv-2")
+
+    expect(result.title).toBe("Existing title")
+    expect(updatedConv).toBeNull()
+  })
+
+  it("permite regenerar explícitamente un título manual", async () => {
+    const useCase = buildUseCase()
+    const result = await useCase.execute("conv-2", { force: true })
 
     expect(result.title).toBe("Nueva Aventura")
     expect(updatedConv).not.toBeNull()

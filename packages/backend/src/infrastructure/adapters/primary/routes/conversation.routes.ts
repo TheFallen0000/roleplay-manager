@@ -468,7 +468,9 @@ export const buildConversationRouter = (deps: {
           await deps.conversationRepository.update(updated)
           res.json({ title, titleSource: "manual" })
         } else {
-          const result = await deps.generateConversationTitle.execute(id)
+          const result = await deps.generateConversationTitle.execute(id, {
+            force: true,
+          })
           res.json({ title: result.title, titleSource: "auto" })
         }
       } catch (error) {
