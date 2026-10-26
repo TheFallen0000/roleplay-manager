@@ -10,6 +10,11 @@ import {
 } from "../../../domain/errors"
 import type { PromptContext } from "../../../domain/value-objects/prompt-context"
 
+export interface GenerateConversationTitleOptions {
+  /** Explicit user action: allow replacing a manual title. */
+  force?: boolean
+}
+
 export class GenerateConversationTitleUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
@@ -21,10 +26,17 @@ export class GenerateConversationTitleUseCase {
     private readonly logger: Logger,
   ) {}
 
-  async execute(conversationId: string): Promise<{ title: string }> {
+  async execute(
+    conversationId: string,
+    options: GenerateConversationTitleOptions = {},
+  ): Promise<{ title: string }> {
     const conv = await this.conversationRepository.findById(conversationId)
     if (!conv) {
       throw new ConversationNotFoundError(conversationId)
+    }
+
+    if (!options.force && conv.titleSource === "manual" && conv.title) {
+      return { title: conv.title }
     }
 
     const version = await this.characterRepository.findVersionById(conv.versionId)

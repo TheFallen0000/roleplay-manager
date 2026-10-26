@@ -39,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Manual conversation titles are preserved**: automatic title generation now
+  leaves an existing manual title untouched; the explicit “Regenerate
+  automatically” action still replaces it. The S8 note that claimed regeneration
+  after every summary was corrected.
 - **Accessible controls**: icon-only controls (send, continue, alternative
   arrows, model combobox, edit actions) now have translated accessible names,
   assistant actions and destructive buttons meet the contrast threshold in
