@@ -105,6 +105,6 @@ Además del objetivo original, S6 incluyó las siguientes funcionalidades:
 - `settings-panel.tsx`: reemplazar "Próximamente" por Accordion con las 3 secciones
 
 ## Pendientes para slices futuros
-- **Auto-degradación de memorias**: eliminación automática de memorias con baja prioridad mantenida durante varios mensajes. Pendiente para S10.
-- **Tests unitarios de memoria**: los casos de uso de memoria actualmente no tienen tests siguiendo el patrón existente. Pendiente para un slice de testing.
-- **Parser de bloque memory_proposals más robusto**: si el LLM varía el formato, mejorar el parser. Pendiente para iteración de robustez.
+- **Auto-degradación de memorias**: resuelta en S10.
+- **Parser de bloque memory_proposals más robusto**: resuelto en S76.
+- **Tests unitarios de memoria**: siguen pendientes y se promovieron a **PM.34** (planificados para S85).

@@ -16,6 +16,11 @@
 | **Context preview dialog** | Dialog a pantalla completa con metadatos (nombre del personaje, versión, conteo de mensajes/caracteres), system prompt completo y lista de mensajes coloreados por rol. Botones "Cancelar" y "Enviar". |
 | **Right-click preview** | El botón de previsualizar está disponible en el `MessageInput` y se dispara también con clic derecho sobre el botón de enviar. |
 
+> **Nota de revisión (2026-10-26):** el código actual genera el título solo
+> cuando `conversation.title === null` (primer envío), no tras cada resumen.
+> La discrepancia queda en **PM.44** para decidir si se implementa o se corrige
+> esta nota.
+
 ## Archivos creados
 
 ### Shared
@@ -71,3 +76,8 @@
 - Revisión de accesibilidad básica
 - Optimización de queries Drizzle
 - Revisión de documentación
+
+> **Revisión (2026-10-26):** los timeouts se resolvieron con
+> `PROVIDER_TIMEOUT_MS`; errores/carga y accesibilidad quedan en **PM.35**; la
+> optimización Drizzle se descartó a favor de medir primero; la revisión de
+> documentación es continua.

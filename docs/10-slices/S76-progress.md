@@ -28,7 +28,8 @@ tolerante y las reparaciones seguras recuperan los formatos rotos más comunes.
   bloques y sin cierre siguen ocultos en vivo).
 - **Traza**: si había bloque y no se pudo leer ninguna propuesta, `logger.warn`
   con una muestra de 500 caracteres (sin avisos en la UI, para no meter ruido).
-- Fuera de alcance: comillas simples y notificaciones al usuario.
+- Fuera de alcance: comillas simples y notificaciones al usuario (revisado y
+  descartado en el barrido S84).
 
 ## Criterios de aceptación
 

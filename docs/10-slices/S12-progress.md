@@ -15,7 +15,7 @@ Añadir un recortador de imagen para la foto de perfil, forzando una forma cuadr
 - **Aspecto:** configurable vía prop `aspect`, por defecto `1` (cuadrado).
 - **Salida:** `getCroppedImg` (helper propio de canvas, ya que v6 no lo exporta) devuelve un PNG Blob → convertido a `File` (`cropped.png`, `image/png`) → `onCropComplete`.
 - **Flujo:** al seleccionar/soltar una imagen en el dropzone, se abre el diálogo de recorte. Al pulsar "Aplicar", el archivo recortado se pasa por el mismo `onFileSelected` de antes (el padre no sabe que fue recortado).
-- **Sin re-encuadre:** el diálogo solo se abre al seleccionar un archivo nuevo. Re-recortar una imagen ya guardada queda fuera de alcance (posible follow-up).
+- **Sin re-encuadre:** el diálogo solo se abre al seleccionar un archivo nuevo. Re-recortar una imagen ya guardada queda fuera de alcance (promovido a **PM.38**).
 
 ## Criterios de aceptación
 

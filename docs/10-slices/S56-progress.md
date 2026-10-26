@@ -71,9 +71,9 @@ enlace» dentro del diálogo Teléfono de cada pestaña, se persisten en la tabl
 
 ## Fuera de alcance
 
-- Notificación al PC cuando la inactividad corta el enlace (solo log + estado).
-- Inactividad basada en «uso local» (la semántica elegida es remota).
-- Botón de instalar propio de la PWA (ya cubierto por S54).
+- Notificación al PC cuando la inactividad corta el enlace: **PM.39**.
+- Inactividad basada en «uso local»: **PM.39**.
+- Botón de instalar propio de la PWA: hecho en S72.
 
 ## Commits
 

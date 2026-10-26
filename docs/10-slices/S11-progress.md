@@ -1,7 +1,11 @@
 # S11 — PM.1 Profile image upload & storage
 
-**Estado:** En progreso
+**Estado:** Completado (verificado 2026-10-26)
 **Inicio:** 2026-08-04
+
+> **Cierre (2026-10-26):** el follow-up S11.1 está implementado (dropzone en
+> `profile-image-input.tsx`) y la migración `0008` elimina `profile_image`; el
+> estado «En progreso» y los tres checks pendientes estaban obsoletos.
 
 ## Descripción
 
@@ -33,6 +37,6 @@ Permitir al usuario importar imágenes y almacenarlas en la base de datos (no so
 - [x] Path traversal rejected.
 - [x] `profileImageAssetId` flows through create/update DTOs.
 - [x] Surfaces show uploaded image (character card, chat header, conversation cards).
-- [ ] Drag & drop dropzone replaces the URL text input.
-- [ ] Legacy `profile_image` column dropped from `character_versions` (migration `0008_*.sql`).
-- [ ] All tests pass: `pnpm check`, backend tests, frontend tests.
+- [x] Drag & drop dropzone replaces the URL text input.
+- [x] Legacy `profile_image` column dropped from `character_versions` (migration `0008_*.sql`).
+- [x] All tests pass: `pnpm check`, backend tests, frontend tests (green when the slice closed).

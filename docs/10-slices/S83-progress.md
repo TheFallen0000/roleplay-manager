@@ -1,6 +1,6 @@
 # S83 — Documentación bilingüe con Starlight
 
-**Estado:** Implementado en local; pendiente de revisión y Cloudflare Pages.
+**Estado:** Completado; desplegado en producción (S84).
 **Inicio:** 2026-10-23
 **Fin:** 2026-10-23
 
@@ -56,9 +56,9 @@ buscable con **Astro Starlight**:
 - [x] Sin enlaces internos rotos.
 - [x] `CHANGELOG.md` con la entrada en `[Unreleased]`.
 - [x] `AGENTS.md` actualizado con la estructura de docs.
-- [ ] Capturas EN/ES y OG images (S84).
-- [ ] Cloudflare Pages y dominio (S84/manual).
-- [ ] 404 personalizado (S84).
+- [x] Capturas EN/ES y OG images (S84).
+- [x] Cloudflare Pages y dominio (S84).
+- [x] 404 personalizado (S84).
 
 ## Verificación
 
@@ -75,11 +75,11 @@ buscable con **Astro Starlight**:
 
 ## Pendiente
 
-- Capturas reales en ambos idiomas para las guías.
-- OG images y 404 con la mascota.
-- Cloudflare Pages, dominio y deploy hook.
-- Revisar el copy con hablantes nativos si se quiere pulir el tono.
-- Añadir CTA de descarga al header de Starlight si se decide.
+- Revisar el copy con hablantes nativos si se quiere pulir el tono: **PM.43**.
+
+> **Cierre (2026-10-26):** S84 añadió capturas, OG images, 404, Cloudflare Pages,
+> dominio y el CTA de descarga en el header de Starlight. Solo queda la revisión
+> editorial del copy.
 
 ## Commits
 

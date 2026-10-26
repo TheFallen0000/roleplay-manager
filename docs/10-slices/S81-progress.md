@@ -43,7 +43,7 @@ al guardar** y **qué se muestra** (streaming y mensajes antiguos).
   no se guarda en blanco; mantiene el comportamiento existente.
 - **Fuera de alcance**: detectar `*título*` mal usado (ambiguo — lo cubre el
   prompt), listas numeradas, tablas y cursivas `_` (riesgo de falsos
-  positivos; se añadirán si aparecen).
+  positivos; se añadirán si aparecen). Revisado y descartado en el barrido S84.
 
 ## Criterios de aceptación
 
