@@ -1,4 +1,11 @@
-import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react"
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  waitFor,
+} from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
 import type { PlayerCharacterDTO } from "@workspace/shared/types/player-character"
@@ -74,9 +81,7 @@ describe("PlayerCharacterManager", () => {
 
     renderManager()
 
-    expect(
-      await screen.findByText("Tu elenco está vacío"),
-    ).toBeInTheDocument()
+    expect(await screen.findByText("Tu elenco está vacío")).toBeInTheDocument()
   })
 
   it("crea una persona desde el diálogo", async () => {
@@ -101,7 +106,7 @@ describe("PlayerCharacterManager", () => {
       expect(mocks.createPlayerCharacter).toHaveBeenCalledWith({
         name: "Alice",
         description: "Una exploradora curiosa.",
-      }),
+      })
     )
   })
 
@@ -109,25 +114,27 @@ describe("PlayerCharacterManager", () => {
     mocks.listPlayerCharacters.mockResolvedValue([alice])
     mocks.deletePlayerCharacter.mockResolvedValue(undefined)
 
+    const user = userEvent.setup()
     renderManager()
-    fireEvent.click(await screen.findByText("Opciones"))
-    fireEvent.click(await screen.findByText("Eliminar"))
+    await user.click(await screen.findByText("Opciones"))
+    await user.click(await screen.findByText("Eliminar"))
 
     expect(await screen.findByText("¿Eliminar persona?")).toBeInTheDocument()
     const confirmButton = screen.getAllByText("Eliminar").at(-1)!
-    fireEvent.click(confirmButton)
+    await user.click(confirmButton)
 
     await waitFor(() =>
-      expect(mocks.deletePlayerCharacter).toHaveBeenCalledWith("pc-1"),
+      expect(mocks.deletePlayerCharacter).toHaveBeenCalledWith("pc-1")
     )
   })
 
   it("exporta una persona y descarga el JSON", async () => {
     mocks.listPlayerCharacters.mockResolvedValue([alice])
 
+    const user = userEvent.setup()
     renderManager()
-    fireEvent.click(await screen.findByText("Opciones"))
-    fireEvent.click(await screen.findByText("Exportar"))
+    await user.click(await screen.findByText("Opciones"))
+    await user.click(await screen.findByText("Exportar", {}, { timeout: 3000 }))
 
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1)
     expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
@@ -141,7 +148,7 @@ describe("PlayerCharacterManager", () => {
     fireEvent.click(await screen.findByText("Importar persona"))
 
     const input = document.querySelector(
-      'input[type="file"]',
+      'input[type="file"]'
     ) as HTMLInputElement
     fireEvent.change(input, {
       target: {
@@ -157,7 +164,7 @@ describe("PlayerCharacterManager", () => {
       expect(mocks.createPlayerCharacter).toHaveBeenCalledWith({
         name: "Alice",
         description: "Una exploradora curiosa.",
-      }),
+      })
     )
   })
 })
