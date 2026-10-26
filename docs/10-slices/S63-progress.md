@@ -52,8 +52,11 @@ verificación end-to-end.
       (x64 y arm64).
 - [x] Dependabot semanal para `github-actions`.
 - [x] YAML válido y `pnpm check` verde.
-- [ ] Push de v1.40.1 con el pipeline verde y release publicado: el run es la
+- [x] Push de v1.40.1 con el pipeline verde y release publicado: el run es la
       verificación real (se dispara solo con el bump).
+
+> **Verificación (2026-10-26):** el tag `v1.40.1` está en `origin` y la release
+> de GitHub existe (publicada el 2026-10-10); el check estaba obsoleto.
 
 ## Verificación
 

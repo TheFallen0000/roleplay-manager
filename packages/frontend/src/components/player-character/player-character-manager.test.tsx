@@ -84,6 +84,22 @@ describe("PlayerCharacterManager", () => {
     expect(await screen.findByText("Tu elenco está vacío")).toBeInTheDocument()
   })
 
+  it("muestra el error de carga y permite reintentar", async () => {
+    mocks.listPlayerCharacters.mockRejectedValueOnce(new Error("network down"))
+
+    renderManager()
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No se pudieron cargar",
+    )
+
+    mocks.listPlayerCharacters.mockResolvedValueOnce([])
+    const user = userEvent.setup()
+    await user.click(screen.getByRole("button", { name: "Reintentar" }))
+
+    expect(await screen.findByText("Tu elenco está vacío")).toBeInTheDocument()
+  })
+
   it("crea una persona desde el diálogo", async () => {
     mocks.listPlayerCharacters.mockResolvedValue([])
     mocks.createPlayerCharacter.mockResolvedValue(alice)

@@ -319,7 +319,11 @@ export function PhoneAccessDialog({
           </TabsContent>
         </Tabs>
 
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
       </DialogContent>
     </Dialog>
   )

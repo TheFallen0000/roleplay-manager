@@ -1,8 +1,13 @@
 # S2 - Gestion de personajes + shell de la app
 
-**Estado:** en curso.
+**Estado:** Completado (plan histórico; ver nota de revisión).
 **Slice:** S2 (ver `docs/08-workflow.md`).
 **Entregable:** el usuario puede crear, listar, editar y eliminar personajes. Cada edicion genera una nueva `CharacterVersion` sin afectar a conversaciones (las conversaciones son S3). Mas: el `index.astro` deja de ser la pantalla del template y muestra la lista de personajes con boton "+ Crear personaje". Existe un layout global con Sidebar retraible que aloja las paginas de la app.
+
+> **Nota de revisión (2026-10-26):** este documento es el plan original de S2;
+> el slice se completó. La tabla «Estado de avance» se conserva como histórico y
+> no refleja el estado actual. El único seguimiento vivo es la vista de historial
+> y comparación de versiones, promovida a **PM.37**.
 
 ## Decisiones confirmadas
 

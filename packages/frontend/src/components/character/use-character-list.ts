@@ -15,6 +15,7 @@ export interface UseCharacterListResult {
   latestConversationByCharacter: Map<string, ConversationSummary>
   lastActivityByCharacter: Map<string, string>
   loading: boolean
+  error: Error | null
   refresh: () => Promise<void>
   loadVersions: (characterId: string) => Promise<CharacterVersionDTO[]>
 }
@@ -29,6 +30,7 @@ export function useCharacterList(): UseCharacterListResult {
   const [characters, setCharacters] = useState<CharacterSummary[]>([])
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
   const [versionsCache, setVersionsCache] = useState<
     Map<string, CharacterVersionDTO[]>
   >(() => new Map())
@@ -44,8 +46,11 @@ export function useCharacterList(): UseCharacterListResult {
 
   const refresh = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       await fetchAll()
+    } catch (fetchError) {
+      setError(fetchError as Error)
     } finally {
       setLoading(false)
     }
@@ -56,6 +61,10 @@ export function useCharacterList(): UseCharacterListResult {
     ;(async () => {
       try {
         await fetchAll()
+      } catch (fetchError) {
+        if (active) {
+          setError(fetchError as Error)
+        }
       } finally {
         if (active) {
           setLoading(false)
@@ -122,6 +131,7 @@ export function useCharacterList(): UseCharacterListResult {
     latestConversationByCharacter,
     lastActivityByCharacter,
     loading,
+    error,
     refresh,
     loadVersions,
   }

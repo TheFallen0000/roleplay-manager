@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Memory regression tests**: the memory and memory-proposal use cases
+  (create, update, list, list proposals, apply and apply-all) and their HTTP
+  routes now have tests, including validation and the missing-memory 404.
 - **Public website (roleplay-manager.com)**: new `packages/website` Astro site
   with a bilingual landing (EN/ES), OS-aware download selector, `/download`
   page and release snapshot fetched from GitHub.
@@ -36,6 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Accessible controls**: icon-only controls (send, continue, alternative
+  arrows, model combobox, edit actions) now have translated accessible names,
+  assistant actions and destructive buttons meet the contrast threshold in
+  light and dark mode, and the image dropzone exposes its visible hint.
+- **Loading and error states**: the character library, personas and providers
+  show an explicit error with a retry action instead of an empty state, inline
+  errors are announced, and the providers screen has a loading state.
+- **Logs download link**: the link is always relative, so server and client
+  markup match and remote clients download through their own origin.
 - **Mobile steps spacing**: the first step in “From download to first scene”
   now keeps the same top padding as the other steps, so the separator is no
   longer too close to “01”.

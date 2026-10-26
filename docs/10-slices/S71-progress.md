@@ -35,7 +35,7 @@ está en español e inglés.
   `/settings/updates`, `/`), lo que respeta el aislamiento entre features.
 - **Sin capturas en v1** (fuera de alcance): los pasos + el botón a la función
   envejecen mejor. `?t=` ya permite enlazar tutoriales desde cualquier diálogo en
-  el futuro.
+  el futuro. Si hicieran falta, quedan en **PM.42**.
 
 ## Criterios de aceptación
 

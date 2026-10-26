@@ -14,7 +14,9 @@ export function CharacterNotFound({ error }: { error?: string | null }) {
           {t("characters.notFoundTitle")}
         </h2>
         {error ? (
-          <p className="text-muted-foreground text-sm">{error}</p>
+          <p role="alert" className="text-muted-foreground text-sm">
+            {error}
+          </p>
         ) : (
           <p className="text-muted-foreground text-sm">
             {t("characters.notFoundDescription")}

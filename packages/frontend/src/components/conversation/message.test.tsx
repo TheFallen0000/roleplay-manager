@@ -53,6 +53,24 @@ const swipeLeft = () => swipe(220, 140)
 const swipeRight = () => swipe(140, 220)
 
 describe("MessageBubble swipe navigation", () => {
+  it("las flechas de alternativas tienen nombre accesible", () => {
+    render(
+      <MessageBubble
+        message={buildMessage(0, ["Alternativa A", "Alternativa B"])}
+        isLastMessage
+        onCycleNext={vi.fn()}
+        onCyclePrev={vi.fn()}
+      />,
+    )
+
+    expect(
+      screen.getByRole("button", { name: "Alternativa anterior" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Alternativa siguiente" }),
+    ).toBeInTheDocument()
+  })
+
   it("deslizar a la izquierda avanza a la siguiente alternativa", () => {
     const onCycleNext = vi.fn()
     const onRegenerate = vi.fn()
@@ -219,7 +237,10 @@ describe("MessageBubble segment colors", () => {
       />,
     )
 
-    expect(screen.getByText("sonríe")).toHaveClass("text-muted-foreground/70")
+    expect(screen.getByText("sonríe")).toHaveClass("text-muted-foreground")
+    expect(screen.getByText("sonríe")).not.toHaveClass(
+      "text-muted-foreground/70",
+    )
   })
 
   it("el OOC del usuario se muestra como pastilla legible", () => {

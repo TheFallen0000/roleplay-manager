@@ -1,6 +1,6 @@
 import type { LogEntryDTO, LogLevelName } from "@workspace/shared/types/log"
 
-import { apiRequest, getBaseUrl } from "./client"
+import { apiRequest } from "./client"
 
 export interface RecentLogsQuery {
   limit?: number
@@ -20,5 +20,4 @@ export const getRecentLogs = (
   )
 }
 
-export const getLogsDownloadUrl = (): string =>
-  `${getBaseUrl()}/api/logs/download`
+export const getLogsDownloadUrl = (): string => "/api/logs/download"

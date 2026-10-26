@@ -33,7 +33,8 @@ propio, botón de copiar con *fallback* y notas de seguridad y firewall. Está
   (HTTPS o localhost); en HTTP plano se usa el método clásico (`execCommand`).
 - **Punto de estado** del menú encendido si **cualquiera** de los dos modos
   está activo; el store cachea ambos estados.
-- **Fuera de alcance**: HMR por el proxy, PWA y autenticación.
+- **Fuera de alcance**: HMR por el proxy (descartado), PWA (hecha en S54) y
+  autenticación (decisión en **PM.36**).
 
 ## Criterios de aceptación
 

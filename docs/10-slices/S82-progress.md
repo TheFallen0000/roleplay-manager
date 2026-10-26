@@ -1,6 +1,6 @@
 # S82 — Sitio público: portada y descarga
 
-**Estado:** Implementado en local; pendiente de Cloudflare Pages y revisión.
+**Estado:** Completado; desplegado en producción (S84).
 **Inicio:** 2026-10-23
 **Fin:** 2026-10-23
 
@@ -70,10 +70,11 @@ La documentación completa del planteamiento está en
 - [x] `pnpm check:arch` sigue en 7/7.
 - [x] `CHANGELOG.md` tiene la entrada en `[Unreleased]`.
 - [x] `AGENTS.md` documenta el paquete, el build y la política de releases.
-- [ ] Proyecto de Cloudflare Pages creado y dominio apuntado (manual, S82/S84).
-- [ ] Capturas EN/ES definitivas (S84).
-- [ ] Documentación Starlight (S83).
-- [ ] Deploy hook al publicar release (S84).
+- [x] Proyecto de Cloudflare Pages creado y dominio apuntado (S84).
+- [x] Capturas EN/ES definitivas (S84).
+- [x] Documentación Starlight (S83).
+- [x] Deploy de la web al publicar una release mediante `deploy-website.yml`
+      (sin deploy hook; el proyecto es direct-upload).
 
 ## Verificación
 
@@ -93,12 +94,12 @@ La documentación completa del planteamiento está en
 
 ## Pendiente
 
-- Crear el proyecto de Cloudflare Pages y apuntar `roleplay-manager.com`.
-- Revisar el sitio en un dispositivo real (iOS/Android) y en Safari.
-- Añadir capturas EN/ES y OG images en S84.
-- Sustituir el placeholder de docs por Starlight en S83.
-- Añadir el deploy hook de Cloudflare al workflow de release en S84.
-- Valorar analytics privacy-first solo si el usuario lo pide; por defecto no.
+- Revisar el sitio en un iPhone/Safari real (sigue abierto en S84).
+- Analytics privacy-first solo si se pide; no está planificado.
+
+> **Cierre (2026-10-26):** S83 completó la documentación y S84 las capturas,
+> OG images, 404, dominio, HTTPS y el deploy desde GitHub Actions. El deploy hook
+> se sustituyó por el dispatch de `deploy-website.yml`.
 
 ## Commits
 

@@ -64,7 +64,9 @@ describe("ProfileImageInput", () => {
 
   it("opens the cropper dialog when a valid file is dropped", async () => {
     const handlers = renderDropzone()
-    const dropzone = screen.getByRole("button", { name: /Subir imagen de perfil/ })
+    const dropzone = screen.getByRole("button", {
+      name: /Arrastra una imagen aquí o haz clic para seleccionar/,
+    })
 
     fireEvent.drop(dropzone, { dataTransfer: { files: [pngFile] } })
 
@@ -74,7 +76,9 @@ describe("ProfileImageInput", () => {
 
   it("closes the cropper dialog and does not select the file on cancel", async () => {
     const handlers = renderDropzone()
-    const dropzone = screen.getByRole("button", { name: /Subir imagen de perfil/ })
+    const dropzone = screen.getByRole("button", {
+      name: /Arrastra una imagen aquí o haz clic para seleccionar/,
+    })
 
     fireEvent.drop(dropzone, { dataTransfer: { files: [pngFile] } })
     await screen.findByText("Recortar imagen")
@@ -90,7 +94,9 @@ describe("ProfileImageInput", () => {
       type: "image/png",
     })
     const handlers = renderDropzone()
-    const dropzone = screen.getByRole("button", { name: /Subir imagen de perfil/ })
+    const dropzone = screen.getByRole("button", {
+      name: /Arrastra una imagen aquí o haz clic para seleccionar/,
+    })
 
     fireEvent.drop(dropzone, { dataTransfer: { files: [bigFile] } })
 
@@ -102,7 +108,9 @@ describe("ProfileImageInput", () => {
       type: "image/svg+xml",
     })
     const handlers = renderDropzone()
-    const dropzone = screen.getByRole("button", { name: /Subir imagen de perfil/ })
+    const dropzone = screen.getByRole("button", {
+      name: /Arrastra una imagen aquí o haz clic para seleccionar/,
+    })
 
     fireEvent.drop(dropzone, { dataTransfer: { files: [svgFile] } })
 
@@ -111,7 +119,9 @@ describe("ProfileImageInput", () => {
 
   it("opens the cropper dialog when a file is chosen via the picker", async () => {
     const handlers = renderDropzone()
-    const dropzone = screen.getByRole("button", { name: /Subir imagen de perfil/ })
+    const dropzone = screen.getByRole("button", {
+      name: /Arrastra una imagen aquí o haz clic para seleccionar/,
+    })
 
     await userEvent.click(dropzone)
     const input = document.querySelector<HTMLInputElement>('input[type="file"]')

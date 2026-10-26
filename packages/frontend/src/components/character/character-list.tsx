@@ -21,6 +21,7 @@ import {
   type CharacterSortKey,
 } from "@/lib/sort-characters"
 import { MascotPose } from "../layout/brand"
+import { LoadErrorState } from "../shared/states/load-error-state"
 import { CharacterCard } from "./character-card"
 import { CharacterDropOverlay } from "./character-drop-overlay"
 import { CharacterListToolbar } from "./character-list-toolbar"
@@ -53,6 +54,7 @@ function CharacterListContent() {
     latestConversationByCharacter,
     lastActivityByCharacter,
     loading,
+    error,
     refresh,
     loadVersions,
   } = useCharacterList()
@@ -173,8 +175,17 @@ function CharacterListContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Spinner />
+        <Spinner aria-label={t("common.loading")} />
       </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <LoadErrorState
+        message={translateApiError(error, tRaw, t("characters.loadFailed"))}
+        onRetry={() => void refresh()}
+      />
     )
   }
 

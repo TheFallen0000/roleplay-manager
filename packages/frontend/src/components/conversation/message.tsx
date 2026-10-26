@@ -146,12 +146,18 @@ export function MessageBubble({
               autoFocus
             />
             <div className="flex gap-1 justify-end">
-              <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label={t("common.cancel")}
+                onClick={handleCancelEdit}
+              >
                 <X className="size-3" />
               </Button>
               <Button
                 size="sm"
                 variant="default"
+                aria-label={t("common.save")}
                 onClick={handleSaveEdit}
                 disabled={!editContent?.trim()}
               >
@@ -198,7 +204,7 @@ export function MessageBubble({
                                 className={
                                   isUser
                                     ? "italic"
-                                    : "italic text-muted-foreground/70"
+                                    : "italic text-muted-foreground"
                                 }
                               >
                                 {segment.content}
@@ -288,6 +294,7 @@ export function MessageBubble({
                   variant="ghost"
                   size="icon"
                   className="size-6"
+                  aria-label={t("chat.previousAlternative")}
                   disabled={!canCyclePrev}
                   onClick={() => onCyclePrev?.(message.id)}
                 >
@@ -300,6 +307,7 @@ export function MessageBubble({
                   variant="ghost"
                   size="icon"
                   className="size-6"
+                  aria-label={t("chat.nextAlternative")}
                   disabled={!canCycleNext}
                   onClick={() => onCycleNext?.(message.id)}
                 >

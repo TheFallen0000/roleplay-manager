@@ -52,10 +52,11 @@ hay offline.
 
 ## Fuera de alcance
 
-- Service worker / modo offline.
-- `screenshots`, `shortcuts` y `display_override` en el manifest.
-- Botón de instalar propio en la UI (`beforeinstallprompt`).
-- Empaquetado para stores (TWA/PWABuilder).
+- Service worker / modo offline: **PM.40**.
+- `screenshots`, `shortcuts` y `display_override`: hechos en S77 (salvo
+  `display_override`, descartado).
+- Botón de instalar propio en la UI (`beforeinstallprompt`): hecho en S72.
+- Empaquetado para stores (TWA/PWABuilder): **PM.41**.
 
 ## Commits
 

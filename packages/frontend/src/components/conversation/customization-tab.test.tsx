@@ -164,7 +164,9 @@ describe("CustomizationTab", () => {
     const { onSettingsChanged } = renderTab(baseConversation())
     const croppedFile = new File(["cropped"], "cropped.png", { type: "image/png" })
 
-    const dropzone = screen.getByRole("button", { name: /Subir imagen de perfil/ })
+    const dropzone = screen.getAllByRole("button", {
+      name: /Arrastra una imagen aquí o haz clic para seleccionar/,
+    })[0]!
     fireEvent.drop(dropzone, { dataTransfer: { files: [pngFile] } })
 
     await waitFor(() => {

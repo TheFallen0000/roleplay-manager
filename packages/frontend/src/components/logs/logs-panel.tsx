@@ -178,7 +178,11 @@ function LogsContent() {
             {t("logs.count", { count: entries.length })}
           </p>
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          {error ? (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          ) : null}
 
           <div className="max-h-[60vh] overflow-y-auto rounded-md border">
             {entries.length === 0 ? (

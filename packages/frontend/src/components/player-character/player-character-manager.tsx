@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "@workspace/ui/components/sonner"
 
 import type { PlayerCharacterExport } from "@workspace/shared/types/export"
@@ -21,6 +21,7 @@ import {
 import { PlusIcon, UploadIcon } from "lucide-react"
 
 import { MascotPose } from "@/components/layout/brand"
+import { LoadErrorState } from "@/components/shared/states/load-error-state"
 import {
   createPlayerCharacter,
   deletePlayerCharacter,
@@ -62,6 +63,7 @@ function PlayerCharacterManagerContent() {
     [],
   )
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<Error | null>(null)
   const [form, setForm] = useState<FormState | null>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -69,18 +71,29 @@ function PlayerCharacterManagerContent() {
     null,
   )
 
+  const load = useCallback(async () => {
+    try {
+      const items = await listPlayerCharacters()
+      setPlayerCharacters(items)
+      setLoadError(null)
+    } catch (error) {
+      setLoadError(error as Error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     let active = true
     ;(async () => {
       try {
         const items = await listPlayerCharacters()
-        if (active) setPlayerCharacters(items)
-      } catch (error) {
         if (active) {
-          toast.error(t("players.loadFailed"), {
-            description: translateApiError(error, tRaw, t("common.unknownError")),
-          })
+          setPlayerCharacters(items)
+          setLoadError(null)
         }
+      } catch (error) {
+        if (active) setLoadError(error as Error)
       } finally {
         if (active) setLoading(false)
       }
@@ -88,7 +101,7 @@ function PlayerCharacterManagerContent() {
     return () => {
       active = false
     }
-  }, [t, tRaw])
+  }, [])
 
   const refresh = async () => {
     const items = await listPlayerCharacters()
@@ -180,8 +193,20 @@ function PlayerCharacterManagerContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Spinner />
+        <Spinner aria-label={t("common.loading")} />
       </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <LoadErrorState
+        message={translateApiError(loadError, tRaw, t("players.loadFailed"))}
+        onRetry={() => {
+          setLoading(true)
+          void load()
+        }}
+      />
     )
   }
 
