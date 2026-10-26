@@ -107,4 +107,4 @@ Además del objetivo original, S6 incluyó las siguientes funcionalidades:
 ## Pendientes para slices futuros
 - **Auto-degradación de memorias**: resuelta en S10.
 - **Parser de bloque memory_proposals más robusto**: resuelto en S76.
-- **Tests unitarios de memoria**: siguen pendientes y se promovieron a **PM.34** (planificados para S85).
+- **Tests unitarios de memoria**: resueltos en S85 (**PM.34**).

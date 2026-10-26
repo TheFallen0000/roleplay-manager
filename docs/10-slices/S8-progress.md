@@ -78,6 +78,6 @@
 - Revisión de documentación
 
 > **Revisión (2026-10-26):** los timeouts se resolvieron con
-> `PROVIDER_TIMEOUT_MS`; errores/carga y accesibilidad quedan en **PM.35**; la
-> optimización Drizzle se descartó a favor de medir primero; la revisión de
-> documentación es continua.
+> `PROVIDER_TIMEOUT_MS`; errores/carga y accesibilidad se resolvieron en S85
+> (**PM.35**); la optimización Drizzle se descartó a favor de medir primero; la
+> revisión de documentación es continua.

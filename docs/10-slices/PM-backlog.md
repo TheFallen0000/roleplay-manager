@@ -318,8 +318,8 @@ Last updated: 2026-10-26
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.34 | Add Vitest coverage for the memory use cases that still have no tests (`create`, `update`, `list`, `list-proposals`, `apply`, `apply-all`) and route tests for the memory endpoints. <br>*Detected in S6; promoted in the S84 sweep. Planned for S85.* | — |
-| PM.35 | Accessibility and loading/error-state audit of the main screens: keyboard/focus, labels, live regions, contrast, touch targets, and consistent spinner/error/empty states. Add regression checks where practical. <br>*Detected in S8; promoted in the S84 sweep. Planned for S85.* | — |
+| PM.34 | Add Vitest coverage for the memory use cases that still have no tests (`create`, `update`, `list`, `list-proposals`, `apply`, `apply-all`) and route tests for the memory endpoints. <br>*Done as S85 (pending release) — see `S85-progress.md`.* | — |
+| PM.35 | Accessibility and loading/error-state audit of the main screens: keyboard/focus, labels, live regions, contrast, touch targets, and consistent spinner/error/empty states. Add regression checks where practical. <br>*Done as S85 (pending release) — see `S85-progress.md`.* | — |
 | PM.36 | Decide whether remote access needs app-level authentication (PIN/session) or whether the network trust model (private tailnet / trusted LAN) is enough; document and implement the chosen option. <br>*Detected in S38/S56.* | S38, S56 |
 | PM.37 | Build the version history and comparison view that was deferred in S2, or explicitly discard it. Today there is only the version selector and the context-menu version list. | — |
 | PM.38 | Allow re-cropping an already saved profile image without uploading it again, reusing `ImageCropperDialog`. | PM.2 |
@@ -329,6 +329,12 @@ Last updated: 2026-10-26
 | PM.42 | Add bilingual screenshots to the tutorials if the text-only format proves insufficient. | S71 |
 | PM.43 | Review the public website copy with a native speaker and add a new mascot pose to the 404 when the art is available. | S83, S84 |
 | PM.44 | Resolve the S8 title inconsistency: the code generates the title only when `conversation.title === null`, while the S8 doc says it regenerates after each summary. Implement the regeneration or correct the doc. | S7, S8 |
+
+> **PM.34 + PM.35 (S85) — done (2026-10-26, pending release):** The 8 memory use
+> cases and their routes have tests (including the missing-memory 404), and the
+> critical screens were audited with axe in light/dark and desktop/mobile (36
+> audits, 0 violations). Icon labels, contrast, error announcements, retry states
+> and the logs download hydration mismatch were fixed. See `S85-progress.md`.
 
 ### Manual verification pending
 
