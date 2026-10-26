@@ -6,12 +6,13 @@ import {
   continueConversationStreaming,
 } from "@/lib/api/conversations"
 import type { MessageDTO } from "@workspace/shared/types/message"
+import type { TitleSource } from "@workspace/shared/types/conversation"
 import { useChatStore } from "@/lib/stores/chat.store"
 
 export interface UseChatStreamingOptions {
   onDone?: () => void
   onError?: () => void
-  onTitleGenerated?: (title: string) => void
+  onTitleGenerated?: (title: string, titleSource: TitleSource) => void
   onSummaryGenerated?: () => void
 }
 
@@ -49,8 +50,8 @@ export function useChatStreaming(convId: string, options?: UseChatStreamingOptio
           setStreaming(false)
           optionsRef.current?.onDone?.()
         },
-        onTitleGenerated: (title) => {
-          optionsRef.current?.onTitleGenerated?.(title)
+        onTitleGenerated: (title, titleSource) => {
+          optionsRef.current?.onTitleGenerated?.(title, titleSource)
         },
         onSummaryGenerated: () => {
           optionsRef.current?.onSummaryGenerated?.()

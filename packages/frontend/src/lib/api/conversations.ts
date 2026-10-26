@@ -171,6 +171,10 @@ const streamEventSource = async (
               callbacks.onSummaryGenerated?.(data)
               break
             }
+            case "title-generated": {
+              callbacks.onTitleGenerated?.(data.title, data.titleSource)
+              break
+            }
             case "error": {
               callbacks.onError(data)
               break

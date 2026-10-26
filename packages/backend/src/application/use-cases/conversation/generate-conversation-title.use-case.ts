@@ -9,10 +9,18 @@ import {
   ConversationNotFoundError,
 } from "../../../domain/errors"
 import type { PromptContext } from "../../../domain/value-objects/prompt-context"
+import type { Locale } from "@workspace/shared/i18n"
 
 export interface GenerateConversationTitleOptions {
   /** Explicit user action: allow replacing a manual title. */
   force?: boolean
+  /** UI language, used only when the conversation is too short to infer one. */
+  locale?: Locale
+}
+
+const LANGUAGE_NAMES: Record<Locale, string> = {
+  en: "English",
+  es: "Spanish",
 }
 
 export class GenerateConversationTitleUseCase {
@@ -74,23 +82,39 @@ export class GenerateConversationTitleUseCase {
     }
 
     const transcript = messages
-      .map((m) => `[${m.role === "user" ? "Usuario" : version.name}]: ${m.content}`)
+      .map((m) => `${m.role === "user" ? "User" : version.name}: ${m.content}`)
       .join("\n\n")
+    const languageHint = options.locale
+      ? `- If the conversation is too short to infer a language, write the title in ${LANGUAGE_NAMES[options.locale]}.`
+      : null
 
     const context: PromptContext = {
       systemPrompt: [
-        "Eres un asistente que genera títulos cortos y descriptivos para conversaciones de roleplay.",
-        "## Instrucciones",
-        "- Genera ÚNICAMENTE el título, sin explicaciones ni formato adicional.",
-        "- El título debe tener entre 3 y 8 palabras, en español.",
-        "- Debe capturar la esencia de la conversación.",
-        "- NO uses puntuación al final.",
-        "- NO uses comillas alrededor del título.",
-      ].join("\n"),
+        "You generate short, descriptive titles for roleplay conversations.",
+        "## Rules",
+        "- Output ONLY the title, without explanations or extra formatting.",
+        "- Write the title in the same language as the conversation below. Do not translate it.",
+        "- Keep character and place names exactly as they appear.",
+        "- Use 3 to 8 words.",
+        "- Capture the essence of the conversation.",
+        "- Do not end with punctuation.",
+        "- Do not wrap the title in quotes.",
+        languageHint,
+      ]
+        .filter((line): line is string => Boolean(line))
+        .join("\n"),
       messages: [
         {
           role: "user",
-          content: `Genera un título corto para esta conversación:\n\n${transcript}`,
+          content: [
+            `Character: ${version.name}${version.subtitle ? ` — ${version.subtitle}` : ""}`,
+            version.description,
+            "",
+            "Conversation:",
+            transcript,
+            "",
+            "Generate the title.",
+          ].join("\n"),
         },
       ],
     }
@@ -113,7 +137,11 @@ export class GenerateConversationTitleUseCase {
       throw new Error("Failed to generate title.", { cause: err })
     }
 
-    const title = fullContent.trim()
+    const title = fullContent
+      .trim()
+      .replace(/^["'“”‘’]+|["'“”‘’]+$/g, "")
+      .replace(/[.!?]+$/, "")
+      .trim()
     if (!title) {
       throw new Error("Generated title is empty.")
     }

@@ -445,6 +445,7 @@ export const buildContainer = ({
     applyAllMemoryChanges,
     summaryRepository,
     generateSummary,
+    generateConversationTitle,
   )
 
   const continueConversation = new ContinueConversationUseCase(
@@ -462,6 +463,7 @@ export const buildContainer = ({
     applyAllMemoryChanges,
     summaryRepository,
     generateSummary,
+    generateConversationTitle,
   )
 
   const updateConversationSettings = new UpdateConversationSettingsUseCase(

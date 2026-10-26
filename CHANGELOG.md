@@ -35,6 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Conversation titles follow the summary and the conversation language**:
+  after each automatic summary the auto title is regenerated and pushed through
+  a new `title-generated` event. The prompt now asks for the same language as
+  the conversation, with the UI locale only as a fallback, instead of
+  hardcoding Spanish.
 - **Neutral Spanish**: public documentation, landing copy and in-app tutorials
   now use neutral Spanish (tuteo, «equipo», «Wi-Fi», «versión», «incidencia»)
   instead of voseo and regional wording.
@@ -43,8 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - **Manual conversation titles are preserved**: automatic title generation now
   leaves an existing manual title untouched; the explicit “Regenerate
-  automatically” action still replaces it. The S8 note that claimed regeneration
-  after every summary was corrected.
+  automatically” action still replaces it.
 - **Accessible controls**: icon-only controls (send, continue, alternative
   arrows, model combobox, edit actions) now have translated accessible names,
   assistant actions and destructive buttons meet the contrast threshold in

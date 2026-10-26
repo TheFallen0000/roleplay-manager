@@ -21,6 +21,7 @@ import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { GenerateSummaryUseCase } from "../summary/generate-summary.use-case"
+import type { GenerateConversationTitleUseCase } from "./generate-conversation-title.use-case"
 
 const playerCharacterRepository = {
   findById: async () => null,
@@ -191,6 +192,9 @@ const buildGenerateSummary = (): GenerateSummaryUseCase =>
     execute: async () => ({ error: { code: "NO_NEW_MESSAGES", message: "No new messages" } }),
   }) as unknown as GenerateSummaryUseCase
 
+const buildGenerateConversationTitle = (): GenerateConversationTitleUseCase =>
+  ({ execute: vi.fn() }) as unknown as GenerateConversationTitleUseCase
+
 describe("RegenerateReplyUseCase - tool calls", () => {
   it("extrae propuestas desde tool calls", async () => {
     const savedProposals: any[] = []
@@ -264,6 +268,7 @@ describe("RegenerateReplyUseCase - tool calls", () => {
       applyAll,
       buildSummaryRepo(),
       buildGenerateSummary(),
+      buildGenerateConversationTitle(),
     )
 
     for await (const _ of useCase.execute({
@@ -347,6 +352,7 @@ describe("RegenerateReplyUseCase - tool calls", () => {
       { execute: async () => [] } as unknown as ApplyAllMemoryChangesUseCase,
       buildSummaryRepo(),
       buildGenerateSummary(),
+      buildGenerateConversationTitle(),
     )
 
     for await (const _ of useCase.execute({

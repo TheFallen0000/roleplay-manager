@@ -71,6 +71,12 @@ export interface SummaryGeneratedEvent {
   summary: SummaryDTO
 }
 
+export interface TitleGeneratedEvent {
+  type: "title-generated"
+  title: string
+  titleSource: TitleSource
+}
+
 export interface StreamErrorEvent {
   type: "error"
   error: { code: string; message: string }
@@ -82,6 +88,7 @@ export type SendMessageEvent =
   | StreamDoneEvent
   | StreamErrorEvent
   | SummaryGeneratedEvent
+  | TitleGeneratedEvent
 
 export class SendMessageUseCase {
   constructor(
@@ -414,6 +421,25 @@ export class SendMessageUseCase {
         )
         if (summaryResult.summary) {
           yield { type: "summary-generated", summary: summaryResult.summary }
+          try {
+            const titleResult = await this.generateConversationTitle.execute(
+              input.conversationId,
+              { locale: input.locale },
+            )
+            if (titleResult.title !== conversation.title) {
+              yield {
+                type: "title-generated",
+                title: titleResult.title,
+                titleSource: "auto",
+              }
+            }
+          } catch (titleError) {
+            this.logger.error(
+              "Failed to regenerate conversation title",
+              titleError as Error,
+              { conversationId: input.conversationId },
+            )
+          }
         }
       }
     } catch (error) {

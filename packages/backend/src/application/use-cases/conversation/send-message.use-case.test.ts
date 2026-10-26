@@ -58,6 +58,27 @@ const activeConversation = Conversation.create({
   updatedAt: now,
 })
 
+const summaryConversation = Conversation.create({
+  id: "conv-summary",
+  versionId: "ver-1",
+  title: "Old title",
+  titleSource: "auto",
+  model: null,
+  provider: "ollama",
+  providerInstanceId: null,
+  recentMessageCount: 10,
+  summaryFrequency: 1,
+  temperature: 0.7,
+  maxTokens: 2048,
+  topP: 0.9,
+  frequencyPenalty: 0,
+  presencePenalty: 0,
+  stopSequences: [],
+  memoryProposalMode: "auto",
+  createdAt: now,
+  updatedAt: now,
+})
+
 const manualDecayConversation = Conversation.create({
   id: "conv-manual-decay",
   versionId: "ver-1",
@@ -315,6 +336,52 @@ describe("SendMessageUseCase", () => {
         }
       },
     ).rejects.toThrow("Conversation with id 'nonexistent' not found.")
+  })
+
+  it("regenera el título después de generar un resumen", async () => {
+    const generateSummary = {
+      execute: vi.fn(async () => ({ summary: { id: "sum-1" } as any })),
+    } as unknown as GenerateSummaryUseCase
+    const generateConversationTitle = {
+      execute: vi.fn(async () => ({ title: "New title" })),
+    } as unknown as GenerateConversationTitleUseCase
+    const useCase = new SendMessageUseCase(
+      buildConversationRepoFor(summaryConversation),
+      buildMessageRepo(),
+      buildCharacterRepo(),
+      buildMemoryRepo(),
+      memoryChangeProposalRepository,
+      buildPromptContextBuilder(),
+      playerCharacterRepository,
+      buildProviderRegistry(),
+      buildLogger(),
+      buildDefaultProvider(),
+      providerInstanceRepository,
+      applyAllMemoryChanges,
+      buildSummaryRepo(),
+      generateSummary,
+      generateConversationTitle,
+      decayMemories,
+    )
+
+    const events: Array<{ type: string; title?: string }> = []
+    for await (const event of useCase.execute({
+      conversationId: "conv-summary",
+      content: "Hola",
+      locale: "en",
+    })) {
+      events.push(event)
+    }
+
+    expect(events.map((event) => event.type)).toEqual(
+      expect.arrayContaining(["summary-generated", "title-generated"]),
+    )
+    expect(events.find((event) => event.type === "title-generated")).toMatchObject({
+      title: "New title",
+    })
+    expect(generateConversationTitle.execute).toHaveBeenCalledWith("conv-summary", {
+      locale: "en",
+    })
   })
 
   it("emite evento user-message-saved al guardar el mensaje", async () => {

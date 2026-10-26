@@ -9,17 +9,16 @@
 | Aspecto | Decisión |
 |---|---|
 | **Context preview** | `GET /api/conversations/:id/context?pendingMessage=...` devuelve el `PromptContextDTO` completo (system prompt + mensajes + metadatos). Sirve para previsualizar qué se enviará al modelo antes de generar. |
-| **Title generation** | `GenerateConversationTitleUseCase` construye un transcript de la conversación y pide al LLM un título corto (3-8 palabras en español). Se dispara automáticamente tras el primer envío de mensaje, solo si la conversación aún no tiene título. No se regenera tras cada resumen; el usuario puede pedirlo desde el menú del título. |
+| **Title generation** | `GenerateConversationTitleUseCase` construye un transcript de la conversación y pide al LLM un título corto (3-8 palabras). Se dispara tras el primer envío y tras cada resumen automático, solo si el título no es manual. El título sigue el idioma de la conversación; el locale de la UI es solo un fallback. |
 | **Title source** | columna `title_source` en `conversations` con valores `"auto"` (generado por LLM) o `"manual"` (definido por el usuario). El flujo automático nunca sobrescribe un título manual; la acción explícita «Regenerar automáticamente» sí puede reemplazarlo. |
 | **Title regeneration** | `POST /api/conversations/:id/title` acepta body opcional `{ title }`. Si se omite, el backend auto-genera con `force: true` (acción explícita); si se provee, se guarda como manual. |
-| **SSE sync** | El evento `done` incluye `title` y `titleSource` cuando se genera un título automático, y el frontend actualiza el título en tiempo real. |
+| **SSE sync** | El evento `done` incluye `title`/`titleSource` en el primer mensaje y `title-generated` actualiza el título tras un resumen. El frontend lo refleja en tiempo real. |
 | **Context preview dialog** | Dialog a pantalla completa con metadatos (nombre del personaje, versión, conteo de mensajes/caracteres), system prompt completo y lista de mensajes coloreados por rol. Botones "Cancelar" y "Enviar". |
 | **Right-click preview** | El botón de previsualizar está disponible en el `MessageInput` y se dispara también con clic derecho sobre el botón de enviar. |
 
-> **Resuelto (2026-10-26, PM.44):** el título se genera solo en el primer envío
-> y no se regenera tras los resúmenes. La nota original era incorrecta; el flujo
-> automático no sobrescribe títulos manuales y la regeneración explícita sí puede
-> hacerlo.
+> **Resuelto en S86 (2026-10-26):** el título se regenera tras cada resumen
+> automático y sigue el idioma de la conversación. El flujo automático no
+> sobrescribe títulos manuales; la regeneración explícita sí puede hacerlo.
 
 ## Archivos creados
 
