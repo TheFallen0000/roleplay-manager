@@ -71,6 +71,7 @@ export function MessageInput({
             <Button
               type="submit"
               size="icon"
+              aria-label={t("chat.send")}
               disabled={disabled || !hasText}
               className="shrink-0"
             >
@@ -91,6 +92,7 @@ export function MessageInput({
               type="button"
               size="icon"
               variant="secondary"
+              aria-label={t("chat.continue")}
               disabled={disabled}
               className="shrink-0"
               onClick={handleContinue}

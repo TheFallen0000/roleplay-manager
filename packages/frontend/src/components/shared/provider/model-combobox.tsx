@@ -46,6 +46,8 @@ export function ModelCombobox({
       <ComboboxInput
         disabled={disabled}
         placeholder={placeholder ?? t("providers.selectModel")}
+        triggerLabel={t("providers.openModelList")}
+        clearLabel={t("providers.clearModel")}
         className="w-full"
       />
       <ComboboxContent>

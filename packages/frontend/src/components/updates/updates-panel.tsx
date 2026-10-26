@@ -261,7 +261,7 @@ function UpdatesPanelContent() {
           </div>
 
           {status?.checkError ? (
-            <p className="text-sm text-destructive">
+            <p role="alert" className="text-sm text-destructive">
               {t("updates.checkError", { message: status.checkError })}
             </p>
           ) : null}
@@ -273,7 +273,9 @@ function UpdatesPanelContent() {
           ) : null}
 
           {status?.blockedReason === "no-asset" ? (
-            <p className="text-sm text-destructive">{t("updates.noAsset")}</p>
+            <p role="alert" className="text-sm text-destructive">
+              {t("updates.noAsset")}
+            </p>
           ) : null}
 
           {status &&
@@ -314,7 +316,11 @@ function UpdatesPanelContent() {
             </div>
           ) : null}
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          {error ? (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -368,7 +374,7 @@ function UpdatesPanelContent() {
             </Button>
 
             {status.blockedReason === "dirty" ? (
-              <p className="text-sm text-destructive">
+              <p role="alert" className="text-sm text-destructive">
                 {tRaw("errors.UPDATE_DIRTY_WORKTREE", "")}
               </p>
             ) : null}

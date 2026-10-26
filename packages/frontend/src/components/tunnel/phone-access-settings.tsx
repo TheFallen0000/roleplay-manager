@@ -187,7 +187,9 @@ export function PhoneAccessSettings({ mode }: { mode: PhoneAccessMode }) {
           </div>
 
           {error ? (
-            <p className="text-xs text-destructive">{error}</p>
+            <p role="alert" className="text-xs text-destructive">
+              {error}
+            </p>
           ) : null}
         </div>
       ) : null}

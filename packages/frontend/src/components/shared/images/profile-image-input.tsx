@@ -112,7 +112,6 @@ export function ProfileImageInput({
         }}
         role="button"
         tabIndex={0}
-        aria-label={t("characters.uploadImage")}
         className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
           dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
         }`}

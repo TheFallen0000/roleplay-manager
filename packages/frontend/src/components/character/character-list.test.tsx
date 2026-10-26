@@ -227,4 +227,21 @@ describe("CharacterList", () => {
 
     await waitFor(() => expect(visibleNames()).toEqual(["Lyra", "Kael"]))
   })
+
+  it("muestra el error de carga y permite reintentar", async () => {
+    mocks.listCharacters.mockRejectedValueOnce(new Error("network down"))
+    mocks.listConversations.mockResolvedValue([])
+
+    renderList()
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No se pudieron cargar los personajes",
+    )
+
+    mocks.listCharacters.mockResolvedValueOnce(characters)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole("button", { name: "Reintentar" }))
+
+    expect(await screen.findByText("Lyra")).toBeInTheDocument()
+  })
 })

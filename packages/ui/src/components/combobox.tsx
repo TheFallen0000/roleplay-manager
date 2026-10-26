@@ -62,10 +62,16 @@ function ComboboxInput({
   disabled = false,
   showTrigger = true,
   showClear = false,
+  triggerLabel,
+  clearLabel,
   ...props
 }: ComboboxPrimitive.Input.Props & {
   showTrigger?: boolean
   showClear?: boolean
+  /** Accessible name for the icon-only trigger button. */
+  triggerLabel?: string
+  /** Accessible name for the icon-only clear button. */
+  clearLabel?: string
 }) {
   return (
     <InputGroup className={cn("w-auto", className)}>
@@ -74,8 +80,12 @@ function ComboboxInput({
         {...props}
       />
       <InputGroupAddon align="inline-end">
-        {showTrigger ? <ComboboxTrigger disabled={disabled} /> : null}
-        {showClear ? <ComboboxClear disabled={disabled} /> : null}
+        {showTrigger ? (
+          <ComboboxTrigger disabled={disabled} aria-label={triggerLabel} />
+        ) : null}
+        {showClear ? (
+          <ComboboxClear disabled={disabled} aria-label={clearLabel} />
+        ) : null}
       </InputGroupAddon>
       {children}
     </InputGroup>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "@workspace/ui/components/sonner"
 import { Badge } from "@workspace/ui/components/badge"
+import { Spinner } from "@workspace/ui/components/spinner"
 
 import type {
   DefaultProviderConfig,
@@ -23,6 +24,7 @@ import {
   type VerifyProviderResult,
 } from "@/lib/stores/provider.store"
 
+import { LoadErrorState } from "@/components/shared/states/load-error-state"
 import { ProviderCard } from "@/components/shared/provider/provider-card"
 import { InstanceFormDialog } from "@/components/shared/provider/instance-form-dialog"
 import { useInstanceDialog } from "@/components/shared/provider/use-instance-dialog"
@@ -57,6 +59,8 @@ function ProviderManagerContent() {
   const [savingDefault, setSavingDefault] = useState(false)
   const [savingOllamaModel, setSavingOllamaModel] = useState(false)
   const [savingOpenaiModel, setSavingOpenaiModel] = useState(false)
+  const [loadingConfig, setLoadingConfig] = useState(true)
+  const [loadError, setLoadError] = useState<Error | null>(null)
 
   const dialog = useInstanceDialog()
 
@@ -96,10 +100,40 @@ function ProviderManagerContent() {
     [verifyWithToasts, verifyInstance],
   )
 
+  const loadConfig = useCallback(async () => {
+    setLoadingConfig(true)
+    try {
+      const [, config] = await Promise.all([load(), getDefaultProvider()])
+      setLoadError(null)
+      setDefaultConfig(config)
+      if (config.provider === "openai-compatible" && config.providerInstanceId) {
+        setSelectedInstanceId(config.providerInstanceId)
+      }
+      if (config.provider === "ollama") {
+        const saved = config.models.ollama
+        if (saved) setOllamaModel(saved)
+        void runVerifyOllama()
+      } else if (config.provider === "openai-compatible") {
+        const saved = config.models["openai-compatible"]
+        if (saved) setOpenaiModel(saved)
+        if (config.providerInstanceId) {
+          void runVerifyInstance(config.providerInstanceId)
+        }
+      }
+    } catch (error) {
+      setLoadError(error as Error)
+    } finally {
+      setLoadingConfig(false)
+    }
+  }, [load, runVerifyOllama, runVerifyInstance])
+
   useEffect(() => {
+    let active = true
     ;(async () => {
       try {
         const [, config] = await Promise.all([load(), getDefaultProvider()])
+        if (!active) return
+        setLoadError(null)
         setDefaultConfig(config)
         if (config.provider === "openai-compatible" && config.providerInstanceId) {
           setSelectedInstanceId(config.providerInstanceId)
@@ -116,12 +150,15 @@ function ProviderManagerContent() {
           }
         }
       } catch (error) {
-        toast.error(t("providers.configLoadFailed"), {
-          description: formatApiError(error, t("common.unknownError")),
-        })
+        if (active) setLoadError(error as Error)
+      } finally {
+        if (active) setLoadingConfig(false)
       }
     })()
-  }, [load, runVerifyOllama, runVerifyInstance, t])
+    return () => {
+      active = false
+    }
+  }, [load, runVerifyOllama, runVerifyInstance])
 
   const handleSelectInstance = useCallback(
     (id: string) => {
@@ -260,6 +297,23 @@ function ProviderManagerContent() {
     },
     [selectedInstanceId, t],
   )
+
+  if (loadingConfig) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Spinner aria-label={t("common.loading")} />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <LoadErrorState
+        message={formatApiError(loadError, t("providers.configLoadFailed"))}
+        onRetry={() => void loadConfig()}
+      />
+    )
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
