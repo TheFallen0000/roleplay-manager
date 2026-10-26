@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.48.0] - 2026-10-26
+
 ### Added
 
 - **Memory regression tests**: the memory and memory-proposal use cases
