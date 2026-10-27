@@ -364,6 +364,11 @@ Last updated: 2026-10-27
 > OpenAI 7 and Vitest 5). Release signing, CSP/helmet, remote authentication
 > and encryption at rest remain future security work.
 
+> **S90 — database performance (2026-10-27, v1.51.0):** Hot lookups now use
+> indexes, character and conversation lists batch their queries, and text
+> generation reads only the recent window. Pagination, Drizzle 0.45 and the
+> dependency upgrades remain for S91–S93. See `S90-progress.md`.
+
 ### Manual verification pending
 
 These are not code tasks; they need real hardware or a user confirmation.

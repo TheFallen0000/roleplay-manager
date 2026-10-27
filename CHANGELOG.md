@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Rendimiento de la base de datos**: nuevos índices para mensajes,
+  resúmenes, propuestas de memoria, versiones, tarjetas y conversaciones. Los
+  listados de personajes y conversaciones usan consultas en lote en vez de
+  N+1, la generación carga solo la ventana reciente y el desgaste de memoria
+  solo consulta timestamps. El resumen con historial previo lee únicamente los
+  mensajes nuevos y el título usa el resumen más reciente más los últimos 20
+  mensajes.
+
+### Fixed
+
+- **Último mensaje de una conversación**: `findLastByConversationId` ahora
+  ordena descendente y devuelve el último mensaje, no el primero.
+
 ## [1.50.2] - 2026-10-27
 
 ### Fixed
