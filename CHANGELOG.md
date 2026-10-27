@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.50.1] - 2026-10-27
+
 ### Changed
 
 - **Node.js 24.22.1**: `.nvmrc` fija la última LTS parcheada; CI, release,
