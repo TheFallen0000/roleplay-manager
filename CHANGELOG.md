@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Express 5**: backend migrado de Express 4.22 a 5.3. El middleware
+  `validate` ahora define una propiedad propia sobre el request para sustituir
+  `req.query`, que en Express 5 es un getter de solo lectura. El parser de query
+  queda explícito en modo `simple`; no hay cambios de rutas ni de API.
+
 ## [1.54.2] - 2026-10-27
 
 ### Changed
