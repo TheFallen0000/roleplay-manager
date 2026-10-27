@@ -1,6 +1,6 @@
 # S89 — Hotfix de seguridad y Node 24.22.1
 
-**Estado:** Completado (v1.50.1)
+**Estado:** Completado (v1.50.1, follow-up v1.50.2)
 **Inicio:** 2026-10-27
 **Fin:** 2026-10-27
 
@@ -46,6 +46,11 @@ El objetivo de Node es **24.22.1 LTS**; el mínimo soportado para desarrollar es
 - **Sin firma criptográfica todavía:** el checksum detecta descargas corruptas
   o manipuladas en tránsito, pero no sustituye a una firma de la release. Se
   deja como mejora futura junto con la firma de binarios.
+- **Escáner de dependencias:** Astro 7.4.2 dejó ejemplos JSDoc con imports
+  (`import type ... from "astro"`) dentro de los chunks del servidor. El
+  escáner los confundía con imports reales y empaquetaba Astro y su toolchain
+  de build: el primer paquete de v1.50.1 pesó ~95 MB. v1.50.2 ignora los
+  comentarios de bloque antes de escanear y vuelve a ~63 MB.
 - **Fuera de alcance:** Drizzle 0.45, Zod 4/OpenAI 7 y Vitest 5 (S90/S91),
   índices y N+1 (S90), autenticación de acceso remoto, CSP/helmet y cifrado de
   la base de datos.
@@ -64,6 +69,8 @@ El objetivo de Node es **24.22.1 LTS**; el mínimo soportado para desarrollar es
 - [x] `pnpm audit --prod` deja de mostrar vulnerabilidades críticas.
 - [x] La release publica `SHA256SUMS` y el updater lo verifica.
 - [x] El updater valida versión y rutas antes de extraer.
+- [x] El paquete portátil no incluye Astro ni herramientas de build y el smoke
+      test lo arranca con su propio runtime.
 - [x] Backend, frontend, `pnpm check` y build en verde.
 - [x] `CHANGELOG.md` actualizado en `[Unreleased]`.
 
@@ -79,6 +86,9 @@ El objetivo de Node es **24.22.1 LTS**; el mínimo soportado para desarrollar es
   dependencias de build de Astro; se abordan en S90/S91.
 - `pnpm audit signatures`: 1328 paquetes con firma verificada.
 - Node local: 24.22.1 instalado con nvm y fijado como `default`.
+- Paquete Linux v1.50.2: **63 MB** y smoke test completo en verde (inicio con
+  el runtime incluido, health, home, assets, PWA, logs, personaje, imagen y
+  conversación).
 
 ## Commits
 
@@ -86,4 +96,5 @@ El objetivo de Node es **24.22.1 LTS**; el mínimo soportado para desarrollar es
 2. `chore(node): pin 24.22.1 across CI, release and packaging`
 3. `fix(deps): patch Express and trim UI production dependencies`
 4. `fix(updater): verify release checksums and archive paths`
-5. `docs(slice): add S89 progress and security notes` (this commit)
+5. `docs(slice): add S89 progress and security notes`
+6. `fix(packaging): ignore JSDoc imports when scanning runtime deps` (v1.50.2)
