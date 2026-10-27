@@ -356,6 +356,14 @@ Last updated: 2026-10-27
 > inactive, so it never emits a false notice. Remote-only inactivity is kept by
 > decision. See `S88-progress.md`.
 
+> **S89 — security hotfix (2026-10-27, v1.50.1):** Provider API keys no longer
+> leave the backend, Node is pinned to 24.22.1, the Express/body-parser/
+> proxy-addr/qs chain is patched, and the updater verifies `SHA256SUMS` plus the
+> archive paths. See `S89-progress.md`. Remaining work is split into S90
+> (database indexes, N+1 queries, pagination and Drizzle 0.45) and S91 (Zod 4,
+> OpenAI 7 and Vitest 5). Release signing, CSP/helmet, remote authentication
+> and encryption at rest remain future security work.
+
 ### Manual verification pending
 
 These are not code tasks; they need real hardware or a user confirmation.

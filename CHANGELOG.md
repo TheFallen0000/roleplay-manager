@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Node.js 24.22.1**: `.nvmrc` fija la última LTS parcheada; CI, release,
+  deploy y el runtime que se copia al paquete portátil usan esa misma versión.
+  El mínimo para desarrollar sube a 22.23.4, y el empaquetado aborta si el
+  runtime local no coincide con `.nvmrc`.
+- **Dependencias de runtime y build**: Express 4.22.3 con body-parser 1.20.9,
+  proxy-addr 2.0.8 y qs 6.16.1; Astro 7.4.2 con `@astrojs/node` 11.1.9. La CLI
+  `shadcn` y `zod` dejan de ser dependencias de producción de `packages/ui`
+  porque no se usan en runtime.
+
+### Fixed
+
+- **Las claves de proveedor ya no se exponen por la API**: listar, crear y
+  actualizar instancias devuelve un DTO sin `apiKey`; la clave solo queda en el
+  registro interno que usan los adaptadores. También se elimina el
+  `console.log` del formulario que imprimía la clave en desarrollo.
+- **Actualizaciones verificadas**: cada release publica `SHA256SUMS` y el
+  actualizador compara el hash antes de extraer. Si falta el checksum, el hash
+  no coincide o el archivo contiene rutas fuera de la versión, la actualización
+  se rechaza. El tag también se valida como versión semántica antes de usarlo
+  en rutas.
+
 ## [1.50.0] - 2026-10-27
 
 ### Added
