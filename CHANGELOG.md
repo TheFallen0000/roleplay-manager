@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.53.0] - 2026-10-27
+
 ### Added
 
 - **Releases firmadas con Ed25519**: cada release publica `SHA256SUMS.sig` y el
