@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core"
+import { index, integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core"
 
 import { conversations } from "./conversations.schema"
 
@@ -24,6 +24,10 @@ export const memories = sqliteTable(
     titleUnique: unique("memories_title_unique").on(
       table.conversationId,
       table.title,
+    ),
+    conversationPriorityIdx: index("memories_conversation_priority_idx").on(
+      table.conversationId,
+      table.priority,
     ),
   }),
 )
