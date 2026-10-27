@@ -25,6 +25,7 @@ import { useTranslation } from "@/lib/hooks/use-translation"
 import { useUpdatesStore } from "@/lib/stores/updates.store"
 import type { Locale } from "@workspace/shared/i18n"
 import { AppMenubar } from "./app-menubar"
+import { PhoneAccessNotice } from "@/components/tunnel/phone-access-notice"
 
 function SidebarLogo() {
   const { state } = useSidebar()
@@ -199,6 +200,7 @@ function AppShellContent({
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </SidebarInset>
+      <PhoneAccessNotice />
       <Toaster richColors position="top-right" theme={resolvedMode} />
     </SidebarProvider>
   )

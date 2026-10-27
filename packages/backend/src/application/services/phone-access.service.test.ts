@@ -4,6 +4,10 @@ import type { PhoneAccessMode } from "@workspace/shared/types/phone-access"
 
 import type { LanAccessController } from "../../domain/ports/lan-access-controller"
 import type { PhoneAccessActivity } from "../../domain/ports/phone-access-activity"
+import type {
+  PhoneAccessNotice,
+  PhoneAccessNoticeStore,
+} from "../../domain/ports/phone-access-notice"
 import type { SettingsRepository } from "../../domain/ports/settings.repository"
 import type { TunnelController } from "../../domain/ports/tunnel-controller"
 import { PhoneAccessService } from "./phone-access.service"
@@ -37,6 +41,16 @@ const buildActivity = (
   }),
   lastActivityAt: vi.fn((mode: PhoneAccessMode) => last[mode]),
 })
+
+const buildNotices = (): PhoneAccessNoticeStore => {
+  let latest: PhoneAccessNotice | null = null
+  return {
+    record: vi.fn((notice: PhoneAccessNotice) => {
+      latest = notice
+    }),
+    latest: vi.fn(() => latest),
+  }
+}
 
 const buildTunnel = (
   overrides: Partial<TunnelController> = {},
@@ -76,6 +90,7 @@ const buildService = (options: {
   tunnel?: TunnelController
   lan?: LanAccessController
   activity?: PhoneAccessActivity
+  notices?: PhoneAccessNoticeStore
   packaged?: boolean
   now?: () => number
 } = {}) =>
@@ -84,6 +99,7 @@ const buildService = (options: {
     tunnel: options.tunnel ?? buildTunnel(),
     lan: options.lan ?? buildLan(),
     activity: options.activity ?? buildActivity(),
+    notices: options.notices ?? buildNotices(),
     logger: fakeLogger as never,
     packaged: options.packaged ?? true,
     now: options.now ?? (() => 0),
@@ -252,13 +268,22 @@ describe("PhoneAccessService.checkIdle", () => {
     expect(lan.disable).not.toHaveBeenCalled()
   })
 
-  it("disables a mode after its idle minutes and restarts the countdown", async () => {
-    const tunnel = buildTunnel()
+  it("disables a mode after its idle minutes and records a notice", async () => {
+    const tunnel = buildTunnel({
+      getStatus: vi.fn(async () => ({
+        available: true,
+        connected: true,
+        active: true,
+        url: "https://desktop.tailnet-abc.ts.net",
+      })),
+    })
     const activity = buildActivity({ tailscale: 0, lan: 0 })
+    const notices = buildNotices()
 
     await buildService({
       tunnel,
       activity,
+      notices,
       now: () => 31 * 60_000,
       settings: buildSettings({
         "phone-access.tailscale": JSON.stringify({
@@ -271,6 +296,11 @@ describe("PhoneAccessService.checkIdle", () => {
 
     expect(tunnel.disable).toHaveBeenCalledTimes(1)
     expect(activity.touch).toHaveBeenCalledWith("tailscale")
+    expect(notices.record).toHaveBeenCalledWith({
+      mode: "tailscale",
+      minutes: 30,
+      at: 31 * 60_000,
+    })
   })
 
   it("keeps a mode on while it is still within its window", async () => {
@@ -291,9 +321,39 @@ describe("PhoneAccessService.checkIdle", () => {
     expect(tunnel.disable).not.toHaveBeenCalled()
   })
 
+  it("does not disable or notify an already inactive mode", async () => {
+    const tunnel = buildTunnel()
+    const activity = buildActivity({ tailscale: 0, lan: 0 })
+    const notices = buildNotices()
+
+    await buildService({
+      tunnel,
+      activity,
+      notices,
+      now: () => 31 * 60_000,
+      settings: buildSettings({
+        "phone-access.tailscale": JSON.stringify({
+          autoEnableOnStart: false,
+          disableOnClose: true,
+          idleDisableMinutes: 30,
+        }),
+      }),
+    }).checkIdle()
+
+    expect(tunnel.disable).not.toHaveBeenCalled()
+    expect(notices.record).not.toHaveBeenCalled()
+    expect(activity.touch).toHaveBeenCalledWith("tailscale")
+  })
+
   it("disables the LAN mode independently", async () => {
     const tunnel = buildTunnel()
-    const lan = buildLan()
+    const lan = buildLan({
+      getStatus: vi.fn(async () => ({
+        active: true,
+        port: 4322,
+        addresses: [],
+      })),
+    })
 
     await buildService({
       tunnel,

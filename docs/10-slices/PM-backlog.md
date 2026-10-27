@@ -323,7 +323,7 @@ Last updated: 2026-10-26
 | PM.36 | Decide whether remote access needs app-level authentication (PIN/session) or whether the network trust model (private tailnet / trusted LAN) is enough; document and implement the chosen option. <br>*Discarded (2026-10-26): Tailscale already restricts access to the user's tailnet and LAN sharing is off by default, opt-in and explicitly warns that any device on the network can open the app. App-level auth would add friction for a local-first personal app; revisit only if LAN sharing is ever used on untrusted networks.* | S38, S56 |
 | PM.37 | Build the version history and comparison view that was deferred in S2, or explicitly discard it. Today there is only the version selector and the context-menu version list. | — |
 | PM.38 | Allow re-cropping an already saved profile image without uploading it again, reusing `ImageCropperDialog`. <br>*Done as S87 (pending release) — see `S87-progress.md`.* | PM.2 |
-| PM.39 | Notify the PC when the phone link is auto-disabled by inactivity; optionally base the idle timer on local use instead of remote requests. | S56 |
+| PM.39 | Notify the PC when the phone link is auto-disabled by inactivity; optionally base the idle timer on local use instead of remote requests. <br>*Done as S88 (pending release): one-time notice on app open and status in the Phone dialog. Local use remains out of scope by decision.* | S56 |
 | PM.40 | Decide whether the app should work offline; today the service worker is pass-through and every request needs the PC server. If yes, design caching and conflict handling. | S54, S72 |
 | PM.41 | Evaluate store packaging (TWA/PWABuilder) for Android and the Microsoft Store; the portable folder remains the primary distribution. | S54 |
 | PM.42 | Add bilingual screenshots to the tutorials if the text-only format proves insufficient. | S71 |
@@ -349,6 +349,12 @@ Last updated: 2026-10-26
 > the chat custom image and the chat background can be re-cropped from their
 > original asset. Animated GIFs are rejected with a notice instead of being
 > flattened to PNG. See `S87-progress.md`.
+
+> **PM.39 (S88) — done (2026-10-27, pending release):** The backend records the
+> last automatic disable and the app shows a one-time dialog on open plus a
+> status line in the Phone dialog. The watchdog now skips modes that are already
+> inactive, so it never emits a false notice. Remote-only inactivity is kept by
+> decision. See `S88-progress.md`.
 
 ### Manual verification pending
 

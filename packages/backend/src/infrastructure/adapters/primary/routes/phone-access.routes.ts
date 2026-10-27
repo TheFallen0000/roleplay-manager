@@ -8,6 +8,7 @@ import {
 
 import type { GetPhoneAccessPreferencesUseCase } from "../../../../application/use-cases/phone-access/get-phone-access-preferences.use-case"
 import type { UpdatePhoneAccessPreferencesUseCase } from "../../../../application/use-cases/phone-access/update-phone-access-preferences.use-case"
+import type { GetPhoneAccessNoticeUseCase } from "../../../../application/use-cases/phone-access/get-phone-access-notice.use-case"
 import { validate } from "../middlewares/validation"
 
 const IdleDisableMinutesSchema = z
@@ -31,8 +32,17 @@ const PreferencesBodySchema = z.object({
 export const buildPhoneAccessRouter = (deps: {
   getPhoneAccessPreferences: GetPhoneAccessPreferencesUseCase
   updatePhoneAccessPreferences: UpdatePhoneAccessPreferencesUseCase
+  getPhoneAccessNotice: GetPhoneAccessNoticeUseCase
 }): Router => {
   const router = Router()
+
+  router.get("/phone-access/notice", async (_req, res, next) => {
+    try {
+      res.json(deps.getPhoneAccessNotice.execute())
+    } catch (error) {
+      next(error)
+    }
+  })
 
   router.get("/phone-access/preferences", async (_req, res, next) => {
     try {

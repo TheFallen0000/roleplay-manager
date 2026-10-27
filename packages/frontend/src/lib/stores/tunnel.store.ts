@@ -2,6 +2,7 @@ import { create } from "zustand"
 
 import type { LanAccessStatusDTO } from "@workspace/shared/types/lan"
 import type {
+  PhoneAccessNoticeDTO,
   PhoneAccessPreferencesResponseDTO,
   PhoneAccessPreferencesUpdateDTO,
 } from "@workspace/shared/types/phone-access"
@@ -47,6 +48,8 @@ export interface TunnelState {
    * they are configuration, and the dialog refreshes them on every open.
    */
   preferences: PhoneAccessPreferencesResponseDTO | null
+  /** Last automatic disable caused by the inactivity watchdog. */
+  notice: PhoneAccessNoticeDTO | null
   /**
    * Loads the statuses cached in `localStorage` once on the client. Kept out of
    * the initial state so SSR and the first client render match (a cached dot
@@ -61,6 +64,7 @@ export interface TunnelState {
   enableLan: () => Promise<LanAccessStatusDTO>
   disableLan: () => Promise<LanAccessStatusDTO>
   refreshPreferences: () => Promise<PhoneAccessPreferencesResponseDTO>
+  refreshNotice: () => Promise<PhoneAccessNoticeDTO | null>
   updatePreferences: (
     update: PhoneAccessPreferencesUpdateDTO,
   ) => Promise<PhoneAccessPreferencesResponseDTO>
@@ -70,6 +74,7 @@ export const useTunnelStore = create<TunnelState>((set) => ({
   status: null,
   lanStatus: null,
   preferences: null,
+  notice: null,
 
   hydrateFromCache: () => {
     const cachedTunnel = readCached<TunnelStatusDTO>(TUNNEL_STORAGE_KEY)
@@ -90,14 +95,14 @@ export const useTunnelStore = create<TunnelState>((set) => ({
   enable: async () => {
     const status = await tunnelApi.enableTunnel()
     persist(TUNNEL_STORAGE_KEY, status)
-    set({ status })
+    set({ status, notice: null })
     return status
   },
 
   disable: async () => {
     const status = await tunnelApi.disableTunnel()
     persist(TUNNEL_STORAGE_KEY, status)
-    set({ status })
+    set({ status, notice: null })
     return status
   },
 
@@ -116,14 +121,14 @@ export const useTunnelStore = create<TunnelState>((set) => ({
   enableLan: async () => {
     const lanStatus = await lanApi.enableLanAccess()
     persist(LAN_STORAGE_KEY, lanStatus)
-    set({ lanStatus })
+    set({ lanStatus, notice: null })
     return lanStatus
   },
 
   disableLan: async () => {
     const lanStatus = await lanApi.disableLanAccess()
     persist(LAN_STORAGE_KEY, lanStatus)
-    set({ lanStatus })
+    set({ lanStatus, notice: null })
     return lanStatus
   },
 
@@ -131,6 +136,12 @@ export const useTunnelStore = create<TunnelState>((set) => ({
     const preferences = await phoneAccessApi.getPhoneAccessPreferences()
     set({ preferences })
     return preferences
+  },
+
+  refreshNotice: async () => {
+    const notice = await phoneAccessApi.getPhoneAccessNotice()
+    set({ notice })
+    return notice
   },
 
   updatePreferences: async (update) => {

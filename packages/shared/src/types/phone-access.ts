@@ -46,6 +46,15 @@ export interface PhoneAccessPreferencesUpdateDTO {
   idleDisableMinutes?: IdleDisableMinutes
 }
 
+/** Last automatic disable caused by the inactivity watchdog. */
+export interface PhoneAccessNoticeDTO {
+  mode: PhoneAccessMode
+  /** Timeout that was configured when the link was disabled. */
+  minutes: number
+  /** ISO timestamp of the automatic disable. */
+  at: string
+}
+
 export const PHONE_ACCESS_DEFAULTS: PhoneAccessPreferencesResponseDTO = {
   tailscale: {
     autoEnableOnStart: false,

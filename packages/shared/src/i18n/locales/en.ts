@@ -160,6 +160,12 @@ export const en = {
     summaryIdle: "Idle: {minutes} min",
     summaryNone: "No active settings",
     settingsFailed: "Could not save the settings.",
+    inactivityTitle: "Phone link turned off",
+    inactivityDescription:
+      "The {mode} link was turned off automatically after {minutes} minutes without use from the phone.",
+    inactivityDismiss: "Got it",
+    inactivityStatus:
+      "Turned off automatically after inactivity ({minutes} min).",
   },
   updates: {
     title: "Updates",

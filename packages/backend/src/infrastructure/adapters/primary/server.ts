@@ -180,6 +180,7 @@ export const buildServer = ({
     buildPhoneAccessRouter({
       getPhoneAccessPreferences: container.getPhoneAccessPreferences,
       updatePhoneAccessPreferences: container.updatePhoneAccessPreferences,
+      getPhoneAccessNotice: container.getPhoneAccessNotice,
     }),
   )
   app.use(

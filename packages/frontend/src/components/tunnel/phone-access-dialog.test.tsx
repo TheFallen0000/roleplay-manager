@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   disableLanAccess: vi.fn(),
   getPhoneAccessPreferences: vi.fn(),
   updatePhoneAccessPreferences: vi.fn(),
+  getPhoneAccessNotice: vi.fn(),
 }))
 
 vi.mock("@/lib/api/tunnel", () => ({
@@ -39,6 +40,7 @@ vi.mock("@/lib/api/lan", () => ({
 vi.mock("@/lib/api/phone-access", () => ({
   getPhoneAccessPreferences: mocks.getPhoneAccessPreferences,
   updatePhoneAccessPreferences: mocks.updatePhoneAccessPreferences,
+  getPhoneAccessNotice: mocks.getPhoneAccessNotice,
 }))
 
 vi.mock("@workspace/ui/components/sonner", () => ({
@@ -86,7 +88,13 @@ const openTailscaleTab = async () => {
 const activePanel = () => within(screen.getByRole("tabpanel"))
 
 beforeEach(() => {
-  useTunnelStore.setState({ status: null, lanStatus: null, preferences: null })
+  useTunnelStore.setState({
+    status: null,
+    lanStatus: null,
+    preferences: null,
+    notice: null,
+  })
+  mocks.getPhoneAccessNotice.mockResolvedValue(null)
   mocks.getLanStatus.mockResolvedValue(lanInactive)
   mocks.getPhoneAccessPreferences.mockResolvedValue(preferences)
 })
@@ -294,5 +302,24 @@ describe("PhoneAccessDialog", () => {
       "href",
       "https://login.tailscale.com/f/serve?node=ABC123",
     )
+  })
+
+  it("explica que el enlace se desactivó por inactividad", async () => {
+    mocks.getTunnelStatus.mockResolvedValue(tunnelInactive)
+    mocks.getPhoneAccessNotice.mockResolvedValue({
+      mode: "tailscale",
+      minutes: 30,
+      at: "2026-10-27T12:00:00.000Z",
+    })
+
+    renderDialog()
+    await openTailscaleTab()
+    await activePanel().findByText("Inactivo")
+
+    expect(
+      await screen.findByText(
+        "Se desactivó automáticamente por inactividad (30 min).",
+      ),
+    ).toBeInTheDocument()
   })
 })

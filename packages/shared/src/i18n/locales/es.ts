@@ -161,6 +161,12 @@ export const es: Dictionary = {
     summaryIdle: "Inactividad: {minutes} min",
     summaryNone: "Sin ajustes activos",
     settingsFailed: "No se pudieron guardar los ajustes.",
+    inactivityTitle: "Enlace del teléfono desactivado",
+    inactivityDescription:
+      "El enlace de {mode} se desactivó automáticamente tras {minutes} minutos sin uso desde el teléfono.",
+    inactivityDismiss: "Entendido",
+    inactivityStatus:
+      "Se desactivó automáticamente por inactividad ({minutes} min).",
   },
   updates: {
     title: "Actualizaciones",

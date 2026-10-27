@@ -5,11 +5,13 @@ import { useTunnelStore } from "./tunnel.store"
 const mocks = vi.hoisted(() => ({
   getPhoneAccessPreferences: vi.fn(),
   updatePhoneAccessPreferences: vi.fn(),
+  getPhoneAccessNotice: vi.fn(),
 }))
 
 vi.mock("@/lib/api/phone-access", () => ({
   getPhoneAccessPreferences: mocks.getPhoneAccessPreferences,
   updatePhoneAccessPreferences: mocks.updatePhoneAccessPreferences,
+  getPhoneAccessNotice: mocks.getPhoneAccessNotice,
 }))
 
 const preferences = {
@@ -37,7 +39,12 @@ const cachedLan = {
 afterEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
-  useTunnelStore.setState({ status: null, lanStatus: null, preferences: null })
+  useTunnelStore.setState({
+    status: null,
+    lanStatus: null,
+    preferences: null,
+    notice: null,
+  })
 })
 
 describe("useTunnelStore", () => {
@@ -73,6 +80,20 @@ describe("useTunnelStore", () => {
 
     expect(result).toEqual(preferences)
     expect(useTunnelStore.getState().preferences).toEqual(preferences)
+  })
+
+  it("refreshNotice guarda el último aviso de inactividad", async () => {
+    const notice = {
+      mode: "tailscale" as const,
+      minutes: 30,
+      at: "2026-10-27T12:00:00.000Z",
+    }
+    mocks.getPhoneAccessNotice.mockResolvedValue(notice)
+
+    const result = await useTunnelStore.getState().refreshNotice()
+
+    expect(result).toEqual(notice)
+    expect(useTunnelStore.getState().notice).toEqual(notice)
   })
 
   it("updatePreferences envía el parche y guarda la respuesta", async () => {
