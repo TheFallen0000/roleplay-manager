@@ -391,6 +391,12 @@ Last updated: 2026-10-27
 > `RM_RELEASE_SIGNING_KEY` GitHub secret; rotation is documented in
 > `docs/12-release-signing.md`. See `S94-progress.md`.
 
+> **S95 — network and headers hardening (2026-10-27, v1.54.0):** The backend
+> binds to loopback by default, helmet adds security headers, API responses are
+> `no-store`, Astro emits a strict script CSP with hashes, and the bootstrap
+> script is external. Dependabot now covers npm/pnpm. Encryption at rest remains
+> for S96. See `S95-progress.md`.
+
 ### Manual verification pending
 
 These are not code tasks; they need real hardware or a user confirmation.

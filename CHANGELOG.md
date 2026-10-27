@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Cabeceras de seguridad y CSP**: el backend escucha en `127.0.0.1` por
+  defecto, usa `helmet`, envía `frame-ancestors 'none'` y
+  `Permissions-Policy`, y marca las respuestas de `/api` como `no-store`. Astro
+  genera una CSP con `script-src 'self'`; los scripts de tema/service worker
+  pasaron a `/rm-bootstrap.js` para no necesitar scripts inline.
+- **Dependabot para npm/pnpm**: actualizaciones semanales agrupadas por
+  dependencias de producción y desarrollo, además de las acciones de GitHub.
+
 ## [1.53.0] - 2026-10-27
 
 ### Added
