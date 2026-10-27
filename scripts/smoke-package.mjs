@@ -365,6 +365,20 @@ try {
         "SSR chat markup has no absolute localhost URLs",
       )
 
+      const backupResponse = await fetch(`${base}/api/updates/backup`, {
+        method: "POST",
+        headers: { origin: base },
+      })
+      const backup = await backupResponse.json()
+      check(
+        backupResponse.status === 200 &&
+          typeof backup.path === "string" &&
+          backup.files > 0 &&
+          backup.bytes > 0 &&
+          existsSync(join(backup.path, "roleplay.db")),
+        "online database backup works",
+      )
+
       check(
         existsSync(join(dir, "data", "roleplay.db")),
         "data lives inside the portable folder",
