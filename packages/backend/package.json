@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@workspace/shared": "workspace:*",
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^13.0.3",
     "busboy": "^1.6.0",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.45.4",
