@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.54.1] - 2026-10-27
+
 ### Changed
 
 - **Permisos de datos locales**: en Linux y macOS el proceso usa `umask 077`,
