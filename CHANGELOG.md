@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Releases firmadas con Ed25519**: cada release publica `SHA256SUMS.sig` y el
+  actualizador verifica la firma con una clave pública embebida antes de
+  confiar en el checksum. Una release sin firma o con firma inválida se
+  rechaza. La rotación de claves está documentada en
+  `docs/12-release-signing.md`.
+
 ## [1.52.0] - 2026-10-27
 
 ### Added

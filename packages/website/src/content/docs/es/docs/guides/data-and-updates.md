@@ -33,8 +33,8 @@ descarga el paquete de tu plataforma en `versions/<versión>/`, cambia el punter
 `current` y ofrece **Reiniciar ahora**.
 
 - Tu `data/` y tus `backups/` no se tocan.
-- El paquete descargado se comprueba con el checksum SHA-256 de la versión
-  antes de instalarlo.
+- El paquete descargado se comprueba con la firma Ed25519 de la versión y el
+  checksum SHA-256 antes de instalarlo.
 - La versión anterior queda en disco, así que puedes volver.
 - Si algo falla, revisa el registro en **Sistema → Registro**.
 

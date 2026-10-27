@@ -167,10 +167,10 @@ En Android e iOS la app se puede instalar en la pantalla de inicio como PWA.
 La app empaquetada consulta las
 [releases de GitHub](https://github.com/TheFallen0000/roleplay-manager/releases)
 desde **Sistema → Actualizaciones**. Aplicar una actualización crea un respaldo,
-descarga el paquete de tu sistema en `versions/<versión>/`, comprueba su
-checksum SHA-256, cambia el puntero `current` y ofrece el botón
-**Reiniciar ahora**; tu `data/` y tus `backups/` no se tocan y la versión
-anterior queda en disco.
+descarga el paquete de tu sistema en `versions/<versión>/`, comprueba la firma
+Ed25519 de la release y el checksum SHA-256 del paquete, cambia el puntero
+`current` y ofrece el botón **Reiniciar ahora**; tu `data/` y tus `backups/` no
+se tocan y la versión anterior queda en disco.
 
 ## Documentación
 

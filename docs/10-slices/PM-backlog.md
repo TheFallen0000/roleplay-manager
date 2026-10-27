@@ -385,6 +385,12 @@ Last updated: 2026-10-27
 > the full history, and the conversation detail no longer loads every character
 > version. See `S93-progress.md`.
 
+> **S94 — signed releases (2026-10-27, v1.53.0):** `SHA256SUMS` is signed with
+> Ed25519 and the updater verifies the signature with an embedded public key
+> before trusting the checksum. The private key lives in the
+> `RM_RELEASE_SIGNING_KEY` GitHub secret; rotation is documented in
+> `docs/12-release-signing.md`. See `S94-progress.md`.
+
 ### Manual verification pending
 
 These are not code tasks; they need real hardware or a user confirmation.
