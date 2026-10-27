@@ -41,6 +41,9 @@ const buildRepo = (
   current = entries,
 ): CharacterSummaryRepository => ({
   listCurrentVersionSummaries: vi.fn(async () => current),
+  findCurrentVersionSummaryByCharacterId: vi.fn(
+    async () => current[0]?.currentVersion ?? null,
+  ),
   findVersionSummariesByIds: vi.fn(async () => []),
 })
 

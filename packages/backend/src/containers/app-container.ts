@@ -99,6 +99,7 @@ import {
 import { CreateConversationUseCase } from "../application/use-cases/conversation/create-conversation.use-case"
 import { BranchConversationUseCase } from "../application/use-cases/conversation/branch-conversation.use-case"
 import { GetConversationUseCase } from "../application/use-cases/conversation/get-conversation.use-case"
+import { ListConversationMessagesUseCase } from "../application/use-cases/conversation/list-conversation-messages.use-case"
 import { ListConversationsUseCase } from "../application/use-cases/conversation/list-conversations.use-case"
 import { SendMessageUseCase } from "../application/use-cases/conversation/send-message.use-case"
 import { EditMessageUseCase } from "../application/use-cases/conversation/edit-message.use-case"
@@ -173,6 +174,7 @@ export interface AppContainer {
   createConversation: CreateConversationUseCase
   branchConversation: BranchConversationUseCase
   getConversation: GetConversationUseCase
+  listConversationMessages: ListConversationMessagesUseCase
   listConversations: ListConversationsUseCase
   sendMessage: SendMessageUseCase
   editMessage: EditMessageUseCase
@@ -631,6 +633,11 @@ export const buildContainer = ({
       conversationRepository,
       characterRepository,
       characterAssetRepository,
+      messageRepository,
+    ),
+    listConversationMessages: new ListConversationMessagesUseCase(
+      conversationRepository,
+      messageRepository,
     ),
     listConversations: new ListConversationsUseCase(
       conversationRepository,
@@ -713,7 +720,7 @@ export const buildContainer = ({
     createMemory: new CreateMemoryUseCase(memoryRepository),
     updateMemory: new UpdateMemoryUseCase(memoryRepository),
     deleteMemory: new DeleteMemoryUseCase(memoryRepository),
-    listMemories: new ListMemoriesUseCase(memoryRepository),
+    listMemories: new ListMemoriesUseCase(memoryRepository, messageRepository),
     listProposals: new ListProposalsUseCase(memoryChangeProposalRepository),
     decayMemories,
   }

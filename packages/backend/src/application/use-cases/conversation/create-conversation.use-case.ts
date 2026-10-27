@@ -149,6 +149,8 @@ export class CreateConversationUseCase {
       createdAt: conversation.createdAt.toISOString(),
       updatedAt: conversation.updatedAt.toISOString(),
       messages: [toMessageDTO(greeting)],
+      messagesHasMore: false,
+      messagesNextCursor: null,
     }
 
     return {

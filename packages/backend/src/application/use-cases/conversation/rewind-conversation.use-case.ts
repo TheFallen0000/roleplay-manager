@@ -1,6 +1,5 @@
-import type { MessageDTO } from "@workspace/shared/types/message"
+import type { RewindConversationResult } from "@workspace/shared/types/conversation"
 
-import { Message } from "../../../domain/entities/message.entity"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MemoryChangeProposalRepository } from "../../../domain/ports/memory-change-proposal.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
@@ -24,7 +23,7 @@ export class RewindConversationUseCase {
 
   async execute(
     input: RewindConversationInput,
-  ): Promise<{ messages: MessageDTO[] }> {
+  ): Promise<RewindConversationResult> {
     const conversation = await this.conversationRepository.findById(
       input.conversationId,
     )
@@ -45,12 +44,12 @@ export class RewindConversationUseCase {
     // Determine which message IDs will be deleted
     const deletedMessageIds = new Set<string>()
     for (const m of allMessages) {
-      if (m.position > targetMessage.position) {
+      if (
+        m.position > targetMessage.position ||
+        (targetMessage.role === "user" && m.id === targetMessage.id)
+      ) {
         deletedMessageIds.add(m.id)
       }
-    }
-    if (targetMessage.role === "user") {
-      deletedMessageIds.add(targetMessage.id)
     }
 
     // Delete summaries whose range intersects with the deleted messages
@@ -82,24 +81,6 @@ export class RewindConversationUseCase {
       input.conversationId,
     )
 
-    const remaining = await this.messageRepository.findByConversationId(
-      input.conversationId,
-    )
-
-    return { messages: remaining.map(toMessageDTO) }
-  }
-}
-
-function toMessageDTO(m: Message): MessageDTO {
-  return {
-    id: m.id,
-    conversationId: m.conversationId,
-    role: m.role,
-    content: m.content,
-    position: m.position,
-    alternatives: m.alternatives,
-    alternativesCursor: m.alternativesCursor,
-    createdAt: m.createdAt.toISOString(),
-    editedAt: m.editedAt?.toISOString() ?? null,
+    return { deletedMessageIds: [...deletedMessageIds] }
   }
 }

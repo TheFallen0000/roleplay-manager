@@ -253,6 +253,9 @@ export const en = {
   },
   chat: {
     noMessages: "There are no messages in this conversation.",
+    loadOlder: "Load earlier messages",
+    loadingOlder: "Loading earlier messages…",
+    loadOlderFailed: "Could not load earlier messages.",
     you: "You",
     titleEditManually: "Edit manually",
     titleRegenerate: "Regenerate automatically",

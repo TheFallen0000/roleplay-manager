@@ -1,4 +1,4 @@
-import { and, eq, inArray, max, sql } from "drizzle-orm"
+import { and, desc, eq, inArray, max, sql } from "drizzle-orm"
 
 import { Character } from "../../../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../../../domain/entities/character-version.entity"
@@ -214,6 +214,26 @@ export class DrizzleCharacterRepository
       })
       .from(characterVersions)
       .where(inArray(characterVersions.id, ids))
+  }
+
+  async findCurrentVersionSummaryByCharacterId(
+    characterId: string,
+  ): Promise<CharacterVersionSummary | null> {
+    const rows = await this.db
+      .select({
+        id: characterVersions.id,
+        characterId: characterVersions.characterId,
+        name: characterVersions.name,
+        subtitle: characterVersions.subtitle,
+        profileImageAssetId: characterVersions.profileImageAssetId,
+        versionNumber: characterVersions.versionNumber,
+      })
+      .from(characterVersions)
+      .where(eq(characterVersions.characterId, characterId))
+      .orderBy(desc(characterVersions.versionNumber))
+      .limit(1)
+
+    return rows[0] ?? null
   }
 
   async update(character: Character): Promise<Character> {

@@ -22,8 +22,9 @@ export function memoryDecayInfo(
     "memoryDecayThreshold" | "memoryDecayAgeThreshold" | "memoryDecaySpeed"
   >,
   messages: readonly { role: string; createdAt: string | Date }[],
+  turnsOverride?: number,
 ): MemoryDecayDisplayInfo {
-  const turns = turnsSince(memory.updatedAt, messages)
+  const turns = turnsOverride ?? turnsSince(memory.updatedAt, messages)
   const priority = effectivePriority(
     memory.priority,
     turns,

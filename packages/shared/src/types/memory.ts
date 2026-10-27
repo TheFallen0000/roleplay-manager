@@ -9,6 +9,8 @@ export type MemoryDTO = {
   updatedBy: "user" | "assistant" | "system"
   createdAt: string
   updatedAt: string
+  /** User messages since the memory was last updated; computed by the API. */
+  turnsSinceUpdate?: number
 }
 
 export type CreateMemoryInput = {

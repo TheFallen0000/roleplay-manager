@@ -215,6 +215,8 @@ export class BranchConversationUseCase {
       createdAt: conversation.createdAt.toISOString(),
       updatedAt: conversation.updatedAt.toISOString(),
       messages: copied.map(toMessageDTO),
+      messagesHasMore: false,
+      messagesNextCursor: null,
     }
   }
 }

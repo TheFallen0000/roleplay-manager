@@ -305,6 +305,28 @@ try {
         `conversation created (${conversationResponse.status})`,
       )
 
+      const detailResponse = await fetch(
+        `${base}/api/conversations/${conversation?.id}`,
+      )
+      const detail = await detailResponse.json()
+      check(
+        detailResponse.status === 200 &&
+          detail.messagesHasMore === false &&
+          detail.messagesNextCursor === null,
+        "conversation detail includes message pagination metadata",
+      )
+
+      const messagePageResponse = await fetch(
+        `${base}/api/conversations/${conversation?.id}/messages?limit=1`,
+      )
+      const messagePage = await messagePageResponse.json()
+      check(
+        messagePageResponse.status === 200 &&
+          messagePage.messages?.length === 1 &&
+          messagePage.hasMore === false,
+        "conversation messages endpoint returns a page",
+      )
+
       // Remote clients (LAN, Tailscale, tunnels) resolve these URLs against
       // their own origin. An absolute base baked at SSR — the packaged app
       // sets PUBLIC_API_URL to localhost — would point every one of them at

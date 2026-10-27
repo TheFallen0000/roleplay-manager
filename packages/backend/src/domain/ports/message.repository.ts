@@ -6,7 +6,23 @@ export interface ConversationMessageStats {
   lastMessageAt: Date | null
 }
 
+export interface MessagePage {
+  messages: Message[]
+  hasMore: boolean
+}
+
+export interface MessagePageQuery {
+  /** Oldest message position of the next page; omit for the latest page. */
+  before?: number
+  limit: number
+}
+
 export interface MessageHistoryRepository {
+  findPageByConversationId(
+    conversationId: string,
+    query: MessagePageQuery,
+  ): Promise<MessagePage>
+
   findRecentByConversationId(
     conversationId: string,
     limit: number,

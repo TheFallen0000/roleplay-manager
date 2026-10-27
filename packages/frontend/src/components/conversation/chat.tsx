@@ -7,7 +7,6 @@ import {
   MessageScrollerViewport,
   MessageScrollerContent,
   MessageScrollerItem,
-  useMessageScroller,
 } from "@workspace/ui/components/message-scroller"
 import { Button } from "@workspace/ui/components/button"
 import { Minimize2 } from "lucide-react"
@@ -21,6 +20,7 @@ import {
   branchConversation,
 } from "../../lib/api/conversations"
 import { useChatStreaming } from "./use-chat-streaming"
+import { useOlderMessages } from "./use-older-messages"
 import { getCharacterAssetUrl } from "../../lib/api/client"
 import { getPromptContext } from "../../lib/api/context"
 import { createAssetSrcSet } from "@/lib/asset-srcset"
@@ -30,6 +30,8 @@ import { MessageInput } from "./message-input"
 import { ContextPreviewDialog } from "./context-preview-dialog"
 import { ChatConfirmDialogs } from "./chat-confirm-dialogs"
 import { ChatHeader } from "./chat-header"
+import { AnchorChatToEnd, LoadOlderOnScroll } from "./chat-scroll-anchors"
+import { OlderMessagesControl } from "./chat-older-messages"
 import { useMemoryStore } from "@/lib/stores/memory.store"
 import { useSummaryStore } from "@/lib/stores/summary.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
@@ -37,25 +39,6 @@ import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import type { Locale } from "@workspace/shared/i18n"
 import { MascotPose } from "../layout/brand"
 import { useFullscreenFocus } from "./use-fullscreen-focus"
-
-/**
- * The scroller's raw end includes the primitive's trailing spacer, so parking
- * it there would leave the last message well above the composer (PM.33).
- * Align the last message's end with the viewport once it changes.
- */
-function AnchorChatToEnd({ lastMessageId }: { lastMessageId: string | null }) {
-  const { scrollToEnd } = useMessageScroller()
-
-  useEffect(() => {
-    if (!lastMessageId) return
-    const frame = requestAnimationFrame(() => {
-      scrollToEnd({ align: "end", behavior: "instant" })
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [lastMessageId, scrollToEnd])
-
-  return null
-}
 
 export function Chat({
   conversation,
@@ -95,11 +78,19 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
     setMessages,
     replaceMessage,
     removeMessage,
+    truncateAfter,
     startEditing,
     setEditingContent,
     cancelEditing,
     setError,
   } = useChatStore()
+
+  const {
+    hasMore: hasMoreMessages,
+    isLoadingOlder,
+    loadOlderError,
+    loadOlder,
+  } = useOlderMessages(conv.id)
 
   const loadMemories = useMemoryStore((s) => s.loadMemories)
   const loadProposals = useMemoryStore((s) => s.loadProposals)
@@ -133,7 +124,10 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
 
   useEffect(() => {
     if (!initialized.current) {
-      setMessages(conv.messages)
+      setMessages(conv.messages, {
+        hasMore: conv.messagesHasMore,
+        nextCursor: conv.messagesNextCursor,
+      })
       loadMemories(conv.id)
       loadProposals(conv.id)
       loadSummaries(conv.id)
@@ -183,20 +177,34 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
     if (!confirmRewind) return
     try {
       const targetMsg = messages.find(m => m.id === confirmRewind)
-      const result = await rewindConversation(conv.id, confirmRewind)
-      setMessages(result.messages)
+      if (!targetMsg) return
+      await rewindConversation(conv.id, confirmRewind)
 
-      if (targetMsg?.role === "user") {
+      truncateAfter(targetMsg.position)
+      if (targetMsg.role === "user") {
+        removeMessage(targetMsg.id)
         localStorage.setItem(`chat:draft:${conv.id}`, JSON.stringify(targetMsg.content))
         setInputKey(k => k + 1)
       }
 
       loadSummaries(conv.id)
+      loadMemories(conv.id)
+      loadProposals(conv.id)
       setConfirmRewind(null)
     } catch (err) {
       setError((err as Error).message)
     }
-  }, [conv.id, confirmRewind, messages, setMessages, setError, loadSummaries])
+  }, [
+    conv.id,
+    confirmRewind,
+    messages,
+    truncateAfter,
+    removeMessage,
+    setError,
+    loadSummaries,
+    loadMemories,
+    loadProposals,
+  ])
 
   const handleCyclePrev = useCallback(
     async (messageId: string) => {
@@ -290,11 +298,16 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
         onError={setError}
       />
 
-      <MessageScrollerProvider autoScroll={isStreaming}>
+      <MessageScrollerProvider autoScroll={isStreaming} scrollEdgeThreshold={200}>
         <AnchorChatToEnd
           lastMessageId={
             messages.length > 0 ? messages[messages.length - 1].id : null
           }
+        />
+        <LoadOlderOnScroll
+          enabled={hasMoreMessages && !loadOlderError}
+          loading={isLoadingOlder}
+          onLoad={() => void loadOlder()}
         />
         <MessageScroller
           className="flex-1 p-2"
@@ -348,6 +361,12 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
           ) : null}
           <MessageScrollerViewport className="relative z-10">
             <MessageScrollerContent>
+              <OlderMessagesControl
+                hasMore={hasMoreMessages}
+                isLoading={isLoadingOlder}
+                error={loadOlderError}
+                onLoad={() => void loadOlder()}
+              />
               {messages.length === 0 && !streamingContent ? (
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 p-12 text-center">
                   <MascotPose pose="sparkle" className="h-28 w-28" />

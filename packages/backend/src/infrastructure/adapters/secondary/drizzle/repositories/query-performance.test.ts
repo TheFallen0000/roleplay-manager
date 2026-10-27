@@ -192,6 +192,19 @@ describe("S90 query performance", () => {
     const recent = await repository.findRecentByConversationId("conv1", 1)
     expect(recent.map((message) => message.id)).toEqual(["m2"])
 
+    const latestPage = await repository.findPageByConversationId("conv1", {
+      limit: 1,
+    })
+    expect(latestPage.messages.map((message) => message.id)).toEqual(["m2"])
+    expect(latestPage.hasMore).toBe(true)
+
+    const olderPage = await repository.findPageByConversationId("conv1", {
+      before: 1,
+      limit: 1,
+    })
+    expect(olderPage.messages.map((message) => message.id)).toEqual(["m1"])
+    expect(olderPage.hasMore).toBe(false)
+
     const after = await repository.findAfterPosition("conv1", 0)
     expect(after.map((message) => message.id)).toEqual(["m2"])
 

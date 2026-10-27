@@ -124,6 +124,15 @@ describe("memoryDecayInfo", () => {
     expect(info.effectivePriority).toBe(2)
   })
 
+  it("usa los turnos calculados por el backend cuando se pasan", () => {
+    const conversation = buildConversation({ memoryDecaySpeed: 1 })
+    const info = memoryDecayInfo(buildMemory(), conversation, [], 4)
+
+    expect(info.turns).toBe(4)
+    expect(info.effectivePriority).toBe(1)
+    expect(info.hasDecayed).toBe(true)
+  })
+
   it("la prioridad efectiva nunca baja de 1", () => {
     const conversation = buildConversation({ memoryDecaySpeed: 1 })
     const info = memoryDecayInfo(buildMemory(), conversation, buildMessages(100))

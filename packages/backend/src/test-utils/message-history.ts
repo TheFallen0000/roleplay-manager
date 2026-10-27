@@ -13,6 +13,17 @@ export const buildMessageHistoryRepository = (
   getMessages: MessageSource = () => [],
   findPositionById: (id: string) => Promise<number | null> = async () => null,
 ): MessageHistoryRepository => ({
+  findPageByConversationId: async (conversationId, { before, limit }) => {
+    const all = [...(await getMessages(conversationId))].sort(
+      (a, b) => a.position - b.position,
+    )
+    const filtered =
+      before === undefined
+        ? all
+        : all.filter((message) => message.position < before)
+    const messages = filtered.slice(-limit)
+    return { messages, hasMore: messages.length < filtered.length }
+  },
   findRecentByConversationId: async (conversationId, limit) => {
     if (limit <= 0) return []
     return (await getMessages(conversationId)).slice(-limit)

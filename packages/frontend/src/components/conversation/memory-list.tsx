@@ -21,7 +21,6 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { Label } from "@workspace/ui/components/label"
 import { toast } from "@workspace/ui/components/sonner"
 import { useMemoryStore } from "@/lib/stores/memory.store"
-import { useChatStore } from "@/lib/stores/chat.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { usePersistedStringList } from "@/lib/hooks/use-persisted-string-list"
 import { memoryDecayInfo } from "@/lib/format-memory"
@@ -46,12 +45,10 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
   const updateMemory = useMemoryStore((s) => s.updateMemory)
   const deleteMemory = useMemoryStore((s) => s.deleteMemory)
   const loadMemories = useMemoryStore((s) => s.loadMemories)
-  const chatMessages = useChatStore((s) => s.messages)
-  const messageCount = chatMessages.length
 
   useEffect(() => {
     loadMemories(conversationId)
-  }, [conversationId, loadMemories, messageCount])
+  }, [conversationId, loadMemories])
 
   const [dialogMode, setDialogMode] = useState<DialogMode>(null)
   const [target, setTarget] = useState<MemoryDTO | null>(null)
@@ -170,7 +167,8 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
     : memories
 
   const priorityOf = (memory: MemoryDTO) =>
-    memoryDecayInfo(memory, conversation, chatMessages).effectivePriority
+    memoryDecayInfo(memory, conversation, [], memory.turnsSinceUpdate)
+      .effectivePriority
 
   const groups = groupMemoriesByActor(visibleMemories, {
     characterName: conversation.characterName,
@@ -267,7 +265,8 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
                         const info = memoryDecayInfo(
                           memory,
                           conversation,
-                          chatMessages,
+                          [],
+                          memory.turnsSinceUpdate,
                         )
                         const badgeVariant = info.isDeletionCandidate
                           ? "destructive"

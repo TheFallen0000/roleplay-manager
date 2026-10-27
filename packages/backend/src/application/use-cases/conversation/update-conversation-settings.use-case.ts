@@ -279,6 +279,8 @@ export class UpdateConversationSettingsUseCase {
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
       messages: [],
+      messagesHasMore: false,
+      messagesNextCursor: null,
     }
   }
 
