@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **better-sqlite3 13**: base de datos migrada a la versión N-API. Incluye
+  binarios precompilados para Windows, Linux y macOS (x64/arm64), elimina
+  `prebuild-install` y mantiene el fallback de compilación. Sin cambios de
+  esquema ni migraciones.
+
 ## [1.54.3] - 2026-10-27
 
 ### Changed
