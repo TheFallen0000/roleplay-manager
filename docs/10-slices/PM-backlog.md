@@ -214,6 +214,11 @@ Last updated: 2026-10-27
 | PM.23 | In-app updates: an "Updates" screen under the sidebar's **System** section that detects a new published release, shows a badge and a one-time notice on the characters screen, and can apply the update with an automatic backup and restart guidance. <br>*Done as S39/S43 (v1.27.0 / v1.31.0): git-based detection + apply for developers, and the release-based updater for the packaged build (download → install in `versions/<v>` → switch `current` → restart), automatic backups, updates screen, sidebar badge and one-time notice. See `S39-progress.md` and `S43-progress.md`.* | PM.24 |
 | PM.25 | **Rollback button** in the Updates panel: switch `current` back to the previous `versions/<v>` folder (the mechanics exist; only the endpoint and the UI are missing). <br>*Done as S72 (v1.45.0) — see `S72-progress.md`.* | PM.23, PM.24 |
 | PM.31 | More tolerant parser for the `memory_proposals` block (LLM format variations), with tests for odd shapes. <br>*Done as S76 (v1.46.0) — see `S76-progress.md`.* | — |
+| PM.46 | Migrate the backend to Express 5: `req.query` is now a read-only getter, so `validate` must stop reassigning it; review routing, error handling and body parsing, then run every route. <br>*Deferred from S97 (Dependabot #66): the `/logs` tests return 500 until the middleware is adapted.* | — |
+| PM.47 | Upgrade `better-sqlite3` 12 → 13 (N-API, prebuilt binaries and packaging on every platform). <br>*Deferred from S97 (Dependabot #66).* | PM.24 |
+| PM.48 | Upgrade the logging stack: `pino` 10, `pino-http` 11, `pino-pretty` 13 and `uuid` 14. Test rotation, redaction, transports and ESM imports. <br>*Deferred from S97 (Dependabot #66/#67).* | — |
+| PM.49 | Upgrade TypeScript 7 and `@types/node` 26 when Astro supports TypeScript 7 and the bundled runtime moves to Node 26. <br>*Blocked: `astro check` rejects TypeScript 7 and the app still bundles Node 24.* | PM.24 |
+| PM.50 | Upgrade `prettier-plugin-astro` 1.x and reformat the Astro files. <br>*Deferred from S97 (Dependabot #67); formatting-only, no runtime impact.* | — |
 
 > **PM.25 + PM.26 (S72) — done (2026-10-12, v1.45.0):** The Updates panel can roll back to the
 > previous `versions/<v>` (confirmation dialog, restart needed, data untouched; the git adapter
@@ -285,6 +290,12 @@ Last updated: 2026-10-27
 > version is never touched and the previous one stays for rollback. This completes **PM.24** and
 > **PM.23** (phase 2). See `S43-progress.md`. The UI button to roll back was deferred; it is
 > **PM.25**.
+
+> **S97 — dependency maintenance (2026-10-27, v1.54.2):** Dependabot now groups
+> only patch/minor updates; majors arrive as individual PRs. The safe updates
+> are merged and `pnpm audit --prod` is clean. Express 5, `better-sqlite3` 13,
+> the pino/uuid majors, TypeScript 7 and `prettier-plugin-astro` 1.x remain as
+> **PM.46–PM.50**. See `S97-progress.md`.
 
 ## UI polish
 
