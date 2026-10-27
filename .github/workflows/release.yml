@@ -195,6 +195,12 @@ jobs:
       - name: Generate checksums
         run: node scripts/release-checksums.mjs release
 
+      - name: Sign checksums
+        env:
+          RM_RELEASE_SIGNING_KEY: ${{ secrets.RM_RELEASE_SIGNING_KEY }}
+          RM_RELEASE_SIGNING_KEY_ID: release-2026-10
+        run: node scripts/release-sign.mjs release
+
       - name: Build the release notes
         run: node scripts/release-notes.mjs "${{ needs.prepare.outputs.version }}" > release-notes.md
 

@@ -4,6 +4,7 @@ export type UpdateBlockedReason =
   | "dirty"
   | "no-asset"
   | "no-checksum"
+  | "no-signature"
 
 /** Step of the background apply job. */
 export type UpdateJobStep =
