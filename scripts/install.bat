@@ -5,7 +5,8 @@ REM Usage: scripts\install.bat
 setlocal enabledelayedexpansion
 
 set NODE_MIN_MAJOR=22
-set NODE_MIN_MINOR=12
+set NODE_MIN_MINOR=23
+set NODE_MIN_PATCH=4
 set PNPM_MIN_MAJOR=11
 set PNPM_MIN_MINOR=15
 
@@ -14,7 +15,7 @@ echo ==^> Checking Node.js
 where node >nul 2>&1
 if errorlevel 1 (
     echo [31mNode.js is not installed.[0m
-    echo Please install Node.js ^>= 22.12.0 from https://nodejs.org/
+    echo Please install Node.js ^>= 22.23.4 from https://nodejs.org/
     exit /b 1
 )
 
@@ -22,15 +23,19 @@ for /f "tokens=*" %%v in ('node -v') do set NODE_VERSION=%%v
 set NODE_VERSION=%NODE_VERSION:v=%
 for /f "tokens=1 delims=." %%a in ("%NODE_VERSION%") do set NODE_MAJOR=%%a
 for /f "tokens=2 delims=." %%a in ("%NODE_VERSION%") do set NODE_MINOR=%%a
+for /f "tokens=3 delims=." %%a in ("%NODE_VERSION%") do set NODE_PATCH=%%a
 
 if %NODE_MAJOR% lss %NODE_MIN_MAJOR% goto :node_too_old
-if %NODE_MAJOR% equ %NODE_MIN_MAJOR% if %NODE_MINOR% lss %NODE_MIN_MINOR% goto :node_too_old
+if %NODE_MAJOR% gtr %NODE_MIN_MAJOR% goto :node_ok
+if %NODE_MINOR% lss %NODE_MIN_MINOR% goto :node_too_old
+if %NODE_MINOR% gtr %NODE_MIN_MINOR% goto :node_ok
+if %NODE_PATCH% lss %NODE_MIN_PATCH% goto :node_too_old
 
 echo [32mNode.js %NODE_VERSION% OK[0m
 goto :node_ok
 
 :node_too_old
-echo [31mNode.js %NODE_VERSION% is too old. Need ^>= %NODE_MIN_MAJOR%.%NODE_MIN_MINOR%.0[0m
+echo [31mNode.js %NODE_VERSION% is too old. Need ^>= %NODE_MIN_MAJOR%.%NODE_MIN_MINOR%.%NODE_MIN_PATCH%[0m
 echo Please update from https://nodejs.org/
 exit /b 1
 

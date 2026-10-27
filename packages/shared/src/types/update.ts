@@ -1,5 +1,9 @@
 /** Why an update cannot be applied right now (a known state). */
-export type UpdateBlockedReason = "not-a-repo" | "dirty" | "no-asset"
+export type UpdateBlockedReason =
+  | "not-a-repo"
+  | "dirty"
+  | "no-asset"
+  | "no-checksum"
 
 /** Step of the background apply job. */
 export type UpdateJobStep =

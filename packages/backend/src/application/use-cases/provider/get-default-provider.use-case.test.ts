@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
 
 import { GetDefaultProviderUseCase } from "./get-default-provider.use-case"
-import type { ProviderInstance } from "@workspace/shared/types/provider-instance"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { SettingsRepository } from "../../../domain/ports/settings.repository"
 
@@ -108,7 +107,7 @@ describe("GetDefaultProviderUseCase", () => {
         apiKey: "sk-...",
         createdAt: "2024-01-01T00:00:00.000Z",
         updatedAt: "2024-01-01T00:00:00.000Z",
-      }) as unknown as ProviderInstance | null),
+      })),
     }
     const useCase = new GetDefaultProviderUseCase(settings, instanceRepo)
 

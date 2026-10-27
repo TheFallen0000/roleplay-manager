@@ -7,6 +7,7 @@ import type { ProviderId } from "@workspace/shared/types/provider"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import { DomainError } from "../../../domain/errors"
+import { toProviderInstanceDTO } from "./provider-instance-dto"
 
 const VALID_KINDS: ProviderId[] = ["ollama", "openai-compatible"]
 
@@ -50,11 +51,13 @@ export class CreateProviderInstanceUseCase {
       }
     }
 
-    return this.providerInstanceRepository.create({
+    const instance = await this.providerInstanceRepository.create({
       kind: input.kind,
       name: input.name.trim(),
       url: input.url.trim(),
       apiKey: input.apiKey,
     })
+
+    return toProviderInstanceDTO(instance)
   }
 }

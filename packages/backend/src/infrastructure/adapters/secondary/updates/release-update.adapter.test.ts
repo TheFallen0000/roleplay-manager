@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { existsSync } from "node:fs"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
@@ -48,31 +49,54 @@ interface ReleaseFixture {
   tag: string
   body?: string | null
   assetName?: string | null
+  checksum?: boolean
 }
 
 const releaseFixture = ({
   tag,
   body = "## Notas\n\n- Algo nuevo",
   assetName = "roleplay-manager-2.0.0-win-x64.zip",
-}: ReleaseFixture) => ({
-  tag_name: tag,
-  body,
-  assets:
-    assetName === null
-      ? []
-      : [
-          {
-            name: assetName,
-            browser_download_url: "http://fake/asset.zip",
-            size: 3,
-          },
-        ],
-})
+  checksum = true,
+}: ReleaseFixture) => {
+  const assets: Array<{
+    name: string
+    browser_download_url: string
+    size: number
+  }> = []
+  if (assetName !== null) {
+    assets.push({
+      name: assetName,
+      browser_download_url: "http://fake/asset.zip",
+      size: 3,
+    })
+  }
+  if (checksum) {
+    assets.push({
+      name: "SHA256SUMS",
+      browser_download_url: "http://fake/SHA256SUMS",
+      size: 100,
+    })
+  }
+  return { tag_name: tag, body, assets }
+}
+
+const packageAssetName = (release: unknown): string | null => {
+  const assets = (release as { assets?: Array<{ name: string }> }).assets ?? []
+  return assets.find((asset) => asset.name !== "SHA256SUMS")?.name ?? null
+}
+
+const defaultChecksums = (release: unknown, bytes: Uint8Array): string => {
+  const name = packageAssetName(release)
+  if (!name) return ""
+  const hash = createHash("sha256").update(bytes).digest("hex")
+  return `${hash}  ${name}\n`
+}
 
 const makeFetch = (
   release: unknown,
   bytes = new Uint8Array([1, 2, 3]),
   assetStatus = 200,
+  checksumText?: string,
 ): FetchLike =>
   vi.fn(async (input: string) => {
     if (input.includes("/releases/latest")) {
@@ -81,15 +105,39 @@ const makeFetch = (
         headers: { "content-type": "application/json" },
       })
     }
+    if (input.includes("SHA256SUMS")) {
+      return new Response(checksumText ?? defaultChecksums(release, bytes), {
+        status: 200,
+        headers: { "content-type": "text/plain" },
+      })
+    }
     return new Response(bytes, {
       status: assetStatus,
       headers: { "content-length": String(bytes.length) },
     })
   })
 
-/** Fakes `tar -x` by materialising the staged package. */
-const makeTar = (version: string, onExtract?: () => void): CommandRunner =>
+/** Fakes `tar -t` and `tar -x` by listing and materialising the package. */
+const makeTar = (
+  version: string,
+  onExtract?: () => void,
+  listing?: string,
+): CommandRunner =>
   vi.fn(async (_command: string, args: string[]): Promise<CommandResult> => {
+    if (args[0] === "-t") {
+      return {
+        stdout:
+          listing ??
+          [
+            "./current",
+            "./version.json",
+            `./versions/${version}`,
+            `./versions/${version}/app/server.mjs`,
+            "./start.cmd",
+          ].join("\n"),
+        stderr: "",
+      }
+    }
     const staging = args[args.indexOf("-C") + 1]
     onExtract?.()
     await mkdir(join(staging, "versions", version, "app"), { recursive: true })
@@ -109,6 +157,7 @@ const buildAdapter = (
     fetchImpl?: FetchLike
     run?: CommandRunner
     repository?: string
+    checksumText?: string
     backup?: () => Promise<{ path: string; files: number; bytes: number }>
   } = {},
 ) =>
@@ -119,7 +168,12 @@ const buildAdapter = (
     assetSuffix: "-win-x64.zip",
     fetchImpl:
       options.fetchImpl ??
-      makeFetch(options.release ?? releaseFixture({ tag: "v2.0.0" })),
+      makeFetch(
+        options.release ?? releaseFixture({ tag: "v2.0.0" }),
+        undefined,
+        undefined,
+        options.checksumText,
+      ),
     run: options.run ?? makeTar("2.0.0"),
     backup:
       options.backup ??
@@ -215,6 +269,25 @@ describe("ReleaseUpdateAdapter", () => {
     expect(status.blockedReason).toBe("no-asset")
   })
 
+  it("blocks when the release has no checksum file", async () => {
+    const status = await buildAdapter(await createRoot(), {
+      release: releaseFixture({ tag: "v2.0.0", checksum: false }),
+    }).check()
+
+    expect(status.behind).toBe(true)
+    expect(status.canApply).toBe(false)
+    expect(status.blockedReason).toBe("no-checksum")
+  })
+
+  it("rejects a tag that is not a plain version", async () => {
+    const status = await buildAdapter(await createRoot(), {
+      release: releaseFixture({ tag: "v../../outside" }),
+    }).check()
+
+    expect(status.checkError).toContain("Invalid release version")
+    expect(status.canApply).toBe(false)
+  })
+
   it("surfaces an API failure as checkError", async () => {
     const fetchImpl: FetchLike = vi.fn(async () => new Response("", { status: 403 }))
     const status = await buildAdapter(await createRoot(), { fetchImpl }).check()
@@ -244,6 +317,43 @@ describe("ReleaseUpdateAdapter", () => {
     expect(existsSync(join(root, "versions", ".download-2.0.0.zip"))).toBe(false)
     // The status was refreshed after installing.
     expect(finished.behind).toBe(false)
+  })
+
+  it("refuses to install a package whose checksum does not match", async () => {
+    const root = await createRoot()
+    const adapter = buildAdapter(root, {
+      checksumText: `${"0".repeat(64)}  roleplay-manager-2.0.0-win-x64.zip\n`,
+    })
+
+    await adapter.apply({ withBackup: false })
+    const finished = await waitForJob(adapter)
+
+    expect(finished.job).toMatchObject({ running: false, step: "failed" })
+    expect(finished.job?.message).toContain("integrity")
+    expect(existsSync(join(root, "versions", "2.0.0"))).toBe(false)
+    expect(existsSync(join(root, "current"))).toBe(true)
+  })
+
+  it("rejects an archive that escapes the staging folder", async () => {
+    const root = await createRoot()
+    const run = makeTar(
+      "2.0.0",
+      undefined,
+      [
+        "./current",
+        "./versions/2.0.0/app/server.mjs",
+        "./versions/2.0.0/../../outside.txt",
+      ].join("\n"),
+    )
+    const adapter = buildAdapter(root, { run })
+
+    await adapter.apply({ withBackup: false })
+    const finished = await waitForJob(adapter)
+
+    expect(finished.job).toMatchObject({ running: false, step: "failed" })
+    expect(finished.job?.message).toContain("unsafe path")
+    expect(existsSync(join(root, "outside.txt"))).toBe(false)
+    expect((await readFile(join(root, "current"), "utf8")).trim()).toBe("1.0.0")
   })
 
   it("marks the job as failed when the download fails", async () => {
@@ -346,6 +456,12 @@ describe("ReleaseUpdateAdapter", () => {
           { status: 200 },
         )
       }
+      if (input.includes("SHA256SUMS")) {
+        return new Response(
+          `${createHash("sha256").update(new Uint8Array([1, 2, 3])).digest("hex")}  roleplay-manager-2.0.0-win-x64.zip\n`,
+          { status: 200 },
+        )
+      }
       assetCalls += 1
       if (assetCalls === 1) {
         throw Object.assign(new TypeError("fetch failed"), {
@@ -380,6 +496,12 @@ describe("ReleaseUpdateAdapter", () => {
           { status: 200 },
         )
       }
+      if (input.includes("SHA256SUMS")) {
+        return new Response(
+          `${"0".repeat(64)}  roleplay-manager-2.0.0-win-x64.zip\n`,
+          { status: 200 },
+        )
+      }
       throw Object.assign(new TypeError("fetch failed"), {
         cause: new Error("getaddrinfo ENOTFOUND objects.githubusercontent.com"),
       })
@@ -401,6 +523,12 @@ describe("ReleaseUpdateAdapter", () => {
       if (input.includes("/releases/latest")) {
         return new Response(
           JSON.stringify(releaseFixture({ tag: "v2.0.0" })),
+          { status: 200 },
+        )
+      }
+      if (input.includes("SHA256SUMS")) {
+        return new Response(
+          `${"0".repeat(64)}  roleplay-manager-2.0.0-win-x64.zip\n`,
           { status: 200 },
         )
       }

@@ -6,6 +6,7 @@ import type {
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import { DomainError } from "../../../domain/errors"
+import { toProviderInstanceDTO } from "./provider-instance-dto"
 
 export class UpdateProviderInstanceUseCase {
   constructor(
@@ -51,6 +52,7 @@ export class UpdateProviderInstanceUseCase {
       }
     }
 
-    return this.providerInstanceRepository.update(id, input)
+    const updated = await this.providerInstanceRepository.update(id, input)
+    return toProviderInstanceDTO(updated)
   }
 }

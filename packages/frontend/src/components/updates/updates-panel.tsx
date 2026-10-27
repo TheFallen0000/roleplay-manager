@@ -278,6 +278,12 @@ function UpdatesPanelContent() {
             </p>
           ) : null}
 
+          {status?.blockedReason === "no-checksum" ? (
+            <p role="alert" className="text-sm text-destructive">
+              {t("updates.noChecksum")}
+            </p>
+          ) : null}
+
           {status &&
           !status.behind &&
           !status.checkError &&

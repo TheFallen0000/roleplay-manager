@@ -3,8 +3,10 @@ import { describe, it, expect, vi } from "vitest"
 import { ListProviderModelsUseCase } from "./list-provider-models.use-case"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { ProviderPort, ProviderRegistry } from "../../../domain/ports/provider.port"
-import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
-import type { ProviderInstance } from "@workspace/shared/types/provider-instance"
+import type {
+  ProviderInstanceRecord,
+  ProviderInstanceRepository,
+} from "../../../domain/ports/provider-instance.repository"
 
 const buildSilentLogger = (): Logger => ({
   debug: vi.fn(),
@@ -28,7 +30,9 @@ const buildAdapter = (): ProviderPort => ({
   async *generateStreaming(_context?: any, _options?: any): AsyncIterable<any> {},
 })
 
-const makeInstance = (overrides?: Partial<ProviderInstance>): ProviderInstance => ({
+const makeInstance = (
+  overrides?: Partial<ProviderInstanceRecord>,
+): ProviderInstanceRecord => ({
   id: "inst-1",
   kind: "openai-compatible",
   name: "LM Studio",

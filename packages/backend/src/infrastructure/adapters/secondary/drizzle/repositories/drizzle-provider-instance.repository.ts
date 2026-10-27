@@ -5,18 +5,20 @@ import type { Database } from "../../../../config/database"
 import type {
   CreateProviderInstanceInput,
   UpdateProviderInstanceInput,
-  ProviderInstance,
 } from "@workspace/shared/types/provider-instance"
 
 import { providerInstances } from "../schema/provider-instances.schema"
-import type { ProviderInstanceRepository } from "../../../../../domain/ports/provider-instance.repository"
+import type {
+  ProviderInstanceRecord,
+  ProviderInstanceRepository,
+} from "../../../../../domain/ports/provider-instance.repository"
 
 export class DrizzleProviderInstanceRepository
   implements ProviderInstanceRepository
 {
   constructor(private readonly db: Database) {}
 
-  async list(): Promise<ProviderInstance[]> {
+  async list(): Promise<ProviderInstanceRecord[]> {
     const rows = await this.db
       .select()
       .from(providerInstances)
@@ -25,7 +27,7 @@ export class DrizzleProviderInstanceRepository
     return rows.map(toProviderInstance)
   }
 
-  async findById(id: string): Promise<ProviderInstance | null> {
+  async findById(id: string): Promise<ProviderInstanceRecord | null> {
     const rows = await this.db
       .select()
       .from(providerInstances)
@@ -35,7 +37,9 @@ export class DrizzleProviderInstanceRepository
     return rows.length > 0 ? toProviderInstance(rows[0]) : null
   }
 
-  async create(input: CreateProviderInstanceInput): Promise<ProviderInstance> {
+  async create(
+    input: CreateProviderInstanceInput,
+  ): Promise<ProviderInstanceRecord> {
     const now = new Date()
     const id = randomUUIDv7()
 
@@ -64,7 +68,7 @@ export class DrizzleProviderInstanceRepository
   async update(
     id: string,
     input: UpdateProviderInstanceInput,
-  ): Promise<ProviderInstance> {
+  ): Promise<ProviderInstanceRecord> {
     const now = new Date()
     const values: Record<string, unknown> = { updatedAt: now }
 
@@ -94,7 +98,7 @@ export class DrizzleProviderInstanceRepository
 
 function toProviderInstance(
   row: typeof providerInstances.$inferSelect,
-): ProviderInstance {
+): ProviderInstanceRecord {
   return {
     id: row.id,
     kind: row.kind,

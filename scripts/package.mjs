@@ -26,6 +26,17 @@ import { fileURLToPath } from "node:url"
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
+// The package copies the Node binary that runs this script, so packaging with a
+// different runtime than the pinned one would ship an unverified version.
+const expectedNode = readFileSync(join(repoRoot, ".nvmrc"), "utf8")
+  .trim()
+  .replace(/^v/, "")
+if (process.versions.node !== expectedNode) {
+  throw new Error(
+    `Packaging with Node ${process.versions.node}, but .nvmrc pins ${expectedNode}. Run "nvm use" before packaging.`,
+  )
+}
+
 const OS =
   process.platform === "win32"
     ? "win"

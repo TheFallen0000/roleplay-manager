@@ -14,7 +14,7 @@ plataforma: **Windows x64**, **Linux x64/arm64** y **macOS arm64/x64**.
    del frontend deja de ser necesario en producción (Express sirve `/api`
    primero).
 2. **Un paquete por plataforma** (Windows x64, Linux x64/arm64, macOS arm64/x64),
-   cada uno con una versión de Node **fijada** (24.x). Los módulos nativos se
+   cada uno con una versión de Node **fijada** (24.22.1). Los módulos nativos se
    instalan en el SO de destino, así que cada paquete se construye y se prueba en
    su propio runner de CI.
 3. **Datos dentro de la carpeta portátil**: `data/` (SQLite + imágenes) y

@@ -5,7 +5,7 @@ description: Run the Roleplay Manager monorepo, tests and quality gates.
 
 ## Requirements
 
-- Node.js ≥ 22.12.0.
+- Node.js ≥ 22.23.4 (the repository pins 24.22.1 in `.nvmrc`).
 - pnpm ≥ 11.15.1. The install script can enable it with corepack.
 
 ## Run the app

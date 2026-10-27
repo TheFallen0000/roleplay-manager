@@ -217,6 +217,8 @@ export const es: Dictionary = {
     notARepo:
       "La app no se ejecuta desde un clon de git, así que las actualizaciones automáticas no están disponibles.",
     noAsset: "La última versión no incluye un paquete para esta plataforma.",
+    noChecksum:
+      "La última versión no incluye un archivo de checksum, así que la actualización no se puede verificar.",
     checkError: "No se pudo comprobar si hay actualizaciones: {message}",
     checkFailed: "No se pudo comprobar si hay actualizaciones.",
     applyFailed: "No se pudo iniciar la actualización.",

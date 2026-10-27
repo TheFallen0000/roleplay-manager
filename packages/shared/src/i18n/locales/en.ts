@@ -218,6 +218,8 @@ export const en = {
       "The app is not running from a git checkout, so automatic updates are not available.",
     noAsset:
       "The latest version does not include a package for this platform.",
+    noChecksum:
+      "The latest version does not include a checksum file, so the update cannot be verified.",
     checkError: "Could not check for updates: {message}",
     checkFailed: "Could not check for updates.",
     applyFailed: "Could not start the update.",

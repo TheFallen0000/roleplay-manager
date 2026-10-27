@@ -14,7 +14,7 @@ Personajes versionados, conversaciones en streaming, memoria dinámica y resúme
 [![Última release](https://img.shields.io/github/v/release/TheFallen0000/roleplay-manager?style=flat-square&color=2ea44f)](https://github.com/TheFallen0000/roleplay-manager/releases/latest)
 [![Workflow de release](https://img.shields.io/github/actions/workflow/status/TheFallen0000/roleplay-manager/release.yml?branch=master&style=flat-square&label=release)](https://github.com/TheFallen0000/roleplay-manager/actions/workflows/release.yml)
 [![Plataformas](https://img.shields.io/badge/plataformas-Windows%20%7C%20Linux%20%7C%20macOS-blue?style=flat-square)](#instalación)
-[![Node.js 22.12+](https://img.shields.io/badge/Node.js-22.12%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Node.js 24.22.1](https://img.shields.io/badge/Node.js-24.22.1-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 
 [Instalación](#instalación) · [Funciones](#funciones) · [Desarrollo](#desarrollo) · [Acceso desde el teléfono](#acceso-desde-el-teléfono) · [Actualizaciones](#actualizaciones) · [Documentación](#documentación) · [Licencia](#licencia)
 
@@ -84,7 +84,7 @@ carpeta `data/` dentro de ese directorio y las actualizaciones nunca la tocan.
 
 ### Requisitos
 
-- **Node.js** ≥ 22.12.0
+- **Node.js** ≥ 22.23.4 (el toolchain fijado en `.nvmrc` es 24.22.1)
 - **pnpm** ≥ 11.15.1 (el script de instalación puede configurarlo con corepack)
 
 ### Instalar y arrancar
@@ -167,9 +167,10 @@ En Android e iOS la app se puede instalar en la pantalla de inicio como PWA.
 La app empaquetada consulta las
 [releases de GitHub](https://github.com/TheFallen0000/roleplay-manager/releases)
 desde **Sistema → Actualizaciones**. Aplicar una actualización crea un respaldo,
-descarga el paquete de tu sistema en `versions/<versión>/`, cambia el puntero
-`current` y ofrece el botón **Reiniciar ahora**; tu `data/` y tus `backups/` no
-se tocan y la versión anterior queda en disco.
+descarga el paquete de tu sistema en `versions/<versión>/`, comprueba su
+checksum SHA-256, cambia el puntero `current` y ofrece el botón
+**Reiniciar ahora**; tu `data/` y tus `backups/` no se tocan y la versión
+anterior queda en disco.
 
 ## Documentación
 

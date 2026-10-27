@@ -52,9 +52,6 @@ export function InstanceFormDialog({
   }, [open, initialName, initialUrl, initialApiKey])
 
   const handleSave = () => {
-    if (import.meta.env.DEV) {
-      console.log("[InstanceFormDialog] Save clicked with:", { name, url, apiKey })
-    }
     onSave(name, url, apiKey)
   }
 
