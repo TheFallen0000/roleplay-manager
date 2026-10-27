@@ -322,7 +322,7 @@ Last updated: 2026-10-26
 | PM.35 | Accessibility and loading/error-state audit of the main screens: keyboard/focus, labels, live regions, contrast, touch targets, and consistent spinner/error/empty states. Add regression checks where practical. <br>*Done as S85 (v1.48.0) — see `S85-progress.md`.* | — |
 | PM.36 | Decide whether remote access needs app-level authentication (PIN/session) or whether the network trust model (private tailnet / trusted LAN) is enough; document and implement the chosen option. <br>*Discarded (2026-10-26): Tailscale already restricts access to the user's tailnet and LAN sharing is off by default, opt-in and explicitly warns that any device on the network can open the app. App-level auth would add friction for a local-first personal app; revisit only if LAN sharing is ever used on untrusted networks.* | S38, S56 |
 | PM.37 | Build the version history and comparison view that was deferred in S2, or explicitly discard it. Today there is only the version selector and the context-menu version list. | — |
-| PM.38 | Allow re-cropping an already saved profile image without uploading it again, reusing `ImageCropperDialog`. | PM.2 |
+| PM.38 | Allow re-cropping an already saved profile image without uploading it again, reusing `ImageCropperDialog`. <br>*Done as S87 (pending release) — see `S87-progress.md`.* | PM.2 |
 | PM.39 | Notify the PC when the phone link is auto-disabled by inactivity; optionally base the idle timer on local use instead of remote requests. | S56 |
 | PM.40 | Decide whether the app should work offline; today the service worker is pass-through and every request needs the PC server. If yes, design caching and conflict handling. | S54, S72 |
 | PM.41 | Evaluate store packaging (TWA/PWABuilder) for Android and the Microsoft Store; the portable folder remains the primary distribution. | S54 |
@@ -344,6 +344,11 @@ Last updated: 2026-10-26
 > for a regeneration. The prompt no longer hardcodes Spanish: it asks for the
 > language of the conversation and uses the UI locale only as a fallback. See
 > `S86-progress.md`.
+
+> **PM.38 (S87) — done (2026-10-27, pending release):** The character profile,
+> the chat custom image and the chat background can be re-cropped from their
+> original asset. Animated GIFs are rejected with a notice instead of being
+> flattened to PNG. See `S87-progress.md`.
 
 ### Manual verification pending
 
