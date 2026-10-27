@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.54.4] - 2026-10-27
+
 ### Changed
 
 - **better-sqlite3 13**: base de datos migrada a la versión N-API. Incluye
