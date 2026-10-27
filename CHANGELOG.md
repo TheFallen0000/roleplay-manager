@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.50.2] - 2026-10-27
+
 ### Fixed
 
 - **Paquete portátil sin herramientas de build**: el escáner de dependencias
