@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Drizzle ORM 0.45.4 y drizzle-kit 0.31.11**: actualización de la capa de
+  persistencia y de la herramienta de migraciones. No hay cambios de esquema ni
+  migraciones nuevas: `db:generate` no detecta diferencias y el historial
+  existente se aplica correctamente en una base temporal. La auditoría de
+  producción deja de mostrar la vulnerabilidad alta de Drizzle.
+
 ## [1.51.0] - 2026-10-27
 
 ### Changed
