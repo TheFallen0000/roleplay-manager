@@ -58,6 +58,7 @@ describe("phone-access routes", () => {
     const base = await start({
       getPhoneAccessPreferences: { execute } as never,
       updatePhoneAccessPreferences: unused,
+      getPhoneAccessNotice: unused,
     })
 
     const response = await fetch(`${base}/phone-access/preferences`)
@@ -71,6 +72,7 @@ describe("phone-access routes", () => {
     const base = await start({
       getPhoneAccessPreferences: unused,
       updatePhoneAccessPreferences: { execute } as never,
+      getPhoneAccessNotice: unused,
     })
 
     const response = await fetch(`${base}/phone-access/preferences`, {
@@ -87,6 +89,7 @@ describe("phone-access routes", () => {
     const base = await start({
       getPhoneAccessPreferences: unused,
       updatePhoneAccessPreferences: unused,
+      getPhoneAccessNotice: unused,
     })
 
     const response = await fetch(`${base}/phone-access/preferences`, {
@@ -102,6 +105,7 @@ describe("phone-access routes", () => {
     const base = await start({
       getPhoneAccessPreferences: unused,
       updatePhoneAccessPreferences: unused,
+      getPhoneAccessNotice: unused,
     })
 
     const response = await fetch(`${base}/phone-access/preferences`, {
@@ -111,5 +115,24 @@ describe("phone-access routes", () => {
     })
 
     expect(response.status).toBe(400)
+  })
+
+  it("returns the last inactivity notice", async () => {
+    const notice = {
+      mode: "tailscale",
+      minutes: 30,
+      at: "2026-10-27T12:00:00.000Z",
+    }
+    const execute = vi.fn(() => notice)
+    const base = await start({
+      getPhoneAccessPreferences: unused,
+      updatePhoneAccessPreferences: unused,
+      getPhoneAccessNotice: { execute } as never,
+    })
+
+    const response = await fetch(`${base}/phone-access/notice`)
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(notice)
   })
 })

@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Re-crop saved images**: the character profile picture, the chat custom
   image and the chat background can be re-cropped from their original asset
   without selecting the file again. Animated GIFs keep their original file.
+- **Inactivity notice for the phone link**: when the watchdog turns the link off
+  after the configured idle time, the app shows a one-time notice and the Phone
+  dialog explains the automatic disable. Inactivity still counts only remote
+  use.
 
 ## [1.49.0] - 2026-10-26
 

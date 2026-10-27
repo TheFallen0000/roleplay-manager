@@ -68,8 +68,10 @@ import { DisableLanAccessUseCase } from "../application/use-cases/lan/disable-la
 import { LanProxyServerAdapter } from "../infrastructure/adapters/secondary/lan/lan-proxy-server.adapter"
 import { GetPhoneAccessPreferencesUseCase } from "../application/use-cases/phone-access/get-phone-access-preferences.use-case"
 import { UpdatePhoneAccessPreferencesUseCase } from "../application/use-cases/phone-access/update-phone-access-preferences.use-case"
+import { GetPhoneAccessNoticeUseCase } from "../application/use-cases/phone-access/get-phone-access-notice.use-case"
 import { PhoneAccessService } from "../application/services/phone-access.service"
 import { InMemoryPhoneAccessActivity } from "../infrastructure/adapters/secondary/phone-access/in-memory-phone-access-activity.adapter"
+import { InMemoryPhoneAccessNoticeStore } from "../infrastructure/adapters/secondary/phone-access/in-memory-phone-access-notice.adapter"
 import { FileLogReader } from "../infrastructure/adapters/secondary/logs/file-log-reader.adapter"
 import { GetRecentLogsUseCase } from "../application/use-cases/logs/get-recent-logs.use-case"
 import { ListLogFilesUseCase } from "../application/use-cases/logs/list-log-files.use-case"
@@ -196,6 +198,7 @@ export interface AppContainer {
   // Phone access preferences (both modes) and their background rules
   getPhoneAccessPreferences: GetPhoneAccessPreferencesUseCase
   updatePhoneAccessPreferences: UpdatePhoneAccessPreferencesUseCase
+  getPhoneAccessNotice: GetPhoneAccessNoticeUseCase
   phoneAccess: PhoneAccessService
   phoneAccessActivity: PhoneAccessActivity
 
@@ -319,6 +322,7 @@ export const buildContainer = ({
   })
   const phoneAccessActivity: PhoneAccessActivity =
     new InMemoryPhoneAccessActivity()
+  const phoneAccessNotices = new InMemoryPhoneAccessNoticeStore()
   const getTunnelStatus = new GetTunnelStatusUseCase(tunnelController)
   const enableTunnel = new EnableTunnelUseCase(tunnelController, phoneAccessActivity)
   const disableTunnel = new DisableTunnelUseCase(tunnelController)
@@ -333,11 +337,13 @@ export const buildContainer = ({
 
   const getPhoneAccessPreferences = new GetPhoneAccessPreferencesUseCase(settings)
   const updatePhoneAccessPreferences = new UpdatePhoneAccessPreferencesUseCase(settings)
+  const getPhoneAccessNotice = new GetPhoneAccessNoticeUseCase(phoneAccessNotices)
   const phoneAccess = new PhoneAccessService({
     settings,
     tunnel: tunnelController,
     lan: lanAccessController,
     activity: phoneAccessActivity,
+    notices: phoneAccessNotices,
     logger,
     // Auto-enable on start only runs in the packaged app.
     packaged: Boolean(updatePackagedRoot),
@@ -513,6 +519,7 @@ export const buildContainer = ({
     disableLanAccess,
     getPhoneAccessPreferences,
     updatePhoneAccessPreferences,
+    getPhoneAccessNotice,
     phoneAccess,
     phoneAccessActivity,
     getRecentLogs,

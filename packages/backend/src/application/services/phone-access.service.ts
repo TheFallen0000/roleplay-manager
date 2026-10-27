@@ -3,6 +3,7 @@ import type { PhoneAccessMode } from "@workspace/shared/types/phone-access"
 import type { LanAccessController } from "../../domain/ports/lan-access-controller"
 import type { Logger } from "../../domain/ports/logger.port"
 import type { PhoneAccessActivity } from "../../domain/ports/phone-access-activity"
+import type { PhoneAccessNoticeStore } from "../../domain/ports/phone-access-notice"
 import type { SettingsRepository } from "../../domain/ports/settings.repository"
 import type { TunnelController } from "../../domain/ports/tunnel-controller"
 import { readPhoneAccessPreferences } from "./phone-access-preferences"
@@ -12,6 +13,7 @@ export interface PhoneAccessServiceOptions {
   tunnel: TunnelController
   lan: LanAccessController
   activity: PhoneAccessActivity
+  notices: PhoneAccessNoticeStore
   logger: Logger
   /** Auto-enable on start only runs in the packaged app (dev restarts a lot). */
   packaged: boolean
@@ -32,6 +34,7 @@ export class PhoneAccessService {
   private readonly tunnel: TunnelController
   private readonly lan: LanAccessController
   private readonly activity: PhoneAccessActivity
+  private readonly notices: PhoneAccessNoticeStore
   private readonly logger: Logger
   private readonly packaged: boolean
   private readonly now: () => number
@@ -41,6 +44,7 @@ export class PhoneAccessService {
     this.tunnel = options.tunnel
     this.lan = options.lan
     this.activity = options.activity
+    this.notices = options.notices
     this.logger = options.logger
     this.packaged = options.packaged
     this.now = options.now ?? Date.now
@@ -83,11 +87,13 @@ export class PhoneAccessService {
     await this.applyIdle(
       "tailscale",
       preferences.tailscale.idleDisableMinutes,
+      () => this.tunnel.getStatus(),
       () => this.tunnel.disable(),
     )
     await this.applyIdle(
       "lan",
       preferences.lan.idleDisableMinutes,
+      () => this.lan.getStatus(),
       () => this.lan.disable(),
     )
   }
@@ -95,6 +101,7 @@ export class PhoneAccessService {
   private async applyIdle(
     mode: PhoneAccessMode,
     minutes: number | null,
+    getStatus: () => Promise<{ active: boolean }>,
     disable: () => Promise<unknown>,
   ): Promise<void> {
     if (minutes === null) return
@@ -102,7 +109,14 @@ export class PhoneAccessService {
     if (idleMs < minutes * IDLE_CHECK_CLOCK_MS) return
 
     try {
+      const status = await getStatus()
+      if (!status.active) {
+        this.activity.touch(mode)
+        return
+      }
+
       await disable()
+      this.notices.record({ mode, minutes, at: this.now() })
       this.logger.info("Phone access disabled after inactivity", {
         mode,
         minutes,

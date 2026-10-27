@@ -56,6 +56,8 @@ export function PhoneAccessDialog({
   const enableLan = useTunnelStore((state) => state.enableLan)
   const disableLan = useTunnelStore((state) => state.disableLan)
   const refreshPreferences = useTunnelStore((state) => state.refreshPreferences)
+  const notice = useTunnelStore((state) => state.notice)
+  const refreshNotice = useTunnelStore((state) => state.refreshNotice)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [consentUrl, setConsentUrl] = useState<string | null>(null)
@@ -66,7 +68,8 @@ export function PhoneAccessDialog({
     refresh().catch(() => setError(t("tunnel.checkFailed")))
     refreshLan().catch(() => setError(t("tunnel.checkFailed")))
     refreshPreferences().catch(() => undefined)
-  }, [open, refresh, refreshLan, refreshPreferences, t])
+    refreshNotice().catch(() => undefined)
+  }, [open, refresh, refreshLan, refreshPreferences, refreshNotice, t])
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -75,6 +78,13 @@ export function PhoneAccessDialog({
     }
     onOpenChange(next)
   }
+
+  const inactivityNotice =
+    notice &&
+    ((notice.mode === "tailscale" && status?.active === false) ||
+      (notice.mode === "lan" && lanStatus?.active === false))
+      ? notice
+      : null
 
   const addresses = lanStatus?.addresses ?? []
   const address =
@@ -322,6 +332,14 @@ export function PhoneAccessDialog({
         {error ? (
           <p role="alert" className="text-sm text-destructive">
             {error}
+          </p>
+        ) : null}
+
+        {inactivityNotice ? (
+          <p role="status" className="text-xs text-muted-foreground">
+            {t("tunnel.inactivityStatus", {
+              minutes: inactivityNotice.minutes,
+            })}
           </p>
         ) : null}
       </DialogContent>

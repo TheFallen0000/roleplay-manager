@@ -1,9 +1,14 @@
 import type {
+  PhoneAccessNoticeDTO,
   PhoneAccessPreferencesResponseDTO,
   PhoneAccessPreferencesUpdateDTO,
 } from "@workspace/shared/types/phone-access"
 
 import { apiRequest } from "./client"
+
+export const getPhoneAccessNotice =
+  (): Promise<PhoneAccessNoticeDTO | null> =>
+    apiRequest<PhoneAccessNoticeDTO | null>("/api/phone-access/notice")
 
 export const getPhoneAccessPreferences =
   (): Promise<PhoneAccessPreferencesResponseDTO> =>
