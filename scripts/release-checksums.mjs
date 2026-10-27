@@ -21,7 +21,12 @@ const sha256 = (path) =>
 
 const entries = await readdir(directory, { withFileTypes: true })
 const names = entries
-  .filter((entry) => entry.isFile() && entry.name !== "SHA256SUMS")
+  .filter(
+    (entry) =>
+      entry.isFile() &&
+      entry.name !== "SHA256SUMS" &&
+      entry.name !== "SHA256SUMS.sig",
+  )
   .map((entry) => entry.name)
   .sort()
 

@@ -284,6 +284,12 @@ function UpdatesPanelContent() {
             </p>
           ) : null}
 
+          {status?.blockedReason === "no-signature" ? (
+            <p role="alert" className="text-sm text-destructive">
+              {t("updates.noSignature")}
+            </p>
+          ) : null}
+
           {status &&
           !status.behind &&
           !status.checkError &&

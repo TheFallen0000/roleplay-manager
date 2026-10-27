@@ -220,6 +220,8 @@ export const en = {
       "The latest version does not include a package for this platform.",
     noChecksum:
       "The latest version does not include a checksum file, so the update cannot be verified.",
+    noSignature:
+      "The latest version is not signed, so the update cannot be verified.",
     checkError: "Could not check for updates: {message}",
     checkFailed: "Could not check for updates.",
     applyFailed: "Could not start the update.",

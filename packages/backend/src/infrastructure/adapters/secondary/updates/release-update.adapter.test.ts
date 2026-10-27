@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto"
+import { createHash, generateKeyPairSync, sign } from "node:crypto"
 import { existsSync } from "node:fs"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
@@ -50,13 +50,29 @@ interface ReleaseFixture {
   body?: string | null
   assetName?: string | null
   checksum?: boolean
+  signature?: boolean
 }
+
+const { privateKey: testPrivateKey, publicKey: testPublicKey } =
+  generateKeyPairSync("ed25519")
+const testSigningKeys = {
+  "test-key": testPublicKey.export({ type: "spki", format: "pem" }).toString(),
+}
+
+const signChecksums = (checksums: string): string =>
+  JSON.stringify({
+    keyId: "test-key",
+    signature: sign(null, Buffer.from(checksums, "utf8"), testPrivateKey).toString(
+      "base64",
+    ),
+  })
 
 const releaseFixture = ({
   tag,
   body = "## Notas\n\n- Algo nuevo",
   assetName = "roleplay-manager-2.0.0-win-x64.zip",
   checksum = true,
+  signature = true,
 }: ReleaseFixture) => {
   const assets: Array<{
     name: string
@@ -77,12 +93,24 @@ const releaseFixture = ({
       size: 100,
     })
   }
+  if (signature) {
+    assets.push({
+      name: "SHA256SUMS.sig",
+      browser_download_url: "http://fake/SHA256SUMS.sig",
+      size: 100,
+    })
+  }
   return { tag_name: tag, body, assets }
 }
 
 const packageAssetName = (release: unknown): string | null => {
   const assets = (release as { assets?: Array<{ name: string }> }).assets ?? []
-  return assets.find((asset) => asset.name !== "SHA256SUMS")?.name ?? null
+  return (
+    assets.find(
+      (asset) =>
+        asset.name !== "SHA256SUMS" && asset.name !== "SHA256SUMS.sig",
+    )?.name ?? null
+  )
 }
 
 const defaultChecksums = (release: unknown, bytes: Uint8Array): string => {
@@ -97,16 +125,24 @@ const makeFetch = (
   bytes = new Uint8Array([1, 2, 3]),
   assetStatus = 200,
   checksumText?: string,
-): FetchLike =>
-  vi.fn(async (input: string) => {
+  signatureText?: string,
+): FetchLike => {
+  const checksumBody = checksumText ?? defaultChecksums(release, bytes)
+  return vi.fn(async (input: string) => {
     if (input.includes("/releases/latest")) {
       return new Response(JSON.stringify(release), {
         status: 200,
         headers: { "content-type": "application/json" },
       })
     }
+    if (input.includes("SHA256SUMS.sig")) {
+      return new Response(signatureText ?? signChecksums(checksumBody), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    }
     if (input.includes("SHA256SUMS")) {
-      return new Response(checksumText ?? defaultChecksums(release, bytes), {
+      return new Response(checksumBody, {
         status: 200,
         headers: { "content-type": "text/plain" },
       })
@@ -116,6 +152,7 @@ const makeFetch = (
       headers: { "content-length": String(bytes.length) },
     })
   })
+}
 
 /** Fakes `tar -t` and `tar -x` by listing and materialising the package. */
 const makeTar = (
@@ -178,6 +215,7 @@ const buildAdapter = (
     backup:
       options.backup ??
       (async () => ({ path: "/tmp/backup", files: 1, bytes: 10 })),
+    signingKeys: testSigningKeys,
   })
 
 const waitForJob = async (
@@ -277,6 +315,37 @@ describe("ReleaseUpdateAdapter", () => {
     expect(status.behind).toBe(true)
     expect(status.canApply).toBe(false)
     expect(status.blockedReason).toBe("no-checksum")
+  })
+
+  it("blocks when the release has no signature", async () => {
+    const status = await buildAdapter(await createRoot(), {
+      release: releaseFixture({ tag: "v2.0.0", signature: false }),
+    }).check()
+
+    expect(status.behind).toBe(true)
+    expect(status.canApply).toBe(false)
+    expect(status.blockedReason).toBe("no-signature")
+  })
+
+  it("rejects an invalid signature before installing", async () => {
+    const root = await createRoot()
+    const release = releaseFixture({ tag: "v2.0.0" })
+    const bytes = new Uint8Array([1, 2, 3])
+    const fetchImpl = makeFetch(
+      release,
+      bytes,
+      200,
+      defaultChecksums(release, bytes),
+      JSON.stringify({ keyId: "test-key", signature: "AAAA" }),
+    )
+    const adapter = buildAdapter(root, { fetchImpl })
+
+    await adapter.apply({ withBackup: false })
+    const finished = await waitForJob(adapter)
+
+    expect(finished.job).toMatchObject({ running: false, step: "failed" })
+    expect(finished.job?.message).toContain("signature")
+    expect(existsSync(join(root, "versions", "2.0.0"))).toBe(false)
   })
 
   it("rejects a tag that is not a plain version", async () => {
@@ -456,6 +525,14 @@ describe("ReleaseUpdateAdapter", () => {
           { status: 200 },
         )
       }
+      if (input.includes("SHA256SUMS.sig")) {
+        return new Response(
+          signChecksums(
+            `${createHash("sha256").update(new Uint8Array([1, 2, 3])).digest("hex")}  roleplay-manager-2.0.0-win-x64.zip\n`,
+          ),
+          { status: 200 },
+        )
+      }
       if (input.includes("SHA256SUMS")) {
         return new Response(
           `${createHash("sha256").update(new Uint8Array([1, 2, 3])).digest("hex")}  roleplay-manager-2.0.0-win-x64.zip\n`,
@@ -496,6 +573,14 @@ describe("ReleaseUpdateAdapter", () => {
           { status: 200 },
         )
       }
+      if (input.includes("SHA256SUMS.sig")) {
+        return new Response(
+          signChecksums(
+            `${"0".repeat(64)}  roleplay-manager-2.0.0-win-x64.zip\n`,
+          ),
+          { status: 200 },
+        )
+      }
       if (input.includes("SHA256SUMS")) {
         return new Response(
           `${"0".repeat(64)}  roleplay-manager-2.0.0-win-x64.zip\n`,
@@ -523,6 +608,14 @@ describe("ReleaseUpdateAdapter", () => {
       if (input.includes("/releases/latest")) {
         return new Response(
           JSON.stringify(releaseFixture({ tag: "v2.0.0" })),
+          { status: 200 },
+        )
+      }
+      if (input.includes("SHA256SUMS.sig")) {
+        return new Response(
+          signChecksums(
+            `${"0".repeat(64)}  roleplay-manager-2.0.0-win-x64.zip\n`,
+          ),
           { status: 200 },
         )
       }

@@ -164,9 +164,10 @@ iOS the app can be installed to the home screen as a PWA.
 
 The packaged app checks [GitHub Releases](https://github.com/TheFallen0000/roleplay-manager/releases)
 from **System → Updates**. Applying an update creates a backup, downloads the
-package for your OS into `versions/<version>/`, verifies its SHA-256 checksum,
-switches the `current` pointer and offers a **Restart now** button; your `data/`
-and `backups/` are untouched and the previous version stays on disk.
+package for your OS into `versions/<version>/`, verifies the release's Ed25519
+signature and the package's SHA-256 checksum, switches the `current` pointer and
+offers a **Restart now** button; your `data/` and `backups/` are untouched and
+the previous version stays on disk.
 
 ## Documentation
 

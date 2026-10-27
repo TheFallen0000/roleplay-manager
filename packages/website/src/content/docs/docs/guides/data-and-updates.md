@@ -33,8 +33,8 @@ the package for your platform into `versions/<version>/`, changes the `current`
 pointer and offers **Restart now**.
 
 - Your `data/` and `backups/` are untouched.
-- The downloaded package is checked against the release's SHA-256 checksum
-  before it is installed.
+- The downloaded package is checked against the release's Ed25519 signature and
+  SHA-256 checksum before it is installed.
 - The previous version stays on disk, so you can go back.
 - If something goes wrong, use the log in **System → Logs**.
 
