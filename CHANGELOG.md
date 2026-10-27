@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.51.2] - 2026-10-27
+
 ### Changed
 
 - **Zod 4**: capa de validación actualizada a 4.6.7, con esquemas modernizados
