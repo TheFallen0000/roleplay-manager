@@ -218,7 +218,7 @@ Last updated: 2026-10-27
 | PM.47 | Upgrade `better-sqlite3` 12 → 13 (N-API, prebuilt binaries and packaging on every platform). <br>*Done as S99 (v1.54.4) — see `S99-progress.md`.* | PM.24 |
 | PM.48 | Upgrade the logging stack: `pino` 10, `pino-http` 11, `pino-pretty` 13 and `uuid` 14. Test rotation, redaction, transports and ESM imports. <br>*Done as S100 (v1.54.5) — see `S100-progress.md`.* | — |
 | PM.49 | Upgrade TypeScript 7 and `@types/node` 26 when Astro supports TypeScript 7 and the bundled runtime moves to Node 26. <br>*Blocked: `astro check` rejects TypeScript 7 and the app still bundles Node 24.* | PM.24 |
-| PM.50 | Upgrade `prettier-plugin-astro` 1.x and reformat the Astro files. <br>*Deferred from S97 (Dependabot #67); formatting-only, no runtime impact.* | — |
+| PM.50 | Upgrade `prettier-plugin-astro` 1.x and reformat the Astro files. <br>*Done as S101 (v1.54.6) — see `S101-progress.md`.* | — |
 
 > **PM.46 (S98) — done (2026-10-27, v1.54.3):** Express 5.3.0 is in place.
 > `validate` now defines an own request property because `req.query` is a
@@ -236,6 +236,11 @@ Last updated: 2026-10-27
 > together because of their type coupling; uuid 14 is ESM-only and ships its
 > own types, so `@types/uuid` was removed. Rotation, redaction and the dev
 > pretty transport were verified. See `S100-progress.md`.
+
+> **PM.50 (S101) — done (2026-10-27, v1.54.6):** `prettier-plugin-astro` 1.1.2
+> reformats the Astro files with the Astro 7 Rust compiler. `astroCompressHTML:
+> "jsx"` mirrors the framework default, and the rendered text of six website
+> pages matches the live v1.54.5 build. See `S101-progress.md`.
 
 > **PM.25 + PM.26 (S72) — done (2026-10-12, v1.45.0):** The Updates panel can roll back to the
 > previous `versions/<v>` (confirmation dialog, restart needed, data untouched; the git adapter
@@ -312,8 +317,8 @@ Last updated: 2026-10-27
 > only patch/minor updates; majors arrive as individual PRs. The safe updates
 > are merged and `pnpm audit --prod` is clean. Express 5, `better-sqlite3` 13,
 > the pino/uuid majors, TypeScript 7 and `prettier-plugin-astro` 1.x remain as
-> **PM.46–PM.50**. PM.46 was completed in S98, PM.47 in S99 and PM.48 in S100;
-> PM.49–PM.50 remain. See `S97-progress.md`.
+> **PM.46–PM.50**. PM.46 was completed in S98, PM.47 in S99, PM.48 in S100 and
+> PM.50 in S101; PM.49 remains blocked by Astro/Node. See `S97-progress.md`.
 
 ## UI polish
 

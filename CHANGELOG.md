@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Formateo Astro**: `prettier-plugin-astro` 1.x, basado en el compilador Rust
+  de Astro 7. Se reformatearon los `.astro` y se fijó
+  `astroCompressHTML: "jsx"` para que el formato no altere los espacios
+  renderizados. Sin cambios de comportamiento.
+
 ## [1.54.5] - 2026-10-27
 
 ### Changed
