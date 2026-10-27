@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.52.0] - 2026-10-27
+
 ### Added
 
 - **Paginación del historial del chat**: la conversación se abre con los
