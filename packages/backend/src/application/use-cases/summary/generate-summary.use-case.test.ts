@@ -4,6 +4,7 @@ import { GenerateSummaryUseCase } from "./generate-summary.use-case"
 import type { DefaultProviderConfig } from "@workspace/shared/types/provider"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
+import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
@@ -201,10 +202,18 @@ const buildUseCase = (
   memCount: number,
   hasPrevSummary: boolean,
   capture?: boolean,
-): GenerateSummaryUseCase =>
-  new GenerateSummaryUseCase(
+): GenerateSummaryUseCase => {
+  const messageRepo = buildMessageRepo(msgCount)
+  return new GenerateSummaryUseCase(
     buildConversationRepo(convExists),
-    buildMessageRepo(msgCount),
+    messageRepo,
+    buildMessageHistoryRepository(
+      (conversationId) => messageRepo.findByConversationId(conversationId),
+      async (id) => {
+        const index = Number(id.replace(/^msg-/, ""))
+        return Number.isNaN(index) ? null : index
+      },
+    ),
     buildCharacterRepo(charExists),
     buildMemoryRepo(memCount),
     buildSummaryRepo(hasPrevSummary),
@@ -213,6 +222,7 @@ const buildUseCase = (
     buildProviderInstanceRepo(false),
     buildLogger(),
   )
+}
 
 describe("GenerateSummaryUseCase", () => {
   it("generates a summary when there are messages", async () => {

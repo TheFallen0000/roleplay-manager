@@ -1,52 +1,88 @@
 import type { ConversationSummary } from "@workspace/shared/types/conversation"
 
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
-import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import type { CharacterAssetRepository } from "../../../domain/ports/character-asset.repository"
-import { resolveEffectiveProfileImageAssetId } from "../../../domain/value-objects/effective-profile-image"
+import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
+import type { CharacterSummaryRepository } from "../../../domain/ports/character.repository"
+import type { CharacterAssetLookupRepository } from "../../../domain/ports/character-asset.repository"
 
 export class ListConversationsUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
-    private readonly messageRepository: MessageRepository,
-    private readonly characterRepository: CharacterRepository,
-    private readonly assetRepository: CharacterAssetRepository,
+    private readonly messageRepository: MessageHistoryRepository,
+    private readonly characterRepository: CharacterSummaryRepository,
+    private readonly assetRepository: CharacterAssetLookupRepository,
   ) {}
 
   async execute(): Promise<ConversationSummary[]> {
     const conversations = await this.conversationRepository.list()
-    const summaries: ConversationSummary[] = []
+    const conversationIds = conversations.map((conversation) => conversation.id)
+    const versionIds = [
+      ...new Set(conversations.map((conversation) => conversation.versionId)),
+    ]
 
-    for (const conv of conversations) {
-      const messages = await this.messageRepository.findByConversationId(conv.id)
-      const version = await this.characterRepository.findVersionById(conv.versionId)
-      const characterId = version?.characterId ?? ""
-      const result = characterId ? await this.characterRepository.findById(characterId) : null
+    const [stats, versions, currentVersions] = await Promise.all([
+      this.messageRepository.findStatsByConversationIds(conversationIds),
+      this.characterRepository.findVersionSummariesByIds(versionIds),
+      this.characterRepository.listCurrentVersionSummaries(),
+    ])
 
-      const lastActivityAt = messages.length > 0
-        ? messages.reduce((max, m) => m.createdAt > max ? m.createdAt : max, messages[0].createdAt)
-        : conv.updatedAt
+    const statsByConversation = new Map(
+      stats.map((entry) => [entry.conversationId, entry]),
+    )
+    const versionsById = new Map(versions.map((version) => [version.id, version]))
+    const currentByCharacter = new Map(
+      currentVersions.map((entry) => [entry.character.id, entry.currentVersion]),
+    )
 
-      summaries.push({
-        id: conv.id,
-        characterId: result?.currentVersion.characterId ?? version?.characterId ?? "",
-        characterName: result?.currentVersion.name ?? version?.name ?? "Unknown",
-        profileImageAssetId: await resolveEffectiveProfileImageAssetId(
-          conv.customProfileImageAssetId,
-          result?.currentVersion.profileImageAssetId ?? null,
-          this.assetRepository,
-        ),
-        title: conv.title,
-        messageCount: messages.length,
-        lastActivityAt: lastActivityAt.toISOString(),
-        createdAt: conv.createdAt.toISOString(),
-        updatedAt: conv.updatedAt.toISOString(),
-      })
+    const assetIds = new Set<string>()
+    for (const conversation of conversations) {
+      if (conversation.customProfileImageAssetId) {
+        assetIds.add(conversation.customProfileImageAssetId)
+      }
+      const version = versionsById.get(conversation.versionId)
+      const current = version
+        ? currentByCharacter.get(version.characterId)
+        : undefined
+      if (current?.profileImageAssetId) {
+        assetIds.add(current.profileImageAssetId)
+      }
     }
+    const assets = await this.assetRepository.findByIds([...assetIds])
+    const existingAssetIds = new Set(assets.map((asset) => asset.id))
+
+    const summaries: ConversationSummary[] = conversations.map((conversation) => {
+      const version = versionsById.get(conversation.versionId)
+      const current = version
+        ? currentByCharacter.get(version.characterId)
+        : undefined
+      const stats = statsByConversation.get(conversation.id)
+      const customProfileImageAssetId =
+        conversation.customProfileImageAssetId &&
+        existingAssetIds.has(conversation.customProfileImageAssetId)
+          ? conversation.customProfileImageAssetId
+          : null
+      const profileImageAssetId =
+        customProfileImageAssetId ?? current?.profileImageAssetId ?? null
+
+      return {
+        id: conversation.id,
+        characterId: current?.characterId ?? version?.characterId ?? "",
+        characterName: current?.name ?? version?.name ?? "Unknown",
+        profileImageAssetId,
+        title: conversation.title,
+        messageCount: stats?.messageCount ?? 0,
+        lastActivityAt: (
+          stats?.lastMessageAt ?? conversation.updatedAt
+        ).toISOString(),
+        createdAt: conversation.createdAt.toISOString(),
+        updatedAt: conversation.updatedAt.toISOString(),
+      }
+    })
 
     summaries.sort(
-      (a, b) => new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime(),
+      (a, b) =>
+        new Date(b.lastActivityAt).getTime() -
+        new Date(a.lastActivityAt).getTime(),
     )
 
     return summaries

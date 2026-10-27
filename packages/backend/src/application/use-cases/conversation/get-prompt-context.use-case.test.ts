@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest"
 import { GetPromptContextUseCase } from "./get-prompt-context.use-case"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
+import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
@@ -110,17 +110,6 @@ const buildCharacterRepo = (): CharacterRepository => ({
   updateProfileImageAssetId: async () => {},
 })
 
-const buildMessageRepo = (messages: Message[]): MessageRepository => ({
-  create: async (m) => m,
-  findByConversationId: async () => messages,
-  findById: async () => null,
-  findLastByConversationId: async () => null,
-  update: async (m) => m,
-  deleteById: async () => {},
-  deleteAfterPosition: async () => {},
-  clearAlternatives: async () => {},
-})
-
 const buildMemoryRepo = (memories: Memory[]): MemoryRepository => ({
   findById: async () => null,
   findByConversationId: async () => memories,
@@ -160,10 +149,11 @@ function buildUseCase(params: {
   summary?: Summary | null
 }) {
   _capturedBuildParams = {}
+  const messages = params.messages ?? buildMessages(12)
   return new GetPromptContextUseCase(
     buildConversationRepo(params.conv ?? activeConv, params.nonexistentIds ?? []),
     buildCharacterRepo(),
-    buildMessageRepo(params.messages ?? buildMessages(12)),
+    buildMessageHistoryRepository(() => messages),
     buildMemoryRepo(params.memories ?? []),
     buildSummaryRepo(params.summary ?? null),
     buildPromptContextBuilder(),

@@ -4,6 +4,7 @@ import type { SummaryDTO } from "@workspace/shared/types/summary"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
+import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { ProviderRegistry, ProviderPort } from "../../../domain/ports/provider.port"
@@ -33,6 +34,7 @@ export class GenerateSummaryUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
     private readonly messageRepository: MessageRepository,
+    private readonly messageHistoryRepository: MessageHistoryRepository,
     private readonly characterRepository: CharacterRepository,
     private readonly memoryRepository: MemoryRepository,
     private readonly summaryRepository: SummaryRepository,
@@ -50,24 +52,32 @@ export class GenerateSummaryUseCase {
       return { error: { code: "CONVERSATION_NOT_FOUND", message: "Conversation not found" } }
     }
 
-    const allMessages = await this.messageRepository.findByConversationId(conversationId)
-    if (allMessages.length === 0) {
-      return { error: { code: "NO_MESSAGES", message: "No messages to summarize" } }
-    }
-
     const latestSummary = await this.summaryRepository.findLatestByConversationId(conversationId)
 
-    let firstMessageIndex = 0
-    if (latestSummary) {
-      const idx = allMessages.findIndex((m) => m.id === latestSummary.lastMessageId)
-      if (idx !== -1) {
-        firstMessageIndex = idx + 1
+    let newMessages: Message[]
+    if (!latestSummary) {
+      newMessages = await this.messageRepository.findByConversationId(conversationId)
+      if (newMessages.length === 0) {
+        return { error: { code: "NO_MESSAGES", message: "No messages to summarize" } }
       }
-    }
-
-    const newMessages = allMessages.slice(firstMessageIndex)
-    if (newMessages.length === 0) {
-      return { error: { code: "NO_NEW_MESSAGES", message: "No new messages since last summary" } }
+    } else {
+      const lastPosition = await this.messageHistoryRepository.findPositionById(
+        latestSummary.lastMessageId,
+      )
+      if (lastPosition === null) {
+        newMessages = await this.messageRepository.findByConversationId(conversationId)
+        if (newMessages.length === 0) {
+          return { error: { code: "NO_MESSAGES", message: "No messages to summarize" } }
+        }
+      } else {
+        newMessages = await this.messageHistoryRepository.findAfterPosition(
+          conversationId,
+          lastPosition,
+        )
+        if (newMessages.length === 0) {
+          return { error: { code: "NO_NEW_MESSAGES", message: "No new messages since last summary" } }
+        }
+      }
     }
 
     const version = await this.characterRepository.findVersionById(conversation.versionId)
@@ -83,11 +93,14 @@ export class GenerateSummaryUseCase {
     const previousSummaryContent = latestSummary?.content
 
     const memories = await this.memoryRepository.findByConversationId(conversationId)
+    const memoryTurns = (
+      await this.messageHistoryRepository.findUserMessageTimes(conversationId)
+    ).map((createdAt) => ({ role: "user", createdAt }))
 
     const context = await this.buildSummaryContext({
       newMessages,
       previousSummaryContent,
-      memories: filterMemoriesForPrompt(conversation, memories, allMessages),
+      memories: filterMemoriesForPrompt(conversation, memories, memoryTurns),
       characterName: characterResult.currentVersion.name,
     })
 

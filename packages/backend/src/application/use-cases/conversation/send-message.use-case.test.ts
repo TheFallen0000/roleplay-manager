@@ -3,6 +3,7 @@ import { describe, it, expect, beforeAll, vi } from "vitest"
 import { SendMessageUseCase } from "./send-message.use-case"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
+import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { ProviderRegistry } from "../../../domain/ports/provider.port"
@@ -312,6 +313,7 @@ describe("SendMessageUseCase", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepo(),
       buildMessageRepo(),
+      buildMessageHistoryRepository(() => existingMessages),
       buildCharacterRepo(),
       buildMemoryRepo(),
       memoryChangeProposalRepository,
@@ -348,6 +350,7 @@ describe("SendMessageUseCase", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepoFor(summaryConversation),
       buildMessageRepo(),
+      buildMessageHistoryRepository(() => existingMessages),
       buildCharacterRepo(),
       buildMemoryRepo(),
       memoryChangeProposalRepository,
@@ -388,6 +391,7 @@ describe("SendMessageUseCase", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepo(),
       buildMessageRepo(),
+      buildMessageHistoryRepository(() => existingMessages),
       buildCharacterRepo(),
       buildMemoryRepo(),
       memoryChangeProposalRepository,
@@ -422,6 +426,7 @@ describe("SendMessageUseCase", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepo(),
       buildMessageRepo(),
+      buildMessageHistoryRepository(() => existingMessages),
       buildCharacterRepo(),
       buildMemoryRepo(),
       memoryChangeProposalRepository,
@@ -461,6 +466,7 @@ describe("SendMessageUseCase", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepo(),
       buildMessageRepo(),
+      buildMessageHistoryRepository(() => existingMessages),
       buildCharacterRepo(),
       buildMemoryRepo(),
       memoryChangeProposalRepository,
@@ -565,6 +571,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepo(),
       buildMessageRepoCustom(),
+      buildMessageHistoryRepository(() => existingMessages),
       buildCharacterRepo(),
       buildMemoryRepo(),
       proposalRepo,
@@ -674,6 +681,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepo(),
       buildMessageRepo(),
+      buildMessageHistoryRepository(() => existingMessages),
       buildCharacterRepo(),
       buildMemoryRepoWithTrack(),
       proposalRepo,
@@ -796,6 +804,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepo(),
       buildMessageRepoCustom(),
+      buildMessageHistoryRepository(() => existingMessages),
       buildCharacterRepo(),
       buildMemoryRepo(),
       proposalRepo,
@@ -898,6 +907,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     const useCase = new SendMessageUseCase(
       buildConversationRepo(),
       buildMessageRepoWithOocHistory(),
+      buildMessageHistoryRepository(() => existingMessagesWithOoc),
       buildCharacterRepo(),
       buildMemoryRepo(),
       buildProposalRepoForOoc(),
@@ -1000,10 +1010,14 @@ describe("SendMessageUseCase — output guardrails", () => {
     provider: ProviderRegistry,
     repo: MessageRepository,
     characterRepo: CharacterRepository = buildCharacterRepo(),
-  ): SendMessageUseCase =>
-    new SendMessageUseCase(
+  ): SendMessageUseCase => {
+    const history = buildMessageHistoryRepository((conversationId) =>
+      repo.findByConversationId(conversationId),
+    )
+    return new SendMessageUseCase(
       buildConversationRepo(),
       repo,
+      history,
       characterRepo,
       buildMemoryRepo(),
       memoryChangeProposalRepository,
@@ -1019,6 +1033,7 @@ describe("SendMessageUseCase — output guardrails", () => {
       buildGenerateConversationTitle(),
       decayMemories,
     )
+  }
 
   it("limpia Markdown, emojis y bordes antes de guardar la respuesta", async () => {
     const savedAssistantContents: string[] = []
@@ -1076,6 +1091,7 @@ function buildSendMessageUseCase(repo: ConversationRepository): SendMessageUseCa
   return new SendMessageUseCase(
     repo,
     buildMessageRepo(),
+    buildMessageHistoryRepository(() => existingMessages),
     buildCharacterRepo(),
     buildMemoryRepo(),
     memoryChangeProposalRepository,

@@ -1,7 +1,11 @@
-import { and, eq, gt } from "drizzle-orm"
+import { and, count, desc, eq, gt, inArray, max } from "drizzle-orm"
 
 import { Message } from "../../../../../domain/entities/message.entity"
-import type { MessageRepository } from "../../../../../domain/ports/message.repository"
+import type {
+  ConversationMessageStats,
+  MessageHistoryRepository,
+  MessageRepository,
+} from "../../../../../domain/ports/message.repository"
 import type { Database } from "../../../../config/database"
 import { messages } from "../schema"
 
@@ -20,7 +24,9 @@ const toMessage = (row: MessageRow): Message =>
     editedAt: row.editedAt ? new Date(row.editedAt) : null,
   })
 
-export class DrizzleMessageRepository implements MessageRepository {
+export class DrizzleMessageRepository
+  implements MessageRepository, MessageHistoryRepository
+{
   constructor(private readonly db: Database) {}
 
   async create(message: Message): Promise<Message> {
@@ -60,16 +66,115 @@ export class DrizzleMessageRepository implements MessageRepository {
     return rows.map(toMessage)
   }
 
+  async findRecentByConversationId(
+    conversationId: string,
+    limit: number,
+  ): Promise<Message[]> {
+    if (limit <= 0) return []
+
+    const rows = await this.db
+      .select()
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(desc(messages.position))
+      .limit(limit)
+
+    return rows.reverse().map(toMessage)
+  }
+
+  async findAfterPosition(
+    conversationId: string,
+    position: number,
+  ): Promise<Message[]> {
+    const rows = await this.db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.conversationId, conversationId),
+          gt(messages.position, position),
+        ),
+      )
+      .orderBy(messages.position)
+
+    return rows.map(toMessage)
+  }
+
   async findLastByConversationId(conversationId: string): Promise<Message | null> {
     const rows = await this.db
       .select()
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
-      .orderBy(messages.position)
+      .orderBy(desc(messages.position))
       .limit(1)
 
     if (rows.length === 0) return null
     return toMessage(rows[0])
+  }
+
+  async findPositionById(id: string): Promise<number | null> {
+    const rows = await this.db
+      .select({ position: messages.position })
+      .from(messages)
+      .where(eq(messages.id, id))
+      .limit(1)
+
+    return rows[0]?.position ?? null
+  }
+
+  async findMaxPosition(conversationId: string): Promise<number> {
+    const rows = await this.db
+      .select({ maxPosition: max(messages.position) })
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+
+    return rows[0]?.maxPosition ?? -1
+  }
+
+  async countByConversationId(conversationId: string): Promise<number> {
+    const rows = await this.db
+      .select({ messageCount: count() })
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+
+    return Number(rows[0]?.messageCount ?? 0)
+  }
+
+  async findUserMessageTimes(conversationId: string): Promise<Date[]> {
+    const rows = await this.db
+      .select({ createdAt: messages.createdAt })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.role, "user"),
+        ),
+      )
+      .orderBy(messages.createdAt)
+
+    return rows.map((row) => row.createdAt)
+  }
+
+  async findStatsByConversationIds(
+    conversationIds: string[],
+  ): Promise<ConversationMessageStats[]> {
+    if (conversationIds.length === 0) return []
+
+    const rows = await this.db
+      .select({
+        conversationId: messages.conversationId,
+        messageCount: count(),
+        lastMessageAt: max(messages.createdAt),
+      })
+      .from(messages)
+      .where(inArray(messages.conversationId, conversationIds))
+      .groupBy(messages.conversationId)
+
+    return rows.map((row) => ({
+      conversationId: row.conversationId,
+      messageCount: Number(row.messageCount),
+      lastMessageAt: row.lastMessageAt ?? null,
+    }))
   }
 
   async update(message: Message): Promise<Message> {

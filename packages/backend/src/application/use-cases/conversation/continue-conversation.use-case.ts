@@ -9,7 +9,10 @@ import { Message } from "../../../domain/entities/message.entity"
 import { MemoryChangeProposal } from "../../../domain/entities/memory-change-proposal.entity"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
+import type {
+  MessageHistoryRepository,
+  MessageRepository,
+} from "../../../domain/ports/message.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { MemoryChangeProposalRepository } from "../../../domain/ports/memory-change-proposal.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
@@ -29,6 +32,7 @@ import {
   normalizeAssistantReply,
 } from "../../../lib/reply-format"
 import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
+import { countMessagesSinceSummary } from "./summary-threshold"
 import { propagateToolCalls, type ToolCallState } from "../../../lib/propagate-tool-calls"
 import {
   accumulateToolCallDeltas,
@@ -83,6 +87,7 @@ export class ContinueConversationUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
     private readonly messageRepository: MessageRepository,
+    private readonly messageHistoryRepository: MessageHistoryRepository,
     private readonly characterRepository: CharacterRepository,
     private readonly memoryRepository: MemoryRepository,
     private readonly memoryChangeProposalRepository: MemoryChangeProposalRepository,
@@ -108,13 +113,16 @@ export class ContinueConversationUseCase {
       throw new ConversationNotFoundError(input.conversationId)
     }
 
-    const allMessages = await this.messageRepository.findByConversationId(
+    const recentMessages = await this.messageHistoryRepository.findRecentByConversationId(
+      input.conversationId,
+      Math.max(1, conversation.recentMessageCount),
+    )
+    const maxPosition = await this.messageHistoryRepository.findMaxPosition(
       input.conversationId,
     )
-    const nextPosition = allMessages.length
+    const nextPosition = maxPosition + 1
 
-    const lastAssistantIndex = allMessages.length - 1
-    const lastMsg = lastAssistantIndex >= 0 ? allMessages[lastAssistantIndex] : null
+    const lastMsg = recentMessages.at(-1) ?? null
     if (lastMsg?.role === "assistant" && lastMsg.alternatives.length > 0) {
       const accepted = lastMsg.accept()
       await this.messageRepository.update(accepted)
@@ -151,6 +159,9 @@ export class ContinueConversationUseCase {
     const memories = await this.memoryRepository.findByConversationId(
       input.conversationId,
     )
+    const memoryTurns = (
+      await this.messageHistoryRepository.findUserMessageTimes(input.conversationId)
+    ).map((createdAt) => ({ role: "user", createdAt }))
 
     const latestSummary = await this.summaryRepository.findLatestByConversationId(
       input.conversationId,
@@ -162,9 +173,9 @@ export class ContinueConversationUseCase {
 
     const context = await this.promptContextBuilder.build({
       characterVersion: characterResult.currentVersion,
-      messages: allMessages,
+      messages: recentMessages,
       recentMessageCount: conversation.recentMessageCount,
-      memories: filterMemoriesForPrompt(conversation, memories, allMessages),
+      memories: filterMemoriesForPrompt(conversation, memories, memoryTurns),
       summary: latestSummary ?? undefined,
       playerCharacter,
       locale: input.locale,
@@ -340,12 +351,11 @@ export class ContinueConversationUseCase {
 
     // Trigger summary generation if threshold is reached
     try {
-      const lastSummaryMsgIdx = latestSummary
-        ? allMessages.findIndex((m) => m.id === latestSummary.lastMessageId)
-        : -1
-      const messagesSinceLast = lastSummaryMsgIdx >= 0
-        ? allMessages.length - lastSummaryMsgIdx - 1
-        : allMessages.length
+      const messagesSinceLast = await countMessagesSinceSummary(
+        input.conversationId,
+        latestSummary?.lastMessageId ?? null,
+        this.messageHistoryRepository,
+      )
       if (messagesSinceLast >= conversation.summaryFrequency) {
         const summaryResult = await this.generateSummary.execute(
           input.conversationId,

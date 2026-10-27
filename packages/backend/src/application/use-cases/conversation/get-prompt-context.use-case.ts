@@ -1,6 +1,6 @@
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
+import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
@@ -17,7 +17,7 @@ export class GetPromptContextUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
     private readonly characterRepository: CharacterRepository,
-    private readonly messageRepository: MessageRepository,
+    private readonly messageHistoryRepository: MessageHistoryRepository,
     private readonly memoryRepository: MemoryRepository,
     private readonly summaryRepository: SummaryRepository,
     private readonly promptContextBuilder: PromptContextBuilder,
@@ -36,11 +36,16 @@ export class GetPromptContextUseCase {
 
     const characterVersion = await this.characterRepository.findVersionById(conv.versionId)
     const memories = await this.memoryRepository.findByConversationId(conversationId)
-    const allMessages = await this.messageRepository.findByConversationId(conversationId)
+    const recentMessages = await this.messageHistoryRepository.findRecentByConversationId(
+      conversationId,
+      conv.recentMessageCount,
+    )
     const summary = await this.summaryRepository.findLatestByConversationId(conversationId)
+    const memoryTurns = (
+      await this.messageHistoryRepository.findUserMessageTimes(conversationId)
+    ).map((createdAt) => ({ role: "user", createdAt }))
 
-    const recentMessages = allMessages.slice(-conv.recentMessageCount)
-    const promptMemories = filterMemoriesForPrompt(conv, memories, allMessages)
+    const promptMemories = filterMemoriesForPrompt(conv, memories, memoryTurns)
 
     const playerCharacter = await resolvePlayerCharacterPrompt(
       this.playerCharacterRepository,

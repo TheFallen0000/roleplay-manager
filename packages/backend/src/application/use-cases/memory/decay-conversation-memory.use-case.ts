@@ -1,6 +1,6 @@
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
+import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import {
   ConversationNotFoundError,
@@ -23,7 +23,7 @@ export class DecayConversationMemoryUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
     private readonly memoryRepository: MemoryRepository,
-    private readonly messageRepository: MessageRepository,
+    private readonly messageHistoryRepository: MessageHistoryRepository,
     private readonly logger: Logger,
   ) {}
 
@@ -52,14 +52,14 @@ export class DecayConversationMemoryUseCase {
       return { deleted: 0 }
     }
 
-    const messages = await this.messageRepository.findByConversationId(
-      input.conversationId,
-    )
+    const memoryTurns = (
+      await this.messageHistoryRepository.findUserMessageTimes(input.conversationId)
+    ).map((createdAt) => ({ role: "user", createdAt }))
 
     const candidates = memories
       .map((memory) => ({
         memory,
-        turns: policy.turnsSince(memory.updatedAt, messages),
+        turns: policy.turnsSince(memory.updatedAt, memoryTurns),
       }))
       .filter(({ memory, turns }) =>
         policy.isDeletionCandidate(memory.priority, turns),

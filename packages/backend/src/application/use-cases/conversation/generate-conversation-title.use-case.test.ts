@@ -3,7 +3,8 @@ import { describe, it, expect, vi } from "vitest"
 import { GenerateConversationTitleUseCase } from "./generate-conversation-title.use-case"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
+import type { SummaryRepository } from "../../../domain/ports/summary.repository"
+import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import type { ProviderRegistry } from "../../../domain/ports/provider.port"
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
@@ -99,6 +100,16 @@ const convRepo: ConversationRepository = {
 
 let updatedConv: Conversation | null = null
 
+const summaryRepo: SummaryRepository = {
+  findById: async () => null,
+  findByConversationId: async () => [],
+  findLatestByConversationId: async () => null,
+  create: async (s) => s,
+  update: async (s) => s,
+  deleteById: async () => {},
+  deleteByIds: async () => {},
+}
+
 const charRepo: CharacterRepository = {
   createWithFirstVersion: async () => ({ character: null as any, version }),
   findById: async () => null,
@@ -110,17 +121,6 @@ const charRepo: CharacterRepository = {
   findMaxVersionNumber: async () => 0,
   saveVersion: async (v) => v,
   updateProfileImageAssetId: async () => {},
-}
-
-const msgRepo: MessageRepository = {
-  create: async (m) => m,
-  findByConversationId: async () => buildMessages(4),
-  findById: async () => null,
-  findLastByConversationId: async () => null,
-  update: async (m) => m,
-  deleteById: async () => {},
-  deleteAfterPosition: async () => {},
-  clearAlternatives: async () => {},
 }
 
 const getDefaultProvider = {
@@ -193,7 +193,8 @@ function buildUseCase() {
   updatedConv = null
   return new GenerateConversationTitleUseCase(
     convRepo,
-    msgRepo,
+    buildMessageHistoryRepository(() => buildMessages(4)),
+    summaryRepo,
     charRepo,
     providerRegistry,
     getDefaultProvider,
@@ -228,7 +229,8 @@ describe("GenerateConversationTitleUseCase", () => {
     }
     const useCase = new GenerateConversationTitleUseCase(
       convRepo,
-      msgRepo,
+      buildMessageHistoryRepository(() => buildMessages(4)),
+      summaryRepo,
       charRepo,
       capturingRegistry,
       getDefaultProvider,
@@ -275,13 +277,10 @@ describe("GenerateConversationTitleUseCase", () => {
   })
 
   it("lanza error si la conversación no tiene mensajes", async () => {
-    const emptyMsgRepo: MessageRepository = {
-      ...msgRepo,
-      findByConversationId: async () => [],
-    }
     const useCase = new GenerateConversationTitleUseCase(
       convRepo,
-      emptyMsgRepo,
+      buildMessageHistoryRepository(() => []),
+      summaryRepo,
       charRepo,
       providerRegistry,
       getDefaultProvider,

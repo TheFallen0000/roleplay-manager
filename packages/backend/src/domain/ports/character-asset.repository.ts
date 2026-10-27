@@ -19,6 +19,10 @@ export interface CharacterAssetRepository {
   deleteById(id: string): Promise<void>
 }
 
+export interface CharacterAssetLookupRepository {
+  findByIds(ids: string[]): Promise<CharacterAssetMetadata[]>
+}
+
 export interface CharacterAssetStorage {
   write(characterId: string, assetId: string, extension: string, data: Buffer): Promise<void>
   read(characterId: string, assetId: string, extension: string): Promise<Readable>

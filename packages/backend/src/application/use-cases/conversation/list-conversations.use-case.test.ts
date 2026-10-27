@@ -1,214 +1,145 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 
 import { ListConversationsUseCase } from "./list-conversations.use-case"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
-import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import type { CharacterAssetRepository } from "../../../domain/ports/character-asset.repository"
+import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
+import type {
+  CharacterSummaryRepository,
+  CharacterVersionSummary,
+  CharacterWithCurrentVersionSummary,
+} from "../../../domain/ports/character.repository"
+import type { CharacterAssetLookupRepository } from "../../../domain/ports/character-asset.repository"
 import { Conversation } from "../../../domain/entities/conversation.entity"
-import { Message } from "../../../domain/entities/message.entity"
 import { Character } from "../../../domain/entities/character.entity"
-import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 
-const now = new Date()
-const character = Character.create({ id: "char-1", name: "Test", createdAt: now, updatedAt: now })
-const version = CharacterVersion.create({
-  id: "ver-1", characterId: "char-1", name: "Test",
-  subtitle: null, profileImageAssetId: null,
-  description: "A test character", instructions: null,
-  greeting: "Hello!", versionNumber: 1, createdAt: now, cards: [],
+const now = new Date("2026-10-27T12:00:00.000Z")
+const older = new Date("2026-10-01T12:00:00.000Z")
+
+const character = Character.create({
+  id: "char-1",
+  name: "Test",
+  createdAt: now,
+  updatedAt: now,
 })
 
-const buildConversationRepo = (): ConversationRepository => ({
+const currentVersion: CharacterVersionSummary = {
+  id: "ver-1",
+  characterId: "char-1",
+  name: "Test",
+  subtitle: null,
+  profileImageAssetId: null,
+  versionNumber: 1,
+}
+
+const conversation = (
+  id: string,
+  updatedAt: Date,
+  overrides: Partial<Parameters<typeof Conversation.create>[0]> = {},
+): Conversation =>
+  Conversation.create({
+    id,
+    versionId: "ver-1",
+    title: null,
+    titleSource: null,
+    model: null,
+    provider: null,
+    providerInstanceId: null,
+    recentMessageCount: 10,
+    summaryFrequency: 20,
+    temperature: 0.7,
+    maxTokens: 2048,
+    topP: 0.9,
+    frequencyPenalty: 0,
+    presencePenalty: 0,
+    stopSequences: [],
+    memoryProposalMode: "auto",
+    createdAt: updatedAt,
+    updatedAt,
+    ...overrides,
+  })
+
+const buildConversationRepo = (
+  conversations: Conversation[],
+): ConversationRepository => ({
   create: async (c) => c,
   findById: async () => null,
   findByIdWithMessages: async () => null,
-  updateSettings: async (_id: string, _settings: any) => ({} as Conversation),
+  list: async () => conversations,
+  update: async (c) => c,
+  updateSettings: async (_id: string, _settings) => conversations[0],
   clearProviderInstanceId: async () => {},
-  list: async () => {
-    const all = [
-      Conversation.create({
-        id: "conv-1",
-        versionId: "ver-1",
-        title: null,
-        titleSource: null,
-        model: null,
-        provider: null,
-        providerInstanceId: null,
-        recentMessageCount: 10,
-        summaryFrequency: 20,
-        temperature: 0.7,
-        maxTokens: 2048,
-        topP: 0.9,
-        frequencyPenalty: 0,
-        presencePenalty: 0,
-        stopSequences: [],
-        memoryProposalMode: "auto",
-        createdAt: now,
-        updatedAt: now,
-      }),
-      Conversation.create({
-        id: "conv-2",
-        versionId: "ver-1",
-        title: "Chat sobre Test",
-        titleSource: null,
-        model: null,
-        provider: null,
-        providerInstanceId: null,
-        recentMessageCount: 10,
-        summaryFrequency: 20,
-        temperature: 0.7,
-        maxTokens: 2048,
-        topP: 0.9,
-        frequencyPenalty: 0,
-        presencePenalty: 0,
-        stopSequences: [],
-        memoryProposalMode: "auto",
-        createdAt: now,
-        updatedAt: now,
-      }),
-    ]
-    return all
-  },
-  update: async (c) => c,
 })
 
-const buildMessageRepo = (messageCount: number): MessageRepository => ({
-  create: async (m) => m,
-  findByConversationId: async () =>
-    Array.from({ length: messageCount }, (_, i) =>
-      Message.create({
-        id: `msg-${i}`,
-        conversationId: "conv-1",
-        role: i % 2 === 0 ? "assistant" : "user",
-        content: `Message ${i}`,
-        position: i,
-        alternatives: [],
-        alternativesCursor: 0,
-        createdAt: now,
-        editedAt: null,
-      }),
-    ),
-  findById: async () => null,
-  findLastByConversationId: async () => null,
-  update: async (m) => m,
-  deleteById: async () => {},
-  deleteAfterPosition: async () => {},
-  clearAlternatives: async () => {},
+const buildMessageHistory = (
+  stats: Array<{
+    conversationId: string
+    messageCount: number
+    lastMessageAt: Date | null
+  }>,
+): MessageHistoryRepository => ({
+  findRecentByConversationId: vi.fn(async () => []),
+  findAfterPosition: vi.fn(async () => []),
+  findPositionById: vi.fn(async () => null),
+  findMaxPosition: vi.fn(async () => -1),
+  countByConversationId: vi.fn(async () => 0),
+  findUserMessageTimes: vi.fn(async () => []),
+  findStatsByConversationIds: vi.fn(async () => stats),
 })
 
-const buildCharacterRepo = (): CharacterRepository => ({
-  createWithFirstVersion: async () => ({ character, version }),
-  findById: async () => ({ character, currentVersion: version }),
-  list: async () => [],
-  update: async (c) => c,
-  delete: async () => {},
-  findVersionById: async () => version,
-  findVersionsByCharacterId: async () => [],
-  findMaxVersionNumber: async () => 0,
-  saveVersion: async (v) => v,
-  updateProfileImageAssetId: async () => {},
+const buildCharacterRepo = (
+  current: CharacterWithCurrentVersionSummary[] = [
+    { character, currentVersion },
+  ],
+  versions: CharacterVersionSummary[] = [currentVersion],
+): CharacterSummaryRepository => ({
+  listCurrentVersionSummaries: vi.fn(async () => current),
+  findVersionSummariesByIds: vi.fn(async () => versions),
 })
 
-const buildAssetRepo = (): CharacterAssetRepository => ({
-  create: async () => {},
-  findById: async () => null,
-  findByCharacterId: async () => [],
-  deleteById: async () => {},
+const buildAssetRepo = (
+  assets: Array<{
+    id: string
+    characterId: string
+    mimeType: string
+    sizeBytes: number
+    extension: string
+    width: number | null
+    height: number | null
+    createdAt: Date
+  }> = [],
+): CharacterAssetLookupRepository => ({
+  findByIds: vi.fn(async () => assets),
 })
 
 describe("ListConversationsUseCase", () => {
   it("retorna lista de conversaciones con resumen", async () => {
     const useCase = new ListConversationsUseCase(
-      buildConversationRepo(),
-      buildMessageRepo(5),
+      buildConversationRepo([conversation("conv-1", now)]),
+      buildMessageHistory([
+        { conversationId: "conv-1", messageCount: 5, lastMessageAt: now },
+      ]),
       buildCharacterRepo(),
       buildAssetRepo(),
     )
 
     const result = await useCase.execute()
 
-    expect(result).toHaveLength(2)
+    expect(result).toHaveLength(1)
     expect(result[0].characterName).toBe("Test")
     expect(result[0].messageCount).toBe(5)
-    expect(result[0].lastActivityAt).toBeDefined()
-    expect(result[1].lastActivityAt).toBeDefined()
+    expect(result[0].lastActivityAt).toBe(now.toISOString())
   })
 
   it("ordena por lastActivityAt descendente", async () => {
-    const older = new Date("2025-01-01")
-    const newer = new Date("2025-06-01")
-
-    const repo = (): ConversationRepository => ({
-      create: async (c) => c,
-      findById: async () => null,
-      findByIdWithMessages: async () => null,
-      updateSettings: async (_id: string, _settings: any) => ({} as Conversation),
-      clearProviderInstanceId: async () => {},
-      list: async () => [
-        Conversation.create({
-          id: "old-conv",
-          versionId: "ver-1",
-          title: null, titleSource: null,
-          model: null, provider: null, providerInstanceId: null,
-          recentMessageCount: 10, summaryFrequency: 20,
-          temperature: 0.7, maxTokens: 2048, topP: 0.9,
-          frequencyPenalty: 0, presencePenalty: 0,
-          stopSequences: [],
-          memoryProposalMode: "auto",
-          createdAt: older,
-          updatedAt: older,
-        }),
-        Conversation.create({
-          id: "recent-conv",
-          versionId: "ver-1",
-          title: null, titleSource: null,
-          model: null, provider: null, providerInstanceId: null,
-          recentMessageCount: 10, summaryFrequency: 20,
-          temperature: 0.7, maxTokens: 2048, topP: 0.9,
-          frequencyPenalty: 0, presencePenalty: 0,
-          stopSequences: [],
-          memoryProposalMode: "auto",
-          createdAt: newer,
-          updatedAt: newer,
-        }),
-      ],
-      update: async (c) => c,
-    })
-
-    const messageRepo = (): MessageRepository => ({
-      create: async (m) => m,
-      findByConversationId: async (convId) => {
-        if (convId === "recent-conv") {
-          return [
-            Message.create({
-              id: "msg-recent", conversationId: "recent-conv",
-              role: "assistant", content: "Hi", position: 0,
-              alternatives: [], alternativesCursor: 0,
-              createdAt: newer, editedAt: null,
-            }),
-          ]
-        }
-        return [
-          Message.create({
-            id: "msg-old", conversationId: "old-conv",
-            role: "assistant", content: "Hello", position: 0,
-            alternatives: [], alternativesCursor: 0,
-            createdAt: older, editedAt: null,
-          }),
-        ]
-      },
-      findById: async () => null,
-      findLastByConversationId: async () => null,
-      update: async (m) => m,
-      deleteById: async () => {},
-      deleteAfterPosition: async () => {},
-      clearAlternatives: async () => {},
-    })
-
     const useCase = new ListConversationsUseCase(
-      repo(),
-      messageRepo(),
+      buildConversationRepo([
+        conversation("old-conv", older),
+        conversation("recent-conv", now),
+      ]),
+      buildMessageHistory([
+        { conversationId: "old-conv", messageCount: 1, lastMessageAt: older },
+        { conversationId: "recent-conv", messageCount: 1, lastMessageAt: now },
+      ]),
       buildCharacterRepo(),
       buildAssetRepo(),
     )
@@ -216,5 +147,55 @@ describe("ListConversationsUseCase", () => {
     const result = await useCase.execute()
     expect(result[0].id).toBe("recent-conv")
     expect(result[1].id).toBe("old-conv")
+  })
+
+  it("usa la imagen personalizada solo si el asset existe", async () => {
+    const assets = [
+      {
+        id: "asset-custom",
+        characterId: "char-1",
+        mimeType: "image/png",
+        sizeBytes: 10,
+        extension: "png",
+        width: 100,
+        height: 100,
+        createdAt: now,
+      },
+    ]
+    const useCase = new ListConversationsUseCase(
+      buildConversationRepo([
+        conversation("conv-1", now, {
+          customProfileImageAssetId: "asset-custom",
+        }),
+        conversation("conv-2", now, {
+          customProfileImageAssetId: "asset-missing",
+        }),
+      ]),
+      buildMessageHistory([
+        { conversationId: "conv-1", messageCount: 1, lastMessageAt: now },
+        { conversationId: "conv-2", messageCount: 1, lastMessageAt: now },
+      ]),
+      buildCharacterRepo(),
+      buildAssetRepo(assets),
+    )
+
+    const result = await useCase.execute()
+
+    expect(result[0].profileImageAssetId).toBe("asset-custom")
+    expect(result[1].profileImageAssetId).toBeNull()
+  })
+
+  it("cae a updatedAt si la conversación no tiene mensajes", async () => {
+    const useCase = new ListConversationsUseCase(
+      buildConversationRepo([conversation("conv-1", older)]),
+      buildMessageHistory([
+        { conversationId: "conv-1", messageCount: 0, lastMessageAt: null },
+      ]),
+      buildCharacterRepo(),
+      buildAssetRepo(),
+    )
+
+    const result = await useCase.execute()
+    expect(result[0].lastActivityAt).toBe(older.toISOString())
   })
 })
