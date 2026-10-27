@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Logging y UUID**: pino 10, pino-http 11, pino-pretty 13 y uuid 14. La
+  actualización conjunta alinea los tipos de pino-http; uuid 14 es ESM y ya
+  incluye tipos, así que se retira `@types/uuid`. Sin cambios en formato,
+  redacción ni rotación de logs.
+
 ## [1.54.4] - 2026-10-27
 
 ### Changed
