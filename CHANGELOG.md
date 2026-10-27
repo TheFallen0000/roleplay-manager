@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.54.0] - 2026-10-27
+
 ### Changed
 
 - **Cabeceras de seguridad y CSP**: el backend escucha en `127.0.0.1` por
