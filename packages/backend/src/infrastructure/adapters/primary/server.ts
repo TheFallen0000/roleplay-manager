@@ -60,6 +60,9 @@ export const buildServer = ({
   const app = express()
 
   app.disable("x-powered-by")
+  // Express 5 defaults to the simple query parser; no route needs nested query
+  // objects, so keep it instead of restoring the Express 4 extended parser.
+  app.set("query parser", "simple")
   app.use(
     helmet({
       // Astro emits a hashed CSP meta tag per page; a second full policy here
