@@ -6,6 +6,28 @@ export interface CreateCharacterWithVersionResult {
   version: CharacterVersion
 }
 
+export interface CharacterVersionSummary {
+  id: string
+  characterId: string
+  name: string
+  subtitle: string | null
+  profileImageAssetId: string | null
+  versionNumber: number
+}
+
+export interface CharacterWithCurrentVersionSummary {
+  character: Character
+  currentVersion: CharacterVersionSummary
+}
+
+export interface CharacterSummaryRepository {
+  listCurrentVersionSummaries(): Promise<CharacterWithCurrentVersionSummary[]>
+
+  findVersionSummariesByIds(
+    ids: string[],
+  ): Promise<CharacterVersionSummary[]>
+}
+
 export interface CharacterRepository {
   createWithFirstVersion(character: Character, version: CharacterVersion): Promise<CreateCharacterWithVersionResult>
 

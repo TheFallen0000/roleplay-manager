@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest"
 import { ContinueConversationUseCase } from "./continue-conversation.use-case"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
+import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
@@ -257,6 +258,7 @@ describe("ContinueConversationUseCase - tool calls", () => {
     const useCase = new ContinueConversationUseCase(
       buildConversationRepo(),
       buildMessageRepo(),
+      buildMessageHistoryRepository(() => baseMessages),
       buildCharacterRepo(),
       buildMemoryRepo(),
       proposalRepo,

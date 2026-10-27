@@ -3,7 +3,10 @@ import { describe, it, expect, vi } from "vitest"
 import { DecayConversationMemoryUseCase } from "./decay-conversation-memory.use-case"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
+import type {
+  MessageHistoryRepository,
+  MessageRepository,
+} from "../../../domain/ports/message.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import { Conversation } from "../../../domain/entities/conversation.entity"
 import { Memory } from "../../../domain/entities/memory.entity"
@@ -92,9 +95,28 @@ const buildRepos = ({
     updateSettings: async (_id, _s) => conversation,
     clearProviderInstanceId: async () => {},
   }
-  const messageRepo: MessageRepository = {
+  const messageRepo: MessageRepository & MessageHistoryRepository = {
     create: async (m) => m,
     findByConversationId: async () => messages,
+    findRecentByConversationId: async (_id, limit) => messages.slice(-limit),
+    findAfterPosition: async (_id, position) =>
+      messages.filter((message) => message.position > position),
+    findPositionById: async () => null,
+    findMaxPosition: async () =>
+      messages.length > 0
+        ? Math.max(...messages.map((message) => message.position))
+        : -1,
+    countByConversationId: async () => messages.length,
+    findUserMessageTimes: async () =>
+      messages
+        .filter((message) => message.role === "user")
+        .map((message) => message.createdAt),
+    findStatsByConversationIds: async (conversationIds) =>
+      conversationIds.map((conversationId) => ({
+        conversationId,
+        messageCount: messages.length,
+        lastMessageAt: messages.at(-1)?.createdAt ?? null,
+      })),
     findById: async () => null,
     findLastByConversationId: async () => null,
     update: async (m) => m,

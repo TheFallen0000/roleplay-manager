@@ -25,15 +25,22 @@ import type { ProviderRegistry } from "../domain/ports/provider.port"
 import type { SettingsRepository } from "../domain/ports/settings.repository"
 import type { PhoneAccessActivity } from "../domain/ports/phone-access-activity"
 import type { LogReader } from "../domain/ports/log-reader"
-import type { CharacterRepository } from "../domain/ports/character.repository"
+import type {
+  CharacterRepository,
+  CharacterSummaryRepository,
+} from "../domain/ports/character.repository"
 import type { PlayerCharacterRepository } from "../domain/ports/player-character.repository"
 import type {
+  CharacterAssetLookupRepository,
   CharacterAssetMaintenanceRepository,
   CharacterAssetRepository,
   CharacterAssetVariantStorage,
 } from "../domain/ports/character-asset.repository"
 import type { ConversationRepository } from "../domain/ports/conversation.repository"
-import type { MessageRepository } from "../domain/ports/message.repository"
+import type {
+  MessageHistoryRepository,
+  MessageRepository,
+} from "../domain/ports/message.repository"
 import type { MemoryRepository } from "../domain/ports/memory.repository"
 import type { MemoryChangeProposalRepository } from "../domain/ports/memory-change-proposal.repository"
 import type { ProviderInstanceRepository } from "../domain/ports/provider-instance.repository"
@@ -289,9 +296,11 @@ export const buildContainer = ({
     streamingTimeoutMs: providerStreamingTimeoutMs,
     logger,
   })
-  const characterRepository: CharacterRepository = new DrizzleCharacterRepository(database)
+  const characterRepository: CharacterRepository & CharacterSummaryRepository =
+    new DrizzleCharacterRepository(database)
   const playerCharacterRepository: PlayerCharacterRepository = new DrizzlePlayerCharacterRepository(database)
-  const characterAssetRepository: CharacterAssetMaintenanceRepository =
+  const characterAssetRepository: CharacterAssetMaintenanceRepository &
+    CharacterAssetLookupRepository =
     new DrizzleCharacterAssetRepository(database)
   const characterAssetStorage: CharacterAssetVariantStorage =
     new FilesystemCharacterAssetStorage(dataDir)
@@ -305,7 +314,8 @@ export const buildContainer = ({
     maxProfileImageBytes,
   )
   const conversationRepository: ConversationRepository = new DrizzleConversationRepository(database)
-  const messageRepository: MessageRepository = new DrizzleMessageRepository(database)
+  const messageRepository: MessageRepository & MessageHistoryRepository =
+    new DrizzleMessageRepository(database)
   const memoryRepository: MemoryRepository =
     new DrizzleMemoryRepository(database)
   const memoryChangeProposalRepository: MemoryChangeProposalRepository =
@@ -398,6 +408,7 @@ export const buildContainer = ({
   const generateConversationTitle = new GenerateConversationTitleUseCase(
     conversationRepository,
     messageRepository,
+    summaryRepository,
     characterRepository,
     providerRegistry,
     getDefaultProvider,
@@ -407,6 +418,7 @@ export const buildContainer = ({
 
   const generateSummary = new GenerateSummaryUseCase(
     conversationRepository,
+    messageRepository,
     messageRepository,
     characterRepository,
     memoryRepository,
@@ -419,6 +431,7 @@ export const buildContainer = ({
 
   const sendMessage = new SendMessageUseCase(
     conversationRepository,
+    messageRepository,
     messageRepository,
     characterRepository,
     memoryRepository,
@@ -439,6 +452,7 @@ export const buildContainer = ({
   const regenerateReply = new RegenerateReplyUseCase(
     conversationRepository,
     messageRepository,
+    messageRepository,
     characterRepository,
     memoryRepository,
     memoryChangeProposalRepository,
@@ -456,6 +470,7 @@ export const buildContainer = ({
 
   const continueConversation = new ContinueConversationUseCase(
     conversationRepository,
+    messageRepository,
     messageRepository,
     characterRepository,
     memoryRepository,

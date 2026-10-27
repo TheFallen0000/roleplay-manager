@@ -1,6 +1,7 @@
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import type { MessageRepository } from "../../../domain/ports/message.repository"
+import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
+import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { ProviderId, ProviderRegistry } from "../../../domain/ports/provider.port"
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
@@ -24,10 +25,13 @@ const LANGUAGE_NAMES: Record<Locale, string> = {
   es: "Spanish",
 }
 
+const TITLE_CONTEXT_MESSAGES = 20
+
 export class GenerateConversationTitleUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
-    private readonly messageRepository: MessageRepository,
+    private readonly messageHistoryRepository: MessageHistoryRepository,
+    private readonly summaryRepository: SummaryRepository,
     private readonly characterRepository: CharacterRepository,
     private readonly providerRegistry: ProviderRegistry,
     private readonly getDefaultProvider: GetDefaultProviderUseCase,
@@ -53,10 +57,18 @@ export class GenerateConversationTitleUseCase {
       throw new Error(`Character version '${conv.versionId}' not found.`)
     }
 
-    const messages = await this.messageRepository.findByConversationId(conversationId)
+    // Titles describe the current arc; sending the whole transcript becomes
+    // very expensive after a few summaries.
+    const messages = await this.messageHistoryRepository.findRecentByConversationId(
+      conversationId,
+      TITLE_CONTEXT_MESSAGES,
+    )
     if (messages.length === 0) {
       throw new Error("Cannot generate title: conversation has no messages.")
     }
+    const latestSummary = await this.summaryRepository.findLatestByConversationId(
+      conversationId,
+    )
 
     let providerId = conv.provider
     let providerInstanceId = conv.providerInstanceId
@@ -112,6 +124,9 @@ export class GenerateConversationTitleUseCase {
             version.description,
             "",
             "Conversation:",
+            ...(latestSummary
+              ? ["Previous summary:", latestSummary.content, ""]
+              : []),
             transcript,
             "",
             "Generate the title.",

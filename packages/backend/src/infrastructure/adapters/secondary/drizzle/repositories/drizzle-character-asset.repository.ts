@@ -1,6 +1,7 @@
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 
 import type {
+  CharacterAssetLookupRepository,
   CharacterAssetMaintenanceRepository,
   CharacterAssetMetadata,
 } from "../../../../../domain/ports/character-asset.repository"
@@ -18,7 +19,9 @@ const toMetadata = (row: typeof characterAssets.$inferSelect): CharacterAssetMet
   createdAt: new Date(row.createdAt),
 })
 
-export class DrizzleCharacterAssetRepository implements CharacterAssetMaintenanceRepository {
+export class DrizzleCharacterAssetRepository
+  implements CharacterAssetMaintenanceRepository, CharacterAssetLookupRepository
+{
   constructor(private readonly db: Database) {}
 
   async create(metadata: CharacterAssetMetadata): Promise<void> {
@@ -42,6 +45,17 @@ export class DrizzleCharacterAssetRepository implements CharacterAssetMaintenanc
       .limit(1)
 
     return rows.length > 0 ? toMetadata(rows[0]) : null
+  }
+
+  async findByIds(ids: string[]): Promise<CharacterAssetMetadata[]> {
+    if (ids.length === 0) return []
+
+    const rows = await this.db
+      .select()
+      .from(characterAssets)
+      .where(inArray(characterAssets.id, ids))
+
+    return rows.map(toMetadata)
   }
 
   async findByCharacterId(characterId: string): Promise<CharacterAssetMetadata[]> {

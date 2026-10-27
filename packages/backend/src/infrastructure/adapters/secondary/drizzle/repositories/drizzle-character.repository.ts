@@ -1,10 +1,13 @@
-import { eq, sql } from "drizzle-orm"
+import { and, eq, inArray, max, sql } from "drizzle-orm"
 
 import { Character } from "../../../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../../../domain/entities/character-version.entity"
 import { CharacterCard } from "../../../../../domain/entities/character-card.entity"
 import type {
   CharacterRepository,
+  CharacterSummaryRepository,
+  CharacterVersionSummary,
+  CharacterWithCurrentVersionSummary,
   CreateCharacterWithVersionResult,
 } from "../../../../../domain/ports/character.repository"
 import type { Database } from "../../../../config/database"
@@ -29,7 +32,9 @@ const toVersion = (row: VersionRow, cards: CharacterCard[]): CharacterVersion =>
 const toCard = (row: CardRow): CharacterCard =>
   CharacterCard.create({ ...row, active: row.active ?? true })
 
-export class DrizzleCharacterRepository implements CharacterRepository {
+export class DrizzleCharacterRepository
+  implements CharacterRepository, CharacterSummaryRepository
+{
   constructor(private readonly db: Database) {}
 
   async createWithFirstVersion(
@@ -134,6 +139,81 @@ export class DrizzleCharacterRepository implements CharacterRepository {
       .orderBy(characters.createdAt)
 
     return rows.map(toCharacter)
+  }
+
+  async listCurrentVersionSummaries(): Promise<
+    CharacterWithCurrentVersionSummary[]
+  > {
+    const characterRows = await this.db
+      .select()
+      .from(characters)
+      .orderBy(characters.createdAt)
+
+    const latestVersions = this.db
+      .select({
+        characterId: characterVersions.characterId,
+        versionNumber: max(characterVersions.versionNumber).as(
+          "max_version_number",
+        ),
+      })
+      .from(characterVersions)
+      .groupBy(characterVersions.characterId)
+      .as("latest_versions")
+
+    const versionRows = await this.db
+      .select({
+        id: characterVersions.id,
+        characterId: characterVersions.characterId,
+        name: characterVersions.name,
+        subtitle: characterVersions.subtitle,
+        profileImageAssetId: characterVersions.profileImageAssetId,
+        versionNumber: characterVersions.versionNumber,
+      })
+      .from(characterVersions)
+      .innerJoin(
+        latestVersions,
+        and(
+          eq(characterVersions.characterId, latestVersions.characterId),
+          eq(characterVersions.versionNumber, latestVersions.versionNumber),
+        ),
+      )
+
+    const versionsByCharacter = new Map<string, CharacterVersionSummary>()
+    for (const row of versionRows) {
+      versionsByCharacter.set(row.characterId, {
+        id: row.id,
+        characterId: row.characterId,
+        name: row.name,
+        subtitle: row.subtitle,
+        profileImageAssetId: row.profileImageAssetId,
+        versionNumber: row.versionNumber,
+      })
+    }
+
+    return characterRows.flatMap((row) => {
+      const currentVersion = versionsByCharacter.get(row.id)
+      return currentVersion
+        ? [{ character: toCharacter(row), currentVersion }]
+        : []
+    })
+  }
+
+  async findVersionSummariesByIds(
+    ids: string[],
+  ): Promise<CharacterVersionSummary[]> {
+    if (ids.length === 0) return []
+
+    return this.db
+      .select({
+        id: characterVersions.id,
+        characterId: characterVersions.characterId,
+        name: characterVersions.name,
+        subtitle: characterVersions.subtitle,
+        profileImageAssetId: characterVersions.profileImageAssetId,
+        versionNumber: characterVersions.versionNumber,
+      })
+      .from(characterVersions)
+      .where(inArray(characterVersions.id, ids))
   }
 
   async update(character: Character): Promise<Character> {

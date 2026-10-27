@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest"
 import { RegenerateReplyUseCase } from "./regenerate-reply.use-case"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
+import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
@@ -256,6 +257,7 @@ describe("RegenerateReplyUseCase - tool calls", () => {
     const useCase = new RegenerateReplyUseCase(
       buildConversationRepo(),
       buildMessageRepo(),
+      buildMessageHistoryRepository(() => [baseAssistantMsg]),
       buildCharacterRepo(),
       buildMemoryRepo(),
       proposalRepo,
@@ -340,6 +342,7 @@ describe("RegenerateReplyUseCase - tool calls", () => {
     const useCase = new RegenerateReplyUseCase(
       buildConversationRepo(),
       multiMsgRepo,
+      buildMessageHistoryRepository(() => [userMsg, baseAssistantMsg]),
       buildCharacterRepo(),
       buildMemoryRepo(),
       { create: async (p: any) => p, createMany: async () => {}, findById: async () => null, findPendingByConversationId: async () => [], findByConversationId: async () => [], update: async (p: any) => p, markProcessed: async () => {}, discardPendingByConversationId: async () => {} } as unknown as MemoryChangeProposalRepository,
