@@ -26,6 +26,23 @@ La app puede crear una copia antes de actualizar. También puedes copiar `data/`
 con la app detenida. Para una copia portátil de un solo personaje, usa el
 diálogo de exportación; puede incluir conversaciones, imágenes y ajustes.
 
+## Seguridad y copias
+
+`data/` y `backups/` contienen tus conversaciones, imágenes y las API keys
+guardadas de tus proveedores. Trata ambas carpetas como privadas:
+
+- Usa cifrado de disco completo en tu equipo (BitLocker en Windows, FileVault
+  en macOS, LUKS en Linux). Protege la base y las copias si pierdes el equipo.
+- En Linux y macOS la app crea datos, registros y copias con permisos solo para
+  tu usuario (`700`/`600`); en Windows, usa la cuenta del sistema y BitLocker.
+- Las copias son texto plano. Si las llevas a un USB, una carpeta en la nube u
+  otro equipo, protégelas también allí.
+- Si pierdes el equipo o una copia, rota las API keys con tu proveedor. Quitar
+  una clave de la app no la revoca en el servicio.
+
+La app no añade una passphrase ni cifra el archivo SQLite por sí misma; el
+cifrado de disco completo es la capa recomendada para este uso local-first.
+
 ## Actualizaciones
 
 Abre **Sistema → Actualizaciones**. La app consulta la última versión de GitHub,

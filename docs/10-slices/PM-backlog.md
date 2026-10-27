@@ -397,6 +397,15 @@ Last updated: 2026-10-27
 > script is external. Dependabot now covers npm/pnpm. Encryption at rest remains
 > for S96. See `S95-progress.md`.
 
+> **S96 — encryption at rest (2026-10-27, v1.54.1) — discarded:** the target is
+> a desktop with GPU, local-first and a private network boundary. Full-disk
+> encryption covers the realistic lost-device case; app-level passphrase or
+> SQLCipher would add unlock, recovery, backup and native-module complexity
+> without protecting against malware or an unlocked session. The app now uses
+> owner-only POSIX permissions and documents disk encryption, plaintext backups
+> and API-key rotation. Revisit only for cloud-synced backups or shared
+> machines. See `S96-progress.md`.
+
 ### Manual verification pending
 
 These are not code tasks; they need real hardware or a user confirmation.
