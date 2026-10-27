@@ -6,8 +6,8 @@
 
 > **Nota de revisión (2026-10-26):** este documento es el plan original de S2;
 > el slice se completó. La tabla «Estado de avance» se conserva como histórico y
-> no refleja el estado actual. El único seguimiento vivo es la vista de historial
-> y comparación de versiones, promovida a **PM.37**.
+> no refleja el estado actual. La vista de historial y comparación de versiones
+> se descartó en **PM.37** (2026-10-27).
 
 ## Decisiones confirmadas
 

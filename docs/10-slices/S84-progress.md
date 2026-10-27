@@ -81,7 +81,8 @@ producción:
 ## Pendiente
 
 - Revisar en un iPhone/Safari real (verificación manual en el `PM-backlog`).
-- Valorar una pose nueva para el 404 cuando exista: **PM.43**.
+- Valorar una pose nueva para el 404 cuando exista: **PM.43** (deferred hasta
+  que haya arte nuevo).
 
 ## Commits
 
