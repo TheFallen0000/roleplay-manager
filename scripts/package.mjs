@@ -471,8 +471,9 @@ writeFileSync(
     2,
   )}\n`,
 )
-// pnpm 11 blocks dependency build scripts unless they are explicitly allowed;
-// `better-sqlite3` needs its install script for the native binary.
+// pnpm 11 blocks dependency build scripts unless they are explicitly allowed.
+// better-sqlite3 13 ships N-API prebuilds, but its gyp fallback still needs the
+// allowance on platforms without a matching prebuilt binary.
 writeFileSync(
   join(appDir, "pnpm-workspace.yaml"),
   ["allowBuilds:", "  better-sqlite3: true", "  sharp: true", ""].join("\n"),
