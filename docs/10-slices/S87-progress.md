@@ -1,6 +1,6 @@
 # S87 — Re-recorte de imágenes guardadas (PM.38)
 
-**Estado:** Completado
+**Estado:** Completado (v1.50.0)
 **Inicio:** 2026-10-27
 **Fin:** 2026-10-27
 
