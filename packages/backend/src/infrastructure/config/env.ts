@@ -12,8 +12,8 @@ const envSchema = z.object({
   /** Folder for the rotating log files (defaults to `<DATA_DIR>/logs`). */
   LOG_DIR: z.string().min(1).optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("debug"),
-  CORS_ORIGIN: z.string().url().default("http://localhost:4321"),
-  TUNNEL_TARGET_URL: z.string().url().default("http://localhost:4321"),
+  CORS_ORIGIN: z.url().default("http://localhost:4321"),
+  TUNNEL_TARGET_URL: z.url().default("http://localhost:4321"),
   TAILSCALE_BIN: z.string().min(1).optional(),
   LAN_PORT: z.coerce.number().int().positive().default(4322),
   UPDATE_REPO_DIR: z.string().min(1).default(process.cwd()),
@@ -29,9 +29,9 @@ const envSchema = z.object({
   /** GitHub repository (`owner/repo`) the updater follows. */
   RM_UPDATE_REPOSITORY: z.string().min(1).optional(),
   /** GitHub API base (override for mirrors/tests). */
-  RM_UPDATE_API_URL: z.string().url().optional(),
+  RM_UPDATE_API_URL: z.url().optional(),
   /** Opens this URL in the default browser once the server is listening. */
-  RM_OPEN_BROWSER: z.string().url().optional(),
+  RM_OPEN_BROWSER: z.url().optional(),
   WEB_HANDLER_PATH: z.string().min(1).optional(),
   WEB_CLIENT_DIR: z.string().min(1).optional(),
   MIGRATIONS_DIR: z.string().min(1).optional(),
