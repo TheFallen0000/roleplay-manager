@@ -509,6 +509,10 @@ export const es: Dictionary = {
     imageTooLarge: "El archivo es demasiado grande (máximo {max}).",
     loadFailed: "No se pudieron cargar los personajes",
     removeImage: "Quitar imagen",
+    recropImage: "Ajustar recorte",
+    recropFailed: "No se pudo cargar la imagen para recortar",
+    recropGif:
+      "Los GIF animados no se pueden recortar sin perder la animación.",
     imageDropHint: "Arrastra una imagen aquí o haz clic para seleccionar",
     imageFormats: "PNG, JPEG, WEBP o GIF · máximo {max}",
     imagePending: "Imagen pendiente de guardar al crear el personaje.",

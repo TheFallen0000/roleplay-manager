@@ -8,6 +8,18 @@ import { I18nProvider } from "@/lib/hooks/i18n-provider"
 const render = (ui: React.ReactElement) =>
   rtlRender(<I18nProvider initialLocale="es">{ui}</I18nProvider>)
 
+const mocks = vi.hoisted(() => ({
+  fetchCharacterAssetFile: vi.fn(),
+}))
+
+vi.mock("@/lib/api/client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api/client")>()
+  return {
+    ...actual,
+    fetchCharacterAssetFile: mocks.fetchCharacterAssetFile,
+  }
+})
+
 import { ProfileImageInput } from "./profile-image-input"
 
 vi.mock("react-easy-crop", () => ({
@@ -30,6 +42,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  mocks.fetchCharacterAssetFile.mockReset()
 })
 
 const pngFile = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "avatar.png", {
@@ -136,6 +149,48 @@ describe("ProfileImageInput", () => {
     renderDropzone({ profileImageAssetId: "asset-abc" })
     const img = await screen.findByAltText<HTMLImageElement>("Test")
     expect(img.src).toContain("/api/characters/char-1/assets/asset-abc")
+  })
+
+  it("re-crops a saved image using the original asset", async () => {
+    mocks.fetchCharacterAssetFile.mockResolvedValue(
+      new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "saved.png", {
+        type: "image/png",
+      }),
+    )
+    renderDropzone({
+      profileImageAssetId: "asset-abc",
+      recropAssetId: "asset-abc",
+    })
+
+    await screen.findByAltText("Test")
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ajustar recorte" }),
+    )
+
+    expect(await screen.findByText("Recortar imagen")).toBeInTheDocument()
+    expect(mocks.fetchCharacterAssetFile).toHaveBeenCalledWith(
+      "char-1",
+      "asset-abc",
+    )
+  })
+
+  it("does not open the cropper for an animated GIF", async () => {
+    mocks.fetchCharacterAssetFile.mockResolvedValue(
+      new File([new Uint8Array([0x47, 0x49, 0x46])], "animated.gif", {
+        type: "image/gif",
+      }),
+    )
+    renderDropzone({
+      profileImageAssetId: "asset-gif",
+      recropAssetId: "asset-gif",
+    })
+
+    await screen.findByAltText("Test")
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ajustar recorte" }),
+    )
+
+    expect(screen.queryByText("Recortar imagen")).not.toBeInTheDocument()
   })
 
   it("shows the pending-file note when pendingFile is set", () => {

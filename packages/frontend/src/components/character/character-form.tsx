@@ -201,6 +201,7 @@ function CharacterFormContent({ character }: Props) {
                 name={name}
                 profileImageAssetId={profileImageAssetId}
                 pendingFile={pendingFile}
+                recropAssetId={profileImageAssetId}
                 onFileSelected={handleImageSelected}
                 onClear={handleImageClear}
               />

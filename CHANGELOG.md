@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Re-crop saved images**: the character profile picture, the chat custom
+  image and the chat background can be re-cropped from their original asset
+  without selecting the file again. Animated GIFs keep their original file.
+
 ## [1.49.0] - 2026-10-26
 
 ### Changed

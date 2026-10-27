@@ -3,14 +3,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
-import { ImagePlusIcon, XIcon } from "lucide-react"
+import { CropIcon, ImagePlusIcon, XIcon } from "lucide-react"
 import {
   ALLOWED_IMAGE_MIMES,
   DEFAULT_MAX_PROFILE_IMAGE_BYTES,
   formatMegabytes,
 } from "@workspace/shared/lib/image"
-import { getCharacterAssetUrl } from "@/lib/api/client"
+import {
+  fetchCharacterAssetFile,
+  getCharacterAssetUrl,
+} from "@/lib/api/client"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { ImageCropperDialog } from "./image-cropper-dialog"
 
@@ -19,6 +23,11 @@ interface ProfileImageInputProps {
   name: string
   profileImageAssetId: string | null
   pendingFile: File | null
+  /**
+   * Asset offered for re-cropping. `undefined` hides the action; `null` also
+   * hides it (there is nothing to crop).
+   */
+  recropAssetId?: string | null
   aspect?: number
   showClearButton?: boolean
   clearLabel?: string
@@ -45,6 +54,7 @@ export function ProfileImageInput({
   name,
   profileImageAssetId,
   pendingFile,
+  recropAssetId,
   aspect = 1,
   showClearButton = true,
   clearLabel,
@@ -55,6 +65,7 @@ export function ProfileImageInput({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const [cropperFile, setCropperFile] = useState<File | null>(null)
+  const [recropLoading, setRecropLoading] = useState(false)
   const clearLabelText = clearLabel ?? t("characters.removeImage")
   const previewUrl = useMemo(
     () => (pendingFile ? URL.createObjectURL(pendingFile) : null),
@@ -91,11 +102,29 @@ export function ProfileImageInput({
     if (fileInputRef.current) fileInputRef.current.value = ""
   }, [onClear])
 
+  const handleRecrop = useCallback(async () => {
+    if (!recropAssetId) return
+    setRecropLoading(true)
+    try {
+      const file = await fetchCharacterAssetFile(characterId, recropAssetId)
+      if (file.type === "image/gif") {
+        toast.error(t("characters.recropGif"))
+        return
+      }
+      setCropperFile(file)
+    } catch {
+      toast.error(t("characters.recropFailed"))
+    } finally {
+      setRecropLoading(false)
+    }
+  }, [characterId, recropAssetId, t])
+
   const imageSrc =
     previewUrl ??
     (profileImageAssetId
       ? getCharacterAssetUrl(characterId, profileImageAssetId, "thumbnail")
       : null)
+  const canRecrop = Boolean(recropAssetId && !pendingFile && imageSrc)
 
   return (
     <div>
@@ -149,11 +178,32 @@ export function ProfileImageInput({
           {t("characters.imagePending")}
         </p>
       ) : null}
-      {imageSrc && showClearButton ? (
-        <Button type="button" variant="ghost" size="sm" onClick={handleClear} className="mt-2">
-          <XIcon className="size-3" />
-          {clearLabelText}
-        </Button>
+      {imageSrc && (showClearButton || canRecrop) ? (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {canRecrop ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void handleRecrop()}
+              disabled={recropLoading}
+            >
+              {recropLoading ? <Spinner /> : <CropIcon className="size-3" />}
+              {t("characters.recropImage")}
+            </Button>
+          ) : null}
+          {showClearButton ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+            >
+              <XIcon className="size-3" />
+              {clearLabelText}
+            </Button>
+          ) : null}
+        </div>
       ) : null}
 
       <ImageCropperDialog
