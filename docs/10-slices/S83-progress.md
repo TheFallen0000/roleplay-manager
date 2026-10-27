@@ -75,7 +75,8 @@ buscable con **Astro Starlight**:
 
 ## Pendiente
 
-- Revisar el copy con hablantes nativos si se quiere pulir el tono: **PM.43**.
+- Revisar el copy con hablantes nativos si se quiere pulir el tono: **PM.43**
+  (deferred hasta el lanzamiento a la comunidad inglesa).
 
 > **Cierre (2026-10-26):** S84 añadió capturas, OG images, 404, Cloudflare Pages,
 > dominio y el CTA de descarga en el header de Starlight. Solo queda la revisión

@@ -7,7 +7,7 @@ See `S9-plan.md` for the v1.0 polish tasks and the rationale for deferring
 these. The dependency graph below reflects which PMs must land together or in
 sequence.
 
-Last updated: 2026-10-26
+Last updated: 2026-10-27
 
 > **Review (S71 sweep, 2026-10-12):** the whole slice history was swept for
 > deferrals; the stale notes were refreshed and the surviving items added as
@@ -321,13 +321,13 @@ Last updated: 2026-10-26
 | PM.34 | Add Vitest coverage for the memory use cases that still have no tests (`create`, `update`, `list`, `list-proposals`, `apply`, `apply-all`) and route tests for the memory endpoints. <br>*Done as S85 (v1.48.0) — see `S85-progress.md`.* | — |
 | PM.35 | Accessibility and loading/error-state audit of the main screens: keyboard/focus, labels, live regions, contrast, touch targets, and consistent spinner/error/empty states. Add regression checks where practical. <br>*Done as S85 (v1.48.0) — see `S85-progress.md`.* | — |
 | PM.36 | Decide whether remote access needs app-level authentication (PIN/session) or whether the network trust model (private tailnet / trusted LAN) is enough; document and implement the chosen option. <br>*Discarded (2026-10-26): Tailscale already restricts access to the user's tailnet and LAN sharing is off by default, opt-in and explicitly warns that any device on the network can open the app. App-level auth would add friction for a local-first personal app; revisit only if LAN sharing is ever used on untrusted networks.* | S38, S56 |
-| PM.37 | Build the version history and comparison view that was deferred in S2, or explicitly discard it. Today there is only the version selector and the context-menu version list. | — |
+| PM.37 | Build the version history and comparison view that was deferred in S2, or explicitly discard it. Today there is only the version selector and the context-menu version list. <br>*Discarded (2026-10-27): the version selector and the context-menu list cover the real need; end users use the bots, not version diffs.* | — |
 | PM.38 | Allow re-cropping an already saved profile image without uploading it again, reusing `ImageCropperDialog`. <br>*Done as S87 (v1.50.0) — see `S87-progress.md`.* | PM.2 |
 | PM.39 | Notify the PC when the phone link is auto-disabled by inactivity; optionally base the idle timer on local use instead of remote requests. <br>*Done as S88 (v1.50.0): one-time notice on app open and status in the Phone dialog. Local use remains out of scope by decision.* | S56 |
-| PM.40 | Decide whether the app should work offline; today the service worker is pass-through and every request needs the PC server. If yes, design caching and conflict handling. | S54, S72 |
-| PM.41 | Evaluate store packaging (TWA/PWABuilder) for Android and the Microsoft Store; the portable folder remains the primary distribution. | S54 |
-| PM.42 | Add bilingual screenshots to the tutorials if the text-only format proves insufficient. | S71 |
-| PM.43 | Review the public website copy with a native speaker and add a new mascot pose to the 404 when the art is available. | S83, S84 |
+| PM.40 | Decide whether the app should work offline; today the service worker is pass-through and every request needs the PC server. If yes, design caching and conflict handling. <br>*Discarded (2026-10-27): the app is already local-first and works offline with local providers; true offline on the phone would require data replication and conflict handling. Revisit only for a small read-only cache if a concrete need appears.* | S54, S72 |
+| PM.41 | Evaluate store packaging (TWA/PWABuilder) for Android and the Microsoft Store; the portable folder remains the primary distribution. <br>*Discarded (2026-10-27): store packaging adds signing, sandbox and review costs that do not fit the portable local-first distribution; the ZIP remains the only official package.* | S54 |
+| PM.42 | Add bilingual screenshots to the tutorials if the text-only format proves insufficient. <br>*Discarded for now (2026-10-27): no complaints and the website documentation covers the guides in more depth; revisit only if tutorial usage shows confusion.* | S71 |
+| PM.43 | Review the public website copy with a native speaker and add a new mascot pose to the 404 when the art is available. <br>*Deferred (2026-10-27): waiting for the new 404 art; the project has not been announced to the English community yet, so the copy review waits for that milestone.* | S83, S84 |
 | PM.44 | Resolve the S8 title inconsistency: the code generates the title only when `conversation.title === null`, while the S8 doc says it regenerates after each summary. Implement the regeneration or correct the doc. <br>*Done as S86 (v1.49.0): titles are regenerated after every automatic or manual summary. See `S86-progress.md`.* | S7, S8 |
 | PM.45 | Make automatic titles follow the language of the conversation instead of hardcoding Spanish; use the UI locale only as a fallback. <br>*Done as S86 (v1.49.0) — see `S86-progress.md`.* | S8 |
 
@@ -367,8 +367,21 @@ These are not code tasks; they need real hardware or a user confirmation.
 - [ ] S62 — safe areas and touch behaviour on a real phone with a notch.
 - [ ] S84 — final review of the website on iPhone/Safari.
 
+> **PM.40 + PM.41 — discarded (2026-10-27):** the app is already local-first
+> with local providers, and the portable ZIP is the distribution that matches
+> the project. Store packaging and full offline mode are out of scope; a small
+> read-only cache remains the only offline idea worth revisiting if needed.
+
+> **PM.43 — deferred (2026-10-27):** the 404 keeps the current mascot until a
+> new pose exists, and the website copy review will happen after the
+> English-community launch. No code changes yet.
+
 ### Reviewed and discarded
 
+- **S2 — Version history/comparison view (PM.37):** the version selector and the context-menu version list are enough; end users use the bots, not version diffs.
+- **S54/S72 — Offline mode (PM.40):** the app is already local-first and works offline with local providers; true offline on the phone would require replication and conflict handling. A small read-only cache is the only future scope worth revisiting.
+- **S54 — Store packaging (PM.41):** signing, sandbox and review costs do not fit the portable local-first distribution; the ZIP remains the only official package.
+- **S71 — Tutorial screenshots (PM.42):** no complaints so far and the website documentation is more extensive; revisit only if tutorial usage shows confusion.
 - **S38/S56 — App-level authentication for remote access (PM.36):** the network is the trust boundary. Tailscale only admits devices in the user's tailnet; LAN sharing is off by default, opt-in and the Phone dialog warns that any device on the network can open the app. Revisit only if LAN sharing is used on untrusted networks.
 - **S38 — HMR through the LAN/Tailscale proxy:** development-only; the normal dev server already has HMR.
 - **S54 — `display_override`:** already discarded in S77; without a window-controls-overlay UI it changes nothing visible.

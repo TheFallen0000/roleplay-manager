@@ -52,11 +52,13 @@ hay offline.
 
 ## Fuera de alcance
 
-- Service worker / modo offline: **PM.40**.
+- Service worker / modo offline: descartado en PM.40 (solo se revisitaría una
+  caché de lectura pequeña).
 - `screenshots`, `shortcuts` y `display_override`: hechos en S77 (salvo
   `display_override`, descartado).
 - Botón de instalar propio en la UI (`beforeinstallprompt`): hecho en S72.
-- Empaquetado para stores (TWA/PWABuilder): **PM.41**.
+- Empaquetado para stores (TWA/PWABuilder): descartado en PM.41; el ZIP sigue
+  siendo el único paquete oficial.
 
 ## Commits
 
