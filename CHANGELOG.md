@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.54.3] - 2026-10-27
+
 ### Changed
 
 - **Express 5**: backend migrado de Express 4.22 a 5.3. El middleware
