@@ -23,6 +23,10 @@ export interface CharacterWithCurrentVersionSummary {
 export interface CharacterSummaryRepository {
   listCurrentVersionSummaries(): Promise<CharacterWithCurrentVersionSummary[]>
 
+  findCurrentVersionSummaryByCharacterId(
+    characterId: string,
+  ): Promise<CharacterVersionSummary | null>
+
   findVersionSummariesByIds(
     ids: string[],
   ): Promise<CharacterVersionSummary[]>

@@ -30,11 +30,6 @@ vi.mock("@/lib/stores/memory.store", () => ({
     }),
 }))
 
-vi.mock("@/lib/stores/chat.store", () => ({
-  useChatStore: (selector: (state: unknown) => unknown) =>
-    selector({ messages: [] }),
-}))
-
 vi.mock("@workspace/ui/components/sonner", () => ({
   toast: {
     success: vi.fn(),
@@ -60,6 +55,7 @@ const memory = (
   updatedBy: "assistant",
   createdAt: "2026-10-12T10:00:00.000Z",
   updatedAt: "2026-10-12T10:00:00.000Z",
+  turnsSinceUpdate: 0,
 })
 
 const conversation: ConversationDetail = {
@@ -82,6 +78,12 @@ const conversation: ConversationDetail = {
   stopSequences: [],
   memoryProposalMode: "auto",
   customProfileImageAssetId: null,
+  backgroundImageAssetId: null,
+  backgroundFit: "cover",
+  backgroundScrim: 0,
+  messageStyle: "bubble",
+  characterDialogueColor: null,
+  userDialogueColor: null,
   memoryDecayMode: "silent",
   memoryDecayThreshold: 2.8,
   memoryDecayAgeThreshold: 14,
@@ -90,6 +92,8 @@ const conversation: ConversationDetail = {
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
   messages: [],
+  messagesHasMore: false,
+  messagesNextCursor: null,
 }
 
 const renderList = () =>

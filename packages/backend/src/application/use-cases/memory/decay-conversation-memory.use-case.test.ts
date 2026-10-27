@@ -98,6 +98,7 @@ const buildRepos = ({
   const messageRepo: MessageRepository & MessageHistoryRepository = {
     create: async (m) => m,
     findByConversationId: async () => messages,
+    findPageByConversationId: async () => ({ messages, hasMore: false }),
     findRecentByConversationId: async (_id, limit) => messages.slice(-limit),
     findAfterPosition: async (_id, position) =>
       messages.filter((message) => message.position > position),

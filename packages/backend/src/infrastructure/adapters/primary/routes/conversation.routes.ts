@@ -2,9 +2,14 @@ import { Router } from "express"
 import { z } from "zod"
 
 import { DIALOGUE_COLOR_PATTERN } from "@workspace/shared/lib/dialogue-color"
+import {
+  DEFAULT_MESSAGE_PAGE_SIZE,
+  MAX_MESSAGE_PAGE_SIZE,
+} from "@workspace/shared/types/conversation"
 import type { CreateConversationUseCase } from "../../../../application/use-cases/conversation/create-conversation.use-case"
 import type { BranchConversationUseCase } from "../../../../application/use-cases/conversation/branch-conversation.use-case"
 import type { GetConversationUseCase } from "../../../../application/use-cases/conversation/get-conversation.use-case"
+import type { ListConversationMessagesUseCase } from "../../../../application/use-cases/conversation/list-conversation-messages.use-case"
 import type { ListConversationsUseCase } from "../../../../application/use-cases/conversation/list-conversations.use-case"
 import type { SendMessageUseCase } from "../../../../application/use-cases/conversation/send-message.use-case"
 import type { EditMessageUseCase } from "../../../../application/use-cases/conversation/edit-message.use-case"
@@ -29,6 +34,16 @@ const CreateConversationSchema = z.object({
 
 const BranchConversationSchema = z.object({
   targetMessageId: z.string().min(1, "targetMessageId is required"),
+})
+
+const MessagePageQuerySchema = z.object({
+  before: z.coerce.number().int().min(0).optional(),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_MESSAGE_PAGE_SIZE)
+    .default(DEFAULT_MESSAGE_PAGE_SIZE),
 })
 
 const SendMessageSchema = z.object({
@@ -84,6 +99,7 @@ export const buildConversationRouter = (deps: {
   createConversation: CreateConversationUseCase
   branchConversation: BranchConversationUseCase
   getConversation: GetConversationUseCase
+  listConversationMessages: ListConversationMessagesUseCase
   listConversations: ListConversationsUseCase
   sendMessage: SendMessageUseCase
   editMessage: EditMessageUseCase
@@ -136,6 +152,17 @@ export const buildConversationRouter = (deps: {
     try {
       const { id } = req.params as { id: string }
       const result = await deps.getConversation.execute(id)
+      res.json(result)
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.get("/conversations/:id/messages", async (req, res, next) => {
+    try {
+      const { id } = req.params as { id: string }
+      const query = MessagePageQuerySchema.parse(req.query)
+      const result = await deps.listConversationMessages.execute(id, query)
       res.json(result)
     } catch (error) {
       next(error)

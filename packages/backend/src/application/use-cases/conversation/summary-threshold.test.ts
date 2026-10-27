@@ -7,6 +7,7 @@ const buildHistory = (
   total: number,
   position: number | null,
 ): MessageHistoryRepository => ({
+  findPageByConversationId: vi.fn(async () => ({ messages: [], hasMore: false })),
   findRecentByConversationId: vi.fn(async () => []),
   findAfterPosition: vi.fn(async () => []),
   findPositionById: vi.fn(async () => position),

@@ -150,8 +150,7 @@ describe("RewindConversationUseCase", () => {
     })
 
     expect(deletedIds).toEqual(["sum-1"])
-    // Remaining: messages at positions 0, 1, 2
-    expect(result.messages).toHaveLength(3)
+    expect(result.deletedMessageIds).toEqual(["msg-3", "msg-4"])
   })
 
   it("does not delete summaries whose range is intact", async () => {
@@ -185,8 +184,7 @@ describe("RewindConversationUseCase", () => {
     })
 
     expect(deletedIds).toEqual([])
-    // All 3 messages remain
-    expect(result.messages).toHaveLength(3)
+    expect(result.deletedMessageIds).toEqual([])
   })
 
   it("throws if conversation does not exist", async () => {

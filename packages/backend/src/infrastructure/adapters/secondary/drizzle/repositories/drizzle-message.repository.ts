@@ -1,9 +1,11 @@
-import { and, count, desc, eq, gt, inArray, max } from "drizzle-orm"
+import { and, count, desc, eq, gt, inArray, lt, max } from "drizzle-orm"
 
 import { Message } from "../../../../../domain/entities/message.entity"
 import type {
   ConversationMessageStats,
   MessageHistoryRepository,
+  MessagePage,
+  MessagePageQuery,
   MessageRepository,
 } from "../../../../../domain/ports/message.repository"
 import type { Database } from "../../../../config/database"
@@ -64,6 +66,31 @@ export class DrizzleMessageRepository
       .orderBy(messages.position)
 
     return rows.map(toMessage)
+  }
+
+  async findPageByConversationId(
+    conversationId: string,
+    { before, limit }: MessagePageQuery,
+  ): Promise<MessagePage> {
+    const safeLimit = Math.max(1, Math.min(limit, 200))
+    const rows = await this.db
+      .select()
+      .from(messages)
+      .where(
+        before === undefined
+          ? eq(messages.conversationId, conversationId)
+          : and(
+              eq(messages.conversationId, conversationId),
+              lt(messages.position, before),
+            ),
+      )
+      .orderBy(desc(messages.position))
+      .limit(safeLimit + 1)
+
+    const hasMore = rows.length > safeLimit
+    const page = hasMore ? rows.slice(0, safeLimit) : rows
+
+    return { messages: page.reverse().map(toMessage), hasMore }
   }
 
   async findRecentByConversationId(

@@ -58,6 +58,21 @@ export interface ConversationDetail {
   createdAt: string
   updatedAt: string
   messages: MessageDTO[]
+  messagesHasMore: boolean
+  messagesNextCursor: number | null
+}
+
+export interface ConversationMessagePage {
+  messages: MessageDTO[]
+  hasMore: boolean
+  nextCursor: number | null
+}
+
+export const DEFAULT_MESSAGE_PAGE_SIZE = 50
+export const MAX_MESSAGE_PAGE_SIZE = 200
+
+export interface RewindConversationResult {
+  deletedMessageIds: string[]
 }
 
 export interface ConversationSettingsUpdate {

@@ -1,9 +1,11 @@
 import type {
   ConversationDetail,
+  ConversationMessagePage,
   ConversationSettingsUpdate,
   ConversationSummary,
   CreateConversationInput,
   CreateConversationResult,
+  RewindConversationResult,
   TitleSource,
 } from "@workspace/shared/types/conversation"
 import type { MessageDTO } from "@workspace/shared/types/message"
@@ -17,6 +19,17 @@ export const listConversations = (): Promise<ConversationSummary[]> =>
 
 export const getConversation = (id: string): Promise<ConversationDetail> =>
   apiRequest(`/api/conversations/${id}`)
+
+export const getConversationMessages = (
+  id: string,
+  options: { before?: number; limit?: number } = {},
+): Promise<ConversationMessagePage> => {
+  const params = new URLSearchParams()
+  if (options.before !== undefined) params.set("before", String(options.before))
+  if (options.limit !== undefined) params.set("limit", String(options.limit))
+  const query = params.size > 0 ? `?${params.toString()}` : ""
+  return apiRequest(`/api/conversations/${id}/messages${query}`)
+}
 
 export const createConversation = (
   input: CreateConversationInput,
@@ -80,7 +93,7 @@ export const deleteMessage = (
 export const rewindConversation = (
   conversationId: string,
   targetMessageId: string,
-): Promise<{ messages: MessageDTO[] }> =>
+): Promise<RewindConversationResult> =>
   apiRequest(`/api/conversations/${conversationId}/rewind`, {
     method: "POST",
     body: JSON.stringify({ targetMessageId }),

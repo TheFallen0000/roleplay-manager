@@ -77,6 +77,7 @@ const buildMessageHistory = (
     lastMessageAt: Date | null
   }>,
 ): MessageHistoryRepository => ({
+  findPageByConversationId: vi.fn(async () => ({ messages: [], hasMore: false })),
   findRecentByConversationId: vi.fn(async () => []),
   findAfterPosition: vi.fn(async () => []),
   findPositionById: vi.fn(async () => null),
@@ -93,6 +94,9 @@ const buildCharacterRepo = (
   versions: CharacterVersionSummary[] = [currentVersion],
 ): CharacterSummaryRepository => ({
   listCurrentVersionSummaries: vi.fn(async () => current),
+  findCurrentVersionSummaryByCharacterId: vi.fn(
+    async () => current[0]?.currentVersion ?? null,
+  ),
   findVersionSummariesByIds: vi.fn(async () => versions),
 })
 

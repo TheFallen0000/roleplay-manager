@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { ListMemoriesUseCase } from "./list-memories.use-case"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
+import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
 import { Memory } from "../../../domain/entities/memory.entity"
 
 const buildRepo = (memories: Memory[]): MemoryRepository => ({
@@ -10,6 +11,17 @@ const buildRepo = (memories: Memory[]): MemoryRepository => ({
   create: vi.fn(async (memory: Memory) => memory),
   update: vi.fn(async (memory: Memory) => memory),
   deleteById: vi.fn(async () => {}),
+})
+
+const buildHistory = (times: Date[]): MessageHistoryRepository => ({
+  findPageByConversationId: vi.fn(async () => ({ messages: [], hasMore: false })),
+  findRecentByConversationId: vi.fn(async () => []),
+  findAfterPosition: vi.fn(async () => []),
+  findPositionById: vi.fn(async () => null),
+  findMaxPosition: vi.fn(async () => -1),
+  countByConversationId: vi.fn(async () => times.length),
+  findUserMessageTimes: vi.fn(async () => times),
+  findStatsByConversationIds: vi.fn(async () => []),
 })
 
 const memory = (id: string, priority: number): Memory =>
@@ -28,7 +40,7 @@ const memory = (id: string, priority: number): Memory =>
 
 describe("ListMemoriesUseCase", () => {
   it("returns an empty list when the conversation has no memories", async () => {
-    const useCase = new ListMemoriesUseCase(buildRepo([]))
+    const useCase = new ListMemoriesUseCase(buildRepo([]), buildHistory([]))
 
     await expect(useCase.execute("conv-1")).resolves.toEqual([])
   })
@@ -36,6 +48,10 @@ describe("ListMemoriesUseCase", () => {
   it("maps memories to DTOs and preserves their order", async () => {
     const useCase = new ListMemoriesUseCase(
       buildRepo([memory("mem-1", 5), memory("mem-2", 8)]),
+      buildHistory([
+        new Date("2026-10-21T12:00:00.000Z"),
+        new Date("2026-10-21T13:00:00.000Z"),
+      ]),
     )
 
     const result = await useCase.execute("conv-1")
@@ -53,6 +69,7 @@ describe("ListMemoriesUseCase", () => {
       updatedBy: "user",
       createdAt: "2026-10-20T10:00:00.000Z",
       updatedAt: "2026-10-21T11:00:00.000Z",
+      turnsSinceUpdate: 2,
     })
   })
 })

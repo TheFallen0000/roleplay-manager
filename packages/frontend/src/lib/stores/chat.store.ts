@@ -1,8 +1,17 @@
 import { create } from "zustand"
 import type { MessageDTO } from "@workspace/shared/types/message"
 
+export interface MessagePageState {
+  hasMore: boolean
+  nextCursor: number | null
+}
+
 export interface ChatState {
   messages: MessageDTO[]
+  hasMoreMessages: boolean
+  nextMessageCursor: number | null
+  isLoadingOlder: boolean
+  loadOlderError: string | null
   isStreaming: boolean
   streamingContent: string
   editingMessageId: string | null
@@ -10,7 +19,10 @@ export interface ChatState {
   regeneratingMessageId: string | null
   error: string | null
 
-  setMessages: (messages: MessageDTO[]) => void
+  setMessages: (messages: MessageDTO[], page?: MessagePageState) => void
+  prependMessages: (messages: MessageDTO[], page: MessagePageState) => void
+  setLoadingOlder: (loading: boolean) => void
+  setLoadOlderError: (error: string | null) => void
   addMessage: (message: MessageDTO) => void
   replaceMessage: (messageId: string, message: MessageDTO) => void
   removeMessage: (messageId: string) => void
@@ -26,8 +38,15 @@ export interface ChatState {
   reset: () => void
 }
 
+const sortByPosition = (messages: MessageDTO[]): MessageDTO[] =>
+  [...messages].sort((a, b) => a.position - b.position)
+
 export const useChatStore = create<ChatState>((set) => ({
   messages: [],
+  hasMoreMessages: false,
+  nextMessageCursor: null,
+  isLoadingOlder: false,
+  loadOlderError: null,
   isStreaming: false,
   streamingContent: "",
   editingMessageId: null,
@@ -35,10 +54,38 @@ export const useChatStore = create<ChatState>((set) => ({
   regeneratingMessageId: null,
   error: null,
 
-  setMessages: (messages) => set({ messages, error: null }),
+  setMessages: (messages, page = { hasMore: false, nextCursor: null }) =>
+    set({
+      messages: sortByPosition(messages),
+      hasMoreMessages: page.hasMore,
+      nextMessageCursor: page.nextCursor,
+      isLoadingOlder: false,
+      loadOlderError: null,
+      error: null,
+    }),
+
+  prependMessages: (messages, page) =>
+    set((state) => {
+      const byId = new Map(state.messages.map((message) => [message.id, message]))
+      for (const message of messages) byId.set(message.id, message)
+      return {
+        messages: sortByPosition([...byId.values()]),
+        hasMoreMessages: page.hasMore,
+        nextMessageCursor: page.nextCursor,
+        isLoadingOlder: false,
+        loadOlderError: null,
+      }
+    }),
+
+  setLoadingOlder: (isLoadingOlder) => set({ isLoadingOlder }),
+
+  setLoadOlderError: (loadOlderError) => set({ loadOlderError }),
 
   addMessage: (message) =>
-    set((state) => ({ messages: [...state.messages, message], error: null })),
+    set((state) => ({
+      messages: sortByPosition([...state.messages, message]),
+      error: null,
+    })),
 
   replaceMessage: (messageId, message) =>
     set((state) => ({
@@ -80,6 +127,10 @@ export const useChatStore = create<ChatState>((set) => ({
   reset: () =>
     set({
       messages: [],
+      hasMoreMessages: false,
+      nextMessageCursor: null,
+      isLoadingOlder: false,
+      loadOlderError: null,
       isStreaming: false,
       streamingContent: "",
       editingMessageId: null,

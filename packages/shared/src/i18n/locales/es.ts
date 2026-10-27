@@ -253,6 +253,9 @@ export const es: Dictionary = {
   },
   chat: {
     noMessages: "No hay mensajes en esta conversación.",
+    loadOlder: "Cargar mensajes anteriores",
+    loadingOlder: "Cargando mensajes anteriores…",
+    loadOlderFailed: "No se pudieron cargar los mensajes anteriores.",
     you: "Tú",
     titleEditManually: "Editar manualmente",
     titleRegenerate: "Regenerar automáticamente",

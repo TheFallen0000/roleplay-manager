@@ -114,6 +114,7 @@ export const buildServer = ({
       createConversation: container.createConversation,
       branchConversation: container.branchConversation,
       getConversation: container.getConversation,
+      listConversationMessages: container.listConversationMessages,
       listConversations: container.listConversations,
       sendMessage: container.sendMessage,
       editMessage: container.editMessage,
