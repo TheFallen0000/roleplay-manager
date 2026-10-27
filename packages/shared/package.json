@@ -20,7 +20,7 @@
   "devDependencies": {
     "@eslint/js": "^10",
     "eslint": "^10",
-    "typescript": "~6",
+    "typescript": "~7",
     "typescript-eslint": "^8"
   }
 }
