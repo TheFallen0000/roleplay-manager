@@ -24,7 +24,7 @@
     "busboy": "^1.6.0",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.36.4",
-    "express": "^4.21.1",
+    "express": "^4.22.3",
     "openai": "^4.71.0",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
