@@ -216,7 +216,7 @@ Last updated: 2026-10-27
 | PM.31 | More tolerant parser for the `memory_proposals` block (LLM format variations), with tests for odd shapes. <br>*Done as S76 (v1.46.0) — see `S76-progress.md`.* | — |
 | PM.46 | Migrate the backend to Express 5: `req.query` is now a read-only getter, so `validate` must stop reassigning it; review routing, error handling and body parsing, then run every route. <br>*Done as S98 (v1.54.3) — see `S98-progress.md`.* | — |
 | PM.47 | Upgrade `better-sqlite3` 12 → 13 (N-API, prebuilt binaries and packaging on every platform). <br>*Done as S99 (v1.54.4) — see `S99-progress.md`.* | PM.24 |
-| PM.48 | Upgrade the logging stack: `pino` 10, `pino-http` 11, `pino-pretty` 13 and `uuid` 14. Test rotation, redaction, transports and ESM imports. <br>*Deferred from S97 (Dependabot #66/#67).* | — |
+| PM.48 | Upgrade the logging stack: `pino` 10, `pino-http` 11, `pino-pretty` 13 and `uuid` 14. Test rotation, redaction, transports and ESM imports. <br>*Done as S100 (v1.54.5) — see `S100-progress.md`.* | — |
 | PM.49 | Upgrade TypeScript 7 and `@types/node` 26 when Astro supports TypeScript 7 and the bundled runtime moves to Node 26. <br>*Blocked: `astro check` rejects TypeScript 7 and the app still bundles Node 24.* | PM.24 |
 | PM.50 | Upgrade `prettier-plugin-astro` 1.x and reformat the Astro files. <br>*Deferred from S97 (Dependabot #67); formatting-only, no runtime impact.* | — |
 
@@ -230,6 +230,12 @@ Last updated: 2026-10-27
 > place with N-API prebuilds for every release target. There are no schema or
 > API changes, and the five-platform release dry-run passed (Windows, Linux
 > x64/arm64 and macOS x64/arm64). See `S99-progress.md`.
+
+> **PM.48 (S100) — done (2026-10-27, v1.54.5):** pino 10.4, pino-http 11,
+> pino-pretty 13.2 and uuid 14 are in place. pino and pino-http have to land
+> together because of their type coupling; uuid 14 is ESM-only and ships its
+> own types, so `@types/uuid` was removed. Rotation, redaction and the dev
+> pretty transport were verified. See `S100-progress.md`.
 
 > **PM.25 + PM.26 (S72) — done (2026-10-12, v1.45.0):** The Updates panel can roll back to the
 > previous `versions/<v>` (confirmation dialog, restart needed, data untouched; the git adapter
@@ -306,8 +312,8 @@ Last updated: 2026-10-27
 > only patch/minor updates; majors arrive as individual PRs. The safe updates
 > are merged and `pnpm audit --prod` is clean. Express 5, `better-sqlite3` 13,
 > the pino/uuid majors, TypeScript 7 and `prettier-plugin-astro` 1.x remain as
-> **PM.46–PM.50**. PM.46 was completed in S98 and PM.47 in S99; PM.48–PM.50
-> remain. See `S97-progress.md`.
+> **PM.46–PM.50**. PM.46 was completed in S98, PM.47 in S99 and PM.48 in S100;
+> PM.49–PM.50 remain. See `S97-progress.md`.
 
 ## UI polish
 
