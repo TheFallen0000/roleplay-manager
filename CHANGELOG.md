@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.54.5] - 2026-10-27
+
 ### Changed
 
 - **Logging y UUID**: pino 10, pino-http 11, pino-pretty 13 y uuid 14. La
