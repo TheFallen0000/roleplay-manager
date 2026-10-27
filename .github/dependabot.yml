@@ -13,17 +13,34 @@ updates:
         patterns:
           - "*"
 
-  # Production and development dependencies are grouped separately so a
-  # security update does not arrive mixed with tooling upgrades.
+  # Patch and minor updates are grouped by dependency type. Major updates are
+  # deliberately left out of the groups: each one gets its own PR and its own
+  # migration slice instead of arriving mixed with safe upgrades.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 6
+    open-pull-requests-limit: 10
     commit-message:
       prefix: "chore(deps)"
     groups:
-      production-dependencies:
+      production-patch-minor:
         dependency-type: "production"
-      development-dependencies:
+        update-types:
+          - "patch"
+          - "minor"
+      development-patch-minor:
         dependency-type: "development"
+        update-types:
+          - "patch"
+          - "minor"
+    ignore:
+      # astro check does not support TypeScript 7 yet. Revisit when Astro
+      # updates its checker (or ships the ts-content-mapper by default).
+      - dependency-name: "typescript"
+        update-types:
+          - "version-update:semver-major"
+      # The app bundles Node 24; keep the type definitions on the same major.
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-major"
