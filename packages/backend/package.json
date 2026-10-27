@@ -25,13 +25,13 @@
     "cors": "^2.8.5",
     "drizzle-orm": "^0.45.4",
     "express": "^4.22.3",
-    "openai": "^4.71.0",
+    "openai": "~7.44.0",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "pino-roll": "^4.0.0",
     "sharp": "^0.35.5",
     "uuid": "^11.0.3",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10",
@@ -48,6 +48,7 @@
     "tsx": "^4.19.2",
     "typescript": "~6",
     "typescript-eslint": "^8",
-    "vitest": "^2.1.8"
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
   }
 }

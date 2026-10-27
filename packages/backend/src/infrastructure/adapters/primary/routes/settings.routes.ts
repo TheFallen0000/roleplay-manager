@@ -19,7 +19,7 @@ const SetProviderModelSchema = z.object({
 })
 
 const OpenAICompatibleConfigSchema = z.object({
-  url: z.string().url(),
+  url: z.url(),
   apiKey: z.string().min(1).optional(),
 })
 

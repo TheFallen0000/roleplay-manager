@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Zod 4**: capa de validación actualizada a 4.6.7, con esquemas modernizados
+  (`z.looseObject` y `z.url`) y los mismos códigos de error de la API.
+- **OpenAI SDK 7**: adaptador actualizado a 7.44.0 manteniendo Chat Completions
+  para seguir siendo compatible con Ollama, LM Studio, vLLM y endpoints
+  compatibles.
+- **Vitest 5**: runner de tests actualizado a 5.0.5 en backend y frontend, con
+  Vite 8 declarado explícitamente y el config de frontend adaptado a
+  `import.meta.dirname`.
+
 ## [1.51.1] - 2026-10-27
 
 ### Changed

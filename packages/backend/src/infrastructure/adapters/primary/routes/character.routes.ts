@@ -71,15 +71,13 @@ const ExportCharacterSchema = z.object({
   includeProfileImageBase64: z.boolean().optional(),
 })
 
-const ImportCharacterSchema = z
-  .object({
-    kind: z.string(),
-    schemaVersion: z.number(),
-    character: z
-      .object({ name: z.string().min(1, "Character name is required") })
-      .passthrough(),
-  })
-  .passthrough()
+const ImportCharacterSchema = z.looseObject({
+  kind: z.string(),
+  schemaVersion: z.number(),
+  character: z.looseObject({
+    name: z.string().min(1, "Character name is required"),
+  }),
+})
 
 const ExportSettingsSchema = z.object({
   model: z.string().nullable(),
@@ -104,20 +102,18 @@ const ExportSettingsSchema = z.object({
   customProfileImageAssetId: z.string().nullable(),
 })
 
-const ApplySettingsTemplateSchema = z
-  .object({
-    kind: z.literal(EXPORT_KIND),
-    schemaVersion: z.literal(EXPORT_SCHEMA_VERSION),
-    standaloneSettings: ExportSettingsSchema.partial(),
-    standaloneSettingsImage: z
-      .object({
-        assetId: z.string(),
-        mimeType: z.string(),
-        base64: z.string(),
-      })
-      .optional(),
-  })
-  .passthrough()
+const ApplySettingsTemplateSchema = z.looseObject({
+  kind: z.literal(EXPORT_KIND),
+  schemaVersion: z.literal(EXPORT_SCHEMA_VERSION),
+  standaloneSettings: ExportSettingsSchema.partial(),
+  standaloneSettingsImage: z
+    .object({
+      assetId: z.string(),
+      mimeType: z.string(),
+      base64: z.string(),
+    })
+    .optional(),
+})
 
 export const buildCharacterRouter = (deps: {
   createCharacter: CreateCharacterUseCase

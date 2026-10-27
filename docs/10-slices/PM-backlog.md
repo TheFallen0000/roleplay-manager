@@ -374,6 +374,11 @@ Last updated: 2026-10-27
 > and the production audit no longer reports the Drizzle advisory. Zod 4,
 > OpenAI 7 and Vitest 5 remain for S92. See `S91-progress.md`.
 
+> **S92 — dependency majors (2026-10-27, v1.51.2):** Zod 4, OpenAI 7 and
+> Vitest 5 are in place with Vite 8 explicit; all backend, frontend and package
+> smoke tests pass. The production audit is at 0 critical and 4 high (Astro
+> build dependencies). Pagination remains for S93. See `S92-progress.md`.
+
 ### Manual verification pending
 
 These are not code tasks; they need real hardware or a user confirmation.

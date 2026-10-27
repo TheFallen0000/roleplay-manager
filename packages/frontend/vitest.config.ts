@@ -10,9 +10,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),
-      "@workspace/shared": path.resolve(__dirname, "../../packages/shared/src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
+      "@workspace/ui": path.resolve(import.meta.dirname, "../../packages/ui/src"),
+      "@workspace/shared": path.resolve(import.meta.dirname, "../../packages/shared/src"),
     },
   },
 })
