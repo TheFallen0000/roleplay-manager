@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Paquete portátil sin herramientas de build**: el escáner de dependencias
+  confundía ejemplos JSDoc de Astro con imports reales y empaquetaba Astro, Vite
+  y sus binarios nativos. El paquete vuelve a ~63 MB (antes ~95 MB) y el smoke
+  test confirma que arranca con su runtime incluido.
+
 ## [1.50.1] - 2026-10-27
 
 ### Changed

@@ -157,7 +157,9 @@ const collectExternalPackages = (dir) => {
       }
       if (!full.endsWith(".mjs")) continue
 
-      const source = readFileSync(full, "utf8")
+      // Runtime chunks embed JSDoc examples (`import ... from "astro"`); strip
+      // block comments so build-only packages are not packed as dependencies.
+      const source = readFileSync(full, "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
       let match
       while ((match = pattern.exec(source)) !== null) {
         const specifier = match[1]
