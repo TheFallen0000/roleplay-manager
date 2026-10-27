@@ -169,6 +169,15 @@ signature and the package's SHA-256 checksum, switches the `current` pointer and
 offers a **Restart now** button; your `data/` and `backups/` are untouched and
 the previous version stays on disk.
 
+## Security
+
+Your conversations, images and provider API keys live in `data/`; backups copy
+them too. Use **full-disk encryption** on your computer (BitLocker, FileVault or
+LUKS), treat both folders as private, and rotate your API keys with the provider
+if the device or a backup is lost. On Linux and macOS the app creates its data
+and backup folders with owner-only permissions; it does not add a separate
+passphrase or encrypt SQLite itself.
+
 ## Documentation
 
 - [AGENTS.md](AGENTS.md) — architecture rules, naming conventions and the

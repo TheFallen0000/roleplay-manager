@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Permisos de datos locales**: en Linux y macOS el proceso usa `umask 077`,
+  las carpetas `data/`, `backups/` y logs quedan en `700`, y la base SQLite
+  (incluidos WAL/SHM) en `600`. En Windows se mantiene la protección de la
+  cuenta del sistema y BitLocker.
+- **Documentación de seguridad**: se explica el cifrado de disco completo, que
+  los backups son texto plano y que las API keys deben rotarse si se pierde el
+  equipo o una copia. El cifrado a nivel de app (passphrase/SQLCipher) se
+  descarta para este modelo de uso local-first.
+
 ## [1.54.0] - 2026-10-27
 
 ### Changed

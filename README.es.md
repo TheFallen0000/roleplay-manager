@@ -172,6 +172,15 @@ Ed25519 de la release y el checksum SHA-256 del paquete, cambia el puntero
 `current` y ofrece el botón **Reiniciar ahora**; tu `data/` y tus `backups/` no
 se tocan y la versión anterior queda en disco.
 
+## Seguridad
+
+Tus conversaciones, imágenes y API keys de proveedores viven en `data/`; las
+copias también las incluyen. Usa **cifrado de disco completo** en tu equipo
+(BitLocker, FileVault o LUKS), trata ambas carpetas como privadas y rota las API
+keys con el proveedor si pierdes el equipo o una copia. En Linux y macOS la app
+crea las carpetas de datos y copias con permisos solo para tu usuario; no añade
+una passphrase ni cifra SQLite por sí misma.
+
 ## Documentación
 
 - [AGENTS.md](AGENTS.md) — reglas de arquitectura, convenciones de nombres y los

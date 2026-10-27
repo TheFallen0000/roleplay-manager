@@ -26,6 +26,25 @@ The app can create a backup before an update. You can also copy `data/` while
 the app is stopped. For a portable copy of a single character, use the export
 dialog; it can include conversations, images and settings.
 
+## Security and backups
+
+`data/` and `backups/` contain your conversations, images and the API keys
+stored for your providers. Treat both folders as private:
+
+- Use full-disk encryption on your computer (BitLocker on Windows, FileVault on
+  macOS, LUKS on Linux). It protects the database and backups if the device is
+  lost or stolen.
+- On Linux and macOS the app creates its data, logs and backups with owner-only
+  permissions (`700`/`600`); on Windows, use the operating-system account and
+  BitLocker permissions.
+- Backups are plaintext copies. If you copy one to a USB drive, cloud folder or
+  another computer, protect it there too.
+- If the device or a backup is lost, rotate the API keys with your provider.
+  Removing a key from the app does not revoke it upstream.
+
+The app does not add a separate passphrase or encrypt the SQLite file itself;
+full-disk encryption is the recommended layer for this local-first setup.
+
 ## Updates
 
 Open **System → Updates**. The app checks the latest GitHub release, downloads
