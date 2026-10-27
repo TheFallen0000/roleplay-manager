@@ -8,6 +8,10 @@ import { buildLogger } from "./infrastructure/config/logger.config"
 import { browserUrlToOpen, openBrowser } from "./infrastructure/config/open-browser"
 import { PinoLoggerAdapter } from "./infrastructure/adapters/secondary/logger/pino-logger.adapter"
 import { loadEnv } from "./infrastructure/config/env"
+import {
+  applyProcessUmask,
+  ensurePrivateDirectory,
+} from "./infrastructure/config/permissions"
 import type { Logger } from "./domain/ports/logger.port"
 
 const MAX_LISTEN_ATTEMPTS = 15
@@ -38,7 +42,10 @@ const loadWebHandler = async (
 }
 
 const main = async (): Promise<void> => {
+  applyProcessUmask()
   const env = loadEnv()
+  ensurePrivateDirectory(env.DATA_DIR)
+  ensurePrivateDirectory(env.BACKUP_DIR)
   const logDir = env.LOG_DIR ?? join(env.DATA_DIR, "logs")
   const pino = buildLogger({
     level: env.LOG_LEVEL,
