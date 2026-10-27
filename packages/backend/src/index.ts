@@ -104,7 +104,7 @@ const main = async (): Promise<void> => {
   })
 
   const onListening = (): void => {
-    logger.info(`Server listening on http://${env.HOST ?? "localhost"}:${env.PORT}`)
+    logger.info(`Server listening on http://${env.HOST}:${env.PORT}`)
     const browserUrl = browserUrlToOpen(env)
     if (browserUrl) {
       openBrowser(browserUrl, (error) =>
@@ -126,9 +126,7 @@ const main = async (): Promise<void> => {
   // for a moment: retry for a while instead of giving up.
   let server: ReturnType<typeof app.listen> | undefined
   const listen = (attempt = 1): void => {
-    server = env.HOST
-      ? app.listen(env.PORT, env.HOST, onListening)
-      : app.listen(env.PORT, onListening)
+    server = app.listen(env.PORT, env.HOST, onListening)
     server.on("error", (error: NodeJS.ErrnoException) => {
       if (error.code === "EADDRINUSE" && attempt < MAX_LISTEN_ATTEMPTS) {
         logger.warn(`Port ${env.PORT} is still busy; retrying`, { attempt })

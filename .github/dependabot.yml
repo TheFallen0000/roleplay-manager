@@ -12,3 +12,18 @@ updates:
       workflow-actions:
         patterns:
           - "*"
+
+  # Production and development dependencies are grouped separately so a
+  # security update does not arrive mixed with tooling upgrades.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 6
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+      development-dependencies:
+        dependency-type: "development"

@@ -85,8 +85,27 @@ describe("buildServer with a web handler", () => {
     expect(response.status).toBe(404)
   })
 
-  it("serves the frontend static build from clientDir", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "rm-client-"))
+  it("sets security headers and keeps API responses out of caches", async () => {
+    const webHandler = vi.fn((_req, res) => {
+      res.status(200).send("<html>app</html>")
+    })
+    const base = await start(webHandler as unknown as WebHandler)
+
+    const page = await fetch(`${base}/characters/abc`)
+    expect(page.headers.get("x-powered-by")).toBeNull()
+    expect(page.headers.get("x-content-type-options")).toBe("nosniff")
+    expect(page.headers.get("x-frame-options")).toBe("DENY")
+    expect(page.headers.get("referrer-policy")).toBe("no-referrer")
+    expect(page.headers.get("permissions-policy")).toContain("camera=()")
+    expect(page.headers.get("content-security-policy")).toContain(
+      "frame-ancestors 'none'",
+    )
+
+    const api = await fetch(`${base}/api/health`)
+    expect(api.headers.get("cache-control")).toBe("no-store")
+  })
+
+  it("serves the frontend static build from clientDir", async () => {    const dir = await mkdtemp(join(tmpdir(), "rm-client-"))
     try {
       await writeFile(join(dir, "app.js"), "console.log('app')")
       const base = await start(undefined, dir)

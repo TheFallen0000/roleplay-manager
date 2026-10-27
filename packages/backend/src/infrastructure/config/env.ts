@@ -6,7 +6,7 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
-  HOST: z.string().min(1).optional(),
+  HOST: z.string().min(1).default("127.0.0.1"),
   DATABASE_PATH: z.string().min(1).default("./data/roleplay.db"),
   DATA_DIR: z.string().min(1).default("./data"),
   /** Folder for the rotating log files (defaults to `<DATA_DIR>/logs`). */

@@ -26,6 +26,37 @@ export default defineConfig({
     // (e.g. `https://<machine>.<tailnet>.ts.net` via `tailscale serve`).
     allowedHosts: [".ts.net"],
   },
+  security: {
+    // Astro hashes its processed scripts/styles into a meta CSP. The bootstrap
+    // script is external (`/rm-bootstrap.js`) so script-src can stay on 'self';
+    // React and libraries still need inline style attributes.
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "object-src 'none'",
+        "img-src 'self' data: blob:",
+        "font-src 'self' data:",
+        "connect-src 'self'",
+        "media-src 'self'",
+        "manifest-src 'self'",
+        "worker-src 'self' blob:",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+      ],
+      scriptDirective: { resources: ["'self'"] },
+      styleDirective: {
+        // react-easy-crop and sonner inject their own <style> elements at
+        // runtime; React also uses style attributes. Keep script-src strict
+        // and allow inline styles, which cannot execute JavaScript.
+        resources: [
+          { resource: "'self'", kind: "element" },
+          { resource: "'unsafe-inline'", kind: "element" },
+          { resource: "'unsafe-inline'", kind: "attribute" },
+        ],
+      },
+    },
+  },
   vite: {
     plugins: [tailwindcss()],
     cacheDir: isBuild ? "node_modules/.vite-build" : "node_modules/.vite-dev",
