@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.51.1] - 2026-10-27
+
 ### Changed
 
 - **Drizzle ORM 0.45.4 y drizzle-kit 0.31.11**: actualización de la capa de
