@@ -2,7 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest"
 
 import type { CharacterAssetImageProcessor } from "../../../domain/ports/character-asset-image-processor"
 import type { ProcessedCharacterAssetImage } from "../../../domain/ports/character-asset-image-processor"
@@ -17,7 +17,9 @@ describe("BackfillCharacterAssetVariantsUseCase", () => {
   let root: string
   let storage: FilesystemCharacterAssetStorage
   let assets: CharacterAssetMetadata[]
-  let updateDimensions: ReturnType<typeof vi.fn>
+  let updateDimensions: Mock<
+    (id: string, width: number, height: number) => Promise<void>
+  >
   let processor: CharacterAssetImageProcessor
   let backgroundAssetIds: Array<string | null>
   let profileAssetIds: Array<string | null>
