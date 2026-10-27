@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.51.0] - 2026-10-27
+
 ### Changed
 
 - **Rendimiento de la base de datos**: nuevos índices para mensajes,
