@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.54.2] - 2026-10-27
+
 ### Changed
 
 - **Actualizaciones de dependencias**: React 19.3, `lucide-react` 1.61,
