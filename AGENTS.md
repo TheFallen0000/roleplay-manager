@@ -16,7 +16,7 @@ A roleplay conversation manager with a Node/Express backend, an Astro+React fron
 | `packages/ui`       | Reusable shadcn/ui components (button, dialog, etc.).                                                                  |
 | `packages/website`  | Public site (roleplay-manager.com): Astro landing, downloads and docs. Static, no React, deployed on Cloudflare Pages. |
 
-**Node**: ≥ 22.12.0. **Package manager**: pnpm 11.21.0. **Build orchestrator**: turbo 2.x.
+**Node**: ≥ 22.23.4 (the pinned toolchain in `.nvmrc` is 24.22.1). **Package manager**: pnpm 11.21.0. **Build orchestrator**: turbo 2.x.
 
 ### Website (`packages/website`)
 

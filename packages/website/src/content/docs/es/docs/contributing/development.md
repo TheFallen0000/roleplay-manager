@@ -5,7 +5,7 @@ description: Ejecuta el monorepo de Roleplay Manager, las pruebas y los controle
 
 ## Requisitos
 
-- Node.js ≥ 22.12.0.
+- Node.js ≥ 22.23.4 (el repositorio fija 24.22.1 en `.nvmrc`).
 - pnpm ≥ 11.15.1. El script de instalación puede configurarlo con corepack.
 
 ## Iniciar la app

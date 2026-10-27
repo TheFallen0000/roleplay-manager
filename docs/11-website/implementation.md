@@ -62,7 +62,7 @@ publica `packages/website/dist` con Wrangler.
 | Root directory         | `/` (raíz del monorepo)                           |
 | Build command          | `pnpm --filter @workspace/website build`          |
 | Build output directory | `packages/website/dist`                           |
-| Node version           | `24.18.0` en el workflow                          |
+| Node version           | `24.22.1` (`.nvmrc`) en el workflow               |
 | Package manager        | pnpm `11.21.0`                                    |
 | Framework preset       | Astro                                             |
 

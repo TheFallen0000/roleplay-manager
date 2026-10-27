@@ -15,7 +15,7 @@ Be respectful and constructive. This is a community project.
 
 ## Prerequisites
 
-- **Node.js** ≥ 22.12.0
+- **Node.js** ≥ 22.23.4 (the repo pins 24.22.1 in `.nvmrc`; run `nvm use`)
 - **pnpm** ≥ 11.15.1 (install via `corepack enable && corepack prepare pnpm@11.21.0 --activate`)
 - A POSIX shell (Linux, macOS, or WSL on Windows). The repo includes
   Windows `.bat` scripts for end users, but the dev workflow assumes a
@@ -24,6 +24,9 @@ Be respectful and constructive. This is a community project.
 ## Quick start
 
 ```bash
+# 0. Use the pinned Node version
+nvm use
+
 # 1. Install dependencies
 pnpm install
 

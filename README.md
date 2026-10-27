@@ -14,7 +14,7 @@ Versioned characters, streaming conversations, dynamic memory and summaries — 
 [![Latest release](https://img.shields.io/github/v/release/TheFallen0000/roleplay-manager?style=flat-square&color=2ea44f)](https://github.com/TheFallen0000/roleplay-manager/releases/latest)
 [![Release workflow](https://img.shields.io/github/actions/workflow/status/TheFallen0000/roleplay-manager/release.yml?branch=master&style=flat-square&label=release)](https://github.com/TheFallen0000/roleplay-manager/actions/workflows/release.yml)
 [![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20macOS-blue?style=flat-square)](#install)
-[![Node.js 22.12+](https://img.shields.io/badge/Node.js-22.12%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Node.js 24.22.1](https://img.shields.io/badge/Node.js-24.22.1-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 
 [Install](#install) · [Features](#features) · [Development](#development) · [Phone access](#phone-access) · [Updates](#updates) · [Documentation](#documentation) · [License](#license)
 
@@ -82,7 +82,7 @@ Node.js is **not** required: the runtime is bundled. Your content lives in the
 
 ### Requirements
 
-- **Node.js** ≥ 22.12.0
+- **Node.js** ≥ 22.23.4 (the pinned toolchain in `.nvmrc` is 24.22.1)
 - **pnpm** ≥ 11.15.1 (the install script can set it up through corepack)
 
 ### Install and run
@@ -164,9 +164,9 @@ iOS the app can be installed to the home screen as a PWA.
 
 The packaged app checks [GitHub Releases](https://github.com/TheFallen0000/roleplay-manager/releases)
 from **System → Updates**. Applying an update creates a backup, downloads the
-package for your OS into `versions/<version>/`, switches the `current` pointer
-and offers a **Restart now** button; your `data/` and `backups/` are untouched
-and the previous version stays on disk.
+package for your OS into `versions/<version>/`, verifies its SHA-256 checksum,
+switches the `current` pointer and offers a **Restart now** button; your `data/`
+and `backups/` are untouched and the previous version stays on disk.
 
 ## Documentation
 
