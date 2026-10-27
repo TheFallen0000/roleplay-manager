@@ -16,15 +16,15 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "@astrojs/starlight": "^0.42.6",
+    "@astrojs/starlight": "^0.42.7",
     "@fontsource/dela-gothic-one": "^5.3.0",
-    "@fontsource/zen-kaku-gothic-new": "^5.3.0",
-    "@fontsource/zen-maru-gothic": "^5.3.0",
+    "@fontsource/zen-kaku-gothic-new": "^5.3.1",
+    "@fontsource/zen-maru-gothic": "^5.3.1",
     "astro": "^7.4.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "prettier": "^3.8.3",
+    "prettier": "^3.9.10",
     "sharp": "^0.35.5",
     "typescript": "~6"
   }

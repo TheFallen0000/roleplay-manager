@@ -9,3 +9,11 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - astro@7.2.1
+
+overrides:
+  # Astro's unifont still resolves undici 8.9.0, which is affected by the
+  # 8.10.2/8.12.2 advisories. 8.12.x is API-compatible.
+  "unifont>undici": "^8.12.3"
+  # Build tooling pulls vulnerable patch versions; keep the patched releases.
+  "source-map-js": "^1.2.2"
+  "postcss-selector-parser": "^7.1.6"

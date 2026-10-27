@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Actualizaciones de dependencias**: React 19.3, `lucide-react` 1.61,
+  `@base-ui/react` 1.9, `@shadcn/react` 0.3, Radix Slot 1.5, Prettier 3.9,
+  `turbo` 2.11, `shadcn` 4.22 y el resto de mejoras patch/minor de Dependabot.
+  Los majors (Express 5, `better-sqlite3` 13, `pino` 10, `uuid` 14,
+  TypeScript 7) quedan para slices posteriores.
+- **Dependabot**: los grupos semanales ahora solo incluyen actualizaciones
+  patch/minor; los majors llegan en PRs individuales para revisarlos uno a uno.
+
+### Security
+
+- **Dependencias transitivas**: overrides para `undici` 8.12.3,
+  `source-map-js` 1.2.2 y `postcss-selector-parser` 7.1.7. `pnpm audit --prod`
+  queda sin vulnerabilidades conocidas.
+
 ## [1.54.1] - 2026-10-27
 
 ### Changed
