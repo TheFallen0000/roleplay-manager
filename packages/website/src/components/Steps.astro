@@ -18,15 +18,13 @@ const steps = [1, 2, 3] as const
     </div>
 
     <div class="steps">
-      {
-        steps.map((step) => (
-          <div class="step">
-            <div class="step-num">{String(step).padStart(2, "0")}</div>
-            <h3>{t(`steps.${step}.title` as TranslationKey)}</h3>
-            <p>{t(`steps.${step}.body` as TranslationKey)}</p>
-          </div>
-        ))
-      }
+      {steps.map((step) => (
+        <div class="step">
+          <div class="step-num">{String(step).padStart(2, "0")}</div>
+          <h3>{t(`steps.${step}.title` as TranslationKey)}</h3>
+          <p>{t(`steps.${step}.body` as TranslationKey)}</p>
+        </div>
+      ))}
     </div>
 
     <p class="steps-note">

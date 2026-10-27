@@ -9,6 +9,8 @@ export const prerender = false
 const locale = resolveLocale(Astro.cookies.get("language")?.value)
 ---
 
-<BaseLayout title={`${translate(locale, "pages.providers")} - Roleplay Manager`}>
+<BaseLayout
+  title={`${translate(locale, "pages.providers")} - Roleplay Manager`}
+>
   <ProviderManager locale={locale} client:load />
 </BaseLayout>

@@ -23,9 +23,7 @@ const downloadLabel = locale === "es" ? "Descargar" : "Download"
   <div class="title-wrapper sl-flex">
     <SiteTitle />
   </div>
-  <div class="sl-flex print:hidden">
-    {shouldRenderSearch && <Search />}
-  </div>
+  <div class="sl-flex print:hidden">{shouldRenderSearch && <Search />}</div>
   <div class="sl-hidden md:sl-flex right-group print:hidden">
     <a class="header-download" href={downloadHref}>
       <svg
@@ -36,9 +34,11 @@ const downloadLabel = locale === "es" ? "Descargar" : "Download"
         stroke-linecap="round"
         stroke-linejoin="round"
         aria-hidden="true"
-        ><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path
-          d="M5 21h14"></path></svg
       >
+        <path d="M12 3v12"></path>
+        <path d="m7 10 5 5 5-5"></path>
+        <path d="M5 21h14"></path>
+      </svg>
       <span>{downloadLabel}</span>
     </a>
     <div class="sl-flex social-icons">

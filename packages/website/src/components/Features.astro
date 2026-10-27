@@ -26,17 +26,15 @@ const features = [
       <p class="lede">{t("features.lede")}</p>
 
       <div class="feature-list">
-        {
-          features.map((feature) => (
-            <div class="feature">
-              <Icon name={feature.icon} />
-              <div>
-                <h3>{t(`features.${feature.key}.title` as TranslationKey)}</h3>
-                <p>{t(`features.${feature.key}.body` as TranslationKey)}</p>
-              </div>
+        {features.map((feature) => (
+          <div class="feature">
+            <Icon name={feature.icon} />
+            <div>
+              <h3>{t(`features.${feature.key}.title` as TranslationKey)}</h3>
+              <p>{t(`features.${feature.key}.body` as TranslationKey)}</p>
             </div>
-          ))
-        }
+          </div>
+        ))}
       </div>
     </div>
 

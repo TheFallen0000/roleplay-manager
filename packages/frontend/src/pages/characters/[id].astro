@@ -19,17 +19,22 @@ if (id) {
   try {
     character = await getCharacter(id)
   } catch (e) {
-    error = e instanceof Error ? e.message : translate(locale, "common.unknownError")
+    error =
+      e instanceof Error ? e.message : translate(locale, "common.unknownError")
   }
 }
 ---
 
-<BaseLayout title={character ? `${character.name} - Roleplay Manager` : translate(locale, "pages.characterNotFound")}>
-  {
-    character ? (
-      <CharacterForm locale={locale} client:load character={character} />
-    ) : (
-      <CharacterNotFound error={error} />
-    )
+<BaseLayout
+  title={
+    character
+      ? `${character.name} - Roleplay Manager`
+      : translate(locale, "pages.characterNotFound")
   }
+>
+  {character ? (
+    <CharacterForm locale={locale} client:load character={character} />
+  ) : (
+    <CharacterNotFound error={error} />
+  )}
 </BaseLayout>

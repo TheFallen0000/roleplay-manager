@@ -49,28 +49,24 @@ const rows = [
 ---
 
 <div class="platform-list">
-  {
-    rows.map((row) => (
-      <a class="platform" href={row.asset.url} data-platform={row.key}>
-        <Icon name={row.icon} />
-        <div>
-          <strong>{t(row.label as TranslationKey)}</strong>
-          <span>
-            {t(row.platform as TranslationKey)} · {row.asset.sizeLabel}
-          </span>
-        </div>
-        <span class="rec" hidden>
-          {t("download.recommended")}
+  {rows.map((row) => (
+    <a class="platform" href={row.asset.url} data-platform={row.key}>
+      <Icon name={row.icon} />
+      <div>
+        <strong>{t(row.label as TranslationKey)}</strong>
+        <span>
+          {t(row.platform as TranslationKey)} · {row.asset.sizeLabel}
         </span>
-      </a>
-    ))
-  }
-</div>
-{
-  showAll && (
-    <a class="dialog-all" href={release.htmlUrl}>
-      <span>{t("download.all")}</span>
-      <Icon name="arrow" />
+      </div>
+      <span class="rec" hidden>
+        {t("download.recommended")}
+      </span>
     </a>
-  )
-}
+  ))}
+</div>
+{showAll && (
+  <a class="dialog-all" href={release.htmlUrl}>
+    <span>{t("download.all")}</span>
+    <Icon name="arrow" />
+  </a>
+)}
