@@ -71,6 +71,7 @@ export function CustomizationTab({
         name={conversation.characterName}
         profileImageAssetId={conversation.profileImageAssetId}
         pendingFile={null}
+        recropAssetId={conversation.customProfileImageAssetId}
         showClearButton={!!conversation.customProfileImageAssetId}
         clearLabel={t("settings.clearCustomImage")}
         onFileSelected={handleFileSelected}

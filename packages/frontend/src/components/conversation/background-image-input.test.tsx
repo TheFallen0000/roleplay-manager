@@ -15,6 +15,7 @@ import { I18nProvider } from "@/lib/hooks/i18n-provider"
 const mocks = vi.hoisted(() => ({
   uploadConversationBackground: vi.fn(),
   updateConversationSettings: vi.fn(),
+  fetchCharacterAssetFile: vi.fn(),
 }))
 
 vi.mock("@/lib/api/client", async (importOriginal) => {
@@ -22,6 +23,7 @@ vi.mock("@/lib/api/client", async (importOriginal) => {
   return {
     ...actual,
     uploadConversationBackground: mocks.uploadConversationBackground,
+    fetchCharacterAssetFile: mocks.fetchCharacterAssetFile,
     getCharacterAssetUrl: (
       characterId: string,
       assetId: string,
@@ -59,6 +61,7 @@ const render = (ui: React.ReactElement) =>
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+  mocks.fetchCharacterAssetFile.mockReset()
 })
 
 const baseConversation = (
@@ -135,6 +138,50 @@ describe("BackgroundImageInput", () => {
     fireEvent.drop(screen.getByText("Añadir fondo").closest("button")!, {
       dataTransfer: { files: [file] },
     })
+
+    expect(screen.queryByText("Recortar imagen")).not.toBeInTheDocument()
+  })
+
+  it("re-crops the saved background using the original asset", async () => {
+    mocks.fetchCharacterAssetFile.mockResolvedValue(
+      new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "bg.png", {
+        type: "image/png",
+      }),
+    )
+    renderInput(
+      baseConversation({
+        backgroundImageAssetId: "asset-bg",
+        backgroundImageDimensions: { width: 1920, height: 1080 },
+      }),
+    )
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ajustar recorte" }),
+    )
+
+    expect(await screen.findByText("Recortar imagen")).toBeInTheDocument()
+    expect(mocks.fetchCharacterAssetFile).toHaveBeenCalledWith(
+      "char-1",
+      "asset-bg",
+    )
+  })
+
+  it("does not re-crop an animated GIF background", async () => {
+    mocks.fetchCharacterAssetFile.mockResolvedValue(
+      new File([new Uint8Array([0x47, 0x49, 0x46])], "bg.gif", {
+        type: "image/gif",
+      }),
+    )
+    renderInput(
+      baseConversation({
+        backgroundImageAssetId: "asset-gif",
+        backgroundImageDimensions: { width: 1920, height: 1080 },
+      }),
+    )
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ajustar recorte" }),
+    )
 
     expect(screen.queryByText("Recortar imagen")).not.toBeInTheDocument()
   })

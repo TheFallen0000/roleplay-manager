@@ -507,6 +507,10 @@ export const en = {
     imageTooLarge: "The file is too large ({max} max).",
     loadFailed: "The characters could not be loaded",
     removeImage: "Remove image",
+    recropImage: "Adjust crop",
+    recropFailed: "The image could not be loaded for cropping",
+    recropGif:
+      "Animated GIFs cannot be re-cropped without losing their animation.",
     imageDropHint: "Drag an image here or click to select",
     imageFormats: "PNG, JPEG, WEBP or GIF · {max} max",
     imagePending: "Image pending to be saved when the character is created.",

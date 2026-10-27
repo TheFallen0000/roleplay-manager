@@ -69,6 +69,28 @@ export const getCharacterAssetUrl = (
   return variant ? `${url}?variant=${variant}` : url
 }
 
+/**
+ * Downloads the original (unvariant) asset as a `File` so the cropper can work
+ * with the best available pixels when re-cropping an already saved image.
+ */
+export const fetchCharacterAssetFile = async (
+  characterId: string,
+  assetId: string,
+): Promise<File> => {
+  const response = await fetch(getCharacterAssetUrl(characterId, assetId))
+  if (!response.ok) {
+    throw new ApiClientError(
+      response.status,
+      "ASSET_FETCH_FAILED",
+      response.statusText || "The image could not be loaded.",
+    )
+  }
+  const blob = await response.blob()
+  return new File([blob], `asset-${assetId}`, {
+    type: blob.type || "image/png",
+  })
+}
+
 export const uploadCharacterAsset = async (
   characterId: string,
   file: File,

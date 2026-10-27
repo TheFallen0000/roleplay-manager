@@ -28,10 +28,11 @@ import { Slider } from "@workspace/ui/components/slider"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
 import { cn } from "@workspace/ui/lib/utils"
-import { ImagePlusIcon } from "lucide-react"
+import { CropIcon, ImagePlusIcon } from "lucide-react"
 
 import {
   ApiClientError,
+  fetchCharacterAssetFile,
   getCharacterAssetUrl,
   uploadConversationBackground,
 } from "@/lib/api/client"
@@ -55,6 +56,7 @@ export function BackgroundImageInput({
   const [cropperFile, setCropperFile] = useState<File | null>(null)
   const [dragging, setDragging] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [recropLoading, setRecropLoading] = useState(false)
   const [scrim, setScrim] = useState(conversation.backgroundScrim ?? 0)
 
   const backgroundId = conversation.backgroundImageAssetId
@@ -130,6 +132,26 @@ export function BackgroundImageInput({
       setSaving(false)
     }
   }
+
+  const handleRecrop = useCallback(async () => {
+    if (!backgroundId) return
+    setRecropLoading(true)
+    try {
+      const file = await fetchCharacterAssetFile(
+        conversation.characterId,
+        backgroundId,
+      )
+      if (file.type === "image/gif") {
+        toast.error(t("characters.recropGif"))
+        return
+      }
+      setCropperFile(file)
+    } catch {
+      toast.error(t("characters.recropFailed"))
+    } finally {
+      setRecropLoading(false)
+    }
+  }, [backgroundId, conversation.characterId, t])
 
   const handleFitChange = (value: BackgroundFit) =>
     persist(
@@ -254,6 +276,16 @@ export function BackgroundImageInput({
             >
               <ImagePlusIcon className="size-3" />
               {t("settings.backgroundChange")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void handleRecrop()}
+              disabled={saving || recropLoading}
+            >
+              {recropLoading ? <Spinner /> : <CropIcon className="size-3" />}
+              {t("characters.recropImage")}
             </Button>
             <Button
               type="button"
