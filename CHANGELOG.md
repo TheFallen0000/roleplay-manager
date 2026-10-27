@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Paginación del historial del chat**: la conversación se abre con los
+  últimos 50 mensajes y carga páginas anteriores automáticamente al acercarse
+  al inicio, conservando la posición del scroll. Incluye botón manual, spinner y
+  reintento si falla la red. Nuevo endpoint
+  `GET /api/conversations/:id/messages` con cursor por posición.
+
+### Changed
+
+- **Desgaste de memoria**: los turnos desde la última actualización se calculan
+  en el backend, así que la lista de memorias deja de depender de cargar todo
+  el historial en el cliente.
+- **Rewind más ligero**: la respuesta devuelve solo los IDs de los mensajes
+  eliminados; el cliente trunca los mensajes que ya tiene y refresca memorias,
+  propuestas y resúmenes.
+- **Apertura del chat**: el detalle usa resúmenes de versión en lugar de cargar
+  todas las versiones y tarjetas del personaje.
+
 ## [1.51.2] - 2026-10-27
 
 ### Changed

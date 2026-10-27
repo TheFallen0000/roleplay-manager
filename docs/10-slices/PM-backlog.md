@@ -379,6 +379,12 @@ Last updated: 2026-10-27
 > smoke tests pass. The production audit is at 0 critical and 4 high (Astro
 > build dependencies). Pagination remains for S93. See `S92-progress.md`.
 
+> **S93 — chat pagination (2026-10-27, v1.52.0):** The chat opens with the
+> latest 50 messages and auto-loads older pages near the top, preserving scroll.
+> Memory decay is computed server-side, rewind returns deleted IDs instead of
+> the full history, and the conversation detail no longer loads every character
+> version. See `S93-progress.md`.
+
 ### Manual verification pending
 
 These are not code tasks; they need real hardware or a user confirmation.
