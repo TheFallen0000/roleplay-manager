@@ -1,6 +1,6 @@
 # S88 — Aviso de inactividad del enlace telefónico (PM.39)
 
-**Estado:** Completado
+**Estado:** Completado (v1.50.0)
 **Inicio:** 2026-10-27
 **Fin:** 2026-10-27
 
