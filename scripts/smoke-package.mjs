@@ -345,6 +345,21 @@ try {
           ),
         "SSR chat markup embeds avatars with relative URLs",
       )
+      const chatCsp = chatPage.headers.get("content-security-policy") ?? ""
+      check(
+        chatCsp.includes("script-src") &&
+          chatCsp.includes("style-src-attr"),
+        "SSR chat includes the generated CSP",
+      )
+      check(
+        chatHtml.includes('src="/rm-bootstrap.js"'),
+        "SSR chat uses the external bootstrap script",
+      )
+      const bootstrap = await fetch(`${base}/rm-bootstrap.js`)
+      check(
+        bootstrap.status === 200,
+        `external bootstrap served (${bootstrap.status})`,
+      )
       check(
         !chatHtml.includes("http://localhost:"),
         "SSR chat markup has no absolute localhost URLs",

@@ -5,6 +5,7 @@ import express, {
   type Request,
   type Response,
 } from "express"
+import helmet from "helmet"
 import { resolve } from "node:path"
 import pinoHttp from "pino-http"
 
@@ -57,6 +58,30 @@ export const buildServer = ({
 }: BuildServerOptions): Express => {
   const { logger, pino } = container
   const app = express()
+
+  app.disable("x-powered-by")
+  app.use(
+    helmet({
+      // Astro emits a hashed CSP meta tag per page; a second full policy here
+      // would be combined by the browser and could block the app.
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      frameguard: { action: "deny" },
+      referrerPolicy: { policy: "no-referrer" },
+    }),
+  )
+  app.use((_req, res, next) => {
+    res.setHeader("Content-Security-Policy", "frame-ancestors 'none'")
+    res.setHeader(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=()",
+    )
+    next()
+  })
+  app.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store")
+    next()
+  })
 
   app.use("/api/characters/imports", express.json({ limit: "25mb" }))
   app.use(express.json({ limit: "1mb" }))
