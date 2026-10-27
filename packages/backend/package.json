@@ -25,7 +25,7 @@
     "cors": "^2.8.5",
     "drizzle-orm": "^0.45.4",
     "express": "^4.22.3",
-    "openai": "^4.71.0",
+    "openai": "~7.44.0",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "pino-roll": "^4.0.0",
