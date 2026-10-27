@@ -62,61 +62,57 @@ const config: Record<
 
     <div class="gallery">
       <div class="gallery-tabs" role="tablist" aria-label="Screenshots">
-        {
-          tabs.map((tab, index) => (
-            <button
-              class="gallery-tab"
-              type="button"
-              role="tab"
-              id={`tab-${tab}`}
-              aria-controls={`panel-${tab}`}
-              aria-selected={index === 0 ? "true" : "false"}
-              tabindex={index === 0 ? "0" : "-1"}
-              data-gallery-tab={tab}
-            >
-              <Icon name={config[tab].icon} />
-              <span>{t(config[tab].label)}</span>
-            </button>
-          ))
-        }
+        {tabs.map((tab, index) => (
+          <button
+            class="gallery-tab"
+            type="button"
+            role="tab"
+            id={`tab-${tab}`}
+            aria-controls={`panel-${tab}`}
+            aria-selected={index === 0 ? "true" : "false"}
+            tabindex={index === 0 ? "0" : "-1"}
+            data-gallery-tab={tab}
+          >
+            <Icon name={config[tab].icon} />
+            <span>{t(config[tab].label)}</span>
+          </button>
+        ))}
       </div>
 
       <div class="gallery-frame">
-        {
-          tabs.map((tab, index) => {
-            const item = config[tab]
-            return (
-              <div
-                class:list={[
-                  "gallery-panel",
-                  item.phone && "gallery-panel--phone",
-                ]}
-                role="tabpanel"
-                id={`panel-${tab}`}
-                aria-labelledby={`tab-${tab}`}
-                data-gallery-panel={tab}
-                hidden={index !== 0}
-              >
-                <Image
-                  src={item.image}
-                  widths={item.phone ? [360, 720] : [720, 1080, 1440]}
-                  sizes={
-                    item.phone
-                      ? "(max-width: 56rem) 80vw, 300px"
-                      : "(max-width: 48rem) 92vw, 900px"
-                  }
-                  format="webp"
-                  loading="lazy"
-                  alt={t(item.alt)}
-                />
-                <div class="gallery-caption">
-                  <span>{t(item.caption)}</span>
-                  <span>{t("gallery.caption.note")}</span>
-                </div>
+        {tabs.map((tab, index) => {
+          const item = config[tab]
+          return (
+            <div
+              class:list={[
+                "gallery-panel",
+                item.phone && "gallery-panel--phone",
+              ]}
+              role="tabpanel"
+              id={`panel-${tab}`}
+              aria-labelledby={`tab-${tab}`}
+              data-gallery-panel={tab}
+              hidden={index !== 0}
+            >
+              <Image
+                src={item.image}
+                widths={item.phone ? [360, 720] : [720, 1080, 1440]}
+                sizes={
+                  item.phone
+                    ? "(max-width: 56rem) 80vw, 300px"
+                    : "(max-width: 48rem) 92vw, 900px"
+                }
+                format="webp"
+                loading="lazy"
+                alt={t(item.alt)}
+              />
+              <div class="gallery-caption">
+                <span>{t(item.caption)}</span>
+                <span>{t("gallery.caption.note")}</span>
               </div>
-            )
-          })
-        }
+            </div>
+          )
+        })}
       </div>
     </div>
   </div>

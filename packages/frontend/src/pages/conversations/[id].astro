@@ -18,7 +18,8 @@ if (id) {
   try {
     conversation = await getConversation(id)
   } catch (e) {
-    error = e instanceof Error ? e.message : translate(locale, "common.unknownError")
+    error =
+      e instanceof Error ? e.message : translate(locale, "common.unknownError")
   }
 }
 ---
@@ -30,15 +31,13 @@ if (id) {
       : translate(locale, "pages.conversationNotFound")
   }
 >
-  {
-    conversation ? (
-      <div class="flex h-[calc(100dvh_-_5rem_-_env(safe-area-inset-top,0px))] flex-col rounded-lg border sm:h-[calc(100dvh_-_6rem_-_env(safe-area-inset-top,0px))]">
-        <Chat locale={locale} client:load conversation={conversation} />
-      </div>
-    ) : (
-      <div class="flex items-center justify-center p-12 text-sm text-muted-foreground">
-        {error ?? "Conversación no encontrada."}
-      </div>
-    )
-  }
+  {conversation ? (
+    <div class="flex h-[calc(100dvh_-_5rem_-_env(safe-area-inset-top,0px))] flex-col rounded-lg border sm:h-[calc(100dvh_-_6rem_-_env(safe-area-inset-top,0px))]">
+      <Chat locale={locale} client:load conversation={conversation} />
+    </div>
+  ) : (
+    <div class="flex items-center justify-center p-12 text-sm text-muted-foreground">
+      {error ?? "Conversación no encontrada."}
+    </div>
+  )}
 </BaseLayout>

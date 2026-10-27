@@ -51,13 +51,17 @@ const {
         <a
           href={locale === "en" ? currentHref : alternateHref}
           aria-current={locale === "en" ? "page" : undefined}
-          data-lang-set="en">EN</a
+          data-lang-set="en"
         >
+          EN
+        </a>
         <a
           href={locale === "es" ? currentHref : alternateHref}
           aria-current={locale === "es" ? "page" : undefined}
-          data-lang-set="es">ES</a
+          data-lang-set="es"
         >
+          ES
+        </a>
       </div>
       <button
         class="header-icon"
@@ -104,20 +108,28 @@ const {
         <a
           href={locale === "en" ? currentHref : alternateHref}
           aria-current={locale === "en" ? "page" : undefined}
-          data-lang-set="en">EN</a
+          data-lang-set="en"
         >
+          EN
+        </a>
         <a
           href={locale === "es" ? currentHref : alternateHref}
           aria-current={locale === "es" ? "page" : undefined}
-          data-lang-set="es">ES</a
+          data-lang-set="es"
         >
+          ES
+        </a>
       </div>
       <div class="lang-toggle" role="group" aria-label={t("header.theme")}>
-        <button type="button" data-theme-set="light">{t("theme.light")}</button>
-        <button type="button" data-theme-set="dark">{t("theme.dark")}</button>
-        <button type="button" data-theme-set="system"
-          >{t("theme.system")}</button
-        >
+        <button type="button" data-theme-set="light">
+          {t("theme.light")}
+        </button>
+        <button type="button" data-theme-set="dark">
+          {t("theme.dark")}
+        </button>
+        <button type="button" data-theme-set="system">
+          {t("theme.system")}
+        </button>
       </div>
       <a
         class="btn btn--ghost btn--sm"

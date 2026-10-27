@@ -17,19 +17,17 @@ const rows = [1, 2, 3] as const
     </div>
 
     <div class="ledger">
-      {
-        rows.map((row) => (
-          <div class="ledger-row">
-            <span class="ledger-label">
-              {t(`ledger.${row}.label` as TranslationKey)}
-            </span>
-            <div>
-              <h3>{t(`ledger.${row}.title` as TranslationKey)}</h3>
-              <p>{t(`ledger.${row}.body` as TranslationKey)}</p>
-            </div>
+      {rows.map((row) => (
+        <div class="ledger-row">
+          <span class="ledger-label">
+            {t(`ledger.${row}.label` as TranslationKey)}
+          </span>
+          <div>
+            <h3>{t(`ledger.${row}.title` as TranslationKey)}</h3>
+            <p>{t(`ledger.${row}.body` as TranslationKey)}</p>
           </div>
-        ))
-      }
+        </div>
+      ))}
     </div>
   </div>
 </section>

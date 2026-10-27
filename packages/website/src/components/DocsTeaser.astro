@@ -21,18 +21,16 @@ const rows = [1, 2, 3, 4] as const
     </div>
 
     <div class="toc-list">
-      {
-        rows.map((row) => (
-          <a class="toc-row" href={docsHref}>
-            <span class="toc-num">{String(row).padStart(2, "0")}</span>
-            <span class="toc-title">{t(`docs.${row}` as TranslationKey)}</span>
-            <span class="toc-desc">
-              {t(`docs.${row}.desc` as TranslationKey)}
-            </span>
-            <Icon name="arrow" />
-          </a>
-        ))
-      }
+      {rows.map((row) => (
+        <a class="toc-row" href={docsHref}>
+          <span class="toc-num">{String(row).padStart(2, "0")}</span>
+          <span class="toc-title">{t(`docs.${row}` as TranslationKey)}</span>
+          <span class="toc-desc">
+            {t(`docs.${row}.desc` as TranslationKey)}
+          </span>
+          <Icon name="arrow" />
+        </a>
+      ))}
     </div>
 
     <div class="docs-cta">

@@ -17,19 +17,17 @@ const questions = [1, 2, 3, 4, 5, 6, 7] as const
     </div>
 
     <div class="faq">
-      {
-        questions.map((question) => (
-          <details>
-            <summary>
-              <span>{t(`faq.${question}.q` as TranslationKey)}</span>
-              <span class="plus" aria-hidden="true" />
-            </summary>
-            <div class="answer">
-              <p>{t(`faq.${question}.a` as TranslationKey)}</p>
-            </div>
-          </details>
-        ))
-      }
+      {questions.map((question) => (
+        <details>
+          <summary>
+            <span>{t(`faq.${question}.q` as TranslationKey)}</span>
+            <span class="plus" aria-hidden="true" />
+          </summary>
+          <div class="answer">
+            <p>{t(`faq.${question}.a` as TranslationKey)}</p>
+          </div>
+        </details>
+      ))}
     </div>
   </div>
 </section>

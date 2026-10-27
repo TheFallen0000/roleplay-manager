@@ -13,6 +13,12 @@ const initialTutorial =
   requested !== null && isTutorialId(requested) ? requested : null
 ---
 
-<BaseLayout title={`${translate(locale, "pages.tutorials")} - Roleplay Manager`}>
-  <TutorialsPanel locale={locale} initialTutorial={initialTutorial} client:load />
+<BaseLayout
+  title={`${translate(locale, "pages.tutorials")} - Roleplay Manager`}
+>
+  <TutorialsPanel
+    locale={locale}
+    initialTutorial={initialTutorial}
+    client:load
+  />
 </BaseLayout>
