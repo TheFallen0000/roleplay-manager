@@ -1,5 +1,5 @@
 import type { ProviderId } from "@workspace/shared/types/provider"
-import type { ProviderInstance } from "@workspace/shared/types/provider-instance"
+import type { ProviderInstanceRecord } from "../../../../domain/ports/provider-instance.repository"
 
 import { ProviderError } from "../../primary/middlewares/error-handler"
 import type { Logger } from "../../../../domain/ports/logger.port"
@@ -55,7 +55,7 @@ export class ProviderRegistryImpl implements ProviderRegistry {
     )
   }
 
-  createAdapter(instance: ProviderInstance): ProviderPort {
+  createAdapter(instance: ProviderInstanceRecord): ProviderPort {
     if (instance.kind === "ollama") {
       return this.buildOllamaAdapter()
     }

@@ -6,7 +6,6 @@ export interface ProviderInstance {
   name: string
   url: string
   hasApiKey: boolean
-  apiKey: string | null
   createdAt: string
   updatedAt: string
 }
