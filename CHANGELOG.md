@@ -30,6 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   todo**. Se añaden la leyenda de prioridad, las etiquetas Crear/Actualizar/
   Eliminar y la validación del formulario de edición.
 
+### Fixed
+
+- **Propuestas de memoria**: un UPDATE cuyos valores ya coinciden con la
+  memoria se descarta en el servidor (también en modo auto) sin modificar
+  `updatedAt`. Las propuestas se guardan antes del evento `done`, y una
+  respuesta que solo trae tool call ya no las pierde: quedan pendientes aunque
+  el turno devuelva `EMPTY_RESPONSE`.
+
 ## [1.54.9] - 2026-10-27
 
 ### Changed
