@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.54.7] - 2026-10-27
+
 ### Security
 
 - **Protección CSRF en la API**: las peticiones que cambian estado desde otro
