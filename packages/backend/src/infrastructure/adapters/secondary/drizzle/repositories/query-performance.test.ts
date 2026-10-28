@@ -75,6 +75,7 @@ const insertFixture = async (): Promise<void> => {
   await db.insert(conversations).values({
     id: "conv1",
     versionId: "v1",
+    customProfileImageAssetId: "asset1",
     createdAt: now,
     updatedAt: now,
   })
@@ -261,5 +262,12 @@ describe("S90 query performance", () => {
     expect(page.entries[0].character.id).toBe("c1")
     expect(page.hasMore).toBe(false)
     expect(page.nextOffset).toBeNull()
+  })
+
+  it("checks asset references without listing conversations", async () => {
+    const repository = new DrizzleConversationRepository(db)
+
+    expect(await repository.existsByAssetId("asset1")).toBe(true)
+    expect(await repository.existsByAssetId("missing")).toBe(false)
   })
 })

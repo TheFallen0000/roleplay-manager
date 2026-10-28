@@ -160,7 +160,6 @@ const buildConversationRepo = (
 ): ConversationRepository => ({
   create: async (c) => c,
   findById: async () => conversation,
-  findByIdWithMessages: async () => null,
   list: async () => list,
   listByCharacterId: async (characterId: string) =>
     list
@@ -178,6 +177,7 @@ const buildConversationRepo = (
         (characterIds.includes("char-2") &&
           conversation.versionId === "ver-other"),
     ),
+  existsByAssetId: async () => false,
   update: async (c) => c,
   updateSettings: async () => conversation,
   clearProviderInstanceId: async () => {},
@@ -395,6 +395,7 @@ describe("ExportCharacterUseCase", () => {
         list: async () => [otherCharacterConversation],
         listByCharacterId: async () => [],
         listByCharacterIds: async () => [],
+        existsByAssetId: async () => false,
       },
       buildMessageRepo(),
       buildMemoryRepo(),

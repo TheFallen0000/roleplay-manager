@@ -44,9 +44,9 @@ const message = (id: string, position: number): Message =>
 const buildConversationRepo = (found = true): ConversationRepository => ({
   create: async (c) => c,
   findById: async () => (found ? conversation : null),
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
+  existsByAssetId: async () => false,
   list: async () => [],
   update: async (c) => c,
   updateSettings: async () => conversation,

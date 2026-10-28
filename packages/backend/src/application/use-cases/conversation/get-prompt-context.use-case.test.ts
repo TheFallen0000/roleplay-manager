@@ -90,9 +90,9 @@ let _capturedBuildParams: Record<string, unknown> = {}
 const buildConversationRepo = (conv: Conversation, nonexistentIds: string[] = []): ConversationRepository => ({
   create: async (c) => c,
   findById: async (id) => (nonexistentIds.includes(id) ? null : conv),
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
+  existsByAssetId: async () => false,
   list: async () => [],
   update: async (c) => c,
   updateSettings: async (_id, _s) => conv,

@@ -65,9 +65,9 @@ const buildRepos = () => {
   const conversationRepository: ConversationRepository = {
     create: vi.fn(async (c) => c),
     findById: async () => null,
-    findByIdWithMessages: async () => null,
     listByCharacterId: async () => [],
     listByCharacterIds: async () => [],
+    existsByAssetId: async () => false,
     list: async () => [],
     update: async (c) => c,
     updateSettings: async () => ({} as never),

@@ -36,9 +36,9 @@ const buildConversationRepo = (exists: boolean): ConversationRepository => ({
           memoryDecaySpeed: 10,
         } as never)
       : null,
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
+  existsByAssetId: async () => false,
   list: async () => [],
   create: async (c) => c,
   update: async (c) => c,
