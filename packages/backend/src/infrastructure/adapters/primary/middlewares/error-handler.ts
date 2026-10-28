@@ -56,6 +56,55 @@ export class ProviderTimeoutError extends HttpError {
   }
 }
 
+interface ClientRequestError {
+  status?: unknown
+  statusCode?: unknown
+  type?: unknown
+}
+
+/** body-parser errors carry a 4xx status but are not HttpError instances. */
+const toClientError = (
+  error: unknown,
+): { status: number; code: string; message: string } | null => {
+  if (typeof error !== "object" || error === null) return null
+  const candidate = error as ClientRequestError
+  const status =
+    typeof candidate.status === "number"
+      ? candidate.status
+      : typeof candidate.statusCode === "number"
+        ? candidate.statusCode
+        : null
+  if (status === null || status < 400 || status >= 500) return null
+
+  switch (candidate.type) {
+    case "entity.parse.failed":
+      return {
+        status,
+        code: "INVALID_JSON",
+        message: "The request body is not valid JSON.",
+      }
+    case "entity.too.large":
+      return {
+        status,
+        code: "PAYLOAD_TOO_LARGE",
+        message: "The request body is too large.",
+      }
+    case "encoding.unsupported":
+    case "charset.unsupported":
+      return {
+        status,
+        code: "UNSUPPORTED_MEDIA_TYPE",
+        message: "Unsupported request encoding.",
+      }
+    default:
+      return {
+        status,
+        code: "INVALID_REQUEST",
+        message: "Invalid request.",
+      }
+  }
+}
+
 export const buildErrorHandler = (logger: Logger): ErrorRequestHandler => {
   return (err, _req, res, _next) => {
     if (err instanceof ZodError) {
@@ -93,6 +142,19 @@ export const buildErrorHandler = (logger: Logger): ErrorRequestHandler => {
         error: { code: err.code, message: err.message },
       }
       res.status(err.statusCode).json(body)
+      return
+    }
+
+    const clientError = toClientError(err)
+    if (clientError) {
+      logger.warn("Request failed with client error", {
+        status: clientError.status,
+        code: clientError.code,
+      })
+      const body: ApiErrorBody = {
+        error: { code: clientError.code, message: clientError.message },
+      }
+      res.status(clientError.status).json(body)
       return
     }
 

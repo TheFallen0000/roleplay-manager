@@ -10,6 +10,7 @@ import { resolve } from "node:path"
 import pinoHttp from "pino-http"
 
 import type { AppContainer } from "../../../containers/app-container"
+import { buildApiOriginGuard } from "./middlewares/api-origin-guard"
 import { buildErrorHandler } from "./middlewares/error-handler"
 import { buildCharacterRouter } from "./routes/character.routes"
 import { buildPlayerCharacterRouter } from "./routes/player-character.routes"
@@ -85,6 +86,7 @@ export const buildServer = ({
     res.setHeader("Cache-Control", "no-store")
     next()
   })
+  app.use("/api", buildApiOriginGuard(corsOrigin))
 
   app.use("/api/characters/imports", express.json({ limit: "25mb" }))
   app.use(express.json({ limit: "1mb" }))
@@ -230,6 +232,17 @@ export const buildServer = ({
       restartApp: container.restartApp,
     }),
   )
+
+  // Unknown API paths must stay JSON: without this, Astro would return its
+  // HTML 404 to API clients.
+  app.use("/api", (_req, res) => {
+    res.status(404).json({
+      error: {
+        code: "NOT_FOUND",
+        message: "API route not found.",
+      },
+    })
+  })
 
   // The Astro handler (pages + assets) goes last: `/api` always wins and API
   // errors still reach the error handler below.

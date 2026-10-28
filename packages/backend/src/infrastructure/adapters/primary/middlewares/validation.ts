@@ -28,7 +28,10 @@ export const validate =
     const result = schema.safeParse(data)
     if (!result.success) {
       const message = result.error.issues
-        .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+        .map((issue) => {
+          const path = issue.path.join(".")
+          return path ? `${path}: ${issue.message}` : issue.message
+        })
         .join("; ")
       next(new ValidationError(message))
       return
