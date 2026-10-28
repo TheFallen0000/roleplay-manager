@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Guardrails de mantenimiento**: `AGENTS.md` documenta la política de
   Dependabot, las invariantes de seguridad y rendimiento, el dry-run de release
   y la verificación de artefactos. El CI ejecuta `pnpm audit --prod`.
+- **Rendimiento del chat**: el streaming re-renderiza solo su burbuja, los
+  mensajes existentes están memoizados y su contenido se parsea una vez por
+  mensaje. `chat.tsx` se dividió en `chat-streaming-bubbles.tsx` para respetar
+  el límite de 500 líneas.
 
 ## [1.54.6] - 2026-10-27
 
