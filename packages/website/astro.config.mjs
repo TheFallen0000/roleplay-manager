@@ -5,6 +5,33 @@ import sitemap from "@astrojs/sitemap"
 export default defineConfig({
   site: "https://roleplay-manager.com",
   output: "static",
+  security: {
+    // The static site only serves its own assets. The bootstrap script is
+    // external (`/site-bootstrap.js`), so script-src can stay on 'self';
+    // Starlight still needs inline style elements and React-style attributes.
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "object-src 'none'",
+        "img-src 'self' data:",
+        "font-src 'self' data:",
+        "connect-src 'self'",
+        "media-src 'self'",
+        "manifest-src 'self'",
+        "worker-src 'self' blob:",
+        "form-action 'self'",
+      ],
+      scriptDirective: { resources: ["'self'"] },
+      styleDirective: {
+        resources: [
+          { resource: "'self'", kind: "element" },
+          { resource: "'unsafe-inline'", kind: "element" },
+          { resource: "'unsafe-inline'", kind: "attribute" },
+        ],
+      },
+    },
+  },
   integrations: [
     starlight({
       title: "Roleplay Manager",
