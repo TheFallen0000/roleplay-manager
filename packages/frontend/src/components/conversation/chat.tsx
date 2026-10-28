@@ -26,6 +26,10 @@ import { getPromptContext } from "../../lib/api/context"
 import { createAssetSrcSet } from "@/lib/asset-srcset"
 import { cn } from "@workspace/ui/lib/utils"
 import { MessageBubble } from "./message"
+import {
+  RegeneratingBubble,
+  StreamingBubble,
+} from "./chat-streaming-bubbles"
 import { MessageInput } from "./message-input"
 import { ContextPreviewDialog } from "./context-preview-dialog"
 import { ChatConfirmDialogs } from "./chat-confirm-dialogs"
@@ -67,23 +71,20 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
   const { fullscreen, enter: enterFullscreen, exit: exitFullscreen } =
     useFullscreenFocus()
 
-  const {
-    messages,
-    isStreaming,
-    streamingContent,
-    error,
-    editingMessageId,
-    editingContent,
-    regeneratingMessageId,
-    setMessages,
-    replaceMessage,
-    removeMessage,
-    truncateAfter,
-    startEditing,
-    setEditingContent,
-    cancelEditing,
-    setError,
-  } = useChatStore()
+  const messages = useChatStore((s) => s.messages)
+  const isStreaming = useChatStore((s) => s.isStreaming)
+  const error = useChatStore((s) => s.error)
+  const editingMessageId = useChatStore((s) => s.editingMessageId)
+  const editingContent = useChatStore((s) => s.editingContent)
+  const regeneratingMessageId = useChatStore((s) => s.regeneratingMessageId)
+  const setMessages = useChatStore((s) => s.setMessages)
+  const replaceMessage = useChatStore((s) => s.replaceMessage)
+  const removeMessage = useChatStore((s) => s.removeMessage)
+  const truncateAfter = useChatStore((s) => s.truncateAfter)
+  const startEditing = useChatStore((s) => s.startEditing)
+  const setEditingContent = useChatStore((s) => s.setEditingContent)
+  const cancelEditing = useChatStore((s) => s.cancelEditing)
+  const setError = useChatStore((s) => s.setError)
 
   const {
     hasMore: hasMoreMessages,
@@ -367,7 +368,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                 error={loadOlderError}
                 onLoad={() => void loadOlder()}
               />
-              {messages.length === 0 && !streamingContent ? (
+              {messages.length === 0 && !isStreaming ? (
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 p-12 text-center">
                   <MascotPose pose="sparkle" className="h-28 w-28" />
                   <p className="text-sm text-muted-foreground">
@@ -379,33 +380,43 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                   {messages.map((msg, i) => {
                     if (msg.id === regeneratingMessageId) {
                       return (
-                        <MessageScrollerItem className="rm-message-enter" key={msg.id} scrollAnchor={i === messages.length - 1}>
-                          {streamingContent
-                            ? <MessageBubble message={{ ...msg, content: streamingContent }} isStreaming messageStyle={conv.messageStyle} characterName={conv.characterName} />
-                            : <MessageBubble message={{ ...msg, content: "" }} messageStyle={conv.messageStyle} characterName={conv.characterName} />}
-                        </MessageScrollerItem>
+                        <RegeneratingBubble
+                          key={msg.id}
+                          message={msg}
+                          messageStyle={conv.messageStyle}
+                          characterName={conv.characterName}
+                          scrollAnchor={i === messages.length - 1}
+                        />
                       )
                     }
                     return (
                       <MessageScrollerItem
                         className="rm-message-enter"
                         key={msg.id}
-                        scrollAnchor={i === messages.length - 1 && !isStreaming}
+                        scrollAnchor={
+                          i === messages.length - 1 && !isStreaming
+                        }
                       >
                         <MessageBubble
                           message={msg}
                           messageStyle={conv.messageStyle}
                           characterName={conv.characterName}
-                          isLastMessage={i === messages.length - 1 && !streamingContent}
+                          isLastMessage={
+                            i === messages.length - 1 && !isStreaming
+                          }
                           isEditing={editingMessageId === msg.id}
-                          editContent={editingMessageId === msg.id ? editingContent : undefined}
+                          editContent={
+                            editingMessageId === msg.id
+                              ? editingContent
+                              : undefined
+                          }
                           onEditContentChange={setEditingContent}
-                          onStartEdit={(id, content) => startEditing(id, content)}
+                          onStartEdit={startEditing}
                           onCancelEdit={cancelEditing}
                           onSaveEdit={handleEdit}
-                          onDelete={(id) => setConfirmDelete(id)}
+                          onDelete={setConfirmDelete}
                           onRegenerate={handleRegenerate}
-                          onRewind={(id) => setConfirmRewind(id)}
+                          onRewind={setConfirmRewind}
                           onBranch={handleBranch}
                           onCyclePrev={handleCyclePrev}
                           onCycleNext={handleCycleNext}
@@ -413,13 +424,11 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                       </MessageScrollerItem>
                     )
                   })}
-                  {isStreaming && !regeneratingMessageId && (
-                    <MessageScrollerItem className="rm-message-enter" key={streamingContent ? "streaming" : "typing"} scrollAnchor>
-                      {streamingContent
-                        ? <MessageBubble message={{ id: "streaming", role: "assistant", content: streamingContent, position: 0, createdAt: "", alternatives: [], alternativesCursor: 0 }} isStreaming messageStyle={conv.messageStyle} characterName={conv.characterName} />
-                        : <MessageBubble message={{ id: "typing", role: "assistant", content: "", position: 0, createdAt: "", alternatives: [], alternativesCursor: 0 }} messageStyle={conv.messageStyle} characterName={conv.characterName} />}
-                    </MessageScrollerItem>
-                  )}
+                  <StreamingBubble
+                    messageStyle={conv.messageStyle}
+                    characterName={conv.characterName}
+                    scrollAnchor
+                  />
                 </>
               )}
               {error && (

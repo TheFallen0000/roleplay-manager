@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react"
+import { memo, useMemo, type CSSProperties } from "react"
 import type { MessageDTO } from "@workspace/shared/types/message"
 import type { MessageStyle } from "@workspace/shared/types/conversation"
 import {
@@ -38,7 +38,7 @@ import { useSwipeNavigation } from "../../lib/hooks/use-swipe-navigation"
 const DIALOGUE_CHARACTER_CLASS = "rm-dialogue-char"
 const DIALOGUE_USER_CLASS = "rm-dialogue-user"
 
-export function MessageBubble({
+export const MessageBubble = memo(function MessageBubble({
   message,
   isStreaming,
   isLastMessage,
@@ -76,7 +76,10 @@ export function MessageBubble({
   onEditContentChange?: (content: string) => void
 }) {
   const isUser = message.role === "user"
-  const segments = parseMessage(message.content)
+  const segments = useMemo(
+    () => parseMessage(message.content),
+    [message.content],
+  )
   const { t } = useTranslation()
   const totalAlternatives = 1 + (message.alternatives?.length ?? 0)
   const currentIndex = message.alternativesCursor ?? 0
@@ -320,4 +323,4 @@ export function MessageBubble({
       </MessageContent>
     </Message>
   )
-}
+})
