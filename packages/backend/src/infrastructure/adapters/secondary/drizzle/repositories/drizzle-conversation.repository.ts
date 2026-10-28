@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm"
+import { desc, eq, inArray } from "drizzle-orm"
 
 import { Conversation } from "../../../../../domain/entities/conversation.entity"
 import { Message } from "../../../../../domain/entities/message.entity"
@@ -151,16 +151,20 @@ export class DrizzleConversationRepository implements ConversationRepository {
     return { conversation: conv, messages: msgRows.map(toMessage) }
   }
 
-  async list(): Promise<Conversation[]> {
-    const rows = await this.db
+  async list(limit?: number): Promise<Conversation[]> {
+    const query = this.db
       .select()
       .from(conversations)
       .orderBy(conversations.updatedAt)
+    const rows = limit ? await query.limit(limit) : await query
     return rows.map(toConversation)
   }
 
-  async listByCharacterId(characterId: string): Promise<Conversation[]> {
-    const rows = await this.db
+  async listByCharacterId(
+    characterId: string,
+    limit?: number,
+  ): Promise<Conversation[]> {
+    const query = this.db
       .select({ conversation: conversations })
       .from(conversations)
       .innerJoin(
@@ -169,6 +173,27 @@ export class DrizzleConversationRepository implements ConversationRepository {
       )
       .where(eq(characterVersions.characterId, characterId))
       .orderBy(desc(conversations.updatedAt))
+    const rows = limit ? await query.limit(limit) : await query
+
+    return rows.map(({ conversation }) => toConversation(conversation))
+  }
+
+  async listByCharacterIds(
+    characterIds: string[],
+    limit?: number,
+  ): Promise<Conversation[]> {
+    if (characterIds.length === 0) return []
+
+    const query = this.db
+      .select({ conversation: conversations })
+      .from(conversations)
+      .innerJoin(
+        characterVersions,
+        eq(conversations.versionId, characterVersions.id),
+      )
+      .where(inArray(characterVersions.characterId, characterIds))
+      .orderBy(desc(conversations.updatedAt))
+    const rows = limit ? await query.limit(limit) : await query
 
     return rows.map(({ conversation }) => toConversation(conversation))
   }

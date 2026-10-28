@@ -2,11 +2,19 @@ import type { SummaryDTO } from "@workspace/shared/types/summary"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { Summary } from "../../../domain/entities/summary.entity"
 
+const DEFAULT_LIST_LIMIT = 500
+
 export class ListSummariesUseCase {
   constructor(private readonly summaryRepository: SummaryRepository) {}
 
-  async execute(conversationId: string): Promise<SummaryDTO[]> {
-    const summaries = await this.summaryRepository.findByConversationId(conversationId)
+  async execute(
+    conversationId: string,
+    limit = DEFAULT_LIST_LIMIT,
+  ): Promise<SummaryDTO[]> {
+    const summaries = await this.summaryRepository.findByConversationId(
+      conversationId,
+      limit,
+    )
     return summaries.map(toSummaryDTO)
   }
 }

@@ -35,12 +35,16 @@ export class DrizzleMemoryRepository implements MemoryRepository {
     return toMemory(rows[0])
   }
 
-  async findByConversationId(conversationId: string): Promise<Memory[]> {
-    const rows = await this.db
+  async findByConversationId(
+    conversationId: string,
+    limit?: number,
+  ): Promise<Memory[]> {
+    const query = this.db
       .select()
       .from(memories)
       .where(eq(memories.conversationId, conversationId))
       .orderBy(memories.priority)
+    const rows = limit ? await query.limit(limit) : await query
 
     return rows.map(toMemory)
   }

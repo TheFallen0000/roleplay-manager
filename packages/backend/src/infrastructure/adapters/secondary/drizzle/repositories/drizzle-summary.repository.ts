@@ -34,12 +34,16 @@ export class DrizzleSummaryRepository implements SummaryRepository {
     return toSummary(rows[0])
   }
 
-  async findByConversationId(conversationId: string): Promise<Summary[]> {
-    const rows = await this.db
+  async findByConversationId(
+    conversationId: string,
+    limit?: number,
+  ): Promise<Summary[]> {
+    const query = this.db
       .select()
       .from(summaries)
       .where(eq(summaries.conversationId, conversationId))
       .orderBy(desc(summaries.createdAt))
+    const rows = limit ? await query.limit(limit) : await query
 
     return rows.map(toSummary)
   }

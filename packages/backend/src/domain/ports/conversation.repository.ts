@@ -14,9 +14,17 @@ export interface ConversationRepository {
 
   findByIdWithMessages(id: string): Promise<ConversationWithMessages | null>
 
-  list(): Promise<Conversation[]>
+  list(limit?: number): Promise<Conversation[]>
 
-  listByCharacterId(characterId: string): Promise<Conversation[]>
+  listByCharacterId(
+    characterId: string,
+    limit?: number,
+  ): Promise<Conversation[]>
+
+  listByCharacterIds(
+    characterIds: string[],
+    limit?: number,
+  ): Promise<Conversation[]>
 
   update(conversation: Conversation): Promise<Conversation>
 

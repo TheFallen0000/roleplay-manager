@@ -15,6 +15,7 @@ import type { UploadCharacterAssetUseCase } from "../../../../application/use-ca
 import type { GetCharacterAssetUseCase } from "../../../../application/use-cases/character/get-character-asset.use-case"
 import type { ApplySettingsTemplateUseCase } from "../../../../application/use-cases/character/apply-settings-template.use-case"
 import { parseMultipartBody } from "../middlewares/multipart"
+import { validate } from "../middlewares/validation"
 
 import type { CharacterExport, ExportSection } from "@workspace/shared/types/export"
 import {
@@ -27,6 +28,11 @@ const CardSchema = z.object({
   title: z.string().min(1, "Card title is required"),
   content: z.string().min(1, "Card content is required"),
   active: z.boolean().optional(),
+})
+
+const ListCharactersQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 })
 
 const CreateCharacterSchema = z.object({
@@ -142,14 +148,29 @@ export const buildCharacterRouter = (deps: {
     }
   })
 
-  router.get("/characters", async (_req, res, next) => {
-    try {
-      const result = await deps.listCharacters.execute()
-      res.json(result)
-    } catch (error) {
-      next(error)
-    }
-  })
+  router.get(
+    "/characters",
+    validate(ListCharactersQuerySchema, "query"),
+    async (req, res, next) => {
+      try {
+        const { limit, offset } = req.query as z.infer<
+          typeof ListCharactersQuerySchema
+        >
+        if (limit === undefined && offset === undefined) {
+          res.json(await deps.listCharacters.execute())
+          return
+        }
+        res.json(
+          await deps.listCharacters.executePage({
+            limit: limit ?? 60,
+            offset: offset ?? 0,
+          }),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
 
   router.get("/characters/:id", async (req, res, next) => {
     try {

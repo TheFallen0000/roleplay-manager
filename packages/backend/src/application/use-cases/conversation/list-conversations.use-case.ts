@@ -5,6 +5,11 @@ import type { MessageHistoryRepository } from "../../../domain/ports/message.rep
 import type { CharacterSummaryRepository } from "../../../domain/ports/character.repository"
 import type { CharacterAssetLookupRepository } from "../../../domain/ports/character-asset.repository"
 
+export interface ListConversationsOptions {
+  characterIds?: string[]
+  limit?: number
+}
+
 export class ListConversationsUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
@@ -13,8 +18,16 @@ export class ListConversationsUseCase {
     private readonly assetRepository: CharacterAssetLookupRepository,
   ) {}
 
-  async execute(): Promise<ConversationSummary[]> {
-    const conversations = await this.conversationRepository.list()
+  async execute(
+    options: ListConversationsOptions = {},
+  ): Promise<ConversationSummary[]> {
+    const conversations =
+      options.characterIds && options.characterIds.length > 0
+        ? await this.conversationRepository.listByCharacterIds(
+            options.characterIds,
+            options.limit,
+          )
+        : await this.conversationRepository.list(options.limit)
     const conversationIds = conversations.map((conversation) => conversation.id)
     const versionIds = [
       ...new Set(conversations.map((conversation) => conversation.versionId)),
