@@ -453,15 +453,40 @@ export const en = {
       "- [{id}] {actor} → {title}: {description} (priority {priority})",
     summary: "## Conversation summary",
     proposals: "## Memory change proposals",
-    proposalsHint:
-      "If your reply introduces relevant new facts or changes existing ones, you can propose changes to the dynamic memory at the end of your message. Use this exact format:",
-    proposalsValidOps:
-      'Valid operations: CREATE, UPDATE, DELETE. For UPDATE or DELETE you must include the id of the existing memory as "targetMemoryId". If there are no changes to propose, do not include the block.',
-    proposalsAlt: "## Memory proposals (alternative)",
-    proposalsAltHint:
-      "If you cannot call the `propose_memory_changes` tool, you can also propose changes to the dynamic memory at the end of your message using this format:",
-    proposalsAltValidOps:
-      'Valid operations: CREATE, UPDATE, DELETE. For UPDATE or DELETE you must include the id of the existing memory as "targetMemoryId".',
+    proposalsIntro:
+      "You never change the dynamic memory directly: you propose changes and the user decides.",
+    proposalsWhat:
+      "A memory is a durable fact that should survive the scene: relationships, secrets, promises, debts, injuries, important objects, places, goals or lasting changes of state. Do not propose every action, emotion or line of dialogue.",
+    proposalsWhen:
+      "Propose a change only when this turn establishes or modifies one of those facts. If nothing relevant happened, do not propose anything.",
+    proposalsOps:
+      "- Use CREATE for a new fact, UPDATE to correct or extend an existing one, and DELETE only when the story explicitly undoes or retcons it.",
+    proposalsDedup:
+      "- Check the dynamic memory list before creating: if the fact already exists, UPDATE it with its id instead of duplicating it.",
+    proposalsIds:
+      "- Copy the id exactly as shown in the list. Never invent an id.",
+    proposalsUpdate:
+      "- For UPDATE, provide the new values; omitted fields keep their current value.",
+    proposalsDelete:
+      "- For DELETE, include only the operation and targetMemoryId; do not invent the memory's content.",
+    proposalsActor:
+      "- The actor is the character, entity or place the memory is about, using the exact name from the story. Use the player character's name for facts about them.",
+    proposalsShape:
+      "- Title: 3 to 8 words. Description: one or two sentences.",
+    proposalsPriority:
+      "- Priority: 1-3 minor detail, 4-6 relevant fact, 7-9 important story or relationship change, 10 defining fact. Do not use 5 by default.",
+    proposalsLanguage:
+      "- Write actor, title and description in the language of the conversation, keeping names as they appear.",
+    proposalsTool:
+      "Call the `propose_memory_changes` tool for each change. Do not include the `memory_proposals` block when you can call the tool.",
+    proposalsBlockOnly:
+      "Include this block once, at the very end of your message, and do not write anything after it:",
+    proposalsFallback:
+      "If the tool is unavailable or the call fails, use this block instead, once at the very end of your message:",
+    proposalsNoBoth:
+      "Never use the tool and the block in the same reply.",
+    proposalsExampleHint:
+      "The 5 in the example is a placeholder: choose the priority with the scale above.",
     style: "## Reply style",
     styleLine:
       "You must always reply in the tone and style of {name}, keeping the personality described above. Write in a narrative and detailed way, as if you were playing the character in a story.",

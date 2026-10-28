@@ -452,16 +452,41 @@ export const es: Dictionary = {
     memoryLine:
       "- [{id}] {actor} → {title}: {description} (prioridad {priority})",
     summary: "## Resumen de la conversación",
-    proposals: "## Propuestas de modificación de memoria",
-    proposalsHint:
-      "Si en tu respuesta introduces hechos nuevos relevantes o modificas algunos existentes, puedes proponer cambios sobre la memoria dinámica al final de tu mensaje. Usa este formato exacto:",
-    proposalsValidOps:
-      'Operaciones válidas: CREATE, UPDATE, DELETE. Para UPDATE o DELETE debes incluir el id de la memoria existente como "targetMemoryId". Si no hay cambios que proponer, no incluyas el bloque.',
-    proposalsAlt: "## Propuestas de memoria (alternativa)",
-    proposalsAltHint:
-      "Si no puedes llamar a la herramienta `propose_memory_changes`, también puedes proponer cambios sobre la memoria dinámica al final de tu mensaje usando este formato:",
-    proposalsAltValidOps:
-      'Operaciones válidas: CREATE, UPDATE, DELETE. Para UPDATE o DELETE debes incluir el id de la memoria existente como "targetMemoryId".',
+    proposals: "## Propuestas de memoria",
+    proposalsIntro:
+      "Nunca cambias la memoria dinámica directamente: propones cambios y el usuario decide.",
+    proposalsWhat:
+      "Una memoria es un hecho duradero que debe sobrevivir a la escena: relaciones, secretos, promesas, deudas, heridas, objetos importantes, lugares, objetivos o cambios de estado permanentes. No propongas cada acción, emoción o línea de diálogo.",
+    proposalsWhen:
+      "Propón un cambio solo cuando este turno establezca o modifique uno de esos hechos. Si no ha pasado nada relevante, no propongas nada.",
+    proposalsOps:
+      "- Usa CREATE para un hecho nuevo, UPDATE para corregir o ampliar uno existente y DELETE solo cuando la historia lo deshaga o lo rectifique explícitamente.",
+    proposalsDedup:
+      "- Revisa la lista de memoria dinámica antes de crear: si el hecho ya existe, actualízalo con su id en vez de duplicarlo.",
+    proposalsIds:
+      "- Copia el id exactamente como aparece en la lista. No inventes ids.",
+    proposalsUpdate:
+      "- Para UPDATE, proporciona los valores nuevos; los campos omitidos conservan su valor actual.",
+    proposalsDelete:
+      "- Para DELETE, incluye solo la operación y targetMemoryId; no inventes el contenido de la memoria.",
+    proposalsActor:
+      "- El actor es el personaje, entidad o lugar sobre el que trata la memoria, usando el nombre exacto de la historia. Usa el nombre del personaje del usuario para los hechos que le conciernen.",
+    proposalsShape:
+      "- Título: entre 3 y 8 palabras. Descripción: una o dos frases.",
+    proposalsPriority:
+      "- Prioridad: 1-3 detalle menor, 4-6 hecho relevante, 7-9 cambio importante de trama o relación, 10 hecho definitorio. No uses 5 por defecto.",
+    proposalsLanguage:
+      "- Escribe actor, título y descripción en el idioma de la conversación, conservando los nombres tal como aparecen.",
+    proposalsTool:
+      "Llama a la herramienta `propose_memory_changes` por cada cambio. No incluyas el bloque `memory_proposals` cuando puedas llamar a la herramienta.",
+    proposalsBlockOnly:
+      "Incluye este bloque una sola vez, al final de tu mensaje, y no escribas nada después:",
+    proposalsFallback:
+      "Si la herramienta no está disponible o la llamada falla, usa este bloque en su lugar, una sola vez, al final de tu mensaje:",
+    proposalsNoBoth:
+      "Nunca uses la herramienta y el bloque en la misma respuesta.",
+    proposalsExampleHint:
+      "El 5 del ejemplo es un marcador: elige la prioridad con la escala de arriba.",
     style: "## Estilo de respuesta",
     styleLine:
       "Debes responder siempre en el tono y estilo de {name}, manteniendo la personalidad descrita arriba. Escribe de forma narrativa y detallada, como si estuvieras interpretando al personaje en una historia.",

@@ -208,7 +208,7 @@ describe("PromptContextBuilderImpl", () => {
     expect(result.messages[1].content).toBe("Adios")
   })
 
-  it("incluye seccion de propuestas de memoria por default (enableMemoryProposalTool=false)", async () => {
+  it("incluye las reglas y el bloque cuando no hay tool calling", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
       locale: "es",
@@ -217,11 +217,16 @@ describe("PromptContextBuilderImpl", () => {
       recentMessageCount: 10,
     })
 
-    expect(result.systemPrompt).toContain("Propuestas de modificación de memoria")
+    expect(result.systemPrompt).toContain("## Propuestas de memoria")
+    expect(result.systemPrompt).toContain("hecho duradero")
+    expect(result.systemPrompt).toContain("No uses 5 por defecto")
+    expect(result.systemPrompt).toContain("idioma de la conversación")
+    expect(result.systemPrompt).toContain("Incluye este bloque una sola vez")
+    expect(result.systemPrompt).not.toContain("propose_memory_changes")
     expect(result.systemPrompt).toContain("```memory_proposals")
   })
 
-  it("omite las instrucciones completas cuando enableMemoryProposalTool=true pero incluye hint compacto", async () => {
+  it("prefiere la herramienta y deja el bloque como fallback", async () => {
     const builder = new PromptContextBuilderImpl()
     const result = await builder.build({
       locale: "es",
@@ -231,9 +236,10 @@ describe("PromptContextBuilderImpl", () => {
       enableMemoryProposalTool: true,
     })
 
-    expect(result.systemPrompt).not.toContain("Propuestas de modificación de memoria")
-    expect(result.systemPrompt).toContain("Propuestas de memoria (alternativa)")
+    expect(result.systemPrompt).toContain("## Propuestas de memoria")
     expect(result.systemPrompt).toContain("propose_memory_changes")
+    expect(result.systemPrompt).toContain("Nunca uses la herramienta y el bloque")
+    expect(result.systemPrompt).not.toContain("Incluye este bloque una sola vez")
     expect(result.systemPrompt).toContain("```memory_proposals")
   })
 

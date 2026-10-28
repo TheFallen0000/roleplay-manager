@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Resumen y título**: sus instrucciones se generan en el idioma de la
   interfaz; el resumen sigue el idioma de la conversación y el título cae al
   idioma de la interfaz cuando la conversación es demasiado corta.
+- **Propuestas de memoria**: el prompt define qué es una memoria, cuándo
+  proponer, cómo evitar duplicados, el actor, la escala de prioridad y el
+  idioma de la conversación. UPDATE conserva los campos omitidos y DELETE
+  solo necesita el id; las propuestas inválidas se descartan individualmente
+  y el bloque de respaldo se limpia aunque haya tool calling.
 
 ## [1.54.9] - 2026-10-27
 

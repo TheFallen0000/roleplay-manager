@@ -109,6 +109,8 @@ No se genera ninguna propuesta ni se modifica el estado de la memoria dinámica.
 
 Si el modelo devuelve propuestas que no pueden ser interpretadas correctamente (formato incorrecto, operación no reconocida, datos incompletos), el sistema descarta individualmente cada propuesta inválida y conserva aquellas que sean correctas.
 
+Las propuestas UPDATE o DELETE con un `targetMemoryId` que no existe en la conversación también se descartan individualmente. Una propuesta CREATE sin `actor` o sin `title` no se guarda.
+
 Si ninguna propuesta puede interpretarse, el sistema devuelve una lista vacía.
 
 ---
@@ -135,7 +137,11 @@ Si no existe ningún proveedor configurado o este no puede establecer conexión,
 * Varias propuestas pueden referirse a una misma memoria existente.
 * El sistema no debe aplicar ninguna propuesta automáticamente durante este caso de uso.
 * El sistema soporta dos formatos de propuesta: bloque delimitado y tool call (ver "Formatos de propuesta soportados").
-* La prioridad propuesta debe respetar el rango definido por el dominio (1-10).
+* Solo se proponen hechos duraderos (relaciones, secretos, promesas, deudas, heridas, objetos importantes, lugares, objetivos o cambios de estado), no cada acción, emoción o línea de diálogo.
+* Antes de crear una memoria se revisa la lista existente: si el hecho ya está, se propone UPDATE con su id en vez de duplicarlo.
+* El actor usa el nombre exacto de la conversación; para los hechos del personaje del usuario, su nombre.
+* El título y la descripción se escriben en el idioma de la conversación.
+* La prioridad propuesta se limita al rango 1-10; la escala narrativa es 1-3 detalle menor, 4-6 hecho relevante, 7-9 cambio importante y 10 hecho definitorio.
 * El análisis del modelo debe limitarse al intercambio más reciente; no debe reanalizar el historial completo.
 * Este caso de uso no modifica ninguna entidad del dominio.
 
@@ -169,15 +175,17 @@ El sistema acepta propuestas de modificación de memoria en dos formatos interca
 
 El modelo incluye un bloque de código con lenguaje `memory_proposals` al final de su respuesta:
 
-```text
+````text
 ```memory_proposals
 [
-  { "operation": "CREATE", "actor": "Alice", "title": "Ubicación", "description": "Se encuentra en la biblioteca.", "priority": 5 },
-  { "operation": "UPDATE", "targetMemoryId": "mem-1", "actor": "Bob", "title": "Estado", "description": "Ahora está preocupado.", "priority": 6 }
+  { "operation": "CREATE", "actor": "Alice", "title": "Ubicación", "description": "Se encuentra en la biblioteca.", "priority": 7 },
+  { "operation": "UPDATE", "targetMemoryId": "mem-1", "title": "Estado", "description": "Ahora está preocupado.", "priority": 8 },
+  { "operation": "DELETE", "targetMemoryId": "mem-2" }
 ]
-``` ```
+```
+````
 
-El sistema parsea el contenido del bloque como JSON. Cada objeto del array debe contener `operation`, `actor`, `title` y `description`. `targetMemoryId` es obligatorio para UPDATE y DELETE. `priority` es opcional.
+El sistema parsea el contenido del bloque como JSON. `operation` es obligatorio. Para CREATE, `actor` y `title` son obligatorios; `description` y `priority` son opcionales. Para UPDATE, basta con `targetMemoryId` y los campos que cambian: los omitidos se completan desde la memoria objetivo. Para DELETE, solo se necesita `operation` y `targetMemoryId`: el resto se hidrata desde la memoria.
 
 ### Formato tool call
 
@@ -188,17 +196,22 @@ Cuando el adaptador del proveedor soporta herramientas nativas (OpenAI-compatibl
 | Campo | Tipo | Requerido | Descripción |
 |-------|------|-----------|-------------|
 | `operation` | `string` (enum) | Sí | `CREATE`, `UPDATE` o `DELETE` |
-| `targetMemoryId` | `string` | Sí (en el schema) | Obligatorio para UPDATE y DELETE; debe omitirse o ir vacío para CREATE |
-| `actor` | `string` | Sí | Actor al que pertenece la memoria |
-| `title` | `string` | Sí | Título de la memoria |
-| `description` | `string` | Sí | Descripción detallada |
-| `priority` | `number` | No | Entero entre 1 y 10 |
+| `targetMemoryId` | `string` | Sí para UPDATE/DELETE | Id exacto de la memoria objetivo; se ignora en CREATE |
+| `actor` | `string` | Sí para CREATE | Actor al que pertenece la memoria; en UPDATE se conserva si se omite y en DELETE se hidrata |
+| `title` | `string` | Sí para CREATE | Título de la memoria; en UPDATE se conserva si se omite y en DELETE se hidrata |
+| `description` | `string` | Sí para CREATE | Descripción; en UPDATE se conserva si se omite y en DELETE se hidrata |
+| `priority` | `number` | No | Entero entre 1 y 10; en UPDATE se conserva si se omite |
+
+El schema solo marca `operation` como requerido: la obligatoriedad del resto depende de la operación. Los campos opcionales permiten que UPDATE y DELETE no tengan que repetir datos que ya existen en la memoria objetivo.
 
 **Comportamiento del parser:**
 
-- Si una tool call tiene `operation: "UPDATE"` o `"DELETE"` sin `targetMemoryId` (o con valor vacío), la propuesta se descarta silenciosamente y se registra una advertencia en el backend.
+- Si una tool call tiene `operation: "UPDATE"` o `"DELETE"` sin `targetMemoryId` (o con un id que no existe), la propuesta se descarta individualmente y se registra una advertencia en el backend.
 - Las tool calls se acumulan durante el streaming (tool call deltas) y se procesan al completarse la generación.
 - Si el adaptador no soporta tool calls, el sistema recurre automáticamente al formato bloque delimitado como fallback.
+- Si hay tool calls pero no producen propuestas válidas, también se usa el bloque delimitado como fallback.
+- El bloque `memory_proposals` se elimina del contenido guardado aunque haya tool calls, para que no aparezca al recargar el mensaje.
+- Las propuestas inválidas (CREATE sin actor o título) y las prioridades fuera de rango se descartan o se limitan a 1-10 sin abortar el resto del lote.
 
 ---
 

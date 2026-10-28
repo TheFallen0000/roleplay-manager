@@ -14,13 +14,11 @@ describe("buildProposeMemoryChangesTool", () => {
     expect(tool.function.name).toBe(PROPOSE_MEMORY_CHANGES_TOOL_NAME)
   })
 
-  it("incluye descripcion y schema con campos requeridos", () => {
+  it("incluye descripcion y solo exige la operacion", () => {
     const tool = buildProposeMemoryChangesTool()
     expect(tool.function.description).toBeTruthy()
     expect(tool.function.parameters.type).toBe("object")
-    expect(tool.function.parameters.required).toEqual(
-      expect.arrayContaining(["operation", "actor", "title", "description"]),
-    )
+    expect(tool.function.parameters.required).toEqual(["operation"])
     expect(tool.function.parameters.properties.operation).toBeDefined()
     expect(tool.function.parameters.properties.targetMemoryId).toBeDefined()
     expect(tool.function.parameters.properties.priority).toBeDefined()
@@ -216,6 +214,57 @@ describe("toolCallsToRawProposals", () => {
         },
       ]),
     ).toEqual([])
+  })
+
+  it("acepta DELETE sin actor ni title para hidratarlo después", () => {
+    const proposals = toolCallsToRawProposals([
+      {
+        id: "c1",
+        functionName: PROPOSE_MEMORY_CHANGES_TOOL_NAME,
+        arguments: JSON.stringify({
+          operation: "DELETE",
+          targetMemoryId: "mem-1",
+        }),
+      },
+    ])
+    expect(proposals).toHaveLength(1)
+    expect(proposals[0].operation).toBe("DELETE")
+    expect(proposals[0].actor).toBe("")
+    expect(proposals[0].title).toBe("")
+  })
+
+  it("acepta UPDATE parcial sin description ni priority", () => {
+    const proposals = toolCallsToRawProposals([
+      {
+        id: "c1",
+        functionName: PROPOSE_MEMORY_CHANGES_TOOL_NAME,
+        arguments: JSON.stringify({
+          operation: "UPDATE",
+          targetMemoryId: "mem-1",
+          title: "Nuevo título",
+        }),
+      },
+    ])
+    expect(proposals).toHaveLength(1)
+    expect(proposals[0].description).toBe("")
+    expect(proposals[0].priority).toBeUndefined()
+  })
+
+  it("acepta prioridad numérica en texto", () => {
+    const proposals = toolCallsToRawProposals([
+      {
+        id: "c1",
+        functionName: PROPOSE_MEMORY_CHANGES_TOOL_NAME,
+        arguments: JSON.stringify({
+          operation: "CREATE",
+          actor: "A",
+          title: "T",
+          description: "D",
+          priority: "8",
+        }),
+      },
+    ])
+    expect(proposals[0].priority).toBe(8)
   })
 
   it("ignora tool calls de otras funciones", () => {
