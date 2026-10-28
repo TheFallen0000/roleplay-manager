@@ -77,13 +77,19 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
     onChange({ provider, providerInstanceId, model, contextWindow })
   }, [onChange, provider, providerInstanceId, model, contextWindow])
 
+  const resetContextWindow = useCallback(() => {
+    contextRequestId.current += 1
+    setContextWindow(null)
+  }, [])
+
   const loadContextWindow = useCallback(
     async (modelToDetect: string, notify: boolean) => {
       if (provider !== "ollama") {
-        setContextWindow(null)
+        if (!notify) resetContextWindow()
         if (notify) toast.info(t("settings.contextWindowDetectEmpty"))
         return
       }
+      if (!notify) resetContextWindow()
       const requestId = ++contextRequestId.current
       setDetectingContext(true)
       try {
@@ -115,7 +121,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         }
       }
     },
-    [provider, locale, t],
+    [provider, locale, t, resetContextWindow],
   )
 
   useEffect(() => {
@@ -165,8 +171,10 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         setProviderInstanceId(selectedInstanceId)
       }
       setModel(null)
+      lastContextModel.current = null
+      resetContextWindow()
     },
-    [provider, selectedInstanceId, verifyOllama],
+    [provider, selectedInstanceId, verifyOllama, resetContextWindow],
   )
 
   const handleSelectInstance = useCallback(
@@ -175,9 +183,11 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
       setSelectedInstanceId(id)
       setProviderInstanceId(id)
       setModel(null)
+      lastContextModel.current = null
+      resetContextWindow()
       void verifyInstance(id)
     },
-    [selectedInstanceId, verifyInstance],
+    [selectedInstanceId, verifyInstance, resetContextWindow],
   )
 
   const handleCreateInstance = useCallback(
@@ -192,6 +202,8 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         setSelectedInstanceId(instance.id)
         setProviderInstanceId(instance.id)
         setModel(null)
+        lastContextModel.current = null
+        resetContextWindow()
         void verifyInstance(instance.id)
         dialog.close()
         toast.success(t("settings.instanceCreated"), { description: instance.name })
@@ -201,7 +213,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         })
       }
     },
-    [createInstance, verifyInstance, dialog, t],
+    [createInstance, verifyInstance, dialog, t, resetContextWindow],
   )
 
   const handleUpdateInstance = useCallback(
@@ -252,9 +264,14 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
     [dialog.state, handleCreateInstance, handleUpdateInstance],
   )
 
-  const handleModelChange = useCallback((value: string) => {
-    setModel(value || null)
-  }, [])
+  const handleModelChange = useCallback(
+    (value: string) => {
+      const next = value || null
+      if (next !== model) resetContextWindow()
+      setModel(next)
+    },
+    [model, resetContextWindow],
+  )
 
   const handleContextWindowChange = useCallback((value: string) => {
     const parsed = Number(value)

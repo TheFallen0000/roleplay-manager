@@ -172,10 +172,6 @@ export function SettingsPanel({
     setFrequencyPenalty(0)
     setPresencePenalty(0)
     setStopSequences("")
-    setModelUpdate((prev) => ({
-      ...prev,
-      contextWindow: current.contextWindow ?? null,
-    }))
   }
 
   const resetHistoriaValues = () => {
