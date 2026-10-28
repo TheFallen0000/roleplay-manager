@@ -22,6 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Listas acotadas**: las conversaciones se filtran por los personajes
   cargados y se limitan a 500; memorias y resúmenes también se limitan a 500
   por defecto. Se evita cargar listas sin límite.
+- **Assets**: borrar una imagen ya no recorre todas las conversaciones;
+  `existsByAssetId` resuelve la referencia con una consulta `EXISTS`.
+- **SQLite**: `busy_timeout` de 5 s y 16 MB de caché; WAL, foreign keys y
+  `synchronous` se mantienen sin cambios.
+
+### Removed
+
+- **Código muerto**: se retira `findByIdWithMessages` y su DTO, sin callers de
+  producción; también se limpian sus mocks.
 
 ## [1.54.7] - 2026-10-27
 
