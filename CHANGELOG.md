@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Cierre y reinicio**: el reinicio usa `execve` en POSIX (mismo PID, sesión y
   terminal) y un proceso adjunto en Windows, así Ctrl+C y cerrar la consola
   detienen la app en lugar de dejarla en segundo plano.
+- **Chat**: la burbuja del mensaje del usuario ya no se comprime en pantallas
+  grandes; el contenedor del mensaje ocupa el ancho disponible y la burbuja
+  conserva su límite del 80 %.
 
 ## [1.56.1] - 2026-10-28
 

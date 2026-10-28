@@ -221,6 +221,25 @@ describe("MessageBubble line breaks", () => {
   })
 })
 
+describe("MessageBubble layout", () => {
+  it("el mensaje del usuario puede usar el ancho disponible", () => {
+    render(
+      <MessageBubble
+        message={buildUserMessage(
+          "Olvide quien era, como me llamo? quien soy? Sabes?",
+        )}
+      />,
+    )
+
+    const trigger = screen
+      .getByText(/Olvide quien era/)
+      .closest("[data-slot=context-menu-trigger]")
+
+    expect(trigger).toHaveClass("w-full")
+    expect(trigger).toHaveClass("min-w-0")
+  })
+})
+
 describe("MessageBubble segment colors", () => {
   it("las acciones del usuario heredan el color de la burbuja", () => {
     render(<MessageBubble message={buildUserMessage("Hola *sonríe*")} />)

@@ -181,7 +181,7 @@ export const MessageBubble = memo(function MessageBubble({
               </span>
             ) : null}
             <ContextMenu>
-              <ContextMenuTrigger className="select-text">
+              <ContextMenuTrigger className="w-full min-w-0 select-text">
                 <Bubble
                   variant={bubbleVariant}
                   align={userAligned ? "end" : "start"}
