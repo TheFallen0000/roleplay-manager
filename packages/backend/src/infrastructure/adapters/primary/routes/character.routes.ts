@@ -91,6 +91,7 @@ const ExportSettingsSchema = z.object({
   providerInstanceId: z.string().nullable(),
   recentMessageCount: z.number(),
   summaryFrequency: z.number(),
+  contextWindow: z.number().int().min(1).nullable().optional(),
   temperature: z.number(),
   maxTokens: z.number(),
   topP: z.number(),

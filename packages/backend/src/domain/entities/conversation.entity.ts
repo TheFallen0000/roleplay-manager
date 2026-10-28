@@ -17,6 +17,7 @@ export interface ConversationProps {
   providerInstanceId: string | null
   recentMessageCount: number
   summaryFrequency: number
+  contextWindow?: number | null
   temperature: number
   maxTokens: number
   topP: number
@@ -53,6 +54,7 @@ export class Conversation {
   static create(props: ConversationProps): Conversation {
     return new Conversation({
       ...props,
+      contextWindow: props.contextWindow ?? null,
       customProfileImageAssetId: props.customProfileImageAssetId ?? null,
       backgroundImageAssetId: props.backgroundImageAssetId ?? null,
       backgroundFit: props.backgroundFit ?? "cover",
@@ -77,6 +79,7 @@ export class Conversation {
   get providerInstanceId(): string | null { return this.props.providerInstanceId }
   get recentMessageCount(): number { return this.props.recentMessageCount }
   get summaryFrequency(): number { return this.props.summaryFrequency }
+  get contextWindow(): number | null { return this.props.contextWindow ?? null }
   get temperature(): number { return this.props.temperature }
   get maxTokens(): number { return this.props.maxTokens }
   get topP(): number { return this.props.topP }

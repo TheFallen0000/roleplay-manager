@@ -69,6 +69,7 @@ const UpdateConversationSettingsSchema = z.object({
   model: z.string().nullable().optional(),
   recentMessageCount: z.number().int().min(1).optional(),
   summaryFrequency: z.number().int().min(10).optional(),
+  contextWindow: z.number().int().min(1).nullable().optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().min(1).optional(),
   topP: z.number().min(0).max(1).optional(),

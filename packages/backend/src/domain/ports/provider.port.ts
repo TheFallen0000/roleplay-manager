@@ -10,6 +10,8 @@ import type { GenerateOptions, PromptContext, StreamChunk } from "../value-objec
 export interface ProviderPort {
   validateConnection(): Promise<ProviderStatus>
   listModels(): Promise<{ models: ProviderModel[]; manualEntryRequired: boolean }>
+  /** Best-effort model context window; null when the provider cannot tell. */
+  getModelContextWindow?(model: string): Promise<number | null>
   generateStreaming(
     context: PromptContext,
     options?: GenerateOptions,

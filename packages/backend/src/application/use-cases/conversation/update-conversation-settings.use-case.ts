@@ -163,6 +163,12 @@ export class UpdateConversationSettingsUseCase {
     if (input.summaryFrequency !== undefined) {
       input.summaryFrequency = Math.max(1, input.summaryFrequency)
     }
+    if (input.contextWindow !== undefined && input.contextWindow !== null) {
+      input.contextWindow = Math.min(
+        2_000_000,
+        Math.max(1, Math.round(input.contextWindow)),
+      )
+    }
     if (input.memoryDecayThreshold !== undefined) {
       input.memoryDecayThreshold = Math.min(10, Math.max(1, Math.round(input.memoryDecayThreshold)))
     }
@@ -253,6 +259,7 @@ export class UpdateConversationSettingsUseCase {
       providerInstanceId: updated.providerInstanceId,
       recentMessageCount: updated.recentMessageCount,
       summaryFrequency: updated.summaryFrequency,
+      contextWindow: updated.contextWindow,
       temperature: updated.temperature,
       maxTokens: updated.maxTokens,
       topP: updated.topP,

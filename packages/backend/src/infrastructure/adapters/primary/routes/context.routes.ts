@@ -8,6 +8,20 @@ export const buildContextRouter = (deps: {
 }): Router => {
   const router = Router()
 
+  router.get("/conversations/:id/context/stats", async (req, res, next) => {
+    try {
+      const { id } = req.params as { id: string }
+      const result = await deps.getPromptContext.execute(
+        id,
+        undefined,
+        resolveRequestLocale(req.header("accept-language")),
+      )
+      res.json(result.metadata)
+    } catch (error) {
+      next(error)
+    }
+  })
+
   router.get("/conversations/:id/context", async (req, res, next) => {
     try {
       const { id } = req.params as { id: string }
