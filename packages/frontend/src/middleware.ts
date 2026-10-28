@@ -50,6 +50,11 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
   for (const name of REQUEST_HEADERS_TO_SKIP) {
     headers.delete(name)
   }
+  // `Host` is rewritten to the backend target by fetch; keep the browser's
+  // origin host so the backend can validate same-origin mutations behind the
+  // dev/LAN/Tailscale proxy.
+  headers.set("x-forwarded-host", context.url.host)
+  headers.set("x-forwarded-proto", context.url.protocol.replace(":", ""))
 
   const init: RequestInit & { duplex?: "half" } = {
     method: context.request.method,

@@ -68,6 +68,8 @@ describe("api proxy middleware", () => {
     expect(forwarded.get("content-type")).toBe("application/json")
     expect(forwarded.get("accept-language")).toBe("es-ES")
     expect(forwarded.get("host")).toBeNull()
+    expect(forwarded.get("x-forwarded-host")).toBe("localhost:4321")
+    expect(forwarded.get("x-forwarded-proto")).toBe("http")
     expect(init?.body).not.toBeNull()
     expect((init as { duplex?: string } | undefined)?.duplex).toBe("half")
   })

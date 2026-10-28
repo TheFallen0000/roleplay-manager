@@ -105,7 +105,42 @@ describe("buildServer with a web handler", () => {
     expect(api.headers.get("cache-control")).toBe("no-store")
   })
 
-  it("serves the frontend static build from clientDir", async () => {    const dir = await mkdtemp(join(tmpdir(), "rm-client-"))
+  it("rejects cross-origin state-changing API requests", async () => {
+    const base = await start()
+
+    const response = await fetch(`${base}/api/updates/backup`, {
+      method: "POST",
+      headers: {
+        origin: "https://evil.example",
+        "content-type": "application/x-www-form-urlencoded",
+      },
+    })
+
+    expect(response.status).toBe(403)
+    expect(await response.json()).toEqual({
+      error: {
+        code: "CROSS_ORIGIN_REQUEST",
+        message: "Cross-origin request rejected.",
+      },
+    })
+  })
+
+  it("returns JSON 404 for unknown API routes", async () => {
+    const base = await start()
+
+    const response = await fetch(`${base}/api/not-a-route`)
+
+    expect(response.status).toBe(404)
+    expect(await response.json()).toEqual({
+      error: {
+        code: "NOT_FOUND",
+        message: "API route not found.",
+      },
+    })
+  })
+
+  it("serves the frontend static build from clientDir", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "rm-client-"))
     try {
       await writeFile(join(dir, "app.js"), "console.log('app')")
       const base = await start(undefined, dir)

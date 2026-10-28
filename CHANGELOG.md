@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Security
+
+- **Protección CSRF en la API**: las peticiones que cambian estado desde otro
+  origen se rechazan antes de parsear el body, incluidas las que no llevan body
+  (`/api/updates/backup`, `/api/lan/enable`, reinicio, rollback, etc.). Se
+  validan `Origin` y `Sec-Fetch-Site`, con soporte para el proxy de desarrollo,
+  LAN y Tailscale.
+
+### Fixed
+
+- **Errores de API**: el JSON malformado devuelve 400 `INVALID_JSON`, los
+  payloads demasiado grandes 413 `PAYLOAD_TOO_LARGE` y los encodings no
+  soportados 415. Las rutas `/api` desconocidas devuelven JSON 404 en lugar del
+  HTML de Astro, y los mensajes de validación raíz ya no empiezan por `": "`.
+
 ## [1.54.6] - 2026-10-27
 
 ### Changed
