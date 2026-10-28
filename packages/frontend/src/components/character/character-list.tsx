@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { PlusIcon, UploadIcon } from "lucide-react"
+import { ChevronDownIcon, PlusIcon, UploadIcon } from "lucide-react"
 
 import type { CharacterSummary } from "@workspace/shared/types/character"
 import type { CharacterExport } from "@workspace/shared/types/export"
@@ -53,9 +53,13 @@ function CharacterListContent() {
     conversationsByCharacter,
     latestConversationByCharacter,
     lastActivityByCharacter,
+    hasMore,
     loading,
+    loadingMore,
     error,
+    loadMoreError,
     refresh,
+    loadMore,
     loadVersions,
   } = useCharacterList()
 
@@ -271,6 +275,33 @@ function CharacterListContent() {
               </a>
             </div>
           )}
+          {hasMore ? (
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => void loadMore()}
+                disabled={loadingMore}
+              >
+                {loadingMore ? (
+                  <Spinner aria-hidden />
+                ) : (
+                  <ChevronDownIcon />
+                )}
+                {loadingMore
+                  ? t("characters.loadingMore")
+                  : t("characters.loadMore")}
+              </Button>
+              {loadMoreError ? (
+                <p role="alert" className="text-sm text-destructive">
+                  {translateApiError(
+                    loadMoreError,
+                    tRaw,
+                    t("characters.loadMoreFailed"),
+                  )}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </>
       )}
         </div>
