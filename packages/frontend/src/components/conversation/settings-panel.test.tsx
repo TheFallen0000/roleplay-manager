@@ -74,6 +74,8 @@ const baseConversation = (overrides: Partial<ConversationDetail> = {}): Conversa
   providerInstanceId: null,
   recentMessageCount: 10,
   summaryFrequency: 20,
+  contextWindow: null,
+  compactionThreshold: 80,
   temperature: null,
   maxTokens: null,
   topP: null,
@@ -237,20 +239,20 @@ describe("SettingsPanel", () => {
     expect((screen.getByLabelText("Max tokens") as HTMLInputElement).value).toBe("2048")
   })
 
-  it("saves summary frequency from the Historia dialog", async () => {
+  it("saves the compaction threshold from the Historia dialog", async () => {
     renderPanel()
     await openSection("Historia")
 
     await userEvent.click(screen.getByRole("button", { name: /Resúmenes/ }))
 
-    const frequency = await screen.findByLabelText("Frecuencia de resumen")
-    fireEvent.change(frequency, { target: { value: "30" } })
+    const threshold = await screen.findByLabelText(/Umbral/)
+    fireEvent.change(threshold, { target: { value: "60" } })
 
     await userEvent.click(screen.getByRole("button", { name: "Aplicar cambios" }))
 
     await waitFor(() => {
       expect(mocks.updateConversationSettings).toHaveBeenCalledWith("conv-1", {
-        summaryFrequency: 30,
+        compactionThreshold: 60,
       })
     })
   })

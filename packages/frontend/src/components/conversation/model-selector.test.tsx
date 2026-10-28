@@ -62,6 +62,7 @@ const current: ConversationDetail = {
   recentMessageCount: 10,
   summaryFrequency: 20,
   contextWindow: null,
+  compactionThreshold: 80,
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,

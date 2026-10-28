@@ -169,19 +169,19 @@ describe("GetPromptContextUseCase", () => {
     const useCase = buildUseCase({})
     const result = await useCase.execute("conv-1")
     expect(result.systemPrompt).toContain("TestChar")
-    expect(result.messages).toHaveLength(10)
+    expect(result.messages).toHaveLength(12)
     expect(result.messages[0].role).toBe("user")
-    expect(result.messages[0].content).toBe("Message 2")
-    expect(result.messages[9].role).toBe("assistant")
-    expect(result.messages[9].content).toBe("Message 11")
+    expect(result.messages[0].content).toBe("Message 0")
+    expect(result.messages[11].role).toBe("assistant")
+    expect(result.messages[11].content).toBe("Message 11")
   })
 
   it("incluye pendingMessage como último user message", async () => {
     const useCase = buildUseCase({})
     const result = await useCase.execute("conv-1", "Hola, esto es un mensaje pendiente")
-    expect(result.messages).toHaveLength(11)
-    expect(result.messages[10].role).toBe("user")
-    expect(result.messages[10].content).toBe("Hola, esto es un mensaje pendiente")
+    expect(result.messages).toHaveLength(13)
+    expect(result.messages[12].role).toBe("user")
+    expect(result.messages[12].content).toBe("Hola, esto es un mensaje pendiente")
   })
 
   it("incluye summary en metadata cuando existe", async () => {
@@ -204,9 +204,10 @@ describe("GetPromptContextUseCase", () => {
     expect(result.metadata.characterName).toBe("TestChar")
     expect(result.metadata.characterVersion).toBe(3)
     expect(result.metadata.memoryCount).toBe(1)
-    expect(result.metadata.recentMessageCount).toBe(10)
-    expect(result.metadata.totalContextMessages).toBe(10)
+    expect(result.metadata.recentMessageCount).toBe(12)
+    expect(result.metadata.totalContextMessages).toBe(12)
     expect(result.metadata.totalCharacters).toBeGreaterThan(0)
+    expect(result.metadata.compactionThreshold).toBe(80)
   })
 
   it("estima los tokens y respeta la ventana configurada", async () => {

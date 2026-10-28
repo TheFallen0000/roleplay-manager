@@ -176,6 +176,7 @@ describe("ImportCharacterUseCase", () => {
             recentMessageCount: 12,
             summaryFrequency: 25,
             contextWindow: 128000,
+            compactionThreshold: 80,
             temperature: 0.9,
             maxTokens: 4096,
             topP: 0.8,

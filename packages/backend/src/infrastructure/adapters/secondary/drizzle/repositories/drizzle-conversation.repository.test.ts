@@ -53,6 +53,7 @@ describe("DrizzleConversationRepository context window", () => {
         recentMessageCount: 10,
         summaryFrequency: 20,
         contextWindow: 32_768,
+        compactionThreshold: 80,
         temperature: 0.7,
         maxTokens: 2048,
         topP: 0.9,
@@ -72,5 +73,44 @@ describe("DrizzleConversationRepository context window", () => {
 
     await repository.updateSettings("conv-1", { contextWindow: null })
     expect((await repository.findById("conv-1"))?.contextWindow).toBeNull()
+  })
+
+  it("persists and updates the compaction threshold", async () => {
+    const repository = new DrizzleConversationRepository(db)
+    await repository.create(
+      Conversation.create({
+        id: "conv-threshold",
+        versionId: "ver-1",
+        title: null,
+        titleSource: null,
+        model: "llama3",
+        provider: "ollama",
+        providerInstanceId: null,
+        recentMessageCount: 10,
+        summaryFrequency: 20,
+        contextWindow: 32_768,
+        compactionThreshold: 80,
+        temperature: 0.7,
+        maxTokens: 2048,
+        topP: 0.9,
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+        stopSequences: [],
+        memoryProposalMode: "auto",
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+
+    expect(
+      (await repository.findById("conv-threshold"))?.compactionThreshold,
+    ).toBe(80)
+
+    await repository.updateSettings("conv-threshold", {
+      compactionThreshold: 60,
+    })
+    expect(
+      (await repository.findById("conv-threshold"))?.compactionThreshold,
+    ).toBe(60)
   })
 })
