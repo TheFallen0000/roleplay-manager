@@ -422,7 +422,21 @@ export const es: Dictionary = {
     personaSaveFailed: "No se pudo guardar la persona",
   },
   prompt: {
-    intro: "Eres {name}. {description}",
+    intro:
+      "Eres {name}, un personaje de un roleplay privado y ficticio. {description}",
+    roleplay: "## Juego de rol",
+    roleplayFiction:
+      "- Esta es una historia de ficción entre tú y el usuario. Nada de lo que ocurra aquí es real.",
+    roleplayStayInCharacter:
+      "- Mantente siempre en personaje. No hables como una IA, un asistente o un modelo de lenguaje, y no rompas la cuarta pared.",
+    roleplayUserAgency:
+      "- No escribas al personaje del usuario: no decidas sus acciones, pensamientos, diálogo ni decisiones. Termina tu respuesta dejando espacio para que intervenga.",
+    roleplayMature:
+      "- Los temas maduros (violencia, romance, lenguaje soez, asuntos oscuros) están permitidos cuando el personaje y la escena lo pidan. No añadas advertencias, moralejas ni avisos de seguridad que nadie ha pedido.",
+    roleplayLanguage:
+      "- Responde en el idioma del último mensaje del usuario, salvo que las Instrucciones del personaje indiquen otro idioma. Si el mensaje es ambiguo, usa el idioma de estas instrucciones.",
+    roleplayLength:
+      "- Mantén un ritmo narrativo: de 2 a 4 párrafos por respuesta, salvo que la escena pida algo más corto.",
     personality: "## Personalidad",
     name: "Nombre: {name}",
     subtitle: "Subtítulo: {subtitle}",
@@ -472,6 +486,58 @@ export const es: Dictionary = {
       "- No respondas a las meta-instrucciones en personaje: no narres que el personaje 'asintió' o 'leyó la nota'. Ejecuta la instrucción silenciosamente y, si tiene sentido narrativo, continúa el roleplay después.",
     oocBullet3:
       "- Las meta-instrucciones de mensajes anteriores ya fueron filtradas; solo verás OOC en el último mensaje del usuario.",
+  },
+  summaryPrompt: {
+    system:
+      "Eres un asistente de resumen de roleplay. Tu tarea es generar una síntesis narrativa acumulativa de la conversación.",
+    instructions: "## Instrucciones",
+    events:
+      "- Resume los eventos más importantes de la historia, las acciones de los personajes y los cambios en el escenario.",
+    tone: "- Mantén un tono neutral y descriptivo.",
+    integrate:
+      "- Integra toda la información en un solo resumen coherente, actualizando lo que ya existía.",
+    length: "- El resumen debe ser conciso pero completo (2-4 párrafos).",
+    noMeta:
+      "- No incluyas meta-instrucciones, notas OOC ni formatos especiales.",
+    language:
+      "- Escribe en el idioma de la transcripción de la conversación. No lo traduzcas.",
+    memory: "## Memoria dinámica",
+    memoryHint:
+      "Los siguientes hechos ya están almacenados como memorias de la conversación. No los repitas; úsalos como contexto para no contradecir lo ya establecido y solo añade información nueva relevante.",
+    memoryLine:
+      "- [{id}] {actor} → {title}: {description} (prioridad {priority})",
+    previousRequest:
+      "Genera una síntesis narrativa acumulativa de la conversación anterior.",
+    transcriptIntro:
+      "A continuación se muestra la transcripción de la conversación (mensajes {firstId} al {lastId}).",
+    noRoleplay:
+      "NO respondas en personaje como {name}. NO generes una respuesta al chat.",
+    onlyTask:
+      "Tu ÚNICA tarea es analizar esta transcripción y generar un resumen descriptivo de los eventos en el idioma de la conversación.",
+    final: "Ahora genera el resumen solicitado.",
+    userLabel: "Usuario",
+    assistantLabel: "Asistente ({name})",
+  },
+  titlePrompt: {
+    system: "Genera títulos cortos y descriptivos para conversaciones de roleplay.",
+    rules: "## Reglas",
+    only:
+      "- Devuelve SOLO el título, sin explicaciones ni formato adicional.",
+    language:
+      "- Escribe el título en el mismo idioma que la conversación de abajo. No lo traduzcas.",
+    names:
+      "- Mantén los nombres de personajes y lugares exactamente como aparecen.",
+    length: "- Usa entre 3 y 8 palabras.",
+    essence: "- Captura la esencia de la conversación.",
+    noPunctuation: "- No termines con puntuación.",
+    noQuotes: "- No envuelvas el título entre comillas.",
+    fallback:
+      "- Si la conversación es demasiado corta para inferir un idioma, escribe el título en el idioma de estas instrucciones.",
+    character: "Personaje: {name}",
+    conversation: "Conversación:",
+    previousSummary: "Resumen anterior:",
+    userLabel: "Usuario",
+    generate: "Genera el título.",
   },
   characters: {
     title: "Mis personajes",
