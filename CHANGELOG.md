@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Actualizaciones**: el paquete ya no incluye la entrada `versions/` que el
+  validador de rutas rechazaba, así que los paquetes nuevos se pueden aplicar
+  desde 1.55.0. El validador también acepta esa entrada por compatibilidad.
+
 ## [1.56.0] - 2026-10-28
 
 ### Changed
