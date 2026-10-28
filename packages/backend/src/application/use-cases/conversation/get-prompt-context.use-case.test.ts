@@ -91,6 +91,7 @@ const buildConversationRepo = (conv: Conversation, nonexistentIds: string[] = []
   create: async (c) => c,
   findById: async (id) => (nonexistentIds.includes(id) ? null : conv),
   findByIdWithMessages: async () => null,
+  listByCharacterId: async () => [],
   list: async () => [],
   update: async (c) => c,
   updateSettings: async (_id, _s) => conv,

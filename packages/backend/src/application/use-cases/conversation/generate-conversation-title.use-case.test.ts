@@ -89,6 +89,7 @@ const convRepo: ConversationRepository = {
     return activeConv
   },
   findByIdWithMessages: async () => null,
+  listByCharacterId: async () => [],
   list: async () => [],
   update: async (c) => {
     updatedConv = c

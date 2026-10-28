@@ -66,6 +66,7 @@ const buildRepos = () => {
     create: vi.fn(async (c) => c),
     findById: async () => null,
     findByIdWithMessages: async () => null,
+    listByCharacterId: async () => [],
     list: async () => [],
     update: async (c) => c,
     updateSettings: async () => ({} as never),

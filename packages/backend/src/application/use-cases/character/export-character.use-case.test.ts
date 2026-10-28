@@ -162,6 +162,14 @@ const buildConversationRepo = (
   findById: async () => conversation,
   findByIdWithMessages: async () => null,
   list: async () => list,
+  listByCharacterId: async (characterId: string) =>
+    list
+      .filter((conversation) =>
+        characterId === "char-1"
+          ? conversation.versionId === "ver-1"
+          : conversation.versionId === "ver-other",
+      )
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
   update: async (c) => c,
   updateSettings: async () => conversation,
   clearProviderInstanceId: async () => {},
@@ -374,7 +382,11 @@ describe("ExportCharacterUseCase", () => {
   it("usa los valores por defecto si no hay conversaciones para standaloneSettings", async () => {
     const useCase = new ExportCharacterUseCase(
       buildCharacterRepo(),
-      { ...buildConversationRepo(), list: async () => [otherCharacterConversation] },
+      {
+        ...buildConversationRepo(),
+        list: async () => [otherCharacterConversation],
+        listByCharacterId: async () => [],
+      },
       buildMessageRepo(),
       buildMemoryRepo(),
       buildSummaryRepo(),

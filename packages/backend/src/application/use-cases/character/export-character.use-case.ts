@@ -103,7 +103,6 @@ export class ExportCharacterUseCase {
     const characterConversations = needsConversations
       ? await findCharacterConversations(
           this.conversationRepository,
-          this.characterRepository,
           input.characterId,
         )
       : []

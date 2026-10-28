@@ -64,7 +64,17 @@ const buildCharacterRepo = (exists = true): CharacterRepository =>
   }) as unknown as CharacterRepository
 
 const buildConversationRepo = (): ConversationRepository =>
-  ({ list: async () => conversations }) as unknown as ConversationRepository
+  ({
+    list: async () => conversations,
+    listByCharacterId: async (characterId: string) =>
+      conversations
+        .filter((conversation) =>
+          characterId === "char-1"
+            ? conversation.versionId === "ver-1"
+            : conversation.versionId === "ver-2",
+        )
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
+  }) as unknown as ConversationRepository
 
 const buildProviderInstances = (exists: boolean): ProviderInstanceRepository =>
   ({
@@ -224,7 +234,10 @@ describe("ApplySettingsTemplateUseCase", () => {
     const updateSettings = buildUpdateSettings()
     const useCase = new ApplySettingsTemplateUseCase(
       buildCharacterRepo(),
-      { list: async () => [] } as unknown as ConversationRepository,
+      {
+        list: async () => [],
+        listByCharacterId: async () => [],
+      } as unknown as ConversationRepository,
       buildProviderInstances(true),
       updateSettings.useCase,
       buildAssetRepository(),

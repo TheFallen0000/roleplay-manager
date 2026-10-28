@@ -17,6 +17,7 @@ import {
   summaries,
 } from "../schema"
 import { DrizzleCharacterRepository } from "./drizzle-character.repository"
+import { DrizzleConversationRepository } from "./drizzle-conversation.repository"
 import { DrizzleMessageRepository } from "./drizzle-message.repository"
 
 const root = mkdtempSync(join(tmpdir(), "rm-query-performance-"))
@@ -230,5 +231,16 @@ describe("S90 query performance", () => {
     expect(entries).toHaveLength(1)
     expect(entries[0].currentVersion.id).toBe("v2")
     expect(entries[0].currentVersion.versionNumber).toBe(2)
+  })
+
+  it("lists conversations by character with a join", async () => {
+    const repository = new DrizzleConversationRepository(db)
+
+    expect(
+      (await repository.listByCharacterId("c1")).map(
+        (conversation) => conversation.id,
+      ),
+    ).toEqual(["conv1"])
+    expect(await repository.listByCharacterId("missing")).toEqual([])
   })
 })

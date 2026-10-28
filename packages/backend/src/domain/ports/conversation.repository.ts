@@ -16,6 +16,8 @@ export interface ConversationRepository {
 
   list(): Promise<Conversation[]>
 
+  listByCharacterId(characterId: string): Promise<Conversation[]>
+
   update(conversation: Conversation): Promise<Conversation>
 
   updateSettings(
