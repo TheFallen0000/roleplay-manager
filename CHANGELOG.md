@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.56.1] - 2026-10-28
+
 ### Fixed
 
 - **Actualizaciones**: el paquete ya no incluye la entrada `versions/` que el
