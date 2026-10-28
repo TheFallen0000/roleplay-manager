@@ -90,4 +90,21 @@ describe("validate middleware", () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ name: "Ada" })
   })
+
+  it("does not prefix root validation issues with a colon", async () => {
+    const schema = z.object({ name: z.string() })
+    const base = await start((app) => {
+      app.post("/body", validate(schema), (_req, res) => {
+        res.json({ ok: true })
+      })
+    })
+
+    const response = await fetch(`${base}/body`, { method: "POST" })
+
+    expect(response.status).toBe(400)
+    const body = (await response.json()) as {
+      error: { message: string }
+    }
+    expect(body.error.message.startsWith(":")).toBe(false)
+  })
 })
