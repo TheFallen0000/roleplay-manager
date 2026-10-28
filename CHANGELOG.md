@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   soportados 415. Las rutas `/api` desconocidas devuelven JSON 404 en lugar del
   HTML de Astro, y los mensajes de validación raíz ya no empiezan por `": "`.
 
+### Changed
+
+- **Guardrails de mantenimiento**: `AGENTS.md` documenta la política de
+  Dependabot, las invariantes de seguridad y rendimiento, el dry-run de release
+  y la verificación de artefactos. El CI ejecuta `pnpm audit --prod`.
+
 ## [1.54.6] - 2026-10-27
 
 ### Changed
