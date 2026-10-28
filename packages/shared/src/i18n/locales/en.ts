@@ -268,6 +268,10 @@ export const en = {
     UPDATE_DIRTY_WORKTREE:
       "You have local changes; commit or stash them before updating.",
     UPDATE_FAILED: "The update could not be applied.",
+    INVALID_CONTEXT_BUDGET:
+      "The reply budget must be lower than the context window.",
+    CONTEXT_TOO_LARGE:
+      "The context is still too large after compacting. Shorten the message, lower the reply budget or increase the context window.",
   },
   chat: {
     noMessages: "There are no messages in this conversation.",
@@ -310,7 +314,7 @@ export const en = {
     previewTitle: "Context preview",
     previewMetaMessages: { one: "1 message", other: "{count} messages" },
     previewMetaCharacters: { one: "1 character", other: "{count} characters" },
-    previewMetaRecent: { one: "1 recent", other: "{count} recent" },
+    previewMetaRecent: { one: "1 in context", other: "{count} in context" },
     previewMessagesTitle: "Messages ({count})",
     previewSending: "Sending…",
     previewSend: "Send",
@@ -336,9 +340,18 @@ export const en = {
     contextUsageEstimated:
       "Estimated count; the exact value depends on the model tokenizer.",
     contextUsageWarning:
-      "The context is almost full. The next reply may be cut off.",
+      "The next send will compact the context automatically.",
     contextUsageNoWindow:
       "Set the context window in Model settings to see the percentage.",
+    previewCompactionAtSend: "Will compact on send",
+    compacting: "Compacting context…",
+    compactionSummaryFailed:
+      "The summary could not be generated, so the oldest messages were trimmed to continue.",
+    compactionTrimmed:
+      "The context was still too large after summarizing, so some old messages were trimmed.",
+    compactionWindowUnknown:
+      "Context window unknown. Automatic compaction is disabled; set it in Model settings.",
+    compactionDismiss: "Dismiss warning",
   },
   settings: {
     menuHistory: "History",
@@ -346,7 +359,7 @@ export const en = {
     menuCustomization: "Customization",
     menuPersona: "Persona",
     historyTitle: "Chat history",
-    historyDescription: "Memories, proposals, summaries and auto-degradation.",
+    historyDescription: "Memories, proposals, summaries, compaction and auto-degradation.",
     memoryMode: "Memory management mode",
     proposals: "Pending proposals",
     summaries: "Summaries",
@@ -411,6 +424,16 @@ export const en = {
     recentMessages: "Recent messages",
     recentMessagesHint:
       "Recent messages sent verbatim. Must be lower than the summary frequency (max. {max}).",
+    compactionTitle: "Automatic compaction",
+    compactionDescription:
+      "When the estimated context reaches the threshold, the oldest messages are summarized and sent as narrative memory. The full history stays visible in the chat.",
+    compactionThreshold: "Threshold ({value}%)",
+    compactionThresholdHint:
+      "Compaction triggers at this percentage of the context window and aims to return to {target}%.",
+    compactionWindowMissing:
+      "Set the context window in Model to enable automatic compaction.",
+    compactionMaxTokensBlocked:
+      "The reply budget ({maxTokens} tokens) must be lower than the context window ({window} tokens).",
     providerLabel: "Provider:",
     providersLoadFailed: "The providers could not be loaded",
     instanceCreated: "Instance created",
@@ -879,7 +902,7 @@ export const en = {
     deleteFailed: "Error deleting the summary",
     emptyTitle: "No summaries yet",
     emptyDescription:
-      "Summaries are generated automatically every {count} messages, or you can generate them manually.",
+      "Summaries are generated automatically when the context fills up, or you can generate them manually.",
     viewFull: "View full summary",
     title: "Summary",
     editTitle: "Edit summary",

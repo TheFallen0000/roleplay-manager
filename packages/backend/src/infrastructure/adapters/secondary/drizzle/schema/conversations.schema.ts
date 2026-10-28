@@ -23,6 +23,7 @@ export const conversations = sqliteTable(
     recentMessageCount: integer("recent_message_count").default(10),
     summaryFrequency: integer("summary_frequency").default(20),
     contextWindow: integer("context_window"),
+    compactionThreshold: integer("compaction_threshold").default(80),
     temperature: real("temperature").default(0.7),
     maxTokens: integer("max_tokens").default(2048),
     topP: real("top_p").default(0.9),

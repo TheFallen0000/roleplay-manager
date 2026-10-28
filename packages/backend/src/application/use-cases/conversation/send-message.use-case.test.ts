@@ -17,7 +17,7 @@ import type { PromptContext, StreamChunk } from "../../../domain/value-objects/p
 import type { ProviderId } from "@workspace/shared/types/provider"
 import type { MemoryChangeProposalRepository } from "../../../domain/ports/memory-change-proposal.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
-import type { GenerateSummaryUseCase } from "../summary/generate-summary.use-case"
+import type { ContextCompactionService } from "../../services/context-compaction.service"
 import type { GenerateConversationTitleUseCase } from "./generate-conversation-title.use-case"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 
@@ -278,10 +278,18 @@ const buildSummaryRepo = (): SummaryRepository => ({
   deleteByIds: async () => {},
 })
 
-const buildGenerateSummary = (): GenerateSummaryUseCase =>
+const buildContextCompaction = (): ContextCompactionService =>
   ({
-    execute: async () => ({ error: { code: "NO_NEW_MESSAGES", message: "No new messages" } }),
-  }) as unknown as GenerateSummaryUseCase
+    needsCompaction: async () => false,
+    compact: async () => ({
+      ok: true,
+      messages: [],
+      summary: null,
+      compacted: false,
+      summaryGenerated: null,
+      warning: null,
+    }),
+  }) as unknown as ContextCompactionService
 
 const buildGenerateConversationTitle = (): GenerateConversationTitleUseCase =>
   ({ execute: vi.fn() }) as unknown as GenerateConversationTitleUseCase
@@ -329,7 +337,7 @@ describe("SendMessageUseCase", () => {
       providerInstanceRepository,
       applyAllMemoryChanges,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -344,10 +352,18 @@ describe("SendMessageUseCase", () => {
     ).rejects.toThrow("Conversation with id 'nonexistent' not found.")
   })
 
-  it("regenera el título después de generar un resumen", async () => {
-    const generateSummary = {
-      execute: vi.fn(async () => ({ summary: { id: "sum-1" } as any })),
-    } as unknown as GenerateSummaryUseCase
+  it("regenera el título después de compactar el contexto", async () => {
+    const contextCompaction = {
+      needsCompaction: vi.fn(async () => true),
+      compact: vi.fn(async () => ({
+        ok: true,
+        messages: existingMessages,
+        summary: null,
+        compacted: true,
+        summaryGenerated: { id: "sum-1" } as any,
+        warning: null,
+      })),
+    } as unknown as ContextCompactionService
     const generateConversationTitle = {
       execute: vi.fn(async () => ({ title: "New title" })),
     } as unknown as GenerateConversationTitleUseCase
@@ -366,7 +382,7 @@ describe("SendMessageUseCase", () => {
       providerInstanceRepository,
       applyAllMemoryChanges,
       buildSummaryRepo(),
-      generateSummary,
+      contextCompaction,
       generateConversationTitle,
       decayMemories,
     )
@@ -407,7 +423,7 @@ describe("SendMessageUseCase", () => {
       providerInstanceRepository,
       applyAllMemoryChanges,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -442,7 +458,7 @@ describe("SendMessageUseCase", () => {
       providerInstanceRepository,
       applyAllMemoryChanges,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -482,7 +498,7 @@ describe("SendMessageUseCase", () => {
       providerInstanceRepository,
       applyAllMemoryChanges,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -607,7 +623,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       providerInstanceRepository,
       { execute: async () => [] } as unknown as ApplyAllMemoryChangesUseCase,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -666,7 +682,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       providerInstanceRepository,
       applyAll,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -904,7 +920,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       providerInstanceRepository,
       applyAll,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -1027,7 +1043,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       providerInstanceRepository,
       applyAll,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -1130,7 +1146,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       providerInstanceRepository,
       buildApplyAllForOoc(),
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -1240,7 +1256,7 @@ describe("SendMessageUseCase — output guardrails", () => {
       providerInstanceRepository,
       applyAllMemoryChanges,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
       decayMemories,
     )
@@ -1314,7 +1330,7 @@ function buildSendMessageUseCase(repo: ConversationRepository): SendMessageUseCa
     providerInstanceRepository,
     applyAllMemoryChanges,
     buildSummaryRepo(),
-    buildGenerateSummary(),
+    buildContextCompaction(),
     buildGenerateConversationTitle(),
     decayMemories,
   )

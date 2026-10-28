@@ -24,6 +24,7 @@ const metadata = (
   totalTokens: 1_200,
   contextWindow: 10_000,
   contextPercent: 12,
+  compactionThreshold: 80,
   ...overrides,
 })
 
@@ -69,5 +70,17 @@ describe("ContextUsageBadge", () => {
 
     expect(screen.getByText("86%")).toBeTruthy()
     expect(screen.getByText("86%").className).toContain("amber")
+  })
+
+  it("uses the conversation threshold for the warning", () => {
+    renderBadge({
+      metadata: metadata({
+        contextWindow: 2_000,
+        contextPercent: 60,
+        compactionThreshold: 50,
+      }),
+    })
+
+    expect(screen.getByText("60%").className).toContain("amber")
   })
 })

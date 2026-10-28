@@ -26,12 +26,17 @@ describe("conversation messages route", () => {
     server = undefined
   })
 
-  const startServer = async (execute: ReturnType<typeof vi.fn>) => {
+  const startServer = async (
+    execute: ReturnType<typeof vi.fn>,
+    extra: Record<string, unknown> = {},
+  ) => {
     const app = express()
     app.use(express.json())
     app.use(
       buildConversationRouter({
         listConversationMessages: { execute },
+        logger,
+        ...extra,
       } as never),
     )
     app.use(buildErrorHandler(logger))
@@ -70,5 +75,48 @@ describe("conversation messages route", () => {
 
     expect(response.status).toBe(400)
     expect(execute).not.toHaveBeenCalled()
+  })
+
+  it("serializes compaction events before the chunks", async () => {
+    const execute = vi.fn(async function* () {
+      yield { type: "compacting" }
+      yield {
+        type: "context-warning",
+        warning: {
+          code: "SUMMARY_FAILED_TRIMMED",
+          message: "Old messages were trimmed.",
+        },
+      }
+      yield {
+        type: "done",
+        message: {
+          id: "msg-1",
+          conversationId: "conv-1",
+          role: "assistant",
+          content: "Hi",
+          position: 1,
+          alternatives: [],
+          alternativesCursor: 0,
+          createdAt: "2026-10-28T00:00:00.000Z",
+          editedAt: null,
+        },
+      }
+    })
+    const baseUrl = await startServer(vi.fn(), {
+      sendMessage: { execute },
+    })
+
+    const response = await fetch(`${baseUrl}/conversations/conv-1/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: "Hello" }),
+    })
+    const text = await response.text()
+
+    expect(response.status).toBe(200)
+    expect(text).toContain("event: compacting")
+    expect(text).toContain("event: context-warning")
+    expect(text).toContain("SUMMARY_FAILED_TRIMMED")
+    expect(text).toContain("event: done")
   })
 })

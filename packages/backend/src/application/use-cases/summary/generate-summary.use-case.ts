@@ -7,13 +7,15 @@ import {
   type Locale,
   type TranslationParams,
 } from "@workspace/shared/i18n"
+import { estimateTextTokens } from "@workspace/shared/lib/token-estimate"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
 import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
-import type { ProviderRegistry, ProviderPort } from "../../../domain/ports/provider.port"
+import type { ProviderRegistry } from "../../../domain/ports/provider.port"
+import type { ProviderPort } from "../../../domain/ports/provider.port"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
@@ -36,6 +38,21 @@ interface GenerateSummaryError {
 
 type GenerateSummaryOutput = GenerateSummaryResult | GenerateSummaryError
 
+export interface GenerateSummaryOptions {
+  locale?: Locale
+  /** Last message included in the summary; manual summaries keep the newest. */
+  upToMessageId?: string
+  /** Output budget for the summary itself. */
+  maxTokens?: number
+}
+
+const DEFAULT_SUMMARY_WINDOW = 8_192
+const MIN_SUMMARY_BUDGET = 128
+const MAX_SUMMARY_BUDGET = 1_024
+const SUMMARY_PROMPT_RESERVE = 1_536
+/** Manual summaries leave the newest messages verbatim for the next prompt. */
+const MANUAL_KEEP_RECENT_MESSAGES = 2
+
 export class GenerateSummaryUseCase {
   constructor(
     private readonly conversationRepository: ConversationRepository,
@@ -52,7 +69,7 @@ export class GenerateSummaryUseCase {
 
   async execute(
     conversationId: string,
-    options: { locale?: Locale } = {},
+    options: GenerateSummaryOptions = {},
   ): Promise<GenerateSummaryOutput> {
     const locale = options.locale ?? DEFAULT_LOCALE
     const conversation = await this.conversationRepository.findById(conversationId)
@@ -61,30 +78,31 @@ export class GenerateSummaryUseCase {
     }
 
     const latestSummary = await this.summaryRepository.findLatestByConversationId(conversationId)
+    const lastPosition = latestSummary
+      ? await this.messageHistoryRepository.findPositionById(latestSummary.lastMessageId)
+      : null
+    const messagesAfterSummary =
+      lastPosition !== null
+        ? await this.messageHistoryRepository.findAfterPosition(conversationId, lastPosition)
+        : await this.messageRepository.findByConversationId(conversationId)
 
-    let newMessages: Message[]
-    if (!latestSummary) {
-      newMessages = await this.messageRepository.findByConversationId(conversationId)
-      if (newMessages.length === 0) {
-        return { error: { code: "NO_MESSAGES", message: "No messages to summarize" } }
-      }
-    } else {
-      const lastPosition = await this.messageHistoryRepository.findPositionById(
-        latestSummary.lastMessageId,
-      )
-      if (lastPosition === null) {
-        newMessages = await this.messageRepository.findByConversationId(conversationId)
-        if (newMessages.length === 0) {
-          return { error: { code: "NO_MESSAGES", message: "No messages to summarize" } }
-        }
-      } else {
-        newMessages = await this.messageHistoryRepository.findAfterPosition(
-          conversationId,
-          lastPosition,
-        )
-        if (newMessages.length === 0) {
-          return { error: { code: "NO_NEW_MESSAGES", message: "No new messages since last summary" } }
-        }
+    const newMessages = await this.selectMessages(
+      messagesAfterSummary,
+      options.upToMessageId,
+    )
+    if (newMessages.length === 0) {
+      const code =
+        messagesAfterSummary.length === 0 && !latestSummary
+          ? "NO_MESSAGES"
+          : "NO_NEW_MESSAGES"
+      return {
+        error: {
+          code,
+          message:
+            code === "NO_MESSAGES"
+              ? "No messages to summarize"
+              : "No new messages since last summary",
+        },
       }
     }
 
@@ -98,20 +116,10 @@ export class GenerateSummaryUseCase {
       return { error: { code: "CHARACTER_NOT_FOUND", message: `Character '${version.characterId}' not found` } }
     }
 
-    const previousSummaryContent = latestSummary?.content
-
     const memories = await this.memoryRepository.findByConversationId(conversationId)
     const memoryTurns = (
       await this.messageHistoryRepository.findUserMessageTimes(conversationId)
     ).map((createdAt) => ({ role: "user", createdAt }))
-
-    const context = await this.buildSummaryContext({
-      newMessages,
-      previousSummaryContent,
-      memories: filterMemoriesForPrompt(conversation, memories, memoryTurns),
-      characterName: characterResult.currentVersion.name,
-      locale,
-    })
 
     let providerId = conversation.provider as ProviderId | null
     let providerInstanceId = conversation.providerInstanceId
@@ -141,31 +149,55 @@ export class GenerateSummaryUseCase {
     }
 
     const model = resolvedModel ?? undefined
+    const summaryMaxTokens = Math.min(
+      MAX_SUMMARY_BUDGET,
+      Math.max(MIN_SUMMARY_BUDGET, options.maxTokens ?? conversation.maxTokens),
+    )
+    const transcriptBudget = Math.max(
+      512,
+      (conversation.contextWindow ?? DEFAULT_SUMMARY_WINDOW) -
+        summaryMaxTokens -
+        SUMMARY_PROMPT_RESERVE,
+    )
+    const chunks = splitIntoChunks(
+      newMessages,
+      characterResult.currentVersion.name,
+      locale,
+      transcriptBudget,
+    )
 
-    let fullContent = ""
-    try {
-      for await (const chunk of adapter.generateStreaming(context, {
+    const promptMemories = filterMemoriesForPrompt(
+      conversation,
+      memories,
+      memoryTurns,
+    )
+    let summaryContent = latestSummary?.content
+    for (const chunk of chunks) {
+      const context = this.buildSummaryContext({
+        newMessages: chunk,
+        previousSummaryContent: summaryContent,
+        memories: promptMemories,
+        characterName: characterResult.currentVersion.name,
+        locale,
+      })
+      const streamed = await this.streamSummary(
+        adapter,
+        context,
+        conversation,
         model,
-        temperature: conversation.temperature,
-        maxTokens: conversation.maxTokens,
-        topP: conversation.topP,
-        frequencyPenalty: conversation.frequencyPenalty,
-        presencePenalty: conversation.presencePenalty,
-        stopSequences: conversation.stopSequences,
-      })) {
-        fullContent += chunk.content
-      }
-    } catch (error) {
-      this.logger.error("Summary generation streaming failed", error as Error, { conversationId })
-      return { error: { code: "STREAMING_FAILED", message: (error as Error).message } }
+        summaryMaxTokens,
+        conversationId,
+      )
+      if ("error" in streamed) return streamed
+      summaryContent = streamed.content
     }
 
-    const trimmed = fullContent.trim()
+    const trimmed = summaryContent?.trim()
     if (!trimmed) {
       return { error: { code: "EMPTY_SUMMARY", message: "Generated summary is empty" } }
     }
 
-    const firstMessageId = newMessages[0].id
+    const firstMessageId = latestSummary?.firstMessageId ?? newMessages[0].id
     const lastMessageId = newMessages[newMessages.length - 1].id
 
     const summary = Summary.create({
@@ -185,13 +217,72 @@ export class GenerateSummaryUseCase {
     return { summary: toSummaryDTO(summary) }
   }
 
-  private async buildSummaryContext(params: {
+  private async selectMessages(
+    messagesAfterSummary: Message[],
+    upToMessageId?: string,
+  ): Promise<Message[]> {
+    if (upToMessageId) {
+      const index = messagesAfterSummary.findIndex(
+        (message) => message.id === upToMessageId,
+      )
+      if (index < 0) return []
+      return messagesAfterSummary.slice(0, index + 1)
+    }
+
+    if (messagesAfterSummary.length <= MANUAL_KEEP_RECENT_MESSAGES) {
+      return []
+    }
+    return messagesAfterSummary.slice(
+      0,
+      messagesAfterSummary.length - MANUAL_KEEP_RECENT_MESSAGES,
+    )
+  }
+
+  private async streamSummary(
+    adapter: ProviderPort,
+    context: PromptContext,
+    conversation: {
+      temperature: number
+      topP: number
+      frequencyPenalty: number
+      presencePenalty: number
+      stopSequences: string[]
+    },
+    model: string | undefined,
+    maxTokens: number,
+    conversationId: string,
+  ): Promise<{ content: string } | GenerateSummaryError> {
+    let fullContent = ""
+    try {
+      for await (const chunk of adapter.generateStreaming(context, {
+        model,
+        maxTokens,
+        temperature: conversation.temperature,
+        topP: conversation.topP,
+        frequencyPenalty: conversation.frequencyPenalty,
+        presencePenalty: conversation.presencePenalty,
+        stopSequences: conversation.stopSequences,
+      })) {
+        fullContent += chunk.content
+      }
+    } catch (error) {
+      this.logger.error("Summary generation streaming failed", error as Error, { conversationId })
+      return { error: { code: "STREAMING_FAILED", message: (error as Error).message } }
+    }
+
+    if (!fullContent.trim()) {
+      return { error: { code: "EMPTY_SUMMARY", message: "Generated summary is empty" } }
+    }
+    return { content: fullContent }
+  }
+
+  private buildSummaryContext(params: {
     newMessages: Message[]
     previousSummaryContent: string | undefined
     memories: Memory[]
     characterName: string
     locale: Locale
-  }): Promise<PromptContext> {
+  }): PromptContext {
     const {
       newMessages,
       previousSummaryContent,
@@ -279,6 +370,37 @@ export class GenerateSummaryUseCase {
       messages: contextMessages,
     }
   }
+}
+
+function splitIntoChunks(
+  messages: Message[],
+  characterName: string,
+  locale: Locale,
+  budget: number,
+): Message[][] {
+  const tr = (key: string, values?: TranslationParams) =>
+    translate(locale, key, values)
+  const chunks: Message[][] = []
+  let current: Message[] = []
+  let currentTokens = 0
+
+  for (const message of messages) {
+    const role =
+      message.role === "user"
+        ? tr("summaryPrompt.userLabel")
+        : tr("summaryPrompt.assistantLabel", { name: characterName })
+    const cost = estimateTextTokens(`[${role}]: ${message.content}`) + 2
+    if (current.length > 0 && currentTokens + cost > budget) {
+      chunks.push(current)
+      current = []
+      currentTokens = 0
+    }
+    current.push(message)
+    currentTokens += cost
+  }
+
+  if (current.length > 0) chunks.push(current)
+  return chunks
 }
 
 function toSummaryDTO(s: Summary): SummaryDTO {

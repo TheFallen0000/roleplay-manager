@@ -52,6 +52,7 @@ export interface ExportSettings {
   recentMessageCount: number
   summaryFrequency: number
   contextWindow: number | null
+  compactionThreshold: number
   temperature: number
   maxTokens: number
   topP: number
@@ -77,6 +78,7 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   recentMessageCount: 10,
   summaryFrequency: 20,
   contextWindow: null,
+  compactionThreshold: 80,
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,

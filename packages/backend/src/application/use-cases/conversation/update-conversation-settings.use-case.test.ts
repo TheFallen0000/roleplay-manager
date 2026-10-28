@@ -48,6 +48,8 @@ const existingConv = Conversation.create({
   providerInstanceId: null,
   recentMessageCount: 10,
   summaryFrequency: 20,
+  contextWindow: 8192,
+  compactionThreshold: 80,
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,
@@ -231,6 +233,19 @@ describe("UpdateConversationSettingsUseCase", () => {
     })
     expect(capturedSettings.recentMessageCount).toBeUndefined()
     expect(capturedSettings.summaryFrequency).toBe(30)
+  })
+
+  it("capa el umbral de compactación al rango permitido", async () => {
+    const useCase = buildUseCase()
+    await useCase.execute("conv-1", { compactionThreshold: 10 })
+    expect(capturedSettings.compactionThreshold).toBe(50)
+  })
+
+  it("rechaza una reserva de respuesta que no cabe en la ventana", async () => {
+    const useCase = buildUseCase()
+    await expect(
+      useCase.execute("conv-1", { maxTokens: 9_000 }),
+    ).rejects.toThrow("The reply budget must be lower than the context window.")
   })
 
   it("acepta customProfileImageAssetId y no borra assets previos cuando no hay override", async () => {

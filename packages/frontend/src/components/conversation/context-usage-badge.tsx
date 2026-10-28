@@ -24,6 +24,7 @@ export function ContextUsageBadge({
   const window = metadata.contextWindow
   const used = metadata.inputTokens + draftTokens + metadata.outputReserve
   const percent = window ? Math.round((used / window) * 100) : null
+  const threshold = metadata.compactionThreshold ?? 80
   const format = (value: number) => formatTokenCount(value, locale)
 
   const label = percent === null ? `~${format(used)}` : `${percent}%`
@@ -41,7 +42,7 @@ export function ContextUsageBadge({
       ? "outline"
       : percent >= 100
         ? "destructive"
-        : percent >= 80
+        : percent >= threshold
           ? "outline"
           : "secondary"
 
@@ -56,7 +57,7 @@ export function ContextUsageBadge({
             className={cn(
               "cursor-default tabular-nums",
               percent !== null &&
-                percent >= 80 &&
+                percent >= threshold &&
                 percent < 100 &&
                 "border-amber-500/60 text-amber-700 dark:text-amber-400",
             )}
@@ -100,7 +101,7 @@ export function ContextUsageBadge({
               {t("chat.contextUsageDraft", { count: format(draftTokens) })}
             </span>
           ) : null}
-          {percent !== null && percent >= 80 ? (
+          {percent !== null && percent >= threshold ? (
             <span className="text-background/70">
               {t("chat.contextUsageWarning")}
             </span>

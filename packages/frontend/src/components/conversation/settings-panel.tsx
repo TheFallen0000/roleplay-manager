@@ -32,6 +32,7 @@ import type {
   MemoryProposalMode,
   TitleSource,
 } from "@workspace/shared/types/conversation"
+import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
 
 import { updateConversationSettings } from "@/lib/api/conversations"
 import { ApiClientError } from "@/lib/api/client"
@@ -39,7 +40,7 @@ import { useMemoryStore } from "@/lib/stores/memory.store"
 import { useSummaryStore } from "@/lib/stores/summary.store"
 import { SummaryViewer } from "./summary-viewer"
 import { InferenceParamsCard } from "./inference-params-card"
-import { SummarySettingsCard } from "./summary-settings-card"
+import { CompactionSettingsCard } from "./compaction-settings-card"
 import { MemoryModeCard } from "./memory-mode-card"
 import { MemoryDecayCard } from "./memory-decay-card"
 import { ProposalList } from "./proposal-list"
@@ -110,8 +111,9 @@ export function SettingsPanel({
   const [frequencyPenalty, setFrequencyPenalty] = useState(current.frequencyPenalty ?? 0)
   const [presencePenalty, setPresencePenalty] = useState(current.presencePenalty ?? 0)
   const [stopSequences, setStopSequences] = useState(current.stopSequences?.join(", ") ?? "")
-  const [recentMessageCount, setRecentMessageCount] = useState(current.recentMessageCount ?? 10)
-  const [summaryFrequency, setSummaryFrequency] = useState(current.summaryFrequency ?? 20)
+  const [compactionThreshold, setCompactionThreshold] = useState(
+    current.compactionThreshold ?? 80,
+  )
 
   const [saving, setSaving] = useState(false)
 
@@ -130,8 +132,7 @@ export function SettingsPanel({
     frequencyPenalty === 0 && presencePenalty === 0 &&
     stopSequences === ""
 
-  const isHistoriaDefaults =
-    recentMessageCount === 10 && summaryFrequency === 20
+  const isHistoriaDefaults = compactionThreshold === 80
 
   const modeloHasChanges =
     modelUpdate.provider !== (current.provider ?? "ollama") ||
@@ -146,8 +147,7 @@ export function SettingsPanel({
     stopSequences !== (current.stopSequences?.join(", ") ?? "")
 
   const historiaHasChanges =
-    recentMessageCount !== (current.recentMessageCount ?? 10) ||
-    summaryFrequency !== (current.summaryFrequency ?? 20)
+    compactionThreshold !== (current.compactionThreshold ?? 80)
 
   const persistSettings = async (settings: ConversationSettingsUpdate) => {
     setSaving(true)
@@ -175,8 +175,7 @@ export function SettingsPanel({
   }
 
   const resetHistoriaValues = () => {
-    setRecentMessageCount(10)
-    setSummaryFrequency(20)
+    setCompactionThreshold(80)
   }
 
   const handleModeloReset = () => {
@@ -207,6 +206,16 @@ export function SettingsPanel({
   }
 
   const handleSaveModelo = async () => {
+    const window = modelUpdate.contextWindow
+    if (window !== null && maxTokens >= window) {
+      toast.error(
+        t("settings.compactionMaxTokensBlocked", {
+          maxTokens,
+          window,
+        }),
+      )
+      return
+    }
     const settings: ConversationSettingsUpdate = {}
     if (modelUpdate.provider !== (current.provider ?? "ollama")) {
       settings.provider = modelUpdate.provider ?? undefined
@@ -231,10 +240,12 @@ export function SettingsPanel({
 
   const handleSaveHistoria = async () => {
     const settings: ConversationSettingsUpdate = {}
-    if (recentMessageCount !== (current.recentMessageCount ?? 10))
-      settings.recentMessageCount = recentMessageCount
-    if (summaryFrequency !== (current.summaryFrequency ?? 20))
-      settings.summaryFrequency = summaryFrequency
+    const nextThreshold = clampCompactionThreshold(compactionThreshold)
+    if (nextThreshold !== (current.compactionThreshold ?? 80))
+      settings.compactionThreshold = nextThreshold
+    if (nextThreshold !== compactionThreshold) {
+      setCompactionThreshold(nextThreshold)
+    }
     await persistSettings(settings)
   }
 
@@ -328,15 +339,13 @@ export function SettingsPanel({
                   ) : null}
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-4">
-                  <SummarySettingsCard
-                    recentMessageCount={recentMessageCount}
-                    summaryFrequency={summaryFrequency}
-                    onRecentMessageCountChange={setRecentMessageCount}
-                    onSummaryFrequencyChange={setSummaryFrequency}
+                  <CompactionSettingsCard
+                    value={compactionThreshold}
+                    contextWindow={current.contextWindow}
+                    onChange={setCompactionThreshold}
                   />
                   <SummaryViewer
                     conversationId={conversationId}
-                    summaryFrequency={summaryFrequency}
                     onTitleGenerated={onTitleGenerated}
                   />
                 </AccordionContent>

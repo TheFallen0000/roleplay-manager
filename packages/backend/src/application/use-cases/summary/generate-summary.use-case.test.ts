@@ -25,6 +25,7 @@ const buildConversationRepo = (exists: boolean): ConversationRepository => ({
           model: "llama3",
           summaryFrequency: 15,
           temperature: 0.7,
+          contextWindow: 2_500,
           maxTokens: 2048,
           topP: 0.9,
           frequencyPenalty: 0,
@@ -46,14 +47,14 @@ const buildConversationRepo = (exists: boolean): ConversationRepository => ({
   clearProviderInstanceId: vi.fn(),
 })
 
-const buildMessageRepo = (count: number): MessageRepository => ({
+const buildMessageRepo = (count: number, contentLength = 0): MessageRepository => ({
   findById: async () => null,
   findByConversationId: async () =>
     Array.from({ length: count }, (_, i) => ({
       id: `msg-${i}`,
       conversationId: "conv-1",
       role: i % 2 === 0 ? "user" : "assistant",
-      content: `Message ${i}`,
+      content: `${'x'.repeat(contentLength)}Message ${i}`,
       position: i,
     })) as never,
   findLastByConversationId: async () => null,
@@ -136,10 +137,12 @@ const buildSummaryRepo = (hasLatest: boolean): SummaryRepository => ({
 })
 
 let capturedContext: PromptContext | null = null
+let capturedContexts: PromptContext[] = []
 
 const buildCapturingAdapter = (): ProviderPort => ({
   generateStreaming: async function* (context: PromptContext) {
     capturedContext = context
+    capturedContexts.push(context)
     yield { content: "Generated summary content." }
   },
   validateConnection: async () => ({ ok: true } as never),
@@ -204,8 +207,9 @@ const buildUseCase = (
   memCount: number,
   hasPrevSummary: boolean,
   capture?: boolean,
+  contentLength = 0,
 ): GenerateSummaryUseCase => {
-  const messageRepo = buildMessageRepo(msgCount)
+  const messageRepo = buildMessageRepo(msgCount, contentLength)
   return new GenerateSummaryUseCase(
     buildConversationRepo(convExists),
     messageRepo,
@@ -249,14 +253,14 @@ describe("GenerateSummaryUseCase", () => {
     expect(result.error!.code).toBe("NO_MESSAGES")
   })
 
-  it("uses previous summary to determine firstMessageId", async () => {
+  it("mantiene el primer mensaje del resumen acumulativo", async () => {
     const useCase = buildUseCase(true, 10, true, 0, true)
     const result = await useCase.execute("conv-1")
     expect(result.summary).toBeDefined()
-    expect(result.summary!.firstMessageId).toBe("msg-6")
+    expect(result.summary!.firstMessageId).toBe("msg-0")
   })
 
-  it("envía la transcripción completa en un solo user message", async () => {
+  it("resume los mensajes antiguos y deja los recientes sin resumir", async () => {
     capturedContext = null
     const useCase = buildUseCase(true, 10, true, 0, false, true)
     await useCase.execute("conv-1", { locale: "es" })
@@ -264,8 +268,9 @@ describe("GenerateSummaryUseCase", () => {
     expect(capturedContext!.messages.length).toBe(1)
     expect(capturedContext!.messages[0].role).toBe("user")
     expect(capturedContext!.messages[0].content).toContain("[Usuario]: Message 0")
-    expect(capturedContext!.messages[0].content).toContain("[Asistente (TestChar)]: Message 1")
-    expect(capturedContext!.messages[0].content).toContain("[Asistente (TestChar)]: Message 9")
+    expect(capturedContext!.messages[0].content).toContain("[Asistente (TestChar)]: Message 7")
+    expect(capturedContext!.messages[0].content).not.toContain("Message 8")
+    expect(capturedContext!.messages[0].content).not.toContain("Message 9")
   })
 
   it("incluye el resumen anterior como par user/assistant previo", async () => {
@@ -280,7 +285,34 @@ describe("GenerateSummaryUseCase", () => {
     expect(capturedContext!.messages[1].content).toBe("Previous summary content")
     expect(capturedContext!.messages[2].role).toBe("user")
     expect(capturedContext!.messages[2].content).toContain("[Usuario]: Message 6")
-    expect(capturedContext!.messages[2].content).toContain("[Asistente (TestChar)]: Message 9")
+    expect(capturedContext!.messages[2].content).toContain("[Asistente (TestChar)]: Message 7")
+    expect(capturedContext!.messages[2].content).not.toContain("Message 8")
+  })
+
+  it("respeta el límite de compactación", async () => {
+    capturedContext = null
+    const useCase = buildUseCase(true, 10, true, 0, false, true)
+    const result = await useCase.execute("conv-1", {
+      locale: "es",
+      upToMessageId: "msg-3",
+      maxTokens: 512,
+    })
+
+    expect(result.summary).toBeDefined()
+    expect(capturedContext).not.toBeNull()
+    expect(capturedContext!.messages[0].content).toContain("[Usuario]: Message 0")
+    expect(capturedContext!.messages[0].content).toContain("[Asistente (TestChar)]: Message 3")
+    expect(capturedContext!.messages[0].content).not.toContain("Message 4")
+  })
+
+  it("divide la transcripción en trozos cuando no cabe en una llamada", async () => {
+    capturedContexts = []
+    const useCase = buildUseCase(true, 6, true, 0, false, true, 2_000)
+    await useCase.execute("conv-1", { locale: "es" })
+
+    expect(capturedContexts.length).toBeGreaterThan(1)
+    expect(capturedContexts[0].messages[0].content).toContain("Message 0")
+    expect(capturedContexts[0].messages[0].content).not.toContain("Message 4")
   })
 
   it("incluye la memoria dinámica en el system prompt cuando hay memorias", async () => {

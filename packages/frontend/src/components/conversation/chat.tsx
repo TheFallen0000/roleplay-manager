@@ -471,7 +471,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
           onPreview={handlePreview}
           onDraftChange={setDraft}
           disabled={isStreaming}
-          conversationId={conv.id}
+          conversationId={conv.id} contextWindow={conv.contextWindow}
         />
       </footer>
 

@@ -23,6 +23,8 @@ export interface PromptContextMetadataDTO {
   totalTokens: number
   contextWindow: number | null
   contextPercent: number | null
+  /** Percentage that triggers automatic compaction on send. */
+  compactionThreshold: number
 }
 
 export interface PromptContextDTO {

@@ -123,6 +123,7 @@ import { GenerateConversationTitleUseCase } from "../application/use-cases/conve
 import { GetPromptContextUseCase } from "../application/use-cases/conversation/get-prompt-context.use-case"
 import { ListSummariesUseCase } from "../application/use-cases/summary/list-summaries.use-case"
 import { GenerateSummaryUseCase } from "../application/use-cases/summary/generate-summary.use-case"
+import { ContextCompactionService } from "../application/services/context-compaction.service"
 import { UpdateSummaryUseCase } from "../application/use-cases/summary/update-summary.use-case"
 import { DeleteSummaryUseCase } from "../application/use-cases/summary/delete-summary.use-case"
 import { ListProviderInstancesUseCase } from "../application/use-cases/provider/list-provider-instances.use-case"
@@ -230,6 +231,7 @@ export interface AppContainer {
   // Summary
   listSummaries: ListSummariesUseCase
   generateSummary: GenerateSummaryUseCase
+  contextCompaction: ContextCompactionService
   updateSummary: UpdateSummaryUseCase
   deleteSummary: DeleteSummaryUseCase
 
@@ -437,6 +439,12 @@ export const buildContainer = ({
     logger,
   )
 
+  const contextCompaction = new ContextCompactionService(
+    promptContextBuilder,
+    generateSummary,
+    logger,
+  )
+
   const sendMessage = new SendMessageUseCase(
     conversationRepository,
     messageRepository,
@@ -452,7 +460,7 @@ export const buildContainer = ({
     providerInstanceRepository,
     applyAllMemoryChanges,
     summaryRepository,
-    generateSummary,
+    contextCompaction,
     generateConversationTitle,
     decayMemories,
   )
@@ -472,7 +480,7 @@ export const buildContainer = ({
     providerInstanceRepository,
     applyAllMemoryChanges,
     summaryRepository,
-    generateSummary,
+    contextCompaction,
     generateConversationTitle,
   )
 
@@ -491,7 +499,7 @@ export const buildContainer = ({
     providerInstanceRepository,
     applyAllMemoryChanges,
     summaryRepository,
-    generateSummary,
+    contextCompaction,
     generateConversationTitle,
   )
 
@@ -573,6 +581,7 @@ export const buildContainer = ({
     summaryRepository,
     listSummaries: new ListSummariesUseCase(summaryRepository),
     generateSummary,
+    contextCompaction,
     updateSummary: new UpdateSummaryUseCase(summaryRepository),
     deleteSummary: new DeleteSummaryUseCase(summaryRepository),
     createCharacter: new CreateCharacterUseCase(characterRepository),

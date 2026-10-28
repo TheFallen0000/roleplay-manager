@@ -21,7 +21,7 @@ import type { ApplyAllMemoryChangesUseCase } from "../memory/apply-all-memory-ch
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
-import type { GenerateSummaryUseCase } from "../summary/generate-summary.use-case"
+import type { ContextCompactionService } from "../../services/context-compaction.service"
 import type { GenerateConversationTitleUseCase } from "./generate-conversation-title.use-case"
 
 const playerCharacterRepository = {
@@ -191,10 +191,18 @@ const buildSummaryRepo = (): SummaryRepository => ({
   deleteByIds: async () => {},
 })
 
-const buildGenerateSummary = (): GenerateSummaryUseCase =>
+const buildContextCompaction = (): ContextCompactionService =>
   ({
-    execute: async () => ({ error: { code: "NO_NEW_MESSAGES", message: "No new messages" } }),
-  }) as unknown as GenerateSummaryUseCase
+    needsCompaction: async () => false,
+    compact: async () => ({
+      ok: true,
+      messages: [],
+      summary: null,
+      compacted: false,
+      summaryGenerated: null,
+      warning: null,
+    }),
+  }) as unknown as ContextCompactionService
 
 const buildGenerateConversationTitle = (): GenerateConversationTitleUseCase =>
   ({ execute: vi.fn() }) as unknown as GenerateConversationTitleUseCase
@@ -272,7 +280,7 @@ describe("ContinueConversationUseCase - tool calls", () => {
       providerInstanceRepository,
       applyAll,
       buildSummaryRepo(),
-      buildGenerateSummary(),
+      buildContextCompaction(),
       buildGenerateConversationTitle(),
     )
 

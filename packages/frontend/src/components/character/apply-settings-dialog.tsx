@@ -202,9 +202,11 @@ export function ApplySettingsDialog({
                   {formatTokenCount(settings.contextWindow, locale)}
                 </Badge>
               ) : null}
-              {settings.recentMessageCount !== undefined ? (
+              {settings.compactionThreshold !== undefined ? (
                 <Badge variant="outline">
-                  {t("settings.recentMessages")}: {settings.recentMessageCount}
+                  {t("settings.compactionThreshold", {
+                    value: settings.compactionThreshold,
+                  })}
                 </Badge>
               ) : null}
               {settings.memoryDecayMode ? (

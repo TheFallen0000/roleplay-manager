@@ -37,11 +37,15 @@ export class GetPromptContextUseCase {
 
     const characterVersion = await this.characterRepository.findVersionById(conv.versionId)
     const memories = await this.memoryRepository.findByConversationId(conversationId)
-    const recentMessages = await this.messageHistoryRepository.findRecentByConversationId(
-      conversationId,
-      conv.recentMessageCount,
-    )
     const summary = await this.summaryRepository.findLatestByConversationId(conversationId)
+    const summaryPosition = summary
+      ? await this.messageHistoryRepository.findPositionById(summary.lastMessageId)
+      : null
+    const contextMessages =
+      await this.messageHistoryRepository.findAfterPosition(
+        conversationId,
+        summaryPosition ?? -1,
+      )
     const memoryTurns = (
       await this.messageHistoryRepository.findUserMessageTimes(conversationId)
     ).map((createdAt) => ({ role: "user", createdAt }))
@@ -55,8 +59,8 @@ export class GetPromptContextUseCase {
 
     const context = await this.promptContextBuilder.build({
       characterVersion: characterVersion!,
-      messages: recentMessages,
-      recentMessageCount: conv.recentMessageCount,
+      messages: contextMessages,
+      recentMessageCount: contextMessages.length,
       memories: promptMemories,
       summary: summary ?? undefined,
       playerCharacter,
@@ -83,10 +87,11 @@ export class GetPromptContextUseCase {
       characterVersion: characterVersion?.versionNumber ?? 0,
       summaryId: summary?.id ?? null,
       memoryCount: promptMemories.length,
-      recentMessageCount: conv.recentMessageCount,
+      recentMessageCount: context.messages.length,
       totalContextMessages: context.messages.length,
       totalCharacters,
       ...tokenEstimate,
+      compactionThreshold: conv.compactionThreshold,
     }
 
     return {

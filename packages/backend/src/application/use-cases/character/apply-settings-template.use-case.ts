@@ -12,6 +12,7 @@ import type { ProviderInstanceRepository } from "../../../domain/ports/provider-
 import { CharacterNotFoundError } from "../../../domain/errors"
 import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { isMessageStyle } from "@workspace/shared/lib/message-style"
+import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
 import { findCharacterConversations } from "../conversation/find-character-conversations"
 import type { UpdateConversationSettingsUseCase } from "../conversation/update-conversation-settings.use-case"
 import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
@@ -159,6 +160,11 @@ function toSettingsUpdate(
   }
   if (settings.contextWindow !== undefined) {
     update.contextWindow = settings.contextWindow
+  }
+  if (settings.compactionThreshold !== undefined) {
+    update.compactionThreshold = clampCompactionThreshold(
+      settings.compactionThreshold,
+    )
   }
   if (settings.temperature !== undefined) {
     update.temperature = settings.temperature

@@ -269,6 +269,10 @@ export const es: Dictionary = {
     UPDATE_DIRTY_WORKTREE:
       "Tienes cambios locales; guárdalos o descártalos antes de actualizar.",
     UPDATE_FAILED: "No se pudo aplicar la actualización.",
+    INVALID_CONTEXT_BUDGET:
+      "El límite de respuesta debe ser menor que la ventana de contexto.",
+    CONTEXT_TOO_LARGE:
+      "El contexto sigue siendo demasiado grande tras compactarlo. Acorta el mensaje, reduce el límite de respuesta o aumenta la ventana de contexto.",
   },
   chat: {
     noMessages: "No hay mensajes en esta conversación.",
@@ -311,7 +315,7 @@ export const es: Dictionary = {
     previewTitle: "Vista previa del contexto",
     previewMetaMessages: { one: "1 mensaje", other: "{count} mensajes" },
     previewMetaCharacters: { one: "1 carácter", other: "{count} caracteres" },
-    previewMetaRecent: { one: "1 reciente", other: "{count} recientes" },
+    previewMetaRecent: { one: "1 en contexto", other: "{count} en contexto" },
     previewMessagesTitle: "Mensajes ({count})",
     previewSending: "Enviando...",
     previewSend: "Enviar",
@@ -337,9 +341,18 @@ export const es: Dictionary = {
     contextUsageEstimated:
       "Recuento estimado; el valor exacto depende del tokenizador del modelo.",
     contextUsageWarning:
-      "El contexto está casi lleno. La próxima respuesta podría cortarse.",
+      "El próximo envío compactará el contexto automáticamente.",
     contextUsageNoWindow:
       "Configura la ventana de contexto en Modelo para ver el porcentaje.",
+    previewCompactionAtSend: "Se compactará al enviar",
+    compacting: "Compactando contexto…",
+    compactionSummaryFailed:
+      "No se pudo generar el resumen, así que se recortaron los mensajes más antiguos para continuar.",
+    compactionTrimmed:
+      "El contexto seguía siendo demasiado grande tras resumir, así que se recortaron algunos mensajes antiguos.",
+    compactionWindowUnknown:
+      "Ventana de contexto desconocida. La compactación automática está desactivada; configúrala en Modelo.",
+    compactionDismiss: "Descartar aviso",
   },
   settings: {
     menuHistory: "Historia",
@@ -347,7 +360,7 @@ export const es: Dictionary = {
     menuCustomization: "Personalización",
     menuPersona: "Persona",
     historyTitle: "Historia del chat",
-    historyDescription: "Memorias, propuestas, resúmenes y auto-degradación.",
+    historyDescription: "Memorias, propuestas, resúmenes, compactación y auto-degradación.",
     memoryMode: "Modo de gestión de memorias",
     proposals: "Propuestas pendientes",
     summaries: "Resúmenes",
@@ -412,6 +425,16 @@ export const es: Dictionary = {
     recentMessages: "Mensajes recientes",
     recentMessagesHint:
       "Mensajes recientes que se envían verbatim. Debe ser menor que la frecuencia de resumen (máx. {max}).",
+    compactionTitle: "Compactación automática",
+    compactionDescription:
+      "Cuando el contexto estimado llega al umbral, los mensajes más antiguos se resumen y se envían como memoria narrativa. El historial completo sigue visible en el chat.",
+    compactionThreshold: "Umbral ({value}%)",
+    compactionThresholdHint:
+      "La compactación se dispara a este porcentaje de la ventana y busca volver al {target}%.",
+    compactionWindowMissing:
+      "Configura la ventana de contexto en Modelo para activar la compactación automática.",
+    compactionMaxTokensBlocked:
+      "El límite de respuesta ({maxTokens} tokens) debe ser menor que la ventana de contexto ({window} tokens).",
     providerLabel: "Proveedor:",
     providersLoadFailed: "No se pudieron cargar los proveedores",
     instanceCreated: "Instancia creada",
@@ -887,7 +910,7 @@ export const es: Dictionary = {
     deleteFailed: "Error al eliminar el resumen",
     emptyTitle: "No hay resúmenes todavía",
     emptyDescription:
-      "Los resúmenes se generan automáticamente cada {count} mensajes o puedes generarlos manualmente.",
+      "Los resúmenes se generan automáticamente cuando el contexto se llena o puedes generarlos manualmente.",
     viewFull: "Ver resumen completo",
     title: "Resumen",
     editTitle: "Editar resumen",

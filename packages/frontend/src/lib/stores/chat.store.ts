@@ -14,6 +14,8 @@ export interface ChatState {
   loadOlderError: string | null
   isStreaming: boolean
   streamingContent: string
+  compacting: boolean
+  contextWarning: string | null
   editingMessageId: string | null
   editingContent: string
   regeneratingMessageId: string | null
@@ -30,6 +32,8 @@ export interface ChatState {
   appendToStreamingContent: (chunk: string) => void
   setStreamingContent: (content: string) => void
   setStreaming: (isStreaming: boolean) => void
+  setCompacting: (compacting: boolean) => void
+  setContextWarning: (warning: string | null) => void
   startEditing: (messageId: string, content: string) => void
   setEditingContent: (content: string) => void
   cancelEditing: () => void
@@ -49,6 +53,8 @@ export const useChatStore = create<ChatState>((set) => ({
   loadOlderError: null,
   isStreaming: false,
   streamingContent: "",
+  compacting: false,
+  contextWarning: null,
   editingMessageId: null,
   editingContent: "",
   regeneratingMessageId: null,
@@ -61,6 +67,8 @@ export const useChatStore = create<ChatState>((set) => ({
       nextMessageCursor: page.nextCursor,
       isLoadingOlder: false,
       loadOlderError: null,
+      compacting: false,
+      contextWarning: null,
       error: null,
     }),
 
@@ -112,6 +120,10 @@ export const useChatStore = create<ChatState>((set) => ({
 
   setStreaming: (isStreaming) => set({ isStreaming }),
 
+  setCompacting: (compacting) => set({ compacting }),
+
+  setContextWarning: (contextWarning) => set({ contextWarning }),
+
   startEditing: (messageId, content) =>
     set({ editingMessageId: messageId, editingContent: content }),
 
@@ -133,6 +145,8 @@ export const useChatStore = create<ChatState>((set) => ({
       loadOlderError: null,
       isStreaming: false,
       streamingContent: "",
+      compacting: false,
+      contextWarning: null,
       editingMessageId: null,
       editingContent: "",
       regeneratingMessageId: null,
