@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Arranque del paquete**: el launcher detecta si la app ya está corriendo y
+  abre esa instancia en vez de lanzar otra. Si el puerto 3001 por defecto está
+  ocupado por otra aplicación usa el siguiente libre; un `PORT` explícito
+  ocupado falla con un mensaje claro.
+- **Cierre y reinicio**: el reinicio usa `execve` en POSIX (mismo PID, sesión y
+  terminal) y un proceso adjunto en Windows, así Ctrl+C y cerrar la consola
+  detienen la app en lugar de dejarla en segundo plano.
+
 ## [1.56.1] - 2026-10-28
 
 ### Fixed

@@ -31,10 +31,47 @@ describe("ProcessRestarter", () => {
     ).toBe(false)
   })
 
-  it("relaunches the launcher (without the browser) and exits", () => {
+  it.skipIf(process.platform === "win32")(
+    "replaces the process with the launcher and keeps the terminal attached",
+    () => {
+      vi.useFakeTimers()
+      // The running process was started by the launcher, so it carries the
+      // "open the browser" order: the restart must not forward it.
+      vi.stubEnv("RM_OPEN_BROWSER", "http://localhost:3001")
+      try {
+        const execve = vi.fn()
+        const spawnImpl = vi.fn()
+        const exit = vi.fn()
+
+        new ProcessRestarter({
+          packagedRoot: root,
+          execveImpl: execve,
+          spawnImpl: spawnImpl as never,
+          exit,
+        }).restart()
+
+        expect(spawnImpl).not.toHaveBeenCalled()
+        expect(exit).not.toHaveBeenCalled()
+
+        vi.runAllTimers()
+
+        expect(execve).toHaveBeenCalledWith(
+          "/bin/sh",
+          ["sh", join(root, LAUNCHER)],
+          expect.objectContaining({ RM_NO_BROWSER: "1" }),
+        )
+        const env = execve.mock.calls[0][2] as NodeJS.ProcessEnv
+        expect(env.RM_OPEN_BROWSER).toBeUndefined()
+        expect(exit).not.toHaveBeenCalled()
+      } finally {
+        vi.unstubAllEnvs()
+        vi.useRealTimers()
+      }
+    },
+  )
+
+  it("spawns an attached launcher when execve is unavailable and exits", () => {
     vi.useFakeTimers()
-    // The running process was started by the launcher, so it carries the
-    // "open the browser" order: the restart must not forward it.
     vi.stubEnv("RM_OPEN_BROWSER", "http://localhost:3001")
     try {
       const on = vi.fn()
@@ -44,6 +81,7 @@ describe("ProcessRestarter", () => {
 
       new ProcessRestarter({
         packagedRoot: root,
+        execveImpl: null,
         spawnImpl: spawnImpl as never,
         exit,
       }).restart()
@@ -52,11 +90,11 @@ describe("ProcessRestarter", () => {
         expect.any(String),
         process.platform === "win32"
           ? ["/d", "/s", "/c", LAUNCHER]
-          : [LAUNCHER],
+          : [join(root, LAUNCHER)],
         expect.objectContaining({
           cwd: root,
-          detached: true,
-          stdio: "ignore",
+          detached: false,
+          stdio: "inherit",
         }),
       )
 

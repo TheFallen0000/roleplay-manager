@@ -238,12 +238,26 @@ const startCmd = `@echo off
 setlocal
 set "ROOT=%~dp0"
 for /f "usebackq delims=" %%v in ("%ROOT%current") do set "VERSION=%%v"
-set "RM_RUNNING_VERSION=%VERSION%"
 set "APP=%ROOT%versions\\%VERSION%\\app"
 set "NODE=%ROOT%versions\\%VERSION%\\runtime\\node.exe"
-if not defined PORT set "PORT=3001"
+if defined PORT (set "EXPLICIT=1" & set "REQUESTED_PORT=%PORT%") else (set "PORT=3001" & set "EXPLICIT=0" & set "REQUESTED_PORT=3001")
 if not defined HOST set "HOST=127.0.0.1"
 if not defined LOG_LEVEL set "LOG_LEVEL=info"
+for /f "tokens=1,*" %%a in ('"%NODE%" "%APP%\\launcher-port.mjs" "%REQUESTED_PORT%" "%EXPLICIT%" "%HOST%"') do (
+  if "%%a"=="running" (
+    echo.
+    echo   Roleplay Manager is already running at http://localhost:%%b
+    if not defined RM_NO_BROWSER start "" "http://localhost:%%b"
+    exit /b 0
+  )
+  if "%%a"=="free" set "PORT=%%b"
+  if "%%a"=="error" (
+    echo %%b 1>&2
+    exit /b 1
+  )
+)
+if not "%PORT%"=="%REQUESTED_PORT%" echo Port %REQUESTED_PORT% is in use; using %PORT% instead.
+set "RM_RUNNING_VERSION=%VERSION%"
 set "NODE_ENV=production"
 set "DATABASE_PATH=%ROOT%data\\roleplay.db"
 set "DATA_DIR=%ROOT%data"
@@ -270,14 +284,56 @@ const startSh = `#!/bin/sh
 set -e
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 VERSION="$(cat "$ROOT/current")"
-export RM_RUNNING_VERSION="$VERSION"
 APP="$ROOT/versions/$VERSION/app"
 NODE="$ROOT/versions/$VERSION/runtime/node"
 
-: "\${PORT:=3001}"
+if [ -n "\${PORT:-}" ]; then
+  EXPLICIT=1
+  REQUESTED_PORT="$PORT"
+else
+  EXPLICIT=0
+  REQUESTED_PORT=3001
+fi
 : "\${HOST:=127.0.0.1}"
 : "\${LOG_LEVEL:=info}"
+
+selection="$("$NODE" "$APP/launcher-port.mjs" "$REQUESTED_PORT" "$EXPLICIT" "$HOST")" || {
+  echo "Could not check whether port $REQUESTED_PORT is free." >&2
+  exit 1
+}
+STATUS="\${selection%% *}"
+VALUE="\${selection#* }"
+
+if [ "$STATUS" = "running" ]; then
+  PORT="$VALUE"
+  echo
+  echo "  Roleplay Manager is already running at http://localhost:$PORT"
+  echo
+  if [ -z "\${RM_NO_BROWSER:-}" ]; then
+    if command -v xdg-open >/dev/null 2>&1; then
+      xdg-open "http://localhost:$PORT" >/dev/null 2>&1 || true
+    elif command -v open >/dev/null 2>&1; then
+      open "http://localhost:$PORT" >/dev/null 2>&1 || true
+    elif command -v wslview >/dev/null 2>&1; then
+      wslview "http://localhost:$PORT" >/dev/null 2>&1 || true
+    else
+      echo "Could not detect a browser opener. Open http://localhost:$PORT manually."
+    fi
+  fi
+  exit 0
+fi
+
+if [ "$STATUS" != "free" ]; then
+  echo "$VALUE" >&2
+  exit 1
+fi
+
+PORT="$VALUE"
+if [ "$PORT" != "$REQUESTED_PORT" ]; then
+  echo "Port $REQUESTED_PORT is in use; using $PORT instead."
+fi
 export PORT HOST LOG_LEVEL
+export RM_RUNNING_VERSION="$VERSION"
 export NODE_ENV=production
 export DATABASE_PATH="$ROOT/data/roleplay.db"
 export DATA_DIR="$ROOT/data"
@@ -425,6 +481,10 @@ console.log("- Copying artifacts...")
 copyFileSync(
   join(repoRoot, "packages/backend/dist/server.mjs"),
   join(appDir, "server.mjs"),
+)
+copyFileSync(
+  join(repoRoot, "scripts/launcher-port.mjs"),
+  join(appDir, "launcher-port.mjs"),
 )
 cpSync(
   join(repoRoot, "packages/backend/src/infrastructure/database/migrations"),
