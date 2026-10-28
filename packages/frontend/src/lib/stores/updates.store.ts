@@ -10,7 +10,60 @@ import * as updatesApi from "@/lib/api/updates"
 
 const STORAGE_KEY = "rm_update_status"
 const NOTIFIED_KEY = "rm_update_notified"
+const RESTART_MARKER_KEY = "rm_update_pending_restart"
 const CHECK_TTL_MS = 60 * 60 * 1000
+
+export interface RestartMarker {
+  from: string
+  to: string
+  kind: "update" | "rollback"
+}
+
+export const readRestartMarker = (): RestartMarker | null => {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(RESTART_MARKER_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<RestartMarker>
+    if (typeof parsed.from !== "string" || typeof parsed.to !== "string") {
+      return null
+    }
+    return {
+      from: parsed.from,
+      to: parsed.to,
+      kind: parsed.kind === "rollback" ? "rollback" : "update",
+    }
+  } catch {
+    return null
+  }
+}
+
+export const writeRestartMarker = (marker: RestartMarker): void => {
+  if (typeof window === "undefined") return
+  try {
+    window.localStorage.setItem(RESTART_MARKER_KEY, JSON.stringify(marker))
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+export const clearRestartMarker = (): void => {
+  if (typeof window === "undefined") return
+  try {
+    window.localStorage.removeItem(RESTART_MARKER_KEY)
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+export const clearCachedStatus = (): void => {
+  if (typeof window === "undefined") return
+  try {
+    window.localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // Ignore storage failures.
+  }
+}
 
 const readCached = (): UpdateStatusDTO | null => {
   if (typeof window === "undefined") return null

@@ -21,6 +21,8 @@ vi.mock("@/lib/api/updates", () => ({
 
 const behind = {
   currentVersion: "1.0.0",
+  installedVersion: "1.0.0",
+  restartRequired: false,
   latestVersion: "2.0.0",
   behind: true,
   commits: ["bbbbbbb feat: something"],
