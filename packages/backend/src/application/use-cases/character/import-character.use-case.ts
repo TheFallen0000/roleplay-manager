@@ -14,6 +14,7 @@ import {
 } from "@workspace/shared/types/export"
 import { normalizeDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { normalizeMessageStyle } from "@workspace/shared/lib/message-style"
+import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import { CharacterCard } from "../../../domain/entities/character-card.entity"
@@ -283,6 +284,9 @@ export class ImportCharacterUseCase {
         recentMessageCount: settings.recentMessageCount,
         summaryFrequency: settings.summaryFrequency,
         contextWindow: settings.contextWindow ?? null,
+        compactionThreshold: clampCompactionThreshold(
+          settings.compactionThreshold ?? 80,
+        ),
         temperature: settings.temperature,
         maxTokens: settings.maxTokens,
         topP: settings.topP,

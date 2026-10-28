@@ -15,7 +15,7 @@ import type {
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { MemoryChangeProposalRepository } from "../../../domain/ports/memory-change-proposal.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
-import type { GenerateSummaryUseCase } from "../summary/generate-summary.use-case"
+import type { ContextCompactionService } from "../../services/context-compaction.service"
 import type { GenerateConversationTitleUseCase } from "./generate-conversation-title.use-case"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
@@ -33,7 +33,7 @@ import {
   normalizeAssistantReply,
 } from "../../../lib/reply-format"
 import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
-import { countMessagesSinceSummary } from "./summary-threshold"
+import { loadMessagesAfterSummary } from "./load-messages-after-summary"
 import { propagateToolCalls, type ToolCallState } from "../../../lib/propagate-tool-calls"
 import {
   accumulateToolCallDeltas,
@@ -71,6 +71,15 @@ export interface SummaryGeneratedEvent {
   summary: SummaryDTO
 }
 
+export interface CompactingEvent {
+  type: "compacting"
+}
+
+export interface ContextWarningEvent {
+  type: "context-warning"
+  warning: { code: string; message: string }
+}
+
 export interface TitleGeneratedEvent {
   type: "title-generated"
   title: string
@@ -83,6 +92,8 @@ export type ContinueConversationEvent =
   | StreamErrorEvent
   | SummaryGeneratedEvent
   | TitleGeneratedEvent
+  | CompactingEvent
+  | ContextWarningEvent
 
 export class ContinueConversationUseCase {
   constructor(
@@ -100,7 +111,7 @@ export class ContinueConversationUseCase {
     private readonly providerInstanceRepository: ProviderInstanceRepository,
     private readonly applyAllMemoryChanges: ApplyAllMemoryChangesUseCase,
     private readonly summaryRepository: SummaryRepository,
-    private readonly generateSummary: GenerateSummaryUseCase,
+    private readonly contextCompaction: ContextCompactionService,
     private readonly generateConversationTitle: GenerateConversationTitleUseCase,
   ) {}
 
@@ -114,20 +125,32 @@ export class ContinueConversationUseCase {
       throw new ConversationNotFoundError(input.conversationId)
     }
 
-    const recentMessages = await this.messageHistoryRepository.findRecentByConversationId(
+    const latestSummary = await this.summaryRepository.findLatestByConversationId(
       input.conversationId,
-      Math.max(1, conversation.recentMessageCount),
     )
     const maxPosition = await this.messageHistoryRepository.findMaxPosition(
       input.conversationId,
     )
     const nextPosition = maxPosition + 1
 
-    const lastMsg = recentMessages.at(-1) ?? null
+    const lastMsg =
+      (
+        await this.messageHistoryRepository.findRecentByConversationId(
+          input.conversationId,
+          1,
+        )
+      ).at(-1) ?? null
     if (lastMsg?.role === "assistant" && lastMsg.alternatives.length > 0) {
       const accepted = lastMsg.accept()
       await this.messageRepository.update(accepted)
     }
+
+    const recentMessages = await loadMessagesAfterSummary({
+      conversationId: input.conversationId,
+      summary: latestSummary,
+      messageHistoryRepository: this.messageHistoryRepository,
+      messageRepository: this.messageRepository,
+    })
 
     const version = await this.characterRepository.findVersionById(
       conversation.versionId,
@@ -164,20 +187,52 @@ export class ContinueConversationUseCase {
       await this.messageHistoryRepository.findUserMessageTimes(input.conversationId)
     ).map((createdAt) => ({ role: "user", createdAt }))
 
-    const latestSummary = await this.summaryRepository.findLatestByConversationId(
-      input.conversationId,
-    )
     const playerCharacter = await resolvePlayerCharacterPrompt(
       this.playerCharacterRepository,
       conversation,
     )
+    const promptMemories = filterMemoriesForPrompt(
+      conversation,
+      memories,
+      memoryTurns,
+    )
+
+    let contextMessagesForPrompt = recentMessages
+    let contextSummary = latestSummary
+    let compactedSummary: SummaryDTO | undefined
+    const compactionInput = {
+      conversation,
+      characterVersion: characterResult.currentVersion,
+      messages: recentMessages,
+      memories: promptMemories,
+      playerCharacter,
+      latestSummary,
+      locale: input.locale,
+    }
+    if (await this.contextCompaction.needsCompaction(compactionInput)) {
+      yield { type: "compacting" }
+      const compaction = await this.contextCompaction.compact(compactionInput)
+      if (!compaction.ok) {
+        yield { type: "error", error: compaction.error }
+        return
+      }
+      if (compaction.warning) {
+        yield { type: "context-warning", warning: compaction.warning }
+      }
+      if (compaction.summaryGenerated) {
+        compactedSummary = compaction.summaryGenerated
+        yield { type: "summary-generated", summary: compaction.summaryGenerated }
+      }
+      contextMessagesForPrompt = compaction.messages
+      contextSummary = compaction.summary
+    }
 
     const context = await this.promptContextBuilder.build({
       characterVersion: characterResult.currentVersion,
-      messages: recentMessages,
-      recentMessageCount: conversation.recentMessageCount,
-      memories: filterMemoriesForPrompt(conversation, memories, memoryTurns),
-      summary: latestSummary ?? undefined,
+      messages: contextMessagesForPrompt,
+      recentMessageCount: contextMessagesForPrompt.length,
+      memories: promptMemories,
+      summary: contextSummary ?? undefined,
       playerCharacter,
       locale: input.locale,
       enableMemoryProposalTool: true,
@@ -347,47 +402,26 @@ export class ContinueConversationUseCase {
 
     yield { type: "done", message: toMessageDTO(assistantMessage) }
 
-    // Trigger summary generation if threshold is reached
-    try {
-      const messagesSinceLast = await countMessagesSinceSummary(
-        input.conversationId,
-        latestSummary?.lastMessageId ?? null,
-        this.messageHistoryRepository,
-      )
-      if (messagesSinceLast >= conversation.summaryFrequency) {
-        const summaryResult = await this.generateSummary.execute(
+    if (compactedSummary) {
+      try {
+        const titleResult = await this.generateConversationTitle.execute(
           input.conversationId,
           { locale: input.locale },
         )
-        if (summaryResult.summary) {
-          yield { type: "summary-generated", summary: summaryResult.summary }
-          try {
-            const titleResult = await this.generateConversationTitle.execute(
-              input.conversationId,
-              { locale: input.locale },
-            )
-            if (titleResult.title !== conversation.title) {
-              yield {
-                type: "title-generated",
-                title: titleResult.title,
-                titleSource: "auto",
-              }
-            }
-          } catch (titleError) {
-            this.logger.error(
-              "Failed to regenerate conversation title",
-              titleError as Error,
-              { conversationId: input.conversationId },
-            )
+        if (titleResult.title !== conversation.title) {
+          yield {
+            type: "title-generated",
+            title: titleResult.title,
+            titleSource: "auto",
           }
         }
+      } catch (titleError) {
+        this.logger.error(
+          "Failed to regenerate conversation title",
+          titleError as Error,
+          { conversationId: input.conversationId },
+        )
       }
-    } catch (error) {
-      this.logger.error(
-        "Failed to generate summary",
-        error as Error,
-        { conversationId: input.conversationId },
-      )
     }
   }
 }

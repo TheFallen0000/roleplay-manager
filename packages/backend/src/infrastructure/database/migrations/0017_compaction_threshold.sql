@@ -1,0 +1,1 @@
+ALTER TABLE `conversations` ADD `compaction_threshold` integer DEFAULT 80;

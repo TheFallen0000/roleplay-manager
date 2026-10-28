@@ -70,6 +70,7 @@ const UpdateConversationSettingsSchema = z.object({
   recentMessageCount: z.number().int().min(1).optional(),
   summaryFrequency: z.number().int().min(10).optional(),
   contextWindow: z.number().int().min(1).nullable().optional(),
+  compactionThreshold: z.number().int().min(50).max(95).optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().min(1).optional(),
   topP: z.number().min(0).max(1).optional(),
@@ -219,6 +220,14 @@ export const buildConversationRouter = (deps: {
             res.write(`event: done\ndata: ${JSON.stringify(doneData)}\n\n`)
             break
           }
+          case "compacting": {
+            res.write(`event: compacting\ndata: {}\n\n`)
+            break
+          }
+          case "context-warning": {
+            res.write(`event: context-warning\ndata: ${JSON.stringify(event.warning)}\n\n`)
+            break
+          }
           case "summary-generated": {
             res.write(`event: summary-generated\ndata: ${JSON.stringify(event.summary)}\n\n`)
             break
@@ -318,6 +327,14 @@ export const buildConversationRouter = (deps: {
               res.write(`event: done\ndata: ${JSON.stringify(event.message)}\n\n`)
               break
             }
+            case "compacting": {
+              res.write(`event: compacting\ndata: {}\n\n`)
+              break
+            }
+            case "context-warning": {
+              res.write(`event: context-warning\ndata: ${JSON.stringify(event.warning)}\n\n`)
+              break
+            }
             case "summary-generated": {
               res.write(`event: summary-generated\ndata: ${JSON.stringify(event.summary)}\n\n`)
               break
@@ -398,6 +415,14 @@ export const buildConversationRouter = (deps: {
             }
             case "done": {
               res.write(`event: done\ndata: ${JSON.stringify(event.message)}\n\n`)
+              break
+            }
+            case "compacting": {
+              res.write(`event: compacting\ndata: {}\n\n`)
+              break
+            }
+            case "context-warning": {
+              res.write(`event: context-warning\ndata: ${JSON.stringify(event.warning)}\n\n`)
               break
             }
             case "summary-generated": {

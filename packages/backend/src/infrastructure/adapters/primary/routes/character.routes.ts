@@ -92,6 +92,7 @@ const ExportSettingsSchema = z.object({
   recentMessageCount: z.number(),
   summaryFrequency: z.number(),
   contextWindow: z.number().int().min(1).nullable().optional(),
+  compactionThreshold: z.number().int().min(1).max(100).optional(),
   temperature: z.number(),
   maxTokens: z.number(),
   topP: z.number(),

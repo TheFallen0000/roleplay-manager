@@ -120,6 +120,13 @@
       "when": 1793221785843,
       "tag": "0016_context_window",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1793224932735,
+      "tag": "0017_compaction_threshold",
+      "breakpoints": true
     }
   ]
 }

@@ -78,6 +78,7 @@ export class GetConversationUseCase {
       recentMessageCount: conversation.recentMessageCount,
       summaryFrequency: conversation.summaryFrequency,
       contextWindow: conversation.contextWindow,
+      compactionThreshold: conversation.compactionThreshold,
       temperature: conversation.temperature,
       maxTokens: conversation.maxTokens,
       topP: conversation.topP,

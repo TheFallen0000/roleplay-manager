@@ -5,6 +5,7 @@ import type {
 import type { ProviderId } from "@workspace/shared/types/provider"
 import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { MESSAGE_STYLES, isMessageStyle } from "@workspace/shared/lib/message-style"
+import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
 
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
@@ -169,6 +170,25 @@ export class UpdateConversationSettingsUseCase {
         Math.max(1, Math.round(input.contextWindow)),
       )
     }
+    if (input.compactionThreshold !== undefined) {
+      input.compactionThreshold = clampCompactionThreshold(
+        input.compactionThreshold,
+      )
+    }
+    const finalWindow =
+      input.contextWindow !== undefined ? input.contextWindow : conv.contextWindow
+    const finalMaxTokens =
+      input.maxTokens !== undefined ? input.maxTokens : conv.maxTokens
+    if (
+      (input.contextWindow !== undefined || input.maxTokens !== undefined) &&
+      finalWindow !== null &&
+      finalMaxTokens >= finalWindow
+    ) {
+      throw new DomainError(
+        "INVALID_CONTEXT_BUDGET",
+        "The reply budget must be lower than the context window.",
+      )
+    }
     if (input.memoryDecayThreshold !== undefined) {
       input.memoryDecayThreshold = Math.min(10, Math.max(1, Math.round(input.memoryDecayThreshold)))
     }
@@ -260,6 +280,7 @@ export class UpdateConversationSettingsUseCase {
       recentMessageCount: updated.recentMessageCount,
       summaryFrequency: updated.summaryFrequency,
       contextWindow: updated.contextWindow,
+      compactionThreshold: updated.compactionThreshold,
       temperature: updated.temperature,
       maxTokens: updated.maxTokens,
       topP: updated.topP,

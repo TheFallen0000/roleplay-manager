@@ -4,6 +4,10 @@ import type {
   MessageStyle,
   TitleSource,
 } from "@workspace/shared/types/conversation"
+import {
+  clampCompactionThreshold,
+  DEFAULT_COMPACTION_THRESHOLD,
+} from "@workspace/shared/lib/compaction"
 
 export type MemoryProposalMode = "auto" | "manual"
 
@@ -18,6 +22,7 @@ export interface ConversationProps {
   recentMessageCount: number
   summaryFrequency: number
   contextWindow?: number | null
+  compactionThreshold?: number
   temperature: number
   maxTokens: number
   topP: number
@@ -55,6 +60,9 @@ export class Conversation {
     return new Conversation({
       ...props,
       contextWindow: props.contextWindow ?? null,
+      compactionThreshold: clampCompactionThreshold(
+        props.compactionThreshold ?? DEFAULT_COMPACTION_THRESHOLD,
+      ),
       customProfileImageAssetId: props.customProfileImageAssetId ?? null,
       backgroundImageAssetId: props.backgroundImageAssetId ?? null,
       backgroundFit: props.backgroundFit ?? "cover",
@@ -80,6 +88,7 @@ export class Conversation {
   get recentMessageCount(): number { return this.props.recentMessageCount }
   get summaryFrequency(): number { return this.props.summaryFrequency }
   get contextWindow(): number | null { return this.props.contextWindow ?? null }
+  get compactionThreshold(): number { return this.props.compactionThreshold ?? DEFAULT_COMPACTION_THRESHOLD }
   get temperature(): number { return this.props.temperature }
   get maxTokens(): number { return this.props.maxTokens }
   get topP(): number { return this.props.topP }
