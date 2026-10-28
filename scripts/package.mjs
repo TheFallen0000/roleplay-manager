@@ -521,10 +521,15 @@ writeFileSync(join(stage, "README.txt"), `\uFEFF${readme}`)
 console.log("- Archiving...")
 mkdirSync(releaseDir, { recursive: true })
 rmSync(archivePath, { force: true })
+// List the version directory instead of the bare `versions` one: the updater
+// only accepts the new version tree and the root metadata/launchers.
+const archiveEntries = readdirSync(stage).map((entry) =>
+  entry === "versions" ? `versions/${version}` : entry,
+)
 if (IS_WINDOWS) {
   // Archiving `.` makes bsdtar prefix every entry with "./", and Windows' own
   // extractor drops those entries (Explorer shows an empty, "invalid" zip).
-  // List the top-level entries explicitly so the name stays a clean path.
+  // Explicit entries keep the names clean.
   run(tarBinary(), [
     "-a",
     "-c",
@@ -532,10 +537,10 @@ if (IS_WINDOWS) {
     archivePath,
     "-C",
     stage,
-    ...readdirSync(stage),
+    ...archiveEntries,
   ])
 } else {
-  run("tar", ["-czf", archivePath, "-C", stage, "."])
+  run("tar", ["-czf", archivePath, "-C", stage, ...archiveEntries])
 }
 
 const size = formatBytes(dirSize(stage))

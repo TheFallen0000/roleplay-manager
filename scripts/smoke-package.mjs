@@ -77,18 +77,26 @@ try {
   check(extract.status === 0, "artifact extracted")
   check(existsSync(join(dir, LAUNCHER)), `${LAUNCHER} at the root`)
 
+  // The updater only accepts the new version tree and the root metadata; a
+  // bare `versions/` entry (created when archiving `.`) is rejected.
+  const listing = spawnSync(tarBinary(), ["-tf", artifact], {
+    encoding: "utf8",
+  })
+  const entries = (listing.stdout ?? "")
+    .split(/\r?\n/)
+    .filter((entry) => entry.length > 0)
+  check(entries.length > 0, "archive listing readable")
+  check(
+    !entries.includes("versions/"),
+    "archive omits the bare versions directory",
+  )
+
   if (IS_WINDOWS) {
     // Windows' built-in extractor silently drops entries that start with "./"
     // (bsdtar used to add the prefix when archiving `.`), so the zip must keep
     // clean relative names.
-    const listing = spawnSync(tarBinary(), ["-tf", artifact], {
-      encoding: "utf8",
-    })
-    const entries = (listing.stdout ?? "")
-      .split(/\r?\n/)
-      .filter((entry) => entry.length > 0)
     check(
-      entries.length > 0 && entries.every((entry) => !entry.startsWith("./")),
+      entries.every((entry) => !entry.startsWith("./")),
       "zip entries have no './' prefix (Windows Explorer compatible)",
     )
     check(entries.includes("current"), "the zip keeps `current` at the root")

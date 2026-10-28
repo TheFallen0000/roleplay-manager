@@ -438,6 +438,28 @@ describe("ReleaseUpdateAdapter", () => {
     expect(finished.canApply).toBe(false)
   })
 
+  it("accepts the bare versions directory entry in the archive", async () => {
+    const root = await createRoot()
+    const run = makeTar(
+      "2.0.0",
+      undefined,
+      [
+        "./current",
+        "./version.json",
+        "./versions/",
+        "./versions/2.0.0/",
+        "./versions/2.0.0/app/server.mjs",
+        "./start.cmd",
+      ].join("\n"),
+    )
+    const adapter = buildAdapter(root, { run })
+
+    await adapter.apply({ withBackup: false })
+    const finished = await waitForJob(adapter)
+
+    expect(finished.job).toMatchObject({ running: false, step: "done" })
+  })
+
   it("refuses to install a package whose checksum does not match", async () => {
     const root = await createRoot()
     const adapter = buildAdapter(root, {
