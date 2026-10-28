@@ -8,6 +8,7 @@ import type { PlayerCharacterRepository } from "../../../domain/ports/player-cha
 import { resolvePlayerCharacterPrompt } from "./resolve-player-character"
 import type { PromptContextDTO, PromptContextMetadataDTO } from "@workspace/shared/types/context"
 import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
+import { estimateContextTokens } from "@workspace/shared/lib/token-estimate"
 import {
   ConversationNotFoundError,
 } from "../../../domain/errors"
@@ -70,6 +71,12 @@ export class GetPromptContextUseCase {
 
     const totalCharacters = context.systemPrompt.length +
       context.messages.reduce((acc, m) => acc + m.content.length, 0)
+    const tokenEstimate = estimateContextTokens({
+      systemPrompt: context.systemPrompt,
+      messages: context.messages,
+      outputReserve: conv.maxTokens ?? 2048,
+      contextWindow: conv.contextWindow,
+    })
 
     const metadata: PromptContextMetadataDTO = {
       characterName: characterVersion?.name ?? "Unknown",
@@ -79,6 +86,7 @@ export class GetPromptContextUseCase {
       recentMessageCount: conv.recentMessageCount,
       totalContextMessages: context.messages.length,
       totalCharacters,
+      ...tokenEstimate,
     }
 
     return {

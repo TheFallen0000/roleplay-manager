@@ -282,6 +282,7 @@ export class ImportCharacterUseCase {
         providerInstanceId: settings.providerInstanceId,
         recentMessageCount: settings.recentMessageCount,
         summaryFrequency: settings.summaryFrequency,
+        contextWindow: settings.contextWindow ?? null,
         temperature: settings.temperature,
         maxTokens: settings.maxTokens,
         topP: settings.topP,

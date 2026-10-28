@@ -1,5 +1,6 @@
 import type {
   ListModelsResult,
+  ModelContextResult,
   ProviderId,
   ProviderStatusEntry,
 } from "@workspace/shared/types/provider"
@@ -22,4 +23,14 @@ export const listProviderModels = async (
 ): Promise<ListModelsResult> => {
   const params = instanceId ? `?instanceId=${encodeURIComponent(instanceId)}` : ""
   return apiRequest(`/api/providers/${id}/models${params}`)
+}
+
+export const getModelContextWindow = async (
+  id: ProviderId,
+  model: string,
+  instanceId?: string,
+): Promise<ModelContextResult> => {
+  const params = new URLSearchParams({ model })
+  if (instanceId) params.set("instanceId", instanceId)
+  return apiRequest(`/api/providers/${id}/model-context?${params.toString()}`)
 }

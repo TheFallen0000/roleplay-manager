@@ -51,6 +51,7 @@ export interface ExportSettings {
   providerInstanceId: string | null
   recentMessageCount: number
   summaryFrequency: number
+  contextWindow: number | null
   temperature: number
   maxTokens: number
   topP: number
@@ -75,6 +76,7 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   providerInstanceId: null,
   recentMessageCount: 10,
   summaryFrequency: 20,
+  contextWindow: null,
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,

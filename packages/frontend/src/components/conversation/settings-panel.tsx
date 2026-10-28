@@ -32,7 +32,6 @@ import type {
   MemoryProposalMode,
   TitleSource,
 } from "@workspace/shared/types/conversation"
-import type { ProviderId } from "@workspace/shared/types/provider"
 
 import { updateConversationSettings } from "@/lib/api/conversations"
 import { ApiClientError } from "@/lib/api/client"
@@ -47,7 +46,7 @@ import { ProposalList } from "./proposal-list"
 import { MemoryList } from "./memory-list"
 import { usePersistedStringList } from "@/lib/hooks/use-persisted-string-list"
 import { useTranslation } from "@/lib/hooks/use-translation"
-import { ModelSelector } from "./model-selector"
+import { ModelSelector, type ModelUpdate } from "./model-selector"
 import { CustomizationTab } from "./customization-tab"
 import { PlayerCharacterCard } from "./player-character-card"
 
@@ -99,14 +98,11 @@ export function SettingsPanel({
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   const [resetTarget, setResetTarget] = useState<SettingsSection | null>(null)
 
-  const [modelUpdate, setModelUpdate] = useState<{
-    provider: ProviderId | string | null
-    providerInstanceId: string | null
-    model: string | null
-  }>({
+  const [modelUpdate, setModelUpdate] = useState<ModelUpdate>({
     provider: current.provider ?? "ollama",
     providerInstanceId: current.providerInstanceId ?? null,
     model: current.model,
+    contextWindow: current.contextWindow ?? null,
   })
   const [temperature, setTemperature] = useState(current.temperature ?? 0.7)
   const [maxTokens, setMaxTokens] = useState(current.maxTokens ?? 2048)
@@ -141,6 +137,7 @@ export function SettingsPanel({
     modelUpdate.provider !== (current.provider ?? "ollama") ||
     modelUpdate.providerInstanceId !== current.providerInstanceId ||
     modelUpdate.model !== current.model ||
+    modelUpdate.contextWindow !== (current.contextWindow ?? null) ||
     temperature !== (current.temperature ?? 0.7) ||
     maxTokens !== (current.maxTokens ?? 2048) ||
     topP !== (current.topP ?? 0.9) ||
@@ -175,6 +172,10 @@ export function SettingsPanel({
     setFrequencyPenalty(0)
     setPresencePenalty(0)
     setStopSequences("")
+    setModelUpdate((prev) => ({
+      ...prev,
+      contextWindow: current.contextWindow ?? null,
+    }))
   }
 
   const resetHistoriaValues = () => {
@@ -218,6 +219,8 @@ export function SettingsPanel({
       settings.providerInstanceId = modelUpdate.providerInstanceId
     }
     if (modelUpdate.model !== current.model) settings.model = modelUpdate.model
+    if (modelUpdate.contextWindow !== (current.contextWindow ?? null))
+      settings.contextWindow = modelUpdate.contextWindow
     if (temperature !== (current.temperature ?? 0.7)) settings.temperature = temperature
     if (maxTokens !== (current.maxTokens ?? 2048)) settings.maxTokens = maxTokens
     if (topP !== (current.topP ?? 0.9)) settings.topP = topP
@@ -389,6 +392,7 @@ export function SettingsPanel({
               frequencyPenalty={frequencyPenalty}
               presencePenalty={presencePenalty}
               maxTokens={maxTokens}
+              contextWindow={modelUpdate.contextWindow}
               stopSequences={stopSequences}
               onTemperatureChange={setTemperature}
               onTopPChange={setTopP}

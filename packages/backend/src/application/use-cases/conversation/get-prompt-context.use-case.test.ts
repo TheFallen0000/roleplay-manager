@@ -42,6 +42,7 @@ const activeConv = Conversation.create({
   providerInstanceId: null,
   recentMessageCount: 10,
   summaryFrequency: 20,
+  contextWindow: 8192,
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,
@@ -206,6 +207,39 @@ describe("GetPromptContextUseCase", () => {
     expect(result.metadata.recentMessageCount).toBe(10)
     expect(result.metadata.totalContextMessages).toBe(10)
     expect(result.metadata.totalCharacters).toBeGreaterThan(0)
+  })
+
+  it("estima los tokens y respeta la ventana configurada", async () => {
+    const useCase = buildUseCase({})
+    const result = await useCase.execute("conv-1")
+
+    expect(result.metadata.systemTokens).toBeGreaterThan(0)
+    expect(result.metadata.messageTokens).toBeGreaterThan(0)
+    expect(result.metadata.inputTokens).toBe(
+      result.metadata.systemTokens + result.metadata.messageTokens,
+    )
+    expect(result.metadata.outputReserve).toBe(2048)
+    expect(result.metadata.totalTokens).toBe(result.metadata.inputTokens + 2048)
+    expect(result.metadata.contextWindow).toBe(8192)
+    expect(result.metadata.contextPercent).toBe(
+      Math.round((result.metadata.totalTokens / 8192) * 100),
+    )
+  })
+
+  it("cuenta el mensaje pendiente en la estimación", async () => {
+    const useCase = buildUseCase({})
+    const withoutDraft = await useCase.execute("conv-1")
+    const withDraft = await useCase.execute(
+      "conv-1",
+      "Un borrador bastante más largo que el mensaje pendiente normal",
+    )
+
+    expect(withDraft.metadata.messageTokens).toBeGreaterThan(
+      withoutDraft.metadata.messageTokens,
+    )
+    expect(withDraft.metadata.totalTokens).toBeGreaterThan(
+      withoutDraft.metadata.totalTokens,
+    )
   })
 
   it("lanza ConversationNotFoundError si no existe", async () => {

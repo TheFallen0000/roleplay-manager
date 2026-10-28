@@ -280,6 +280,7 @@ function toSettings(conversation: Conversation): ExportSettings {
     providerInstanceId: conversation.providerInstanceId,
     recentMessageCount: conversation.recentMessageCount,
     summaryFrequency: conversation.summaryFrequency,
+    contextWindow: conversation.contextWindow,
     temperature: conversation.temperature,
     maxTokens: conversation.maxTokens,
     topP: conversation.topP,

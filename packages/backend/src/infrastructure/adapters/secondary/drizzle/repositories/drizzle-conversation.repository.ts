@@ -42,6 +42,7 @@ const toConversation = (row: ConversationRow): Conversation =>
     providerInstanceId: row.providerInstanceId ?? null,
     recentMessageCount: row.recentMessageCount ?? 10,
     summaryFrequency: row.summaryFrequency ?? 20,
+    contextWindow: row.contextWindow ?? null,
     temperature: row.temperature ?? 0.7,
     maxTokens: row.maxTokens ?? 2048,
     topP: row.topP ?? 0.9,
@@ -78,6 +79,7 @@ export class DrizzleConversationRepository implements ConversationRepository {
       providerInstanceId: conversation.providerInstanceId,
       recentMessageCount: conversation.recentMessageCount,
       summaryFrequency: conversation.summaryFrequency,
+      contextWindow: conversation.contextWindow,
       temperature: conversation.temperature,
       maxTokens: conversation.maxTokens,
       topP: conversation.topP,
@@ -211,6 +213,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
       values.recentMessageCount = settings.recentMessageCount
     if (settings.summaryFrequency !== undefined)
       values.summaryFrequency = settings.summaryFrequency
+    if (settings.contextWindow !== undefined)
+      values.contextWindow = settings.contextWindow
     if (settings.temperature !== undefined)
       values.temperature = settings.temperature
     if (settings.maxTokens !== undefined) values.maxTokens = settings.maxTokens

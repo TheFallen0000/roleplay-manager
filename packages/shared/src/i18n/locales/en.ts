@@ -316,6 +316,29 @@ export const en = {
     previewSend: "Send",
     previewLoading: "Loading context…",
     previewEmpty: "No context available.",
+    previewTokensTitle: "Context usage",
+    previewTokensSystem: "System",
+    previewTokensMessages: "Messages",
+    previewTokensOutput: "Reply reserve",
+    previewTokensTotal: "Total",
+    previewTokensOfWindow: "{used} of {window} tokens ({percent}%)",
+    previewTokensNoWindow: "{used} tokens · window unknown",
+    previewTokensEstimated: "Estimated with a conservative heuristic.",
+    contextUsageBadgeAria:
+      "Estimated context: {used} of {window} tokens ({percent}%)",
+    contextUsageBadgeAriaUnknown:
+      "Estimated context: {used} tokens. Context window unknown.",
+    contextUsageBreakdown: "{used} of {window} tokens ({percent}%)",
+    contextUsageUsed: "{used} tokens in use",
+    contextUsageUnknown: "Context window unknown",
+    contextUsageReserve: "Reply reserve: {count} tokens",
+    contextUsageDraft: "Includes {count} tokens from your draft",
+    contextUsageEstimated:
+      "Estimated count; the exact value depends on the model tokenizer.",
+    contextUsageWarning:
+      "The context is almost full. The next reply may be cut off.",
+    contextUsageNoWindow:
+      "Set the context window in Model settings to see the percentage.",
   },
   settings: {
     menuHistory: "History",
@@ -359,6 +382,26 @@ export const en = {
     presencePenaltyHint: "Penalizes introducing new tokens",
     maxTokens: "Max tokens",
     maxTokensHint: "Maximum number of tokens in the reply.",
+    contextWindowTitle: "Context window",
+    contextWindowDescription:
+      "Tokens the model can read plus write. Ollama is detected automatically; other providers use a manual preset.",
+    contextWindowLabel: "Window (tokens)",
+    contextWindowPlaceholder: "Unknown",
+    contextWindowAuto: "Detect",
+    contextWindowDetecting: "Detecting…",
+    contextWindowDetected: "Context window detected: {count} tokens",
+    contextWindowDetectEmpty:
+      "The provider did not report a window. Set it manually.",
+    contextWindowDetectFailed: "The context window could not be detected",
+    contextWindowHint:
+      "The usage indicator and the warnings use this value. The reply budget (max tokens) counts inside the window.",
+    contextWindowSmallWarning:
+      "Small window: a long conversation will fill it quickly.",
+    contextWindowUnknownWarning:
+      "No window set: the indicator cannot show a percentage.",
+    contextWindowMaxTokensWarning:
+      "The reply budget ({maxTokens} tokens) does not leave room inside the {window}-token window.",
+    contextWindowPresets: "Presets",
     stopSequences: "Stop sequences",
     stopSequencesPlaceholder: "comma, separated, ...",
     stopSequencesHint: "Comma separated",

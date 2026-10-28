@@ -5,6 +5,7 @@ import { HealthCheckUseCase } from "../application/use-cases/health/health-check
 import { ListProvidersUseCase } from "../application/use-cases/provider/list-providers.use-case"
 import { ValidateProviderConnectionUseCase } from "../application/use-cases/provider/validate-provider-connection.use-case"
 import { ListProviderModelsUseCase } from "../application/use-cases/provider/list-provider-models.use-case"
+import { GetProviderModelContextUseCase } from "../application/use-cases/provider/get-provider-model-context.use-case"
 import { GetDefaultProviderUseCase } from "../application/use-cases/provider/get-default-provider.use-case"
 import { ConfigureDefaultProviderUseCase } from "../application/use-cases/provider/configure-default-provider.use-case"
 import { DrizzleSettingsRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-settings.repository"
@@ -139,6 +140,7 @@ export interface AppContainer {
   listProviders: ListProvidersUseCase
   validateProviderConnection: ValidateProviderConnectionUseCase
   listProviderModels: ListProviderModelsUseCase
+  getProviderModelContext: GetProviderModelContextUseCase
   getDefaultProvider: GetDefaultProviderUseCase
   configureDefaultProvider: ConfigureDefaultProviderUseCase
   settings: SettingsRepository
@@ -515,6 +517,11 @@ export const buildContainer = ({
       logger,
     ),
     listProviderModels: new ListProviderModelsUseCase(
+      providerRegistry,
+      providerInstanceRepository,
+      logger,
+    ),
+    getProviderModelContext: new GetProviderModelContextUseCase(
       providerRegistry,
       providerInstanceRepository,
       logger,

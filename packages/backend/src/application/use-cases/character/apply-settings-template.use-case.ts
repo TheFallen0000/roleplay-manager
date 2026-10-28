@@ -157,6 +157,9 @@ function toSettingsUpdate(
   if (settings.summaryFrequency !== undefined) {
     update.summaryFrequency = settings.summaryFrequency
   }
+  if (settings.contextWindow !== undefined) {
+    update.contextWindow = settings.contextWindow
+  }
   if (settings.temperature !== undefined) {
     update.temperature = settings.temperature
   }

@@ -1,4 +1,7 @@
-import type { PromptContextDTO } from "@workspace/shared/types/context"
+import type {
+  PromptContextDTO,
+  PromptContextMetadataDTO,
+} from "@workspace/shared/types/context"
 import { apiRequest } from "./client"
 
 export const getPromptContext = (
@@ -12,3 +15,8 @@ export const getPromptContext = (
   const qs = params.toString()
   return apiRequest(`/api/conversations/${conversationId}/context${qs ? `?${qs}` : ""}`)
 }
+
+export const getContextStats = (
+  conversationId: string,
+): Promise<PromptContextMetadataDTO> =>
+  apiRequest(`/api/conversations/${conversationId}/context/stats`)

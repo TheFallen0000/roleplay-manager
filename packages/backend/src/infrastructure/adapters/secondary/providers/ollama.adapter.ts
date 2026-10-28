@@ -131,6 +131,51 @@ export class OllamaAdapter implements ProviderPort {
     }
   }
 
+  /**
+   * Reads the context window from `/api/show`. An explicit `num_ctx` in the
+   * model parameters wins over the architecture default (`*.context_length`).
+   * Detection is best effort: a provider that cannot answer returns null so
+   * the UI falls back to the manual presets.
+   */
+  async getModelContextWindow(model: string): Promise<number | null> {
+    try {
+      const response = await this.fetchWithTimeout("/api/show", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model }),
+      })
+      if (!response.ok) {
+        this.options.logger.warn("Ollama /api/show returned non-OK status", {
+          model,
+          status: response.status,
+        })
+        return null
+      }
+      const body = (await response.json()) as {
+        parameters?: string
+        model_info?: Record<string, unknown>
+      }
+      const numCtx = /^\s*num_ctx\s+(\d+)\s*$/m.exec(body.parameters ?? "")
+      if (numCtx) {
+        const parsed = Number.parseInt(numCtx[1], 10)
+        if (Number.isFinite(parsed) && parsed > 0) return parsed
+      }
+      const contextLength = Object.entries(body.model_info ?? {}).find(
+        ([key]) => key.endsWith(".context_length"),
+      )?.[1]
+      if (typeof contextLength === "number" && contextLength > 0) {
+        return Math.floor(contextLength)
+      }
+      return null
+    } catch (error) {
+      this.options.logger.warn("Could not detect Ollama context window", {
+        model,
+        message: (error as Error).message,
+      })
+      return null
+    }
+  }
+
   async *generateStreaming(
     context: PromptContext,
     options?: GenerateOptions,

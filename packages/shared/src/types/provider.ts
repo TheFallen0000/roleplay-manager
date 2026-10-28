@@ -13,6 +13,13 @@ export interface ListModelsResult {
   manualEntryRequired: boolean
 }
 
+/** Best-effort context window reported by a provider for one model. */
+export interface ModelContextResult {
+  id: ProviderId
+  model: string
+  contextWindow: number | null
+}
+
 export interface ProviderListEntry {
   id: ProviderId
 }

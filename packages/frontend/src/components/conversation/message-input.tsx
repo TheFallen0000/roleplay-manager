@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { usePersistedValue } from "@/lib/hooks/use-persisted-value"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { Button } from "@workspace/ui/components/button"
@@ -14,12 +15,15 @@ export function MessageInput({
   onSend,
   onContinue,
   onPreview,
+  onDraftChange,
   disabled,
   conversationId,
 }: {
   onSend: (content: string) => void
   onContinue?: () => void
   onPreview?: (content?: string) => void
+  /** Reports the persisted draft so the context usage stays live. */
+  onDraftChange?: (content: string) => void
   disabled: boolean
   conversationId: string
 }) {
@@ -28,6 +32,10 @@ export function MessageInput({
     key: "chat:draft",
     defaultValue: "",
   })
+
+  useEffect(() => {
+    onDraftChange?.(content)
+  }, [content, onDraftChange])
 
   const { t } = useTranslation()
 

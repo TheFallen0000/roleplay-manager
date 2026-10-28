@@ -181,7 +181,7 @@ Last updated: 2026-10-28
 
 | # | Proposal | Dependencies |
 |---|----------|--------------|
-| PM.51 | **Context window metadata and usage indicator**: per-model/conversation `contextWindow` (auto-detect from Ollama `/api/show`, manual presets for OpenAI-compatible and unknown models), conservative token estimation, percentage indicator in the chat and context preview, warning for small windows (< 8k, configurable) and for a `maxTokens` that cannot fit. | — |
+| PM.51 | **Context window metadata and usage indicator**: per-model/conversation `contextWindow` (auto-detect from Ollama `/api/show`, manual presets for OpenAI-compatible and unknown models), conservative token estimation, percentage indicator in the chat and context preview, warning for small windows (< 8k, configurable) and for a `maxTokens` that cannot fit. <br>*Done as S121 (2026-10-28, unreleased) — see `S121-progress.md`.* | — |
 | PM.52 | **Automatic compaction**: estimate the prompt before sending; at 80 % (configurable) summarize the oldest messages, rebuild the context with the summary plus the newest messages that fit, show “Compacting context…” and continue. Summary budget and chunking, fallback to trimming with a warning, and a clear error when the system prompt alone does not fit. Replace `summaryFrequency` and remove the message-count controls from the UI. | PM.51 |
 | PM.53 | **Internal ChatEngine (harness)**: extract prompt assembly, context budget, provider call/stream and tool loop shared by `send`, `continue` and `regenerate` into an internal engine; document the REST/SSE contract for external consumers (VTuber, phone). No repo/package split yet. | PM.51 |
 | PM.54 | **Reusable engine package or external service** only if a second consumer appears (VTuber runtime, separate headless service). The phone already runs the backend; PM.54 waits for a real need. | PM.53 |
@@ -227,6 +227,13 @@ Last updated: 2026-10-28
 >   PM.54 waits for a real second consumer.
 > - **No release for this block.** The slices accumulate under `[Unreleased]`
 >   with the rest of the batched changes.
+
+> **PM.51 (S121) — done (2026-10-28, unreleased):** each conversation stores its
+> context window, Ollama detection reads `/api/show`, the chat header shows the
+> live percentage (draft included) and the preview breaks it down. The window
+> travels in exports, templates and branches; migration `0016` adds the column.
+> `summaryFrequency` and `recentMessageCount` stay in the UI until S122, and
+> automatic compaction is not part of this slice. See `S121-progress.md`.
 
 ## Remote access & mobile
 
