@@ -9,16 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Compactación automática**: antes de enviar, la app estima el contexto y, al
+  llegar al umbral configurado, resume los mensajes más antiguos y conserva los
+  recientes que caben. La transcripción larga se trocea, hay fallback a recorte
+  con aviso y un error claro si el prompt de sistema no cabe. El historial
+  visible no se borra y el resumen manual sigue disponible.
 - **Contexto**: cada conversación guarda su ventana de contexto. En Ollama se
   detecta automáticamente con `/api/show`; en OpenAI-compatible y modelos
   desconocidos se elige con ajustes rápidos (4k, 8k, 16k, 32k, 128k) o un valor
   manual. La ventana viaja en las exportaciones, las plantillas de ajustes y las
   ramas.
 - **Chat**: la cabecera muestra un indicador del uso del contexto que incluye el
-  texto que estás escribiendo, avisa al acercarse al límite y ofrece el desglose
-  (sistema, mensajes, reserva de respuesta y total) en la vista previa.
+  texto que estás escribiendo, avisa al acercarse al umbral de compactación y
+  ofrece el desglose (sistema, mensajes, reserva de respuesta y total) en la
+  vista previa.
 - **Ajustes**: la sección Modelo avisa de ventanas pequeñas y de una reserva de
-  respuesta (`maxTokens`) que no cabe en la ventana configurada.
+  respuesta (`maxTokens`) que no cabe en la ventana configurada. La sección
+  Historia permite elegir el umbral de compactación (50-95 %, 80 % por defecto).
+
+### Changed
+
+- **Ajustes**: `summaryFrequency` y `recentMessageCount` dejan de aparecer en la
+  UI. El motor decide cuántos mensajes enviar según el presupuesto de tokens; las
+  columnas de base de datos y exportación se mantienen por compatibilidad.
+- **Resúmenes**: la generación manual deja los dos mensajes más recientes sin
+  resumir para que el siguiente envío conserve contexto literal.
 
 ## [1.56.2] - 2026-10-28
 
