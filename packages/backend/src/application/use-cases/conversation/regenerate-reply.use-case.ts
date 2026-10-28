@@ -27,6 +27,7 @@ import type { ProviderInstanceRepository } from "../../../domain/ports/provider-
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { ApplyAllMemoryChangesUseCase } from "../memory/apply-all-memory-changes.use-case"
 import { extractProposals, createCleanStream, type CleanStreamState } from "../../../lib/memory-proposal-extractor"
+import { normalizeProposals } from "../../../lib/normalize-proposals"
 import {
   mentionsEmojis,
   normalizeAssistantReply,
@@ -276,15 +277,21 @@ export class RegenerateReplyUseCase {
       return
     }
 
-    let cleanedContent: string
-    let proposals: import("../../../lib/memory-proposal-extractor").RawProposal[]
-    if (toolCallState.deltas.length > 0) {
-      cleanedContent = cleanState.fullContent
-      proposals = toolCallsToRawProposals(accumulateToolCallDeltas(toolCallState.deltas))
-    } else {
-      const fallback = extractProposals(cleanState.fullContent)
-      cleanedContent = fallback.cleanedContent
-      proposals = fallback.proposals
+    const fallback = extractProposals(cleanState.fullContent)
+    const cleanedContent = fallback.cleanedContent
+    const toolProposals =
+      toolCallState.deltas.length > 0
+        ? toolCallsToRawProposals(accumulateToolCallDeltas(toolCallState.deltas))
+        : []
+    const { proposals, dropped } = normalizeProposals(
+      toolProposals.length > 0 ? toolProposals : fallback.proposals,
+      memories,
+    )
+    if (dropped > 0) {
+      this.logger.warn("Dropped invalid memory proposals", {
+        conversationId: input.conversationId,
+        dropped,
+      })
     }
 
     const normalizedContent = normalizeAssistantReply(cleanedContent, {
@@ -311,16 +318,16 @@ export class RegenerateReplyUseCase {
     if (proposals.length > 0) {
       try {
         const now = new Date()
-        const proposalEntities = proposals.map((raw) =>
+        const proposalEntities = proposals.map((proposal) =>
           MemoryChangeProposal.create({
             id: randomUUIDv7(),
             conversationId: input.conversationId,
-            operation: raw.operation,
-            targetMemoryId: raw.targetMemoryId ?? null,
-            actor: raw.actor,
-            title: raw.title,
-            description: raw.description,
-            priority: raw.priority ?? 5,
+            operation: proposal.operation,
+            targetMemoryId: proposal.targetMemoryId,
+            actor: proposal.actor,
+            title: proposal.title,
+            description: proposal.description,
+            priority: proposal.priority,
             status: "pending",
             createdAt: now,
             processedAt: null,

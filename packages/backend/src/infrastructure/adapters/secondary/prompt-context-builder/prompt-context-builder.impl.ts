@@ -112,32 +112,39 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
       systemParts.push(summary.content)
     }
 
-    if (!enableMemoryProposalTool) {
-      systemParts.push("")
-      systemParts.push(tr("prompt.proposals"))
-      systemParts.push(tr("prompt.proposalsHint"))
-      systemParts.push("")
-      systemParts.push("```memory_proposals")
-      systemParts.push("[")
-      systemParts.push(
-        '  { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5 }',
-      )
-      systemParts.push("]")
-      systemParts.push("```")
-      systemParts.push("")
-      systemParts.push(tr("prompt.proposalsValidOps"))
+    systemParts.push("")
+    systemParts.push(tr("prompt.proposals"))
+    systemParts.push(tr("prompt.proposalsIntro"))
+    systemParts.push(tr("prompt.proposalsWhat"))
+    systemParts.push(tr("prompt.proposalsWhen"))
+    systemParts.push(tr("prompt.proposalsOps"))
+    systemParts.push(tr("prompt.proposalsDedup"))
+    systemParts.push(tr("prompt.proposalsIds"))
+    systemParts.push(tr("prompt.proposalsUpdate"))
+    systemParts.push(tr("prompt.proposalsDelete"))
+    systemParts.push(tr("prompt.proposalsActor"))
+    systemParts.push(tr("prompt.proposalsShape"))
+    systemParts.push(tr("prompt.proposalsPriority"))
+    systemParts.push(tr("prompt.proposalsLanguage"))
+    systemParts.push("")
+    if (enableMemoryProposalTool) {
+      systemParts.push(tr("prompt.proposalsTool"))
+      systemParts.push(tr("prompt.proposalsFallback"))
     } else {
-      systemParts.push("")
-      systemParts.push(tr("prompt.proposalsAlt"))
-      systemParts.push(tr("prompt.proposalsAltHint"))
-      systemParts.push("")
-      systemParts.push("```memory_proposals")
-      systemParts.push(
-        '[ { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5 } ]',
-      )
-      systemParts.push("```")
-      systemParts.push("")
-      systemParts.push(tr("prompt.proposalsAltValidOps"))
+      systemParts.push(tr("prompt.proposalsBlockOnly"))
+    }
+    systemParts.push("")
+    systemParts.push("```memory_proposals")
+    systemParts.push("[")
+    systemParts.push(
+      '  { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5 }',
+    )
+    systemParts.push("]")
+    systemParts.push("```")
+    systemParts.push("")
+    systemParts.push(tr("prompt.proposalsExampleHint"))
+    if (enableMemoryProposalTool) {
+      systemParts.push(tr("prompt.proposalsNoBoth"))
     }
 
     systemParts.push("")

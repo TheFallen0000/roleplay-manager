@@ -536,6 +536,85 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     }),
   })
 
+  const buildUseCaseWithStream = (chunks: StreamChunk[]) => {
+    const savedProposals: any[] = []
+    const savedAssistantContents: string[] = []
+
+    const messageRepo: MessageRepository = {
+      create: async (m: any) => {
+        if (m.role === "assistant") savedAssistantContents.push(m.content)
+        return m
+      },
+      findByConversationId: async () => existingMessages,
+      findById: async () => null,
+      findLastByConversationId: async () => null,
+      update: async (m) => m,
+      deleteById: async () => {},
+      deleteAfterPosition: async () => {},
+      clearAlternatives: async () => {},
+    }
+
+    const proposalRepo: MemoryChangeProposalRepository = {
+      create: async (p: any) => p,
+      createMany: async (entities: any[]) => {
+        entities.forEach((e) => savedProposals.push(e))
+      },
+      findById: async () => null,
+      findPendingByConversationId: async () =>
+        savedProposals.filter((p: any) => p.status === "pending"),
+      findByConversationId: async () => [],
+      update: async (p: any) => p,
+      markProcessed: async () => {},
+      discardPendingByConversationId: async () => {},
+    }
+
+    const provider: ProviderRegistry = {
+      listRegistered: () => ["ollama"],
+      createAdapter: vi.fn(),
+      getAdapter: async () => ({
+        validateConnection: async () => "available" as const,
+        listModels: async () => ({ models: [], manualEntryRequired: false }),
+        generateStreaming: function (): AsyncIterable<StreamChunk> {
+          return {
+            [Symbol.asyncIterator]: () => {
+              let i = 0
+              return {
+                next: async () => {
+                  if (i < chunks.length) {
+                    return { value: chunks[i++], done: false } as const
+                  }
+                  return { value: undefined, done: true } as const
+                },
+              }
+            },
+          }
+        },
+      }),
+    }
+
+    const useCase = new SendMessageUseCase(
+      buildConversationRepo(),
+      messageRepo,
+      buildMessageHistoryRepository(() => existingMessages),
+      buildCharacterRepo(),
+      buildMemoryRepo(),
+      proposalRepo,
+      buildPromptContextBuilder(),
+      playerCharacterRepository,
+      provider,
+      buildLogger(),
+      buildDefaultProvider(),
+      providerInstanceRepository,
+      { execute: async () => [] } as unknown as ApplyAllMemoryChangesUseCase,
+      buildSummaryRepo(),
+      buildGenerateSummary(),
+      buildGenerateConversationTitle(),
+      decayMemories,
+    )
+
+    return { useCase, savedProposals, savedAssistantContents }
+  }
+
   it("extrae propuestas, limpia el contenido y lo guarda en BD", async () => {
     const savedProposals: any[] = []
     const savedAssistantContents: string[] = []
@@ -611,6 +690,71 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     expect(savedProposals[0].operation).toBe("CREATE")
     expect(savedProposals[0].actor).toBe("Alice")
     expect(savedProposals[0].status).toBe("pending")
+  })
+
+  it("limpia el bloque aunque el modelo también llame a la herramienta", async () => {
+    const { useCase, savedProposals, savedAssistantContents } =
+      buildUseCaseWithStream([
+        { content: "Hola" },
+        {
+          toolCalls: [
+            {
+              index: 0,
+              id: "c1",
+              functionName: "propose_memory_changes",
+              argumentsDelta:
+                '{"operation":"CREATE","actor":"Alice","title":"Estado","description":"Feliz","priority":3}',
+            },
+          ],
+        },
+        {
+          content:
+            '\n```memory_proposals\n[ { "operation": "CREATE", "actor": "Duplicado", "title": "X", "description": "Y", "priority": 5 } ]\n```',
+        },
+      ])
+
+    for await (const _ of useCase.execute({
+      conversationId: "conv-1",
+      content: "Hola",
+    })) {
+      // consume
+    }
+
+    expect(savedAssistantContents[0]).toBe("Hola")
+    expect(savedProposals).toHaveLength(1)
+    expect(savedProposals[0].actor).toBe("Alice")
+  })
+
+  it("usa el bloque cuando el tool call no produce propuestas válidas", async () => {
+    const { useCase, savedProposals, savedAssistantContents } =
+      buildUseCaseWithStream([
+        { content: "Hola" },
+        {
+          toolCalls: [
+            {
+              index: 0,
+              id: "c1",
+              functionName: "otra_herramienta",
+              argumentsDelta: "{}",
+            },
+          ],
+        },
+        {
+          content:
+            '\n```memory_proposals\n[ { "operation": "CREATE", "actor": "Alice", "title": "Estado", "description": "Feliz", "priority": 9 } ]\n```',
+        },
+      ])
+
+    for await (const _ of useCase.execute({
+      conversationId: "conv-1",
+      content: "Hola",
+    })) {
+      // consume
+    }
+
+    expect(savedAssistantContents[0]).toBe("Hola")
+    expect(savedProposals).toHaveLength(1)
+    expect(savedProposals[0].priority).toBe(9)
   })
 
   it("aplica automaticamente las propuestas en modo auto", async () => {

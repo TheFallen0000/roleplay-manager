@@ -28,6 +28,7 @@ import type { GetDefaultProviderUseCase } from "../provider/get-default-provider
 import type { ApplyAllMemoryChangesUseCase } from "../memory/apply-all-memory-changes.use-case"
 import type { DecayConversationMemoryUseCase } from "../memory/decay-conversation-memory.use-case"
 import { extractProposals, createCleanStream, type CleanStreamState } from "../../../lib/memory-proposal-extractor"
+import { normalizeProposals } from "../../../lib/normalize-proposals"
 import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
 import { countMessagesSinceSummary } from "./summary-threshold"
 import { propagateToolCalls, type ToolCallState } from "../../../lib/propagate-tool-calls"
@@ -295,23 +296,29 @@ export class SendMessageUseCase {
       return
     }
 
-    let cleanedContent: string
-    let proposals: import("../../../lib/memory-proposal-extractor").RawProposal[]
-    if (toolCallState.deltas.length > 0) {
-      cleanedContent = cleanState.fullContent
-      proposals = toolCallsToRawProposals(accumulateToolCallDeltas(toolCallState.deltas))
-    } else {
-      const fallback = extractProposals(cleanState.fullContent)
-      cleanedContent = fallback.cleanedContent
-      proposals = fallback.proposals
-      if (fallback.foundBlock && fallback.proposals.length === 0) {
-        // The block was stripped but nothing could be read: keep a sample so a
-        // model drifting on the format can be diagnosed.
-        this.logger.warn("Memory proposal block could not be parsed", {
-          conversationId: input.conversationId,
-          sample: cleanState.fullContent.slice(0, 500),
-        })
-      }
+    const fallback = extractProposals(cleanState.fullContent)
+    const cleanedContent = fallback.cleanedContent
+    const toolProposals =
+      toolCallState.deltas.length > 0
+        ? toolCallsToRawProposals(accumulateToolCallDeltas(toolCallState.deltas))
+        : []
+    const { proposals, dropped } = normalizeProposals(
+      toolProposals.length > 0 ? toolProposals : fallback.proposals,
+      memories,
+    )
+    if (fallback.foundBlock && fallback.proposals.length === 0) {
+      // The block was stripped but nothing could be read: keep a sample so a
+      // model drifting on the format can be diagnosed.
+      this.logger.warn("Memory proposal block could not be parsed", {
+        conversationId: input.conversationId,
+        sample: cleanState.fullContent.slice(0, 500),
+      })
+    }
+    if (dropped > 0) {
+      this.logger.warn("Dropped invalid memory proposals", {
+        conversationId: input.conversationId,
+        dropped,
+      })
     }
 
     const normalizedContent = normalizeAssistantReply(cleanedContent, {
@@ -366,16 +373,16 @@ export class SendMessageUseCase {
     if (proposals.length > 0) {
       try {
         const now = new Date()
-        const proposalEntities = proposals.map((raw) =>
+        const proposalEntities = proposals.map((proposal) =>
           MemoryChangeProposal.create({
             id: randomUUIDv7(),
             conversationId: input.conversationId,
-            operation: raw.operation,
-            targetMemoryId: raw.targetMemoryId ?? null,
-            actor: raw.actor,
-            title: raw.title,
-            description: raw.description,
-            priority: raw.priority ?? 5,
+            operation: proposal.operation,
+            targetMemoryId: proposal.targetMemoryId,
+            actor: proposal.actor,
+            title: proposal.title,
+            description: proposal.description,
+            priority: proposal.priority,
             status: "pending",
             createdAt: now,
             processedAt: null,
