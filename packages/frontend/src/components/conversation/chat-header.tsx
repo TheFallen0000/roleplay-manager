@@ -1,5 +1,6 @@
 import { useState } from "react"
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
+import type { PromptContextMetadataDTO } from "@workspace/shared/types/context"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -16,11 +17,16 @@ import { getCharacterAssetUrl } from "@/lib/api/client"
 import { setConversationTitle } from "@/lib/api/conversations"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { SettingsPanel } from "./settings-panel"
+import { ContextUsageBadge } from "./context-usage-badge"
 
 interface ChatHeaderProps {
   conversation: ConversationDetail
   /** Pending memory proposals, shown as a badge next to the title. */
   pendingCount: number
+  /** Estimated context usage; hidden until the first stats request resolves. */
+  contextMetadata: PromptContextMetadataDTO | null
+  /** Tokens of the current draft, included in the live percentage. */
+  draftTokens: number
   /** Hidden while the fullscreen focus mode is active. */
   hidden: boolean
   onEnterFullscreen: () => void
@@ -31,6 +37,8 @@ interface ChatHeaderProps {
 export function ChatHeader({
   conversation,
   pendingCount,
+  contextMetadata,
+  draftTokens,
   hidden,
   onEnterFullscreen,
   onConversationUpdated,
@@ -138,7 +146,13 @@ export function ChatHeader({
           {conversation.characterName}
         </p>
       </div>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
+        {contextMetadata ? (
+          <ContextUsageBadge
+            metadata={contextMetadata}
+            draftTokens={draftTokens}
+          />
+        ) : null}
         <SettingsPanel
           conversationId={conversation.id}
           current={conversation}

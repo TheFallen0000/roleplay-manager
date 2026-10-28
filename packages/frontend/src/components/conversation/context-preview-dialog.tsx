@@ -11,6 +11,7 @@ import { Separator } from "@workspace/ui/components/separator"
 import { FileText, User, Bot, Info } from "lucide-react"
 
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { ContextTokenBreakdown } from "./context-token-breakdown"
 
 interface ContextPreviewDialogProps {
   open: boolean
@@ -81,6 +82,8 @@ export function ContextPreviewDialog({
             </div>
 
             <Separator />
+
+            <ContextTokenBreakdown metadata={context.metadata} />
 
             <div className="flex-1 overflow-y-auto pr-1">
               <h4 className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">

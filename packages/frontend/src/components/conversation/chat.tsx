@@ -21,6 +21,8 @@ import {
 } from "../../lib/api/conversations"
 import { useChatStreaming } from "./use-chat-streaming"
 import { useOlderMessages } from "./use-older-messages"
+import { useContextUsage } from "./use-context-usage"
+import { countAffectedSummaries } from "./count-affected-summaries"
 import { getCharacterAssetUrl } from "../../lib/api/client"
 import { getPromptContext } from "../../lib/api/context"
 import { createAssetSrcSet } from "@/lib/asset-srcset"
@@ -87,6 +89,13 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
   const setError = useChatStore((s) => s.setError)
 
   const {
+    metadata: contextMetadata,
+    draftTokens,
+    setDraft,
+    refresh: refreshContextStats,
+  } = useContextUsage(conv.id, `${conv.contextWindow}:${conv.maxTokens}:${conv.updatedAt}`)
+
+  const {
     hasMore: hasMoreMessages,
     isLoadingOlder,
     loadOlderError,
@@ -103,23 +112,13 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
     [proposals],
   )
 
-  const affectedSummariesCount = useMemo(() => {
-    if (!confirmRewind) return 0
-    const targetMsg = messages.find((m) => m.id === confirmRewind)
-    if (!targetMsg) return 0
-    const deletedIds = new Set<string>()
-    for (const m of messages) {
-      if (m.position > targetMsg.position) {
-        deletedIds.add(m.id)
-      }
-    }
-    if (targetMsg.role === "user") {
-      deletedIds.add(targetMsg.id)
-    }
-    return summaries.filter(
-      (s) => deletedIds.has(s.firstMessageId) || deletedIds.has(s.lastMessageId),
-    ).length
-  }, [confirmRewind, messages, summaries])
+  const affectedSummariesCount = useMemo(
+    () =>
+      confirmRewind
+        ? countAffectedSummaries(messages, confirmRewind, summaries)
+        : 0,
+    [confirmRewind, messages, summaries],
+  )
 
   const initialized = useRef(false)
 
@@ -141,11 +140,13 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       loadMemories(conv.id)
       loadProposals(conv.id)
       loadSummaries(conv.id)
+      void refreshContextStats()
     },
     onError: () => {
       // A tool-only reply saves proposals before returning the error.
       loadMemories(conv.id)
       loadProposals(conv.id)
+      void refreshContextStats()
     },
     onTitleGenerated: (title, titleSource) => {
       setConv((prev) => ({ ...prev, title, titleSource }))
@@ -161,11 +162,12 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
         const updated = await editMessage(conv.id, messageId, content)
         replaceMessage(messageId, updated)
         cancelEditing()
+        void refreshContextStats()
       } catch (err) {
         setError((err as Error).message)
       }
     },
-    [conv.id, replaceMessage, cancelEditing, setError],
+    [conv.id, replaceMessage, cancelEditing, setError, refreshContextStats],
   )
 
   const handleDelete = useCallback(async () => {
@@ -174,10 +176,11 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       await deleteMessage(conv.id, confirmDelete)
       removeMessage(confirmDelete)
       setConfirmDelete(null)
+      void refreshContextStats()
     } catch (err) {
       setError((err as Error).message)
     }
-  }, [conv.id, confirmDelete, removeMessage, setError])
+  }, [conv.id, confirmDelete, removeMessage, setError, refreshContextStats])
 
   const handleRewind = useCallback(async () => {
     if (!confirmRewind) return
@@ -197,6 +200,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       loadMemories(conv.id)
       loadProposals(conv.id)
       setConfirmRewind(null)
+      void refreshContextStats()
     } catch (err) {
       setError((err as Error).message)
     }
@@ -210,6 +214,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
     loadSummaries,
     loadMemories,
     loadProposals,
+    refreshContextStats,
   ])
 
   const handleCyclePrev = useCallback(
@@ -217,11 +222,12 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       try {
         const updated = await cycleAlternative(conv.id, messageId, "prev")
         replaceMessage(messageId, updated)
+        void refreshContextStats()
       } catch (err) {
         setError((err as Error).message)
       }
     },
-    [conv.id, replaceMessage, setError],
+    [conv.id, replaceMessage, setError, refreshContextStats],
   )
 
   const handleCycleNext = useCallback(
@@ -229,11 +235,12 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       try {
         const updated = await cycleAlternative(conv.id, messageId, "next")
         replaceMessage(messageId, updated)
+        void refreshContextStats()
       } catch (err) {
         setError((err as Error).message)
       }
     },
-    [conv.id, replaceMessage, setError],
+    [conv.id, replaceMessage, setError, refreshContextStats],
   )
 
   const handleBranch = useCallback(
@@ -298,6 +305,8 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       <ChatHeader
         conversation={conv}
         pendingCount={pendingCount}
+        contextMetadata={contextMetadata}
+        draftTokens={draftTokens}
         hidden={fullscreen}
         onEnterFullscreen={enterFullscreen}
         onConversationUpdated={setConv}
@@ -460,6 +469,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
           onSend={handleSend}
           onContinue={handleContinue}
           onPreview={handlePreview}
+          onDraftChange={setDraft}
           disabled={isStreaming}
           conversationId={conv.id}
         />

@@ -3,6 +3,7 @@ import { Slider } from "@workspace/ui/components/slider"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
+import { formatTokenCount } from "@/lib/format-token-count"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 interface InferenceParamsCardProps {
@@ -11,6 +12,7 @@ interface InferenceParamsCardProps {
   frequencyPenalty: number
   presencePenalty: number
   maxTokens: number
+  contextWindow?: number | null
   stopSequences: string
   onTemperatureChange: (v: number) => void
   onTopPChange: (v: number) => void
@@ -26,6 +28,7 @@ export function InferenceParamsCard({
   frequencyPenalty,
   presencePenalty,
   maxTokens,
+  contextWindow,
   stopSequences,
   onTemperatureChange,
   onTopPChange,
@@ -34,7 +37,7 @@ export function InferenceParamsCard({
   onMaxTokensChange,
   onStopSequencesChange,
 }: InferenceParamsCardProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
 
   const sliderHandler = (setter: (v: number) => void) => (v: number | readonly number[]) =>
     setter(Array.isArray(v) ? v[0] : v)
@@ -123,6 +126,14 @@ export function InferenceParamsCard({
               onChange={(e) => onMaxTokensChange(Number(e.target.value))}
             />
             <FieldDescription>{t("settings.maxTokensHint")}</FieldDescription>
+            {contextWindow !== null && contextWindow !== undefined && maxTokens >= contextWindow ? (
+              <p role="status" className="text-xs text-destructive">
+                {t("settings.contextWindowMaxTokensWarning", {
+                  maxTokens,
+                  window: formatTokenCount(contextWindow, locale),
+                })}
+              </p>
+            ) : null}
           </Field>
           <Field>
             <FieldLabel htmlFor="stop-sequences">{t("settings.stopSequences")}</FieldLabel>

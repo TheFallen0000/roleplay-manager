@@ -26,6 +26,7 @@ import { FileJsonIcon, Settings2Icon } from "lucide-react"
 
 import { applySettingsTemplate } from "@/lib/api/characters"
 import { ApiClientError } from "@/lib/api/client"
+import { formatTokenCount } from "@/lib/format-token-count"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { parseSettingsTemplate } from "@/lib/parse-settings-template"
 
@@ -192,6 +193,13 @@ export function ApplySettingsDialog({
               {settings.maxTokens !== undefined ? (
                 <Badge variant="outline">
                   {t("settings.maxTokens")}: {settings.maxTokens}
+                </Badge>
+              ) : null}
+              {settings.contextWindow !== undefined &&
+              settings.contextWindow !== null ? (
+                <Badge variant="outline">
+                  {t("settings.contextWindowTitle")}:{" "}
+                  {formatTokenCount(settings.contextWindow, locale)}
                 </Badge>
               ) : null}
               {settings.recentMessageCount !== undefined ? (
