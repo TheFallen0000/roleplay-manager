@@ -731,6 +731,7 @@ const assertSafeArchive = (listing: string, version: string): void => {
 
     const normalized = entry.replace(/\/+$/, "")
     if (
+      normalized === "versions" ||
       normalized === versionRoot ||
       normalized.startsWith(`${versionRoot}/`) ||
       ROOT_ARCHIVE_FILES.has(normalized)
