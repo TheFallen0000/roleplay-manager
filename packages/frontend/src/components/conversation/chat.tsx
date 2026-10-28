@@ -142,6 +142,11 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
       loadProposals(conv.id)
       loadSummaries(conv.id)
     },
+    onError: () => {
+      // A tool-only reply saves proposals before returning the error.
+      loadMemories(conv.id)
+      loadProposals(conv.id)
+    },
     onTitleGenerated: (title, titleSource) => {
       setConv((prev) => ({ ...prev, title, titleSource }))
     },

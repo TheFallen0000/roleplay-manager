@@ -757,6 +757,69 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     expect(savedProposals[0].priority).toBe(9)
   })
 
+  it("guarda las propuestas antes de emitir done", async () => {
+    const { useCase, savedProposals } = buildUseCaseWithStream([
+      { content: "Hola" },
+      {
+        toolCalls: [
+          {
+            index: 0,
+            id: "c1",
+            functionName: "propose_memory_changes",
+            argumentsDelta:
+              '{"operation":"CREATE","actor":"Alice","title":"Estado","description":"Feliz","priority":3}',
+          },
+        ],
+      },
+    ])
+
+    let proposalsAtDone = -1
+    for await (const event of useCase.execute({
+      conversationId: "conv-1",
+      content: "Hola",
+    })) {
+      if (event.type === "done") {
+        proposalsAtDone = savedProposals.length
+      }
+    }
+
+    expect(proposalsAtDone).toBe(1)
+  })
+
+  it("guarda las propuestas aunque la respuesta solo traiga tool call", async () => {
+    const { useCase, savedProposals, savedAssistantContents } =
+      buildUseCaseWithStream([
+        {
+          toolCalls: [
+            {
+              index: 0,
+              id: "c1",
+              functionName: "propose_memory_changes",
+              argumentsDelta:
+                '{"operation":"CREATE","actor":"Alice","title":"Estado","description":"Feliz","priority":3}',
+            },
+          ],
+        },
+      ])
+
+    const events: any[] = []
+    for await (const event of useCase.execute({
+      conversationId: "conv-1",
+      content: "Hola",
+    })) {
+      events.push(event)
+    }
+
+    expect(savedAssistantContents).toHaveLength(0)
+    expect(savedProposals).toHaveLength(1)
+    expect(
+      events.some(
+        (event) =>
+          event.type === "error" && event.error.code === "EMPTY_RESPONSE",
+      ),
+    ).toBe(true)
+  })
+
   it("aplica automaticamente las propuestas en modo auto", async () => {
     const savedProposals: any[] = []
     const createdMemories: any[] = []

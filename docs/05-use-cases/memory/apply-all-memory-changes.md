@@ -61,7 +61,7 @@ En modo `auto`, el propio sistema invoca este caso de uso silenciosamente tras c
 
    b. Se aplica la propuesta según su operación:
       - **CREATE**: se crea una nueva entidad `Memory` con los datos de la propuesta.
-      - **UPDATE**: se localiza la memoria existente por `targetMemoryId` y se actualizan sus campos.
+      - **UPDATE**: se localiza la memoria existente por `targetMemoryId` y se actualizan sus campos. Si los valores son idénticos a los actuales, la propuesta se descarta sin tocar `updatedAt`.
       - **DELETE**: se localiza la memoria existente y se elimina de la conversación.
 
    c. Si la propuesta no puede aplicarse (memoria inexistente en UPDATE/DELETE, `targetMemoryId` nulo), se descarta automáticamente sin generar error.
@@ -97,6 +97,7 @@ Si una propuesta individual falla (por ejemplo, violación de invariante de domi
 * Todas las propuestas pendientes se procesan en una sola operación atómica desde la perspectiva de la base de datos.
 * No se permite edición individual de propuestas durante este caso de uso (para editar una propuesta, usar `ApplyMemoryChanges` en modo individual).
 * El `processedBy` se registra según el actor que invoca la operación: `user` si lo hace el usuario, `system` si lo hace el sistema en modo `auto`.
+* Un UPDATE cuyos valores coinciden con la memoria actual se descarta sin escribir en la base ni modificar `updatedAt`.
 * Si una propuesta no puede aplicarse por inconsistencias con el estado actual de la memoria, se descarta de forma segura sin afectar al resto de propuestas.
 * Este caso de uso no elimina la posibilidad de que el usuario revise individualmente propuestas antes de aceptarlas (usar `ApplyMemoryChanges` para eso).
 

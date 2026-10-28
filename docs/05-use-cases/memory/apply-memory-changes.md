@@ -74,7 +74,7 @@ Este caso de uso cierra el ciclo iniciado por `ProposeMemoryChanges`, otorgando 
 5. El sistema procesa cada propuesta aceptada según su operación:
 
    * **CREATE**: se crea una nueva entidad `Memory` en la conversación con los datos proporcionados.
-   * **UPDATE**: se localiza la memoria existente por su id, y se actualizan sus campos.
+   * **UPDATE**: se localiza la memoria existente por su id y se actualizan sus campos. Si los valores propuestos son idénticos a los actuales, la propuesta se descarta sin modificar `updatedAt` (no se alarga el decaimiento).
    * **DELETE**: se localiza la memoria existente y se elimina de la conversación.
 
 6. El sistema registra que los cambios fueron realizados por el usuario (no por la IA).
@@ -136,6 +136,7 @@ Si el usuario descarta la totalidad de las propuestas, la memoria dinámica perm
 * Los cambios aplicados se registran como realizados por el usuario.
 * La aplicación de cambios sobre la memoria dinámica no afecta a los mensajes, resúmenes ni al estado narrativo de la conversación.
 * Las memorias creadas mediante este caso de uso heredan los valores proporcionados sin validación adicional más allá de las reglas del dominio (prioridad entre 1 y 10, actor no vacío, título no vacío).
+* Un UPDATE cuyos valores coinciden con la memoria actual se descarta sin escribir en la base ni modificar `updatedAt`.
 * Si una propuesta no puede aplicarse por inconsistencias con el estado actual de la memoria, se descarta de forma segura sin afectar al resto de propuestas.
 
 ---

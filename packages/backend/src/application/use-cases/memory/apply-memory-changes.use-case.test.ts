@@ -171,6 +171,34 @@ describe("ApplyMemoryChangesUseCase", () => {
     expect(proposalRepo.markProcessed).toHaveBeenCalledWith("proposal-1", "applied", "user")
   })
 
+  it("discards an UPDATE proposal that does not change the memory", async () => {
+    const memoryRepo = buildMemoryRepo()
+    const proposalRepo = buildProposalRepo(
+      buildProposal({
+        operation: "UPDATE",
+        targetMemoryId: "mem-1",
+        actor: "Lyra",
+        title: "Old title",
+        description: "Old description",
+        priority: 3,
+      }),
+    )
+    const { useCase } = buildUseCase(memoryRepo, proposalRepo)
+
+    const result = await useCase.execute({
+      conversationId: "conv-1",
+      decisions: [{ proposalId: "proposal-1", action: "apply" }],
+    })
+
+    expect(result).toEqual([])
+    expect(memoryRepo.update).not.toHaveBeenCalled()
+    expect(proposalRepo.markProcessed).toHaveBeenCalledWith(
+      "proposal-1",
+      "discarded",
+      "user",
+    )
+  })
+
   it("discards an UPDATE proposal when the target memory is missing", async () => {
     const memoryRepo = buildMemoryRepo(null)
     const proposalRepo = buildProposalRepo(
