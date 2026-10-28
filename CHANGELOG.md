@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Prompt del personaje**: declara que la historia es ficción privada, pide
+  mantenerse en personaje, prohíbe escribir las acciones o el diálogo del
+  personaje del usuario, permite temas maduros cuando la escena lo pida y
+  limita el ritmo a 2-4 párrafos.
+- **Idioma de respuesta**: el personaje responde en el idioma del último
+  mensaje del usuario (salvo que las Instrucciones del personaje indiquen
+  otro), con el idioma de la interfaz como respaldo.
+- **Resumen y título**: sus instrucciones se generan en el idioma de la
+  interfaz; el resumen sigue el idioma de la conversación y el título cae al
+  idioma de la interfaz cuando la conversación es demasiado corta.
+
 ## [1.54.9] - 2026-10-27
 
 ### Changed
