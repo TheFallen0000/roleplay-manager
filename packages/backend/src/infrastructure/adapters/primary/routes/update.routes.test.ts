@@ -10,6 +10,8 @@ import { buildUpdateRouter } from "./update.routes"
 
 const status = {
   currentVersion: "1.0.0",
+  installedVersion: "1.0.0",
+  restartRequired: false,
   latestVersion: "2.0.0",
   behind: true,
   commits: ["bbbbbbb feat: something"],
@@ -169,7 +171,9 @@ describe("update routes", () => {
   it("rolls back to the previous version", async () => {
     const execute = vi.fn(async () => ({
       ...status,
-      currentVersion: "0.9.0",
+      currentVersion: "1.0.0",
+      installedVersion: "0.9.0",
+      restartRequired: true,
       latestVersion: "2.0.0",
     }))
     const base = await start({
@@ -184,7 +188,11 @@ describe("update routes", () => {
     const response = await fetch(`${base}/updates/rollback`, { method: "POST" })
 
     expect(response.status).toBe(200)
-    expect(await response.json()).toMatchObject({ currentVersion: "0.9.0" })
+    expect(await response.json()).toMatchObject({
+      currentVersion: "1.0.0",
+      installedVersion: "0.9.0",
+      restartRequired: true,
+    })
     expect(execute).toHaveBeenCalledTimes(1)
   })
 

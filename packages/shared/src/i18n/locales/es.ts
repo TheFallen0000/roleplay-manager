@@ -173,6 +173,7 @@ export const es: Dictionary = {
     description: "Comprueba si se ha publicado una versión nueva y aplícala.",
     versionTitle: "Versión",
     currentVersion: "Versión actual",
+    installedVersion: "Versión instalada",
     latestVersion: "Última versión",
     neverChecked: "Aún no se ha comprobado.",
     lastChecked: "Última comprobación: {date}",
@@ -211,6 +212,22 @@ export const es: Dictionary = {
     restarting: "Reiniciando… la página se recargará sola.",
     restartNotAvailable: "Esta instalación no puede reiniciarse sola.",
     restartFailed: "No se pudo reiniciar la app.",
+    restartTimeout:
+      "La app no respondió tras reiniciar. Ciérrala y vuelve a abrirla, o inténtalo de nuevo.",
+    restartRequiredBadge: "Reinicio pendiente",
+    restartPendingTitle: "Actualización lista para reiniciar",
+    restartPendingDescription:
+      "La versión {installed} está instalada. Sigues ejecutando la {running}.",
+    restartLaterHint:
+      "Si cierras y vuelves a abrir la app, también se iniciará la versión nueva.",
+    restartManual:
+      "Cierra y vuelve a abrir la app para usar la versión nueva.",
+    updatedTitle: "Actualizado a la versión {version}",
+    updatedDescription: "Ya estás ejecutando la versión nueva.",
+    updatedDismiss: "Cerrar",
+    rollbackDoneNow: "Has vuelto a la versión {version}.",
+    rollbackUpdatedDescription:
+      "Vuelves a ejecutar la versión anterior.",
     securityNote:
       "Actualizar descarga y ejecuta código del repositorio; hazlo solo si confías en él.",
     notesTitle: "Notas de la versión",

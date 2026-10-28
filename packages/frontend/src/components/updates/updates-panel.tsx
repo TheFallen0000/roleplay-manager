@@ -1,16 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { RefreshCwIcon } from "lucide-react"
 
 import type { Locale } from "@workspace/shared/i18n"
 import type { BackupResultDTO } from "@workspace/shared/types/update"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -22,29 +19,44 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { Switch } from "@workspace/ui/components/switch"
 
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { getHealth } from "@/lib/api/health"
-import { useUpdatesStore } from "@/lib/stores/updates.store"
+import {
+  clearCachedStatus,
+  clearRestartMarker,
+  readRestartMarker,
+  useUpdatesStore,
+  writeRestartMarker,
+} from "@/lib/stores/updates.store"
 import { translateApiError } from "@/lib/translate-api-error"
+
+import { UpdatesApplyCard } from "./updates-apply-card"
+import { UpdatesJobCard } from "./updates-job-card"
+import { UpdatesRestartCard } from "./updates-restart-card"
+import {
+  UpdatesSuccessCard,
+  type AppliedUpdate,
+} from "./updates-success-card"
+import { UpdatesVersionCard } from "./updates-version-card"
 
 /** Waits until the app answers again (it restarts after applying an update). */
 const RECONNECT_ATTEMPTS = 120
 const RECONNECT_INTERVAL_MS = 1000
 
-const waitForApp = async (): Promise<void> => {
+const waitForApp = async (): Promise<boolean> => {
   for (let attempt = 0; attempt < RECONNECT_ATTEMPTS; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, RECONNECT_INTERVAL_MS))
     try {
       await getHealth()
       window.location.reload()
-      return
+      return true
     } catch {
       // Still restarting.
     }
   }
+  return false
 }
 
 export function UpdatesPanel({ locale }: { locale: Locale }) {
@@ -73,6 +85,8 @@ function UpdatesPanelContent() {
   const [backup, setBackup] = useState<BackupResultDTO | null>(null)
   const [busy, setBusy] = useState(false)
   const [restarting, setRestarting] = useState(false)
+  const [restartError, setRestartError] = useState<string | null>(null)
+  const [applied, setApplied] = useState<AppliedUpdate | null>(null)
   const [rollbackOpen, setRollbackOpen] = useState(false)
   const [rollingBack, setRollingBack] = useState(false)
   const [rolledBack, setRolledBack] = useState<string | null>(null)
@@ -82,11 +96,56 @@ function UpdatesPanelContent() {
   }, [hydrateFromCache])
 
   useEffect(() => {
-    if (!shouldCheck()) return
-    check().catch((checkError) =>
-      setError(translateApiError(checkError, tRaw, t("updates.checkFailed"))),
-    )
-  }, [check, shouldCheck, t, tRaw])
+    let cancelled = false
+    const sync = async () => {
+      try {
+        const fresh = await refresh()
+        if (cancelled) return
+        const marker = readRestartMarker()
+        if (
+          marker &&
+          fresh.currentVersion === marker.to &&
+          !fresh.restartRequired
+        ) {
+          setApplied({ version: marker.to, kind: marker.kind })
+          clearRestartMarker()
+        } else if (
+          marker &&
+          !fresh.restartRequired &&
+          fresh.installedVersion !== marker.to
+        ) {
+          clearRestartMarker()
+        }
+        if (shouldCheck()) {
+          await check()
+        }
+      } catch (syncError) {
+        if (!cancelled) {
+          setError(
+            translateApiError(syncError, tRaw, t("updates.checkFailed")),
+          )
+        }
+      }
+    }
+    void sync()
+    return () => {
+      cancelled = true
+    }
+  }, [check, refresh, shouldCheck, t, tRaw])
+
+  useEffect(() => {
+    if (!status?.restartRequired) return
+    writeRestartMarker({
+      from: status.currentVersion,
+      to: status.installedVersion,
+      kind: status.behind ? "rollback" : "update",
+    })
+  }, [
+    status?.restartRequired,
+    status?.currentVersion,
+    status?.installedVersion,
+    status?.behind,
+  ])
 
   const job = status?.job ?? null
   const applying = job?.running ?? false
@@ -139,7 +198,7 @@ function UpdatesPanelContent() {
     try {
       const updated = await rollback()
       setRollbackOpen(false)
-      setRolledBack(updated.currentVersion)
+      setRolledBack(updated.installedVersion)
     } catch (rollbackError) {
       setRollbackOpen(false)
       setError(
@@ -152,56 +211,35 @@ function UpdatesPanelContent() {
 
   const runRestart = async () => {
     setError(null)
+    setRestartError(null)
     setRestarting(true)
+    if (status?.restartRequired) {
+      writeRestartMarker({
+        from: status.currentVersion,
+        to: status.installedVersion,
+        kind: status.behind ? "rollback" : "update",
+      })
+    }
+    clearCachedStatus()
     try {
       const result = await restart()
       if (!result.restarting) {
         setRestarting(false)
-        setError(t("updates.restartNotAvailable"))
+        setRestartError(t("updates.restartNotAvailable"))
         return
       }
-      await waitForApp()
+      const alive = await waitForApp()
+      if (!alive) {
+        setRestarting(false)
+        setRestartError(t("updates.restartTimeout"))
+      }
+    } catch (restartFailure) {
       setRestarting(false)
-    } catch (restartError) {
-      setRestarting(false)
-      setError(
-        translateApiError(restartError, tRaw, t("updates.restartFailed")),
+      setRestartError(
+        translateApiError(restartFailure, tRaw, t("updates.restartFailed")),
       )
     }
   }
-
-  const stepLabel = (): string | null => {
-    if (!job) return null
-    switch (job.step) {
-      case "backup":
-        return t("updates.stepBackup")
-      case "download":
-        return t("updates.stepDownload")
-      case "pull":
-        return t("updates.stepPull")
-      case "install":
-        return t("updates.stepInstall")
-      case "done":
-        return t("updates.done")
-      case "failed":
-        return t("updates.failed", { message: job.message ?? "" })
-    }
-  }
-
-  const restartBlock = (hint: string) => (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm text-muted-foreground">{hint}</p>
-      {status?.canRestart ? (
-        <Button
-          variant="secondary"
-          onClick={() => void runRestart()}
-          disabled={restarting}
-        >
-          {restarting ? t("updates.restarting") : t("updates.restart")}
-        </Button>
-      ) : null}
-    </div>
-  )
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
@@ -212,215 +250,44 @@ function UpdatesPanelContent() {
         </p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("updates.versionTitle")}</CardTitle>
-          <CardDescription>
-            {status?.checkedAt
-              ? t("updates.lastChecked", {
-                  date: new Date(status.checkedAt).toLocaleString(),
-                })
-              : t("updates.neverChecked")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-            <div>
-              <span className="text-muted-foreground">
-                {t("updates.currentVersion")}:{" "}
-              </span>
-              <span className="font-mono">{status?.currentVersion ?? "—"}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">
-                {t("updates.latestVersion")}:{" "}
-              </span>
-              <span className="font-mono">{status?.latestVersion ?? "—"}</span>
-            </div>
-            {status?.behind ? <Badge>{t("updates.badge")}</Badge> : null}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void runCheck()}
-              disabled={busy || checking}
-            >
-              <RefreshCwIcon />
-              {checking ? t("updates.checking") : t("updates.checkNow")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void runBackup()}
-              disabled={busy}
-            >
-              {t("updates.backupNow")}
-            </Button>
-          </div>
-
-          {status?.checkError ? (
-            <p role="alert" className="text-sm text-destructive">
-              {t("updates.checkError", { message: status.checkError })}
-            </p>
-          ) : null}
-
-          {status?.blockedReason === "not-a-repo" ? (
-            <p className="text-sm text-muted-foreground">
-              {t("updates.notARepo")}
-            </p>
-          ) : null}
-
-          {status?.blockedReason === "no-asset" ? (
-            <p role="alert" className="text-sm text-destructive">
-              {t("updates.noAsset")}
-            </p>
-          ) : null}
-
-          {status?.blockedReason === "no-checksum" ? (
-            <p role="alert" className="text-sm text-destructive">
-              {t("updates.noChecksum")}
-            </p>
-          ) : null}
-
-          {status?.blockedReason === "no-signature" ? (
-            <p role="alert" className="text-sm text-destructive">
-              {t("updates.noSignature")}
-            </p>
-          ) : null}
-
-          {status &&
-          !status.behind &&
-          !status.checkError &&
-          status.blockedReason === null ? (
-            <p className="text-sm text-muted-foreground">
-              {t("updates.upToDate")}
-            </p>
-          ) : null}
-
-          {backup ? (
-            <p className="text-sm text-muted-foreground">
-              {t("updates.backupCreated", { path: backup.path })}
-            </p>
-          ) : null}
-
-          {status?.rollbackTarget ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
-              <div className="space-y-0.5">
-                <p className="text-sm font-medium">
-                  {t("updates.rollbackTitle")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {t("updates.rollbackDescription", {
-                    version: status.rollbackTarget,
-                  })}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setRollbackOpen(true)}
-                disabled={busy || applying}
-              >
-                {t("updates.rollback", { version: status.rollbackTarget })}
-              </Button>
-            </div>
-          ) : null}
-
-          {error ? (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      {status?.behind ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {t("updates.commitsTitle")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {status.commits.length > 0 ? (
-              <ul className="space-y-1 font-mono text-xs text-muted-foreground">
-                {status.commits.map((commit) => (
-                  <li key={commit} className="truncate">
-                    {commit}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-
-            {status.notes ? (
-              <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium">
-                  {t("updates.notesTitle")}
-                </p>
-                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border p-3 text-xs text-muted-foreground">
-                  {status.notes}
-                </pre>
-              </div>
-            ) : null}
-
-            <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
-              <span className="text-sm">{t("updates.backupLabel")}</span>
-              <Switch
-                checked={withBackup}
-                onCheckedChange={(checked) => setWithBackup(checked)}
-                aria-label={t("updates.backupLabel")}
-              />
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              {t("updates.securityNote")}
-            </p>
-
-            <Button
-              onClick={() => void runApply()}
-              disabled={applying || status.blockedReason !== null}
-            >
-              {applying ? t("updates.applying") : t("updates.apply")}
-            </Button>
-
-            {status.blockedReason === "dirty" ? (
-              <p role="alert" className="text-sm text-destructive">
-                {tRaw("errors.UPDATE_DIRTY_WORKTREE", "")}
-              </p>
-            ) : null}
-
-          </CardContent>
-        </Card>
+      {applied ? (
+        <UpdatesSuccessCard
+          applied={applied}
+          onDismiss={() => setApplied(null)}
+        />
       ) : null}
 
-      {job ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("updates.jobTitle")}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <p className="text-sm">{stepLabel()}</p>
+      <UpdatesVersionCard
+        status={status}
+        backup={backup}
+        error={error}
+        busy={busy}
+        checking={checking}
+        applying={applying}
+        onCheck={() => void runCheck()}
+        onBackup={() => void runBackup()}
+        onRollback={() => setRollbackOpen(true)}
+      />
 
-            {job.step !== "failed" && job.message ? (
-              <p className="text-xs text-muted-foreground">{job.message}</p>
-            ) : null}
+      {status?.behind && !status.restartRequired ? (
+        <UpdatesApplyCard
+          status={status}
+          withBackup={withBackup}
+          applying={applying}
+          onBackupChange={setWithBackup}
+          onApply={() => void runApply()}
+        />
+      ) : null}
 
-            {job.retry ? (
-              <p className="text-xs text-muted-foreground">
-                {t("updates.retrying", {
-                  attempt: String(job.retry.attempt),
-                  attempts: String(job.retry.attempts),
-                })}
-              </p>
-            ) : null}
+      {job && job.step !== "done" ? <UpdatesJobCard job={job} /> : null}
 
-            {job.step === "done"
-              ? restartBlock(t("updates.restartHint"))
-              : null}
-          </CardContent>
-        </Card>
+      {status?.restartRequired ? (
+        <UpdatesRestartCard
+          status={status}
+          restarting={restarting}
+          restartError={restartError}
+          onRestart={() => void runRestart()}
+        />
       ) : null}
 
       {rolledBack ? (
@@ -430,11 +297,12 @@ function UpdatesPanelContent() {
               {t("updates.rollbackTitle")}
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent>
             <p className="text-sm">
-              {t("updates.rollbackDone", { version: rolledBack })}
+              {status?.restartRequired
+                ? t("updates.rollbackDone", { version: rolledBack })
+                : t("updates.rollbackDoneNow", { version: rolledBack })}
             </p>
-            {restartBlock(t("updates.rollbackRestartHint"))}
           </CardContent>
         </Card>
       ) : null}

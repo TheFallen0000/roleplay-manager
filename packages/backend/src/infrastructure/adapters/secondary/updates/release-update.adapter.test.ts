@@ -196,6 +196,7 @@ const buildAdapter = (
     repository?: string
     checksumText?: string
     backup?: () => Promise<{ path: string; files: number; bytes: number }>
+    runningVersion?: string
   } = {},
 ) =>
   new ReleaseUpdateAdapter({
@@ -203,6 +204,7 @@ const buildAdapter = (
     repository: options.repository ?? "owner/repo",
     // Fixed so the tests do not depend on the host platform.
     assetSuffix: "-win-x64.zip",
+    runningVersion: options.runningVersion ?? "1.0.0",
     fetchImpl:
       options.fetchImpl ??
       makeFetch(
@@ -235,6 +237,8 @@ describe("ReleaseUpdateAdapter", () => {
     const status = await buildAdapter(await createRoot()).check()
 
     expect(status.currentVersion).toBe("1.0.0")
+    expect(status.installedVersion).toBe("1.0.0")
+    expect(status.restartRequired).toBe(false)
     expect(status.latestVersion).toBe("2.0.0")
     expect(status.behind).toBe(true)
     expect(status.notes).toContain("Algo nuevo")
@@ -269,8 +273,48 @@ describe("ReleaseUpdateAdapter", () => {
 
     const status = await buildAdapter(root).getStatus()
 
-    expect(status.currentVersion).toBe("1.1.0")
+    expect(status.currentVersion).toBe("1.0.0")
+    expect(status.installedVersion).toBe("1.1.0")
+    expect(status.restartRequired).toBe(true)
     expect(status.rollbackTarget).toBe("1.0.0")
+  })
+
+  it("uses the launcher's running version when the pointer already moved", async () => {
+    const root = await createRoot()
+    await mkdir(join(root, "versions", "1.1.0", "app"), { recursive: true })
+    await writeFile(join(root, "current"), "1.1.0", "utf8")
+    const previous = process.env.RM_RUNNING_VERSION
+    process.env.RM_RUNNING_VERSION = "1.0.0"
+    try {
+      const adapter = new ReleaseUpdateAdapter({
+        packagedRoot: root,
+        repository: "owner/repo",
+        assetSuffix: "-win-x64.zip",
+        fetchImpl: makeFetch(releaseFixture({ tag: "v2.0.0" })),
+        run: makeTar("2.0.0"),
+        signingKeys: testSigningKeys,
+      })
+
+      const status = await adapter.getStatus()
+
+      expect(status.currentVersion).toBe("1.0.0")
+      expect(status.installedVersion).toBe("1.1.0")
+      expect(status.restartRequired).toBe(true)
+    } finally {
+      if (previous === undefined) delete process.env.RM_RUNNING_VERSION
+      else process.env.RM_RUNNING_VERSION = previous
+    }
+  })
+
+  it("refuses to apply while a restart is pending", async () => {
+    const root = await createRoot()
+    await mkdir(join(root, "versions", "1.1.0", "app"), { recursive: true })
+    await writeFile(join(root, "current"), "1.1.0", "utf8")
+    const adapter = buildAdapter(root)
+
+    await expect(adapter.apply({ withBackup: false })).rejects.toThrow(
+      "Restart the app",
+    )
   })
 
   it("rolls back by switching the current pointer", async () => {
@@ -283,6 +327,8 @@ describe("ReleaseUpdateAdapter", () => {
 
     expect((await readFile(join(root, "current"), "utf8")).trim()).toBe("1.0.0")
     expect(status.currentVersion).toBe("1.0.0")
+    expect(status.installedVersion).toBe("1.0.0")
+    expect(status.restartRequired).toBe(false)
     // The latest release is newer again, so the regular flow offers the way back up.
     expect(status.behind).toBe(true)
     expect(status.rollbackTarget).toBeNull()
@@ -371,7 +417,7 @@ describe("ReleaseUpdateAdapter", () => {
     const adapter = buildAdapter(root, { backup })
 
     const started = await adapter.apply({ withBackup: true })
-    expect(started.job).toMatchObject({ running: true, step: "backup" })
+    expect(started.job?.running).toBe(true)
 
     const finished = await waitForJob(adapter)
 
@@ -385,7 +431,11 @@ describe("ReleaseUpdateAdapter", () => {
     expect((await readFile(join(root, "current"), "utf8")).trim()).toBe("2.0.0")
     expect(existsSync(join(root, "versions", ".download-2.0.0.zip"))).toBe(false)
     // The status was refreshed after installing.
+    expect(finished.currentVersion).toBe("1.0.0")
+    expect(finished.installedVersion).toBe("2.0.0")
+    expect(finished.restartRequired).toBe(true)
     expect(finished.behind).toBe(false)
+    expect(finished.canApply).toBe(false)
   })
 
   it("refuses to install a package whose checksum does not match", async () => {

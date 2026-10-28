@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Actualizaciones**: el estado distingue la versión en ejecución de la
+  instalada y expone `restartRequired`; el botón de reiniciar solo aparece
+  cuando hace falta. Tras reiniciar se muestra un aviso de éxito con la
+  versión nueva y, si la app no vuelve, un error con reintento.
+
+### Fixed
+
+- **Actualizaciones**: el panel se sincroniza con el backend al abrirse, así
+  que ya no reutiliza un `job` antiguo de la caché ni muestra el botón de
+  reiniciar después de haber reiniciado.
+
 ## [1.55.0] - 2026-10-28
 
 ### Changed

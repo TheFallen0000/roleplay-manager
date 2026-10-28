@@ -238,6 +238,7 @@ const startCmd = `@echo off
 setlocal
 set "ROOT=%~dp0"
 for /f "usebackq delims=" %%v in ("%ROOT%current") do set "VERSION=%%v"
+set "RM_RUNNING_VERSION=%VERSION%"
 set "APP=%ROOT%versions\\%VERSION%\\app"
 set "NODE=%ROOT%versions\\%VERSION%\\runtime\\node.exe"
 if not defined PORT set "PORT=3001"
@@ -269,6 +270,7 @@ const startSh = `#!/bin/sh
 set -e
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 VERSION="$(cat "$ROOT/current")"
+export RM_RUNNING_VERSION="$VERSION"
 APP="$ROOT/versions/$VERSION/app"
 NODE="$ROOT/versions/$VERSION/runtime/node"
 
