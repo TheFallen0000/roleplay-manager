@@ -130,3 +130,4 @@ conversaciones ni plantillas antiguas.
 3. `feat(frontend): add compaction status and threshold settings`
 4. `test(context): cover compaction, chunking and SSE events`
 5. `docs(slice): document S122 context compaction`
+6. `refactor(backend): remove the message-count summary trigger`
