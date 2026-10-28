@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.56.0] - 2026-10-28
+
 ### Changed
 
 - **Actualizaciones**: el estado distingue la versión en ejecución de la
