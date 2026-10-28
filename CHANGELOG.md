@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.54.8] - 2026-10-27
+
+### Security
+
+- **CSP del sitio**: cada página publica una CSP con `script-src 'self'` y
+  hashes, incluidos los scripts inline que inyecta Starlight. El bootstrap de
+  tema/idioma es externo y `_headers` añade HSTS y `frame-ancestors 'none'`.
+
+### Changed
+
+- **Paginación de personajes**: `GET /api/characters` acepta `limit`/`offset` y
+  la home carga por páginas con un botón **Cargar más**.
+- **Listas acotadas**: las conversaciones se filtran por los personajes
+  cargados y se limitan a 500; memorias y resúmenes también se limitan a 500
+  por defecto. Se evita cargar listas sin límite.
+
 ## [1.54.7] - 2026-10-27
 
 ### Security
@@ -16,9 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (`/api/updates/backup`, `/api/lan/enable`, reinicio, rollback, etc.). Se
   validan `Origin` y `Sec-Fetch-Site`, con soporte para el proxy de desarrollo,
   LAN y Tailscale.
-- **CSP del sitio**: cada página publica una CSP con `script-src 'self'` y
-  hashes, incluidos los scripts inline que inyecta Starlight. El bootstrap de
-  tema/idioma es externo y `_headers` añade HSTS y `frame-ancestors 'none'`.
 
 ### Fixed
 
@@ -41,11 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   el límite de 500 líneas.
 - **Backups**: solo se copian los assets; la base SQLite en vivo, sus sidecars
   WAL/SHM y los logs quedan fuera. Se conservan los 10 backups más recientes.
-- **Paginación de personajes**: `GET /api/characters` acepta `limit`/`offset` y
-  la home carga por páginas con un botón **Cargar más**.
-- **Listas acotadas**: las conversaciones se filtran por los personajes
-  cargados y se limitan a 500; memorias y resúmenes también se limitan a 500
-  por defecto. Se evita cargar listas sin límite.
 
 ## [1.54.6] - 2026-10-27
 
