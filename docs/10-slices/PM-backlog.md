@@ -7,7 +7,7 @@ See `S9-plan.md` for the v1.0 polish tasks and the rationale for deferring
 these. The dependency graph below reflects which PMs must land together or in
 sequence.
 
-Last updated: 2026-10-27
+Last updated: 2026-10-28
 
 > **Review (S71 sweep, 2026-10-12):** the whole slice history was swept for
 > deferrals; the stale notes were refreshed and the surviving items added as
@@ -176,6 +176,57 @@ Last updated: 2026-10-27
 > deleting a persona never breaks a conversation. Exporting/importing personas is
 > out of scope (they are user-level, not part of a character). See
 > `S23-progress.md`.
+
+## Context window & agent engine
+
+| # | Proposal | Dependencies |
+|---|----------|--------------|
+| PM.51 | **Context window metadata and usage indicator**: per-model/conversation `contextWindow` (auto-detect from Ollama `/api/show`, manual presets for OpenAI-compatible and unknown models), conservative token estimation, percentage indicator in the chat and context preview, warning for small windows (< 8k, configurable) and for a `maxTokens` that cannot fit. | — |
+| PM.52 | **Automatic compaction**: estimate the prompt before sending; at 80 % (configurable) summarize the oldest messages, rebuild the context with the summary plus the newest messages that fit, show “Compacting context…” and continue. Summary budget and chunking, fallback to trimming with a warning, and a clear error when the system prompt alone does not fit. Replace `summaryFrequency` and remove the message-count controls from the UI. | PM.51 |
+| PM.53 | **Internal ChatEngine (harness)**: extract prompt assembly, context budget, provider call/stream and tool loop shared by `send`, `continue` and `regenerate` into an internal engine; document the REST/SSE contract for external consumers (VTuber, phone). No repo/package split yet. | PM.51 |
+| PM.54 | **Reusable engine package or external service** only if a second consumer appears (VTuber runtime, separate headless service). The phone already runs the backend; PM.54 waits for a real need. | PM.53 |
+
+> **Context + harness decisions (2026-10-28):**
+>
+> - **Automatic compaction with a visible notice.** At the threshold the app
+>   summarizes the oldest messages, shows “Compacting context…” and continues;
+>   it does not pause the conversation. If the summary fails, it trims the
+>   oldest messages and warns instead of sending an oversized prompt. If the
+>   system prompt alone does not fit, it stops with a clear error.
+> - **Context window source.** Auto-detect when the provider exposes it
+>   (Ollama `/api/show`); manual presets (4k, 8k, 16k, 32k, 128k) otherwise.
+>   Warn when the window is unknown or small. `maxTokens` is the output budget,
+>   not the input budget; the UI must not allow input + output to exceed the
+>   window.
+> - **Replace the message-count settings.** `summaryFrequency` is replaced by
+>   the percentage threshold and disappears from the UI. `recentMessageCount`
+>   also disappears from the normal UI: the engine keeps the newest messages
+>   that fit the token budget. Keep both columns in the DB and export schema
+>   for backward compatibility until a migration; keep them as an
+>   advanced/debug cap if useful.
+> - **Summary timing.** Today the summary runs after the reply. Compaction must
+>   run before the next send (or immediately after the previous reply) so it can
+>   prevent the overflow. The summary needs its own output budget and chunked
+>   input for long transcripts; it uses the same provider/model by default.
+> - **Token estimation.** Start with a conservative heuristic (`chars / 3`
+>   with a safety margin) and no tokenizer dependency. Calibrate with Ollama
+>   `prompt_eval_count`/`eval_count` or OpenAI `usage` where available.
+> - **Indicator.** Percentage in the chat header/composer plus a breakdown in
+>   the context preview: system, summary, memories, recent messages, pending
+>   message and output reserve.
+> - **Harness.** The orchestration layer already exists inside
+>   `application/` + `PromptContextBuilder` + provider ports; the hexagonal
+>   architecture is the boundary. Do not split the repository now: the phone
+>   already consumes the backend and a VTuber can consume the SSE. Extract an
+>   internal `ChatEngine` and document the API/SSE contract first. Move it to
+>   `packages/engine` or a separate service only when a second consumer exists
+>   (PM.54).
+> - **Slice order.** **S121** = PM.51 (window, estimate, warning, indicator);
+>   **S122** = PM.52 (auto-compaction, summary chunking, remove the
+>   message-count UI); **S123** = PM.53 (internal engine + API contract).
+>   PM.54 waits for a real second consumer.
+> - **No release for this block.** The slices accumulate under `[Unreleased]`
+>   with the rest of the batched changes.
 
 ## Remote access & mobile
 
