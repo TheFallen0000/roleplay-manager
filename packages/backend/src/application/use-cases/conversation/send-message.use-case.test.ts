@@ -144,9 +144,9 @@ const buildConversationRepo = (): ConversationRepository => ({
     if (id === "conv-1") return activeConversation
     return null
   },
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
+  existsByAssetId: async () => false,
   list: async () => [],
   update: async (c) => c,
   updateSettings: vi.fn(async (_id: string, _settings: any) => activeConversation),
@@ -156,9 +156,9 @@ const buildConversationRepo = (): ConversationRepository => ({
 const buildConversationRepoFor = (conversation: Conversation): ConversationRepository => ({
   create: async () => conversation,
   findById: async (id) => (id === conversation.id ? conversation : null),
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
+  existsByAssetId: async () => false,
   list: async () => [],
   update: async (c) => c,
   updateSettings: vi.fn(async (_id: string, _settings: any) => conversation),

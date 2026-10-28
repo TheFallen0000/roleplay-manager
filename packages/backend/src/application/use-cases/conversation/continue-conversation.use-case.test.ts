@@ -93,9 +93,9 @@ const baseMessages = [
 function buildConversationRepo(): ConversationRepository {
   return {
     findById: async () => baseConversation,
-    findByIdWithMessages: async () => null,
     listByCharacterId: async () => [],
     listByCharacterIds: async () => [],
+    existsByAssetId: async () => false,
     list: async () => [],
     create: async () => baseConversation,
     update: async () => baseConversation,

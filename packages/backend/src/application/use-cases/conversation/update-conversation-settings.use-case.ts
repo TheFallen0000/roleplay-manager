@@ -290,13 +290,7 @@ export class UpdateConversationSettingsUseCase {
    */
   private async deleteAssetIfUnreferenced(assetId: string | null): Promise<void> {
     if (!assetId) return
-    const conversations = await this.conversationRepository.list()
-    const referenced = conversations.some(
-      (conversation) =>
-        conversation.customProfileImageAssetId === assetId ||
-        conversation.backgroundImageAssetId === assetId,
-    )
-    if (referenced) return
+    if (await this.conversationRepository.existsByAssetId(assetId)) return
     const asset = await this.assetRepository.findById(assetId)
     if (!asset) return
     await this.assetStorage.delete(asset.characterId, asset.id, asset.extension)

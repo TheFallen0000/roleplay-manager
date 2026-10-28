@@ -62,9 +62,9 @@ const buildSummary = (id: string, firstMessageId: string, lastMessageId: string)
 const buildConversationRepo = (conversation: Conversation | null): ConversationRepository => ({
   create: async (c) => c,
   findById: async () => conversation,
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
+  existsByAssetId: async () => false,
   list: async () => [],
   update: async (c) => c,
   updateSettings: async (_id, _s) => ({} as Conversation),

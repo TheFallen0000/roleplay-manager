@@ -59,9 +59,9 @@ const versionSummary: CharacterVersionSummary = {
 const buildConversationRepo = (): ConversationRepository => ({
   create: async (c) => c,
   findById: async (id) => (id === "conv-1" ? conversation : null),
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
+  existsByAssetId: async () => false,
   list: async () => [],
   update: async (c) => c,
   updateSettings: async (_id: string, _settings) => conversation,

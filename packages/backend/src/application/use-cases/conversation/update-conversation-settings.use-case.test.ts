@@ -67,10 +67,17 @@ const buildConversationRepo = (
 ): ConversationRepository => ({
   create: async (c) => c,
   findById: async () => conversation,
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
   list: async () => others,
+  // The settings update has already persisted the new asset, so only other
+  // conversations (branches) can still reference the old one.
+  existsByAssetId: async (assetId: string) =>
+    others.some(
+      (item) =>
+        item.customProfileImageAssetId === assetId ||
+        item.backgroundImageAssetId === assetId,
+    ),
   update: async (c) => c,
   updateSettings: async (_id: string, settings: any) => {
     capturedSettings = settings

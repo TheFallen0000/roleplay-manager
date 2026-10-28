@@ -1,11 +1,7 @@
-import { desc, eq, inArray } from "drizzle-orm"
+import { desc, eq, inArray, or } from "drizzle-orm"
 
 import { Conversation } from "../../../../../domain/entities/conversation.entity"
-import { Message } from "../../../../../domain/entities/message.entity"
-import type {
-  ConversationRepository,
-  ConversationWithMessages,
-} from "../../../../../domain/ports/conversation.repository"
+import type { ConversationRepository } from "../../../../../domain/ports/conversation.repository"
 import type { Database } from "../../../../config/database"
 import type {
   BackgroundFit,
@@ -15,10 +11,9 @@ import type {
   MessageStyle,
   TitleSource,
 } from "@workspace/shared/types/conversation"
-import { characterVersions, conversations, messages } from "../schema"
+import { characterVersions, conversations } from "../schema"
 
 type ConversationRow = typeof conversations.$inferSelect
-type MessageRow = typeof messages.$inferSelect
 
 /**
  * The column is `json` mode, so values arrive parsed; legacy rows corrupted by
@@ -70,19 +65,6 @@ const toConversation = (row: ConversationRow): Conversation =>
     updatedAt: new Date(row.updatedAt),
   })
 
-const toMessage = (row: MessageRow): Message =>
-  Message.fromPersistence({
-    id: row.id,
-    conversationId: row.conversationId,
-    role: row.role as "user" | "assistant",
-    content: row.content,
-    position: row.position,
-    alternatives: row.alternatives ?? [],
-    alternativesCursor: row.alternativesCursor,
-    createdAt: new Date(row.createdAt),
-    editedAt: row.editedAt ? new Date(row.editedAt) : null,
-  })
-
 export class DrizzleConversationRepository implements ConversationRepository {
   constructor(private readonly db: Database) {}
 
@@ -132,25 +114,6 @@ export class DrizzleConversationRepository implements ConversationRepository {
     return toConversation(rows[0])
   }
 
-  async findByIdWithMessages(id: string): Promise<ConversationWithMessages | null> {
-    const convRows = await this.db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.id, id))
-      .limit(1)
-
-    if (convRows.length === 0) return null
-
-    const conv = toConversation(convRows[0])
-    const msgRows = await this.db
-      .select()
-      .from(messages)
-      .where(eq(messages.conversationId, id))
-      .orderBy(messages.position)
-
-    return { conversation: conv, messages: msgRows.map(toMessage) }
-  }
-
   async list(limit?: number): Promise<Conversation[]> {
     const query = this.db
       .select()
@@ -196,6 +159,21 @@ export class DrizzleConversationRepository implements ConversationRepository {
     const rows = limit ? await query.limit(limit) : await query
 
     return rows.map(({ conversation }) => toConversation(conversation))
+  }
+
+  async existsByAssetId(assetId: string): Promise<boolean> {
+    const rows = await this.db
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(
+        or(
+          eq(conversations.customProfileImageAssetId, assetId),
+          eq(conversations.backgroundImageAssetId, assetId),
+        ),
+      )
+      .limit(1)
+
+    return rows.length > 0
   }
 
   async update(conversation: Conversation): Promise<Conversation> {

@@ -1,18 +1,10 @@
 import type { Conversation } from "../entities/conversation.entity"
-import type { Message } from "../entities/message.entity"
 import type { ConversationSettingsUpdate } from "@workspace/shared/types/conversation"
-
-export interface ConversationWithMessages {
-  conversation: Conversation
-  messages: Message[]
-}
 
 export interface ConversationRepository {
   create(conversation: Conversation): Promise<Conversation>
 
   findById(id: string): Promise<Conversation | null>
-
-  findByIdWithMessages(id: string): Promise<ConversationWithMessages | null>
 
   list(limit?: number): Promise<Conversation[]>
 
@@ -25,6 +17,8 @@ export interface ConversationRepository {
     characterIds: string[],
     limit?: number,
   ): Promise<Conversation[]>
+
+  existsByAssetId(assetId: string): Promise<boolean>
 
   update(conversation: Conversation): Promise<Conversation>
 

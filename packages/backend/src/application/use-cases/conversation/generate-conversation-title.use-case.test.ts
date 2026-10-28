@@ -88,9 +88,9 @@ const convRepo: ConversationRepository = {
     if (id === "conv-2") return titleSetConv
     return activeConv
   },
-  findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
+  existsByAssetId: async () => false,
   list: async () => [],
   update: async (c) => {
     updatedConv = c
