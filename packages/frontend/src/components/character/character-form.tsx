@@ -260,7 +260,8 @@ function CharacterFormContent({ character }: Props) {
               </p>
           </FieldContent>
 
-          <div className="max-h-96 overflow-y-auto">
+          {/* 20rem covers the shell header, form header, tabs, hint and paddings. */}
+          <div className="max-h-[max(24rem,calc(100svh_-_20rem))] overflow-y-auto">
             <div className="sticky top-0 z-10 bg-popover py-1">
               <Button type="button" variant="outline" onClick={addCard} className="w-full">
                 <PlusIcon />
