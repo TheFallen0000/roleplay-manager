@@ -460,6 +460,17 @@ These are not code tasks; they need real hardware or a user confirmation.
 > new pose exists, and the website copy review will happen after the
 > English-community launch. No code changes yet.
 
+> **Download metrics — deferred (2026-10-28):** the website links straight to
+> GitHub assets, so counting clicks needs a redirect or a beacon. GitHub's
+> `download_count` is cumulative per asset and cannot separate website clicks,
+> the updater, our release verification or bots. Data on v1.54.9: 129
+> platform-asset downloads across 48 releases, and the last ten releases show
+> one each (our verification); repo traffic is 68 views / 24 uniques per two
+> weeks. Cloudflare Web Analytics only reports page views (no custom events)
+> and its beacon is blocked by the site CSP. Revisit when the site has enough
+> traffic to justify a Worker + KV beacon; a redirect in the download path and
+> app telemetry stay out of scope.
+
 ### Reviewed and discarded
 
 - **S2 — Version history/comparison view (PM.37):** the version selector and the context-menu version list are enough; end users use the bots, not version diffs.
@@ -472,4 +483,5 @@ These are not code tasks; they need real hardware or a user confirmation.
 - **S76 — single quotes in `memory_proposals` and user-facing parser warnings:** apostrophes make single quotes ambiguous and could corrupt valid content; warnings would add noise.
 - **S81 — misused `*title*`, numbered lists, tables and `_italics`:** ambiguous or already covered by the prompt; revisit only if real outputs show a pattern.
 - **S82 — analytics and `CF-IPCountry` geo:** optional and not requested; the current client-side language detection is sufficient.
+- **S110 — pagination of memories/summaries beyond 500:** the 500-item cap covers normal use; a "Load more" flow would add offset state and UI for a limit nobody has reached.
 - **S8 — Drizzle query optimization:** no evidence of a bottleneck; profile first instead of a speculative rewrite.
