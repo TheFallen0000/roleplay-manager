@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Actualizaciones**: el estado distingue la versión en ejecución de la
+  instalada y expone `restartRequired`; el botón de reiniciar solo aparece
+  cuando hace falta. Tras reiniciar se muestra un aviso de éxito con la
+  versión nueva y, si la app no vuelve, un error con reintento.
+
 ### Fixed
 
+- **Actualizaciones**: el panel se sincroniza con el backend al abrirse, así
+  que ya no reutiliza un `job` antiguo de la caché ni muestra el botón de
+  reiniciar después de haber reiniciado.
 - **Editor de personaje**: la lista de tarjetas crece con el alto disponible
   de la ventana en pantallas grandes, en lugar de quedarse en un máximo fijo
   de 384 px. En pantallas pequeñas ese valor sigue siendo el mínimo.

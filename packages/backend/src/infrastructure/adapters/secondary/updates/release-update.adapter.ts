@@ -3,7 +3,7 @@ import { createHash } from "node:crypto"
 import { createReadStream, existsSync } from "node:fs"
 import { createWriteStream } from "node:fs"
 import { chmod, cp, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { Readable, Transform } from "node:stream"
 import { pipeline } from "node:stream/promises"
 import type { ReadableStream as WebReadableStream } from "node:stream/web"
@@ -56,6 +56,8 @@ export interface ReleaseUpdateAdapterOptions {
   backup?: () => Promise<BackupResultDTO>
   /** Public keys accepted by the updater; injectable for tests and rotation. */
   signingKeys?: Readonly<Record<string, string>>
+  /** Running version override; by default it is read from the launcher env or the app. */
+  runningVersion?: string
 }
 
 interface ReleaseAsset {
@@ -114,6 +116,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
   private readonly run: CommandRunner
   private readonly backup: (() => Promise<BackupResultDTO>) | undefined
   private readonly signingKeys: Readonly<Record<string, string>>
+  private readonly runningVersionOverride: string | undefined
   private status: UpdateStatusDTO | null = null
   private job: UpdateJobDTO | null = null
 
@@ -128,18 +131,26 @@ export class ReleaseUpdateAdapter implements UpdateController {
     this.run = options.run ?? defaultRunner
     this.backup = options.backup
     this.signingKeys = options.signingKeys ?? RELEASE_SIGNING_KEYS
+    this.runningVersionOverride = options.runningVersion
   }
 
   async getStatus(): Promise<UpdateStatusDTO> {
-    const base =
-      this.status ??
-      (await this.withRollbackTarget(emptyStatus(await this.localVersion())))
-    return { ...base, job: this.job }
+    const running = await this.runningVersion()
+    const installed = await this.installedVersion()
+    const base = this.status ?? emptyStatus(running, installed)
+    return {
+      ...(await this.withRollbackTarget(
+        this.withVersions(base, running, installed),
+      )),
+      job: this.job,
+    }
   }
 
   async check(): Promise<UpdateStatusDTO> {
+    const running = await this.runningVersion()
+    const installed = await this.installedVersion()
     const base: UpdateStatusDTO = {
-      ...emptyStatus(await this.localVersion()),
+      ...emptyStatus(running, installed),
       checkedAt: new Date().toISOString(),
     }
 
@@ -156,7 +167,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
       const signature = release.assets.find(
         (candidate) => candidate.name === SIGNATURE_ASSET,
       )
-      const behind = isNewerVersion(latestVersion, base.currentVersion)
+      const behind = isNewerVersion(latestVersion, installed)
       const notes = release.body?.trim()
       const blockedReason: UpdateBlockedReason | null = !asset
         ? "no-asset"
@@ -171,14 +182,18 @@ export class ReleaseUpdateAdapter implements UpdateController {
         latestVersion,
         behind,
         notes: notes && notes.length > 0 ? notes : null,
-        canApply: behind && blockedReason === null && !(this.job?.running ?? false),
+        canApply:
+          behind &&
+          blockedReason === null &&
+          !(this.job?.running ?? false) &&
+          !base.restartRequired,
         blockedReason: behind ? blockedReason : null,
       }
     } catch (error) {
       next = { ...base, checkError: describeError(error) }
     }
 
-    this.status = await this.withRollbackTarget(next)
+    this.status = next
     return this.getStatus()
   }
 
@@ -187,7 +202,12 @@ export class ReleaseUpdateAdapter implements UpdateController {
       throw new UpdateFailedError("An update is already running.")
     }
 
-    const status = this.status ?? (await this.check())
+    const status = this.status ? await this.getStatus() : await this.check()
+    if (status.restartRequired) {
+      throw new UpdateFailedError(
+        "Restart the app before applying another update.",
+      )
+    }
     if (status.blockedReason === "no-asset") {
       throw new UpdateFailedError(
         "The latest release does not include a package for this platform.",
@@ -242,22 +262,47 @@ export class ReleaseUpdateAdapter implements UpdateController {
     return this.check()
   }
 
+  private withVersions(
+    base: UpdateStatusDTO,
+    runningVersion: string,
+    installedVersion: string,
+  ): UpdateStatusDTO {
+    const restartRequired = runningVersion !== installedVersion
+    const behind = base.latestVersion
+      ? isNewerVersion(base.latestVersion, installedVersion)
+      : false
+    const blockedReason = behind ? base.blockedReason : null
+    return {
+      ...base,
+      currentVersion: runningVersion,
+      installedVersion,
+      restartRequired,
+      behind,
+      blockedReason,
+      canApply:
+        behind &&
+        blockedReason === null &&
+        !(this.job?.running ?? false) &&
+        !restartRequired,
+    }
+  }
+
   private async withRollbackTarget(
     status: UpdateStatusDTO,
   ): Promise<UpdateStatusDTO> {
     return {
       ...status,
-      rollbackTarget: await this.rollbackTargetFor(status.currentVersion),
+      rollbackTarget: await this.rollbackTargetFor(status.installedVersion),
     }
   }
 
   /**
    * Previous version still on disk: the highest `versions/<v>` numerically
-   * lower than the running one. Rolling back only goes down; going forward is
-   * the regular update flow.
+   * lower than the installed one. Rolling back only goes down; going forward
+   * is the regular update flow.
    */
   private async rollbackTargetFor(
-    currentVersion: string,
+    installedVersion: string,
   ): Promise<string | null> {
     try {
       const entries = await readdir(join(this.root, "versions"), {
@@ -268,7 +313,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
           (entry) =>
             entry.isDirectory() &&
             /^\d+\./.test(entry.name) &&
-            compareVersions(entry.name, currentVersion) < 0,
+            compareVersions(entry.name, installedVersion) < 0,
         )
         .map((entry) => entry.name)
         .sort((a, b) => compareVersions(b, a))
@@ -569,7 +614,7 @@ export class ReleaseUpdateAdapter implements UpdateController {
     return release
   }
 
-  private async localVersion(): Promise<string> {
+  private async installedVersion(): Promise<string> {
     try {
       const raw = await readFile(join(this.root, "current"), "utf8")
       return raw.trim() || FALLBACK_VERSION
@@ -577,10 +622,29 @@ export class ReleaseUpdateAdapter implements UpdateController {
       return FALLBACK_VERSION
     }
   }
+
+  private async runningVersion(): Promise<string> {
+    if (this.runningVersionOverride) return this.runningVersionOverride
+    const fromEnv = process.env.RM_RUNNING_VERSION?.trim()
+    if (fromEnv) return fromEnv
+    const entry = process.argv[1]
+    if (entry) {
+      const version = await readPackageVersion(
+        join(dirname(entry), "package.json"),
+      )
+      if (version) return version
+    }
+    return this.installedVersion()
+  }
 }
 
-const emptyStatus = (currentVersion: string): UpdateStatusDTO => ({
+const emptyStatus = (
+  currentVersion: string,
+  installedVersion: string,
+): UpdateStatusDTO => ({
   currentVersion,
+  installedVersion,
+  restartRequired: currentVersion !== installedVersion,
   latestVersion: null,
   behind: false,
   commits: [],
@@ -597,6 +661,18 @@ const emptyStatus = (currentVersion: string): UpdateStatusDTO => ({
 
 /** Some editors write a UTF-8 BOM; JSON.parse rejects it. */
 const stripBom = (raw: string): string => raw.replace(/^\uFEFF/, "")
+
+const readPackageVersion = async (path: string): Promise<string | null> => {
+  try {
+    const raw = await readFile(path, "utf8")
+    const parsed = JSON.parse(stripBom(raw)) as { version?: unknown }
+    return typeof parsed.version === "string" && parsed.version.trim()
+      ? parsed.version.trim()
+      : null
+  } catch {
+    return null
+  }
+}
 
 const ROOT_ARCHIVE_FILES = new Set([
   "current",

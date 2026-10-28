@@ -24,8 +24,12 @@ export interface UpdateJobDTO {
 }
 
 export interface UpdateStatusDTO {
-  /** Version of the running app (local `package.json`). */
+  /** Version of the process currently serving the app. */
   currentVersion: string
+  /** Version the launcher will start next (the `current` pointer). */
+  installedVersion: string
+  /** Whether a restart is needed to run `installedVersion`. */
+  restartRequired: boolean
   /** Version on the tracked branch, when it could be read. */
   latestVersion: string | null
   /** Whether the tracked branch has commits the local checkout does not. */

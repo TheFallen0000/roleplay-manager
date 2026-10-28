@@ -173,6 +173,7 @@ export const en = {
       "Check whether a newer version has been published and apply it.",
     versionTitle: "Version",
     currentVersion: "Current version",
+    installedVersion: "Installed version",
     latestVersion: "Latest version",
     neverChecked: "Not checked yet.",
     lastChecked: "Last checked: {date}",
@@ -211,6 +212,21 @@ export const en = {
     restarting: "Restarting… the page will reload by itself.",
     restartNotAvailable: "This installation cannot restart itself.",
     restartFailed: "Could not restart the app.",
+    restartTimeout:
+      "The app did not respond after restarting. Close and reopen it, or try again.",
+    restartRequiredBadge: "Restart pending",
+    restartPendingTitle: "Update ready to restart",
+    restartPendingDescription:
+      "Version {installed} is installed. You are still running {running}.",
+    restartLaterHint:
+      "If you close and reopen the app, the new version will start too.",
+    restartManual: "Close and reopen the app to use the new version.",
+    updatedTitle: "Updated to version {version}",
+    updatedDescription: "You are now running the new version.",
+    updatedDismiss: "Dismiss",
+    rollbackDoneNow: "You are back on version {version}.",
+    rollbackUpdatedDescription:
+      "You are running the previous version again.",
     securityNote:
       "Updating downloads and runs code from the repository; do it only if you trust it.",
     notesTitle: "Release notes",

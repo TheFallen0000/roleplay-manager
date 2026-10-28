@@ -1,9 +1,17 @@
 import { describe, it, expect, afterEach } from "vitest"
 
-import { useUpdatesStore } from "./updates.store"
+import {
+  clearCachedStatus,
+  clearRestartMarker,
+  readRestartMarker,
+  useUpdatesStore,
+  writeRestartMarker,
+} from "./updates.store"
 
 const cached = {
   currentVersion: "1.0.0",
+  installedVersion: "1.0.0",
+  restartRequired: false,
   latestVersion: "2.0.0",
   behind: true,
   commits: ["bbbbbbb feat: something"],
@@ -52,6 +60,27 @@ describe("useUpdatesStore", () => {
       },
     })
     expect(useUpdatesStore.getState().shouldCheck()).toBe(true)
+  })
+
+  it("guarda y limpia el marcador de reinicio", () => {
+    writeRestartMarker({ from: "1.0.0", to: "2.0.0", kind: "update" })
+
+    expect(readRestartMarker()).toEqual({
+      from: "1.0.0",
+      to: "2.0.0",
+      kind: "update",
+    })
+
+    clearRestartMarker()
+    expect(readRestartMarker()).toBeNull()
+  })
+
+  it("limpia la caché del estado", () => {
+    localStorage.setItem("rm_update_status", JSON.stringify(cached))
+
+    clearCachedStatus()
+
+    expect(localStorage.getItem("rm_update_status")).toBeNull()
   })
 
   it("guarda el aviso por versión", () => {
