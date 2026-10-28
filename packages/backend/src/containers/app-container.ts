@@ -246,6 +246,7 @@ export interface BuildContainerOptions {
   logger: Logger
   pino: PinoLogger
   database: Database
+  databasePath: string
   dataDir: string
   maxProfileImageBytes: number
   maxProfileImagePixels: number
@@ -271,6 +272,7 @@ export const buildContainer = ({
   logger,
   pino,
   database,
+  databasePath,
   dataDir,
   maxProfileImageBytes,
   maxProfileImagePixels,
@@ -369,6 +371,8 @@ export const buildContainer = ({
     // drizzle keeps the raw better-sqlite3 client on `$client` (not typed).
     client: (database as unknown as { $client: BackupDatabaseClient }).$client,
     dataDir,
+    databasePath,
+    logDir,
     backupDir,
   })
   const updateController: UpdateController = updatePackagedRoot
