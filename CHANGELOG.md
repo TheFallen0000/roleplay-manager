@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Contexto**: cada conversación guarda su ventana de contexto. En Ollama se
+  detecta automáticamente con `/api/show`; en OpenAI-compatible y modelos
+  desconocidos se elige con ajustes rápidos (4k, 8k, 16k, 32k, 128k) o un valor
+  manual. La ventana viaja en las exportaciones, las plantillas de ajustes y las
+  ramas.
+- **Chat**: la cabecera muestra un indicador del uso del contexto que incluye el
+  texto que estás escribiendo, avisa al acercarse al límite y ofrece el desglose
+  (sistema, mensajes, reserva de respuesta y total) en la vista previa.
+- **Ajustes**: la sección Modelo avisa de ventanas pequeñas y de una reserva de
+  respuesta (`maxTokens`) que no cabe en la ventana configurada.
+
 ## [1.56.2] - 2026-10-28
 
 ### Fixed
