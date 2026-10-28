@@ -66,6 +66,10 @@ export class ApplyAllMemoryChangesUseCase {
               await this.memoryChangeProposalRepository.markProcessed(proposal.id, "discarded", input.processedBy)
               continue
             }
+            if (existing.matches({ actor, title, description, priority })) {
+              await this.memoryChangeProposalRepository.markProcessed(proposal.id, "discarded", input.processedBy)
+              continue
+            }
             const updated = existing.update(
               { actor, title, description, priority },
               input.processedBy,

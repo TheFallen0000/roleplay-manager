@@ -36,6 +36,17 @@ export class Memory {
   get createdAt(): Date { return this.props.createdAt }
   get updatedAt(): Date { return this.props.updatedAt }
 
+  matches(
+    overrides: Pick<MemoryProps, "actor" | "title" | "description" | "priority">,
+  ): boolean {
+    return (
+      this.props.actor === overrides.actor &&
+      this.props.title === overrides.title &&
+      this.props.description === overrides.description &&
+      this.props.priority === overrides.priority
+    )
+  }
+
   update(
     overrides: Partial<Pick<MemoryProps, "actor" | "title" | "description" | "priority">>,
     updatedBy: "user" | "assistant" | "system",

@@ -6,7 +6,6 @@ import type { SummaryDTO } from "@workspace/shared/types/summary"
 import type { TitleSource } from "@workspace/shared/types/conversation"
 
 import { Message } from "../../../domain/entities/message.entity"
-import { MemoryChangeProposal } from "../../../domain/entities/memory-change-proposal.entity"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type {
@@ -29,6 +28,7 @@ import type { ApplyAllMemoryChangesUseCase } from "../memory/apply-all-memory-ch
 import type { DecayConversationMemoryUseCase } from "../memory/decay-conversation-memory.use-case"
 import { extractProposals, createCleanStream, type CleanStreamState } from "../../../lib/memory-proposal-extractor"
 import { normalizeProposals } from "../../../lib/normalize-proposals"
+import { saveMemoryProposals } from "../../../lib/save-memory-proposals"
 import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
 import { countMessagesSinceSummary } from "./summary-threshold"
 import { propagateToolCalls, type ToolCallState } from "../../../lib/propagate-tool-calls"
@@ -326,6 +326,18 @@ export class SendMessageUseCase {
     })
 
     if (!normalizedContent) {
+      await saveMemoryProposals(
+        this.memoryChangeProposalRepository,
+        input.conversationId,
+        proposals,
+        this.logger,
+      )
+      if (proposals.length > 0) {
+        this.logger.warn("Empty response with memory proposals", {
+          conversationId: input.conversationId,
+          count: proposals.length,
+        })
+      }
       yield {
         type: "error",
         error: {
@@ -367,35 +379,12 @@ export class SendMessageUseCase {
       }
     }
 
-    yield { type: "done", message: toMessageDTO(assistantMessage), title, titleSource }
-
-    // Save and auto-apply extracted proposals
-    if (proposals.length > 0) {
-      try {
-        const now = new Date()
-        const proposalEntities = proposals.map((proposal) =>
-          MemoryChangeProposal.create({
-            id: randomUUIDv7(),
-            conversationId: input.conversationId,
-            operation: proposal.operation,
-            targetMemoryId: proposal.targetMemoryId,
-            actor: proposal.actor,
-            title: proposal.title,
-            description: proposal.description,
-            priority: proposal.priority,
-            status: "pending",
-            createdAt: now,
-            processedAt: null,
-            processedBy: "user",
-          }),
-        )
-        await this.memoryChangeProposalRepository.createMany(proposalEntities)
-      } catch (error) {
-        this.logger.error("Failed to save memory proposals", error as Error, {
-          conversationId: input.conversationId,
-        })
-      }
-    }
+    await saveMemoryProposals(
+      this.memoryChangeProposalRepository,
+      input.conversationId,
+      proposals,
+      this.logger,
+    )
 
     if (conversation.memoryProposalMode === "auto" && proposals.length > 0) {
       try {
@@ -411,6 +400,8 @@ export class SendMessageUseCase {
         )
       }
     }
+
+    yield { type: "done", message: toMessageDTO(assistantMessage), title, titleSource }
 
     if (conversation.memoryDecayMode === "silent") {
       try {
