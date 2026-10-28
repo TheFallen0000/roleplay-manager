@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { desc, eq } from "drizzle-orm"
 
 import { Conversation } from "../../../../../domain/entities/conversation.entity"
 import { Message } from "../../../../../domain/entities/message.entity"
@@ -15,7 +15,7 @@ import type {
   MessageStyle,
   TitleSource,
 } from "@workspace/shared/types/conversation"
-import { conversations, messages } from "../schema"
+import { characterVersions, conversations, messages } from "../schema"
 
 type ConversationRow = typeof conversations.$inferSelect
 type MessageRow = typeof messages.$inferSelect
@@ -157,6 +157,20 @@ export class DrizzleConversationRepository implements ConversationRepository {
       .from(conversations)
       .orderBy(conversations.updatedAt)
     return rows.map(toConversation)
+  }
+
+  async listByCharacterId(characterId: string): Promise<Conversation[]> {
+    const rows = await this.db
+      .select({ conversation: conversations })
+      .from(conversations)
+      .innerJoin(
+        characterVersions,
+        eq(conversations.versionId, characterVersions.id),
+      )
+      .where(eq(characterVersions.characterId, characterId))
+      .orderBy(desc(conversations.updatedAt))
+
+    return rows.map(({ conversation }) => toConversation(conversation))
   }
 
   async update(conversation: Conversation): Promise<Conversation> {

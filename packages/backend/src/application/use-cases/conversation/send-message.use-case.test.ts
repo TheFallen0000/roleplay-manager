@@ -145,6 +145,7 @@ const buildConversationRepo = (): ConversationRepository => ({
     return null
   },
   findByIdWithMessages: async () => null,
+  listByCharacterId: async () => [],
   list: async () => [],
   update: async (c) => c,
   updateSettings: vi.fn(async (_id: string, _settings: any) => activeConversation),
@@ -155,6 +156,7 @@ const buildConversationRepoFor = (conversation: Conversation): ConversationRepos
   create: async () => conversation,
   findById: async (id) => (id === conversation.id ? conversation : null),
   findByIdWithMessages: async () => null,
+  listByCharacterId: async () => [],
   list: async () => [],
   update: async (c) => c,
   updateSettings: vi.fn(async (_id: string, _settings: any) => conversation),

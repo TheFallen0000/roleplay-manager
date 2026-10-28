@@ -68,6 +68,7 @@ const buildConversationRepo = (): ConversationRepository => ({
   create: async (c) => c,
   findById: async () => null,
   findByIdWithMessages: async () => null,
+  listByCharacterId: async () => [],
   list: async () => [],
   update: async (c) => c,
   updateSettings: async (_id: string, _settings: any) => ({} as Conversation),

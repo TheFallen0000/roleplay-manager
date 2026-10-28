@@ -76,6 +76,7 @@ const main = async (): Promise<void> => {
     logger,
     pino,
     database: db,
+    databasePath: env.DATABASE_PATH,
     dataDir: env.DATA_DIR,
     maxProfileImageBytes: env.MAX_PROFILE_IMAGE_BYTES,
     maxProfileImagePixels: env.MAX_PROFILE_IMAGE_PIXELS,

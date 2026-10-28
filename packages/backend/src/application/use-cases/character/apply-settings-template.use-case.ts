@@ -43,7 +43,6 @@ export class ApplySettingsTemplateUseCase {
 
     const conversations = await findCharacterConversations(
       this.conversationRepository,
-      this.characterRepository,
       input.characterId,
     )
 

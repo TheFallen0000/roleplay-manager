@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   payloads demasiado grandes 413 `PAYLOAD_TOO_LARGE` y los encodings no
   soportados 415. Las rutas `/api` desconocidas devuelven JSON 404 en lugar del
   HTML de Astro, y los mensajes de validación raíz ya no empiezan por `": "`.
+- **Conversaciones por personaje**: un `INNER JOIN` en
+  `ConversationRepository.listByCharacterId` elimina el N+1 al exportar
+  personajes o aplicar una plantilla de ajustes.
 
 ### Changed
 
@@ -31,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   mensajes existentes están memoizados y su contenido se parsea una vez por
   mensaje. `chat.tsx` se dividió en `chat-streaming-bubbles.tsx` para respetar
   el límite de 500 líneas.
+- **Backups**: solo se copian los assets; la base SQLite en vivo, sus sidecars
+  WAL/SHM y los logs quedan fuera. Se conservan los 10 backups más recientes.
 
 ## [1.54.6] - 2026-10-27
 
