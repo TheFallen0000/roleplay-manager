@@ -72,7 +72,7 @@ infrastructure/ ──→ application/ ──→ domain/
 
 ### `domain/` — pure business core
 
-- `entities/`: domain entities with factory methods (`create`, `reconstruct`) and explicit getters/setters. No setters that mutate state — return new instances.
+- `entities/`: domain entities with factory methods (`create`, `reconstruct`), explicit getters and `withX()` helpers. Do not mutate entities in place — return new instances.
 - `ports/`: interfaces that the rest of the system depends on. Examples: `ConversationRepository`, `MessageRepository`, `ProviderPort`, `Logger`.
 - `value-objects/`: immutable value objects (e.g. `PromptContext`, `GeneratedResponse`).
 - **Rule**: `domain/` **must not** import from `application/`, `infrastructure/`, or `containers/`. Enforced by `pnpm check:arch`.
@@ -343,6 +343,9 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
   for breaking changes), moves `[Unreleased]` up under the new version with its
   date and merges it. Merging that PR is what triggers the release workflow:
   only pushes to `master` that touch `package.json` publish a release.
+- Several slices may accumulate under `[Unreleased]` when the user wants to
+  avoid a release per change. Keep merging slice PRs and prepare a single
+  `chore(release): vX.Y.Z` PR at the end of the batch.
 
 ### Commits
 
@@ -364,3 +367,57 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
   GitHub secret. Deleting the message is not enough.
 - Do not add `CLOUDFLARE_DEPLOY_HOOK` back; the site uses the direct-upload
   workflow.
+
+---
+
+## 11. Dependency, security and performance guardrails
+
+### Dependencies
+
+- Dependabot groups only patch/minor updates. Major updates arrive as
+  individual PRs and need their own slice; never merge a grouped major PR as-is.
+- `pnpm audit --prod` must be clean; CI runs it. `pnpm audit` also reports
+  development tooling and is informational.
+- Keep `@types/node` on the bundled Node major. TypeScript majors wait until
+  `astro check` supports them.
+- Document transitive security overrides in `pnpm-workspace.yaml` with the
+  advisory they fix.
+- Native modules, packaging or lockfile changes: run the release workflow as a
+  dry run on the branch
+  (`gh workflow run release.yml --ref <branch> -f publish=false`) and wait for
+  `win-x64`, `linux-x64`, `linux-arm64`, `mac-arm64` and `mac-x64`.
+
+### Security invariants
+
+- State-changing `/api` routes reject cross-origin browser requests
+  (`Origin`/`Sec-Fetch-Site`), including no-body POSTs. CORS alone does not stop
+  simple requests.
+- API errors are JSON: malformed JSON 400, too large 413, encoding 415, unknown
+  `/api` route 404. Never return HTML to API clients.
+- API keys never appear in DTOs or logs. Keep the pino redaction paths and the
+  upload MIME + magic-byte allowlist.
+- Releases are verified with Ed25519 and SHA256 before installing; keep the
+  archive path allowlist.
+- `data/`, `backups/` and logs are private and may contain conversation
+  content. Recommend full-disk encryption and rotate provider keys if a device
+  or backup is lost.
+- The app trusts the local network boundary (loopback by default,
+  Tailscale/LAN opt-in). Do not assume authentication beyond that boundary.
+
+### Performance guardrails
+
+- Do not subscribe to a whole zustand store (`useChatStore()`); use selectors.
+  Memoize message rendering and parse each message content once.
+- Paginate or cap character, conversation, memory and summary lists.
+- No N+1: batch/join and use the indexes. Run the query performance test when
+  touching repositories.
+- Backups must not duplicate `roleplay.db`/WAL/SHM or copy logs; add retention.
+- Check large client chunks (`i18n-provider`, `chat`) and website images before
+  adding heavy dependencies.
+
+### Release verification
+
+- Accumulate slices under `[Unreleased]`; publish one
+  `chore(release): vX.Y.Z` PR at the end of the batch.
+- After the release: verify `SHA256SUMS`/`SHA256SUMS.sig`, start the artifact,
+  run the smoke test and confirm the website deploy.
