@@ -39,7 +39,9 @@ export const buildSummaryRouter = (deps: {
     async (req, res, next) => {
       try {
         const { id } = req.params as { id: string }
-        const result = await deps.generateSummary.execute(id)
+        const result = await deps.generateSummary.execute(id, {
+          locale: resolveRequestLocale(req.header("accept-language")),
+        })
         if (result.error) {
           res.status(400).json(result)
           return

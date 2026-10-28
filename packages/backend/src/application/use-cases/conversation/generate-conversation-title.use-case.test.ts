@@ -248,9 +248,46 @@ describe("GenerateConversationTitleUseCase", () => {
       "same language as the conversation",
     )
     expect(captured!.systemPrompt).not.toContain("español")
-    expect(captured!.systemPrompt).toContain("English")
+    expect(captured!.systemPrompt).toContain("language of these instructions")
     expect(captured!.messages[0]!.content).toContain("Character: TestChar")
     expect(captured!.messages[0]!.content).toContain("User: Message 0")
+  })
+
+  it("genera el prompt del título en español cuando la interfaz está en español", async () => {
+    let captured: PromptContext | null = null
+    const capturingRegistry: ProviderRegistry = {
+      ...providerRegistry,
+      getAdapter: async () => ({
+        validateConnection: async () => ({ status: "ok" } as any),
+        listModels: async () => ({ models: [], manualEntryRequired: false }),
+        generateStreaming: async function* (context: PromptContext) {
+          captured = context
+          yield { content: "Una Nueva Aventura" }
+        },
+      }),
+    }
+    const useCase = new GenerateConversationTitleUseCase(
+      convRepo,
+      buildMessageHistoryRepository(() => buildMessages(4)),
+      summaryRepo,
+      charRepo,
+      capturingRegistry,
+      getDefaultProvider,
+      providerInstanceRepo,
+      logger,
+    )
+
+    const result = await useCase.execute("conv-1", { locale: "es" })
+
+    expect(result.title).toBe("Una Nueva Aventura")
+    expect(captured).not.toBeNull()
+    expect(captured!.systemPrompt).toContain(
+      "mismo idioma que la conversación",
+    )
+    expect(captured!.systemPrompt).toContain("idioma de estas instrucciones")
+    expect(captured!.systemPrompt).not.toContain("English")
+    expect(captured!.messages[0]!.content).toContain("Personaje: TestChar")
+    expect(captured!.messages[0]!.content).toContain("Usuario: Message 0")
   })
 
   it("no sobrescribe un título manual en el flujo automático", async () => {

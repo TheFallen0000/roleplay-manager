@@ -1,6 +1,12 @@
 import { v7 as randomUUIDv7 } from "uuid"
 
 import type { SummaryDTO } from "@workspace/shared/types/summary"
+import {
+  DEFAULT_LOCALE,
+  translate,
+  type Locale,
+  type TranslationParams,
+} from "@workspace/shared/i18n"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
@@ -46,7 +52,9 @@ export class GenerateSummaryUseCase {
 
   async execute(
     conversationId: string,
+    options: { locale?: Locale } = {},
   ): Promise<GenerateSummaryOutput> {
+    const locale = options.locale ?? DEFAULT_LOCALE
     const conversation = await this.conversationRepository.findById(conversationId)
     if (!conversation) {
       return { error: { code: "CONVERSATION_NOT_FOUND", message: "Conversation not found" } }
@@ -102,6 +110,7 @@ export class GenerateSummaryUseCase {
       previousSummaryContent,
       memories: filterMemoriesForPrompt(conversation, memories, memoryTurns),
       characterName: characterResult.currentVersion.name,
+      locale,
     })
 
     let providerId = conversation.provider as ProviderId | null
@@ -181,27 +190,44 @@ export class GenerateSummaryUseCase {
     previousSummaryContent: string | undefined
     memories: Memory[]
     characterName: string
+    locale: Locale
   }): Promise<PromptContext> {
-    const { newMessages, previousSummaryContent, memories, characterName } = params
+    const {
+      newMessages,
+      previousSummaryContent,
+      memories,
+      characterName,
+      locale,
+    } = params
+    const tr = (key: string, values?: TranslationParams) =>
+      translate(locale, key, values)
 
     const systemParts: string[] = [
-      "Eres un asistente de resumen de roleplay. Tu tarea es generar una síntesis narrativa acumulativa de la conversación.",
+      tr("summaryPrompt.system"),
       "",
-      "## Instrucciones",
-      "- Resume los eventos más importantes de la historia, las acciones de los personajes y los cambios en el escenario.",
-      "- Mantén un tono neutral y descriptivo.",
-      "- Integra toda la información en un solo resumen coherente, actualizando lo que ya existía.",
-      "- El resumen debe ser conciso pero completo (2-4 párrafos).",
-      "- No incluyas meta-instrucciones, notas OOC ni formatos especiales.",
-      "- Escribe en español.",
+      tr("summaryPrompt.instructions"),
+      tr("summaryPrompt.events"),
+      tr("summaryPrompt.tone"),
+      tr("summaryPrompt.integrate"),
+      tr("summaryPrompt.length"),
+      tr("summaryPrompt.noMeta"),
+      tr("summaryPrompt.language"),
     ]
 
     if (memories.length > 0) {
       systemParts.push("")
-      systemParts.push("## Memoria dinámica")
-      systemParts.push("Los siguientes hechos ya están almacenados como memorias de la conversación. No los repitas; úsalos como contexto para no contradecir lo ya establecido y solo añade información nueva relevante.")
+      systemParts.push(tr("summaryPrompt.memory"))
+      systemParts.push(tr("summaryPrompt.memoryHint"))
       for (const mem of memories) {
-        systemParts.push(`- [${mem.id}] ${mem.actor} → ${mem.title}: ${mem.description} (prioridad ${mem.priority})`)
+        systemParts.push(
+          tr("summaryPrompt.memoryLine", {
+            id: mem.id,
+            actor: mem.actor,
+            title: mem.title,
+            description: mem.description,
+            priority: mem.priority,
+          }),
+        )
       }
     }
 
@@ -210,7 +236,7 @@ export class GenerateSummaryUseCase {
     if (previousSummaryContent) {
       contextMessages.push({
         role: "user",
-        content: "Genera una síntesis narrativa acumulativa de la conversación anterior.",
+        content: tr("summaryPrompt.previousRequest"),
       })
       contextMessages.push({
         role: "assistant",
@@ -218,10 +244,12 @@ export class GenerateSummaryUseCase {
       })
     }
 
-    const characterLabel = `Asistente (${characterName})`
     const transcript = newMessages
       .map((m) => {
-        const role = m.role === "user" ? "Usuario" : characterLabel
+        const role =
+          m.role === "user"
+            ? tr("summaryPrompt.userLabel")
+            : tr("summaryPrompt.assistantLabel", { name: characterName })
         return `[${role}]: ${m.content}`
       })
       .join("\n\n")
@@ -232,9 +260,9 @@ export class GenerateSummaryUseCase {
     contextMessages.push({
       role: "user",
       content: [
-        `A continuación se muestra la transcripción de la conversación (mensajes ${firstId} al ${lastId}).`,
-        `NO respondas en personaje como ${characterName}. NO generes una respuesta al chat.`,
-        "Tu ÚNICA tarea es analizar esta transcripción y generar un resumen técnico y descriptivo de los eventos en español.",
+        tr("summaryPrompt.transcriptIntro", { firstId, lastId }),
+        tr("summaryPrompt.noRoleplay", { name: characterName }),
+        tr("summaryPrompt.onlyTask"),
         "",
         "---",
         "",
@@ -242,7 +270,7 @@ export class GenerateSummaryUseCase {
         "",
         "---",
         "",
-        "Ahora genera el resumen solicitado.",
+        tr("summaryPrompt.final"),
       ].join("\n"),
     })
 

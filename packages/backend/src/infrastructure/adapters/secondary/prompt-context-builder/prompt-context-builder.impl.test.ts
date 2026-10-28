@@ -76,8 +76,13 @@ describe("PromptContextBuilderImpl", () => {
       recentMessageCount: 10,
     })
 
-    expect(result.systemPrompt).toContain("Eres Test Character.")
+    expect(result.systemPrompt).toContain("Eres Test Character")
     expect(result.systemPrompt).toContain("A mysterious character.")
+    expect(result.systemPrompt).toContain("## Juego de rol")
+    expect(result.systemPrompt).toContain("No escribas al personaje del usuario")
+    expect(result.systemPrompt).toContain(
+      "Responde en el idioma del último mensaje del usuario",
+    )
     expect(result.messages).toHaveLength(0)
   })
 
@@ -352,7 +357,12 @@ describe("PromptContextBuilderImpl", () => {
       recentMessageCount: 10,
     })
 
-    expect(result.systemPrompt).toContain("You are Test Character.")
+    expect(result.systemPrompt).toContain("You are Test Character")
+    expect(result.systemPrompt).toContain("## Roleplay")
+    expect(result.systemPrompt).toContain("Do not write the user's character")
+    expect(result.systemPrompt).toContain(
+      "Reply in the language of the user's last message",
+    )
     expect(result.systemPrompt).toContain("## Personality")
     expect(result.systemPrompt).toContain("## Reply style")
     expect(result.systemPrompt).not.toContain("Eres Test Character")

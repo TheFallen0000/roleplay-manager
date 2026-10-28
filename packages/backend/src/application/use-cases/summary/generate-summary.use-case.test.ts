@@ -259,7 +259,7 @@ describe("GenerateSummaryUseCase", () => {
   it("envía la transcripción completa en un solo user message", async () => {
     capturedContext = null
     const useCase = buildUseCase(true, 10, true, 0, false, true)
-    await useCase.execute("conv-1")
+    await useCase.execute("conv-1", { locale: "es" })
     expect(capturedContext).not.toBeNull()
     expect(capturedContext!.messages.length).toBe(1)
     expect(capturedContext!.messages[0].role).toBe("user")
@@ -271,7 +271,7 @@ describe("GenerateSummaryUseCase", () => {
   it("incluye el resumen anterior como par user/assistant previo", async () => {
     capturedContext = null
     const useCase = buildUseCase(true, 10, true, 0, true, true)
-    await useCase.execute("conv-1")
+    await useCase.execute("conv-1", { locale: "es" })
     expect(capturedContext).not.toBeNull()
     expect(capturedContext!.messages.length).toBe(3)
     expect(capturedContext!.messages[0].role).toBe("user")
@@ -286,7 +286,7 @@ describe("GenerateSummaryUseCase", () => {
   it("incluye la memoria dinámica en el system prompt cuando hay memorias", async () => {
     capturedContext = null
     const useCase = buildUseCase(true, 10, true, 2, false, true)
-    await useCase.execute("conv-1")
+    await useCase.execute("conv-1", { locale: "es" })
     expect(capturedContext).not.toBeNull()
     expect(capturedContext!.systemPrompt).toContain("## Memoria dinámica")
     expect(capturedContext!.systemPrompt).toContain("Actor0")
@@ -296,7 +296,7 @@ describe("GenerateSummaryUseCase", () => {
   it("omite la memoria dinámica del system prompt cuando no hay memorias", async () => {
     capturedContext = null
     const useCase = buildUseCase(true, 10, true, 0, false, true)
-    await useCase.execute("conv-1")
+    await useCase.execute("conv-1", { locale: "es" })
     expect(capturedContext).not.toBeNull()
     expect(capturedContext!.systemPrompt).not.toContain("## Memoria dinámica")
   })
@@ -304,7 +304,7 @@ describe("GenerateSummaryUseCase", () => {
   it("omite el resumen anterior cuando es la primera generación", async () => {
     capturedContext = null
     const useCase = buildUseCase(true, 10, true, 0, false, true)
-    await useCase.execute("conv-1")
+    await useCase.execute("conv-1", { locale: "es" })
     expect(capturedContext).not.toBeNull()
     expect(capturedContext!.messages.length).toBe(1)
     expect(capturedContext!.messages[0].content).toContain("[Usuario]: Message 0")
@@ -313,12 +313,29 @@ describe("GenerateSummaryUseCase", () => {
   it("la transcripción refuerza NO responder en personaje y usa etiquetas", async () => {
     capturedContext = null
     const useCase = buildUseCase(true, 10, true, 0, false, true)
-    await useCase.execute("conv-1")
+    await useCase.execute("conv-1", { locale: "es" })
     const content = capturedContext!.messages[0].content
     expect(content).toContain("NO respondas en personaje como TestChar")
     expect(content).toContain("NO generes una respuesta al chat")
     expect(content).toContain("Tu ÚNICA tarea es analizar esta transcripción")
     expect(content).toContain("Ahora genera el resumen solicitado")
     expect(content).toContain("---")
+  })
+
+  it("construye el prompt del resumen en el idioma de la interfaz", async () => {
+    capturedContext = null
+    const useCase = buildUseCase(true, 10, true, 0, false, true)
+    await useCase.execute("conv-1", { locale: "en" })
+    expect(capturedContext).not.toBeNull()
+    expect(capturedContext!.systemPrompt).toContain(
+      "roleplay summary assistant",
+    )
+    expect(capturedContext!.systemPrompt).toContain(
+      "language of the conversation transcript",
+    )
+    expect(capturedContext!.messages[0].content).toContain("[User]: Message 0")
+    expect(capturedContext!.messages[0].content).toContain(
+      "[Assistant (TestChar)]: Message 1",
+    )
   })
 })

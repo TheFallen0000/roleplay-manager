@@ -11,18 +11,18 @@ import {
 } from "../../../domain/errors"
 import type { PromptContext } from "../../../domain/value-objects/prompt-context"
 import type { TitleSource } from "@workspace/shared/types/conversation"
-import type { Locale } from "@workspace/shared/i18n"
+import {
+  DEFAULT_LOCALE,
+  translate,
+  type Locale,
+  type TranslationParams,
+} from "@workspace/shared/i18n"
 
 export interface GenerateConversationTitleOptions {
   /** Explicit user action: allow replacing a manual title. */
   force?: boolean
   /** UI language, used only when the conversation is too short to infer one. */
   locale?: Locale
-}
-
-const LANGUAGE_NAMES: Record<Locale, string> = {
-  en: "English",
-  es: "Spanish",
 }
 
 const TITLE_CONTEXT_MESSAGES = 20
@@ -94,42 +94,45 @@ export class GenerateConversationTitleUseCase {
       throw new Error(`No provider available for conversation '${conversationId}'.`)
     }
 
+    const locale = options.locale ?? DEFAULT_LOCALE
+    const tr = (key: string, values?: TranslationParams) =>
+      translate(locale, key, values)
+
     const transcript = messages
-      .map((m) => `${m.role === "user" ? "User" : version.name}: ${m.content}`)
+      .map(
+        (m) =>
+          `${m.role === "user" ? tr("titlePrompt.userLabel") : version.name}: ${m.content}`,
+      )
       .join("\n\n")
-    const languageHint = options.locale
-      ? `- If the conversation is too short to infer a language, write the title in ${LANGUAGE_NAMES[options.locale]}.`
-      : null
 
     const context: PromptContext = {
       systemPrompt: [
-        "You generate short, descriptive titles for roleplay conversations.",
-        "## Rules",
-        "- Output ONLY the title, without explanations or extra formatting.",
-        "- Write the title in the same language as the conversation below. Do not translate it.",
-        "- Keep character and place names exactly as they appear.",
-        "- Use 3 to 8 words.",
-        "- Capture the essence of the conversation.",
-        "- Do not end with punctuation.",
-        "- Do not wrap the title in quotes.",
-        languageHint,
-      ]
-        .filter((line): line is string => Boolean(line))
-        .join("\n"),
+        tr("titlePrompt.system"),
+        tr("titlePrompt.rules"),
+        tr("titlePrompt.only"),
+        tr("titlePrompt.language"),
+        tr("titlePrompt.names"),
+        tr("titlePrompt.length"),
+        tr("titlePrompt.essence"),
+        tr("titlePrompt.noPunctuation"),
+        tr("titlePrompt.noQuotes"),
+        tr("titlePrompt.fallback"),
+      ].join("\n"),
       messages: [
         {
           role: "user",
           content: [
-            `Character: ${version.name}${version.subtitle ? ` — ${version.subtitle}` : ""}`,
+            tr("titlePrompt.character", { name: version.name }) +
+              (version.subtitle ? ` — ${version.subtitle}` : ""),
             version.description,
             "",
-            "Conversation:",
+            tr("titlePrompt.conversation"),
             ...(latestSummary
-              ? ["Previous summary:", latestSummary.content, ""]
+              ? [tr("titlePrompt.previousSummary"), latestSummary.content, ""]
               : []),
             transcript,
             "",
-            "Generate the title.",
+            tr("titlePrompt.generate"),
           ].join("\n"),
         },
       ],

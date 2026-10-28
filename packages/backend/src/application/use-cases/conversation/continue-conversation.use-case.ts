@@ -359,6 +359,7 @@ export class ContinueConversationUseCase {
       if (messagesSinceLast >= conversation.summaryFrequency) {
         const summaryResult = await this.generateSummary.execute(
           input.conversationId,
+          { locale: input.locale },
         )
         if (summaryResult.summary) {
           yield { type: "summary-generated", summary: summaryResult.summary }

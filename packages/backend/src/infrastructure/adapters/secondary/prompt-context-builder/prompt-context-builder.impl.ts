@@ -43,7 +43,14 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
     const systemParts: string[] = [
       tr("prompt.intro", { name: cv.name, description: cv.description }),
       "",
-
+      tr("prompt.roleplay"),
+      tr("prompt.roleplayFiction"),
+      tr("prompt.roleplayStayInCharacter"),
+      tr("prompt.roleplayUserAgency"),
+      tr("prompt.roleplayMature"),
+      tr("prompt.roleplayLanguage"),
+      tr("prompt.roleplayLength"),
+      "",
       tr("prompt.personality"),
       tr("prompt.name", { name: cv.name }),
     ]
