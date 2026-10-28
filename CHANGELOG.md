@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.56.2] - 2026-10-28
+
 ### Fixed
 
 - **Arranque del paquete**: el launcher detecta si la app ya está corriendo y
