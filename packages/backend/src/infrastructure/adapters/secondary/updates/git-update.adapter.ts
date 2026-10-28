@@ -236,6 +236,8 @@ export class GitUpdateAdapter implements UpdateController {
 
 const emptyStatus = (currentVersion: string): UpdateStatusDTO => ({
   currentVersion,
+  installedVersion: currentVersion,
+  restartRequired: false,
   latestVersion: null,
   behind: false,
   commits: [],

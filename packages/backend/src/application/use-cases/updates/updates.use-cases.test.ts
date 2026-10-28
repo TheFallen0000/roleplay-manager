@@ -11,6 +11,8 @@ import { RollbackUpdateUseCase } from "./rollback-update.use-case"
 
 const status: UpdateStatusDTO = {
   currentVersion: "1.0.0",
+  installedVersion: "1.0.0",
+  restartRequired: false,
   latestVersion: "2.0.0",
   behind: true,
   commits: ["bbbbbbb feat: something"],
