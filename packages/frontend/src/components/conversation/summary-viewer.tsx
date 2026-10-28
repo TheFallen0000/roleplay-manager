@@ -19,7 +19,6 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 interface SummaryViewerProps {
   conversationId: string
-  summaryFrequency: number
   onTitleGenerated?: (title: string, titleSource: TitleSource) => void
 }
 
@@ -27,7 +26,6 @@ type DialogMode = null | "view" | "edit" | "delete"
 
 export function SummaryViewer({
   conversationId,
-  summaryFrequency,
   onTitleGenerated,
 }: SummaryViewerProps) {
   const { t, locale } = useTranslation()
@@ -136,7 +134,7 @@ export function SummaryViewer({
               <EmptyHeader>
                 <EmptyTitle>{t("summaries.emptyTitle")}</EmptyTitle>
                 <EmptyDescription>
-                  {t("summaries.emptyDescription", { count: summaryFrequency })}
+                  {t("summaries.emptyDescription")}
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>

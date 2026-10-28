@@ -27,6 +27,8 @@ export function useChatStreaming(convId: string, options?: UseChatStreamingOptio
   const replaceMessage = useChatStore((s) => s.replaceMessage)
   const appendToStreamingContent = useChatStore((s) => s.appendToStreamingContent)
   const setStreaming = useChatStore((s) => s.setStreaming)
+  const setCompacting = useChatStore((s) => s.setCompacting)
+  const setContextWarning = useChatStore((s) => s.setContextWarning)
   const setStreamingContent = useChatStore((s) => s.setStreamingContent)
   const setError = useChatStore((s) => s.setError)
   const setRegeneratingMessageId = useChatStore((s) => s.setRegeneratingMessageId)
@@ -36,6 +38,8 @@ export function useChatStreaming(convId: string, options?: UseChatStreamingOptio
       setError(null)
       setStreaming(true)
       setStreamingContent("")
+      setCompacting(false)
+      setContextWarning(null)
 
       await sendMessageStreaming(convId, content, {
         onSaved: (message) => {
@@ -48,6 +52,7 @@ export function useChatStreaming(convId: string, options?: UseChatStreamingOptio
           addMessage(message)
           setStreamingContent("")
           setStreaming(false)
+          setCompacting(false)
           optionsRef.current?.onDone?.()
         },
         onTitleGenerated: (title, titleSource) => {
@@ -56,21 +61,30 @@ export function useChatStreaming(convId: string, options?: UseChatStreamingOptio
         onSummaryGenerated: () => {
           optionsRef.current?.onSummaryGenerated?.()
         },
+        onCompacting: () => {
+          setCompacting(true)
+        },
+        onContextWarning: (warning) => {
+          setContextWarning(warning.message)
+        },
         onError: (err) => {
           setError(err.message)
           setStreaming(false)
           setStreamingContent("")
+          setCompacting(false)
           optionsRef.current?.onError?.()
         },
       })
     },
-    [convId, addMessage, setError, setStreaming, setStreamingContent, appendToStreamingContent],
+    [convId, addMessage, setError, setStreaming, setStreamingContent, appendToStreamingContent, setCompacting, setContextWarning],
   )
 
   const handleContinue = useCallback(async () => {
     setError(null)
     setStreaming(true)
     setStreamingContent("")
+    setCompacting(false)
+    setContextWarning(null)
 
     await continueConversationStreaming(convId, {
       onChunk: (chunk) => {
@@ -80,19 +94,27 @@ export function useChatStreaming(convId: string, options?: UseChatStreamingOptio
         addMessage(message)
         setStreamingContent("")
         setStreaming(false)
+        setCompacting(false)
         optionsRef.current?.onDone?.()
       },
       onSummaryGenerated: () => {
         optionsRef.current?.onSummaryGenerated?.()
       },
+      onCompacting: () => {
+        setCompacting(true)
+      },
+      onContextWarning: (warning) => {
+        setContextWarning(warning.message)
+      },
       onError: (err) => {
         setError(err.message)
         setStreaming(false)
         setStreamingContent("")
+        setCompacting(false)
         optionsRef.current?.onError?.()
       },
     })
-  }, [convId, addMessage, setError, setStreaming, setStreamingContent, appendToStreamingContent])
+  }, [convId, addMessage, setError, setStreaming, setStreamingContent, appendToStreamingContent, setCompacting, setContextWarning])
 
   const handleRegenerate = useCallback(
     async (messageId: string) => {
@@ -100,6 +122,8 @@ export function useChatStreaming(convId: string, options?: UseChatStreamingOptio
       setRegeneratingMessageId(messageId)
       setStreaming(true)
       setStreamingContent("")
+      setCompacting(false)
+      setContextWarning(null)
 
       await regenerateReplyStreaming(convId, messageId, {
         onChunk: (chunk) => {
@@ -110,21 +134,29 @@ export function useChatStreaming(convId: string, options?: UseChatStreamingOptio
           setRegeneratingMessageId(null)
           setStreamingContent("")
           setStreaming(false)
+          setCompacting(false)
           optionsRef.current?.onDone?.()
         },
         onSummaryGenerated: () => {
           optionsRef.current?.onSummaryGenerated?.()
+        },
+        onCompacting: () => {
+          setCompacting(true)
+        },
+        onContextWarning: (warning) => {
+          setContextWarning(warning.message)
         },
         onError: (err: { code: string; message: string }) => {
           setError(err.message)
           setRegeneratingMessageId(null)
           setStreaming(false)
           setStreamingContent("")
+          setCompacting(false)
           optionsRef.current?.onError?.()
         },
       })
     },
-    [convId, replaceMessage, setError, setRegeneratingMessageId, setStreaming, setStreamingContent, appendToStreamingContent],
+    [convId, replaceMessage, setError, setRegeneratingMessageId, setStreaming, setStreamingContent, appendToStreamingContent, setCompacting, setContextWarning],
   )
 
   return { handleSend, handleContinue, handleRegenerate }

@@ -10,6 +10,7 @@ import {
   ContextMenuTrigger,
 } from "@workspace/ui/components/context-menu"
 import { Send, ArrowRight, Eye } from "lucide-react"
+import { CompactionStatus } from "./compaction-status"
 
 export function MessageInput({
   onSend,
@@ -18,6 +19,7 @@ export function MessageInput({
   onDraftChange,
   disabled,
   conversationId,
+  contextWindow,
 }: {
   onSend: (content: string) => void
   onContinue?: () => void
@@ -26,6 +28,7 @@ export function MessageInput({
   onDraftChange?: (content: string) => void
   disabled: boolean
   conversationId: string
+  contextWindow: number | null
 }) {
   const [content, setContent] = usePersistedValue({
     scope: conversationId,
@@ -55,67 +58,70 @@ export function MessageInput({
   const hasText = content.trim().length > 0
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex items-end gap-2 p-4 pb-[calc(1rem_+_env(safe-area-inset-bottom,0px))]"
-    >
-      <Textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={t("chat.inputPlaceholder")}
-        className="min-h-11 max-h-50 resize-none"
-        rows={1}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault()
-            handleSubmit(e)
-          }
-        }}
-        disabled={disabled}
-      />
-      {hasText ? (
-        <ContextMenu>
-          <ContextMenuTrigger>
-            <Button
-              type="submit"
-              size="icon"
-              aria-label={t("chat.send")}
-              disabled={disabled || !hasText}
-              className="shrink-0"
-            >
-              <Send className="size-4" />
-            </Button>
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            <ContextMenuItem onClick={() => onPreview?.(content.trim())}>
-              <Eye className="size-4" />
-              {t("chat.previewContext")}
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
-      ) : (
-        <ContextMenu>
-          <ContextMenuTrigger>
-            <Button
-              type="button"
-              size="icon"
-              variant="secondary"
-              aria-label={t("chat.continue")}
-              disabled={disabled}
-              className="shrink-0"
-              onClick={handleContinue}
-            >
-              <ArrowRight className="size-4" />
-            </Button>
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            <ContextMenuItem onClick={() => onPreview?.()}>
-              <Eye className="size-4" />
-              {t("chat.previewContext")}
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
-      )}
-    </form>
+    <>
+      <CompactionStatus contextWindow={contextWindow} />
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-end gap-2 p-4 pb-[calc(1rem_+_env(safe-area-inset-bottom,0px))]"
+      >
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder={t("chat.inputPlaceholder")}
+          className="max-h-50 min-h-11 resize-none"
+          rows={1}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault()
+              handleSubmit(e)
+            }
+          }}
+          disabled={disabled}
+        />
+        {hasText ? (
+          <ContextMenu>
+            <ContextMenuTrigger>
+              <Button
+                type="submit"
+                size="icon"
+                aria-label={t("chat.send")}
+                disabled={disabled || !hasText}
+                className="shrink-0"
+              >
+                <Send className="size-4" />
+              </Button>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={() => onPreview?.(content.trim())}>
+                <Eye className="size-4" />
+                {t("chat.previewContext")}
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        ) : (
+          <ContextMenu>
+            <ContextMenuTrigger>
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                aria-label={t("chat.continue")}
+                disabled={disabled}
+                className="shrink-0"
+                onClick={handleContinue}
+              >
+                <ArrowRight className="size-4" />
+              </Button>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={() => onPreview?.()}>
+                <Eye className="size-4" />
+                {t("chat.previewContext")}
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        )}
+      </form>
+    </>
   )
 }

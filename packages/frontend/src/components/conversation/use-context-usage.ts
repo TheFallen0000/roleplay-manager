@@ -39,7 +39,7 @@ export function useContextUsage(conversationId: string, refreshKey: string) {
   }, [conversationId, refreshKey])
 
   const draftTokens = useMemo(
-    () => (draft.trim().length > 0 ? estimateTextTokens(draft.trim()) : 0),
+    () => (draft.trim().length > 0 ? estimateTextTokens(draft.trim()) + 4 : 0),
     [draft],
   )
 

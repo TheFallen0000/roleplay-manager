@@ -124,6 +124,8 @@ export interface SendMessageCallbacks {
   onDone: (message: MessageDTO) => void
   onTitleGenerated?: (title: string, titleSource: TitleSource) => void
   onSummaryGenerated?: (summary: SummaryDTO) => void
+  onCompacting?: () => void
+  onContextWarning?: (warning: { code: string; message: string }) => void
   onError: (error: { code: string; message: string }) => void
 }
 
@@ -191,6 +193,14 @@ const streamEventSource = async (
             }
             case "summary-generated": {
               callbacks.onSummaryGenerated?.(data)
+              break
+            }
+            case "compacting": {
+              callbacks.onCompacting?.()
+              break
+            }
+            case "context-warning": {
+              callbacks.onContextWarning?.(data)
               break
             }
             case "title-generated": {

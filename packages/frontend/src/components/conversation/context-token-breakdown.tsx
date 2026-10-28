@@ -15,6 +15,8 @@ export function ContextTokenBreakdown({
   const percent = window
     ? Math.round((metadata.totalTokens / window) * 100)
     : null
+  const threshold = metadata.compactionThreshold ?? 80
+  const willCompact = percent !== null && percent >= threshold
   const format = (value: number) => formatTokenCount(value, locale)
 
   const rows = [
@@ -36,14 +38,14 @@ export function ContextTokenBreakdown({
               ? "outline"
               : percent >= 100
                 ? "destructive"
-                : percent >= 80
+                : percent >= threshold
                   ? "outline"
                   : "secondary"
           }
           className={cn(
             "tabular-nums",
             percent !== null &&
-              percent >= 80 &&
+              percent >= threshold &&
               percent < 100 &&
               "border-amber-500/60 text-amber-700 dark:text-amber-400",
           )}
@@ -51,6 +53,11 @@ export function ContextTokenBreakdown({
           {percent === null ? "—" : `${percent}%`}
         </Badge>
       </div>
+      {willCompact ? (
+        <p className="mt-2 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+          {t("chat.previewCompactionAtSend")}
+        </p>
+      ) : null}
       <div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
         {rows.map((row) => (
           <div key={row.label} className="flex flex-col">
