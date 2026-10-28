@@ -237,6 +237,7 @@ describe("ApplySettingsTemplateUseCase", () => {
       {
         list: async () => [],
         listByCharacterId: async () => [],
+        listByCharacterIds: async () => [],
       } as unknown as ConversationRepository,
       buildProviderInstances(true),
       updateSettings.useCase,

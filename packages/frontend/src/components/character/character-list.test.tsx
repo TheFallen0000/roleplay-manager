@@ -44,6 +44,7 @@ const conversation: ConversationSummary = {
 
 const mocks = vi.hoisted(() => ({
   listCharacters: vi.fn(),
+  listCharactersPage: vi.fn(),
   listCharacterVersions: vi.fn(),
   deleteCharacter: vi.fn(),
   importCharacter: vi.fn(),
@@ -53,6 +54,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/api/characters", () => ({
   listCharacters: mocks.listCharacters,
+  listCharactersPage: mocks.listCharactersPage,
   listCharacterVersions: mocks.listCharacterVersions,
   deleteCharacter: mocks.deleteCharacter,
   importCharacter: mocks.importCharacter,
@@ -65,6 +67,11 @@ vi.mock("@/lib/api/conversations", () => ({
 
 beforeEach(() => {
   mocks.listCharacters.mockReset()
+  mocks.listCharactersPage.mockReset()
+  mocks.listCharactersPage.mockImplementation(async () => {
+    const characters = (await mocks.listCharacters()) as CharacterSummary[]
+    return { characters, hasMore: false, nextOffset: null }
+  })
   mocks.listCharacterVersions.mockReset()
   mocks.deleteCharacter.mockReset()
   mocks.importCharacter.mockReset()
@@ -226,6 +233,31 @@ describe("CharacterList", () => {
     await user.click(option)
 
     await waitFor(() => expect(visibleNames()).toEqual(["Lyra", "Kael"]))
+  })
+
+  it("carga más personajes al pulsar Cargar más", async () => {
+    mocks.listCharactersPage.mockReset()
+    mocks.listCharactersPage
+      .mockResolvedValueOnce({
+        characters: [characters[0]],
+        hasMore: true,
+        nextOffset: 60,
+      })
+      .mockResolvedValueOnce({
+        characters: [characters[1]],
+        hasMore: false,
+        nextOffset: null,
+      })
+    mocks.listConversations.mockResolvedValue([])
+
+    renderList()
+
+    expect(await screen.findByText("Lyra")).toBeInTheDocument()
+    expect(screen.queryByText("Kael")).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Cargar más" }))
+
+    expect(await screen.findByText("Kael")).toBeInTheDocument()
   })
 
   it("muestra el error de carga y permite reintentar", async () => {

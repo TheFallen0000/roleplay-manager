@@ -41,6 +41,17 @@ const buildRepo = (
   current = entries,
 ): CharacterSummaryRepository => ({
   listCurrentVersionSummaries: vi.fn(async () => current),
+  listCurrentVersionSummariesPage: vi.fn(
+    async ({ limit, offset }: { limit: number; offset: number }) => {
+      const page = current.slice(offset, offset + limit)
+      const hasMore = offset + limit < current.length
+      return {
+        entries: page,
+        hasMore,
+        nextOffset: hasMore ? offset + limit : null,
+      }
+    },
+  ),
   findCurrentVersionSummaryByCharacterId: vi.fn(
     async () => current[0]?.currentVersion ?? null,
   ),
@@ -98,5 +109,19 @@ describe("ListCharactersUseCase", () => {
     expect(result[0].profileImageDimensions).toEqual({ width: 1200, height: 600 })
     expect(result[0].profileImageMimeType).toBe("image/png")
     expect(assetRepo.findByIds).toHaveBeenCalledWith(["asset-1"])
+  })
+
+  it("returns a page with the next offset", async () => {
+    const useCase = new ListCharactersUseCase(
+      buildRepo(),
+      buildAssetRepo(),
+    )
+
+    const result = await useCase.executePage({ limit: 1, offset: 0 })
+
+    expect(result.characters).toHaveLength(1)
+    expect(result.characters[0].name).toBe("Alpha")
+    expect(result.hasMore).toBe(true)
+    expect(result.nextOffset).toBe(1)
   })
 })
