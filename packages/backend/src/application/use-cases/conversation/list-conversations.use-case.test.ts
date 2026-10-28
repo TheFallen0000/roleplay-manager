@@ -65,6 +65,7 @@ const buildConversationRepo = (
   findById: async () => null,
   findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
+  listByCharacterIds: async () => conversations,
   list: async () => conversations,
   update: async (c) => c,
   updateSettings: async (_id: string, _settings) => conversations[0],
@@ -95,6 +96,11 @@ const buildCharacterRepo = (
   versions: CharacterVersionSummary[] = [currentVersion],
 ): CharacterSummaryRepository => ({
   listCurrentVersionSummaries: vi.fn(async () => current),
+  listCurrentVersionSummariesPage: vi.fn(async ({ limit, offset }) => ({
+    entries: current.slice(offset, offset + limit),
+    hasMore: false,
+    nextOffset: null,
+  })),
   findCurrentVersionSummaryByCharacterId: vi.fn(
     async () => current[0]?.currentVersion ?? null,
   ),

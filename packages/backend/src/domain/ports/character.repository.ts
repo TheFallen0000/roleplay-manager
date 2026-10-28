@@ -20,8 +20,23 @@ export interface CharacterWithCurrentVersionSummary {
   currentVersion: CharacterVersionSummary
 }
 
+export interface CharacterSummaryPageOptions {
+  limit: number
+  offset: number
+}
+
+export interface CharacterSummaryPage {
+  entries: CharacterWithCurrentVersionSummary[]
+  hasMore: boolean
+  nextOffset: number | null
+}
+
 export interface CharacterSummaryRepository {
   listCurrentVersionSummaries(): Promise<CharacterWithCurrentVersionSummary[]>
+
+  listCurrentVersionSummariesPage(
+    options: CharacterSummaryPageOptions,
+  ): Promise<CharacterSummaryPage>
 
   findCurrentVersionSummaryByCharacterId(
     characterId: string,

@@ -170,6 +170,14 @@ const buildConversationRepo = (
           : conversation.versionId === "ver-other",
       )
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
+  listByCharacterIds: async (characterIds: string[]) =>
+    list.filter(
+      (conversation) =>
+        (characterIds.includes("char-1") &&
+          conversation.versionId === "ver-1") ||
+        (characterIds.includes("char-2") &&
+          conversation.versionId === "ver-other"),
+    ),
   update: async (c) => c,
   updateSettings: async () => conversation,
   clearProviderInstanceId: async () => {},
@@ -386,6 +394,7 @@ describe("ExportCharacterUseCase", () => {
         ...buildConversationRepo(),
         list: async () => [otherCharacterConversation],
         listByCharacterId: async () => [],
+        listByCharacterIds: async () => [],
       },
       buildMessageRepo(),
       buildMemoryRepo(),

@@ -46,6 +46,11 @@ const MessagePageQuerySchema = z.object({
     .default(DEFAULT_MESSAGE_PAGE_SIZE),
 })
 
+const ListConversationsQuerySchema = z.object({
+  characterIds: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(1000).optional(),
+})
+
 const SendMessageSchema = z.object({
   content: z.string().min(1, "content is required"),
 })
@@ -141,7 +146,15 @@ export const buildConversationRouter = (deps: {
 
   router.get("/conversations", async (req, res, next) => {
     try {
-      const result = await deps.listConversations.execute()
+      const query = ListConversationsQuerySchema.parse(req.query)
+      const characterIds = query.characterIds
+        ?.split(",")
+        .map((id) => id.trim())
+        .filter(Boolean)
+      const result = await deps.listConversations.execute({
+        characterIds,
+        limit: query.limit,
+      })
       res.json(result)
     } catch (error) {
       next(error)

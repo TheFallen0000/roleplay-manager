@@ -4,15 +4,20 @@ import type { MemoryDTO } from "@workspace/shared/types/memory"
 import type { Memory } from "../../../domain/entities/memory.entity"
 import { turnsSince } from "@workspace/shared/lib/memory-decay"
 
+const DEFAULT_LIST_LIMIT = 500
+
 export class ListMemoriesUseCase {
   constructor(
     private readonly memoryRepository: MemoryRepository,
     private readonly messageRepository: MessageHistoryRepository,
   ) {}
 
-  async execute(conversationId: string): Promise<MemoryDTO[]> {
+  async execute(
+    conversationId: string,
+    limit = DEFAULT_LIST_LIMIT,
+  ): Promise<MemoryDTO[]> {
     const [memories, userMessageTimes] = await Promise.all([
-      this.memoryRepository.findByConversationId(conversationId),
+      this.memoryRepository.findByConversationId(conversationId, limit),
       this.messageRepository.findUserMessageTimes(conversationId),
     ])
     const messageTurns = userMessageTimes.map((createdAt) => ({

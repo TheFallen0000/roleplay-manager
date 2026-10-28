@@ -95,6 +95,7 @@ function buildConversationRepo(): ConversationRepository {
     findById: async () => baseConversation,
     findByIdWithMessages: async () => null,
     listByCharacterId: async () => [],
+    listByCharacterIds: async () => [],
     list: async () => [],
     create: async () => baseConversation,
     update: async () => baseConversation,

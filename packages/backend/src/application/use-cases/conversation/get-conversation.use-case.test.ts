@@ -61,6 +61,7 @@ const buildConversationRepo = (): ConversationRepository => ({
   findById: async (id) => (id === "conv-1" ? conversation : null),
   findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
+  listByCharacterIds: async () => [],
   list: async () => [],
   update: async (c) => c,
   updateSettings: async (_id: string, _settings) => conversation,
@@ -69,6 +70,11 @@ const buildConversationRepo = (): ConversationRepository => ({
 
 const buildCharacterRepo = (): CharacterSummaryRepository => ({
   listCurrentVersionSummaries: async () => [],
+  listCurrentVersionSummariesPage: async () => ({
+    entries: [],
+    hasMore: false,
+    nextOffset: null,
+  }),
   findCurrentVersionSummaryByCharacterId: async () => versionSummary,
   findVersionSummariesByIds: async () => [versionSummary],
 })

@@ -14,8 +14,17 @@ import type { SummaryDTO } from "@workspace/shared/types/summary"
 import { apiRequest, getBaseUrl } from "./client"
 import { getRequestLocale } from "../locale"
 
-export const listConversations = (): Promise<ConversationSummary[]> =>
-  apiRequest("/api/conversations")
+export const listConversations = (
+  options: { characterIds?: string[]; limit?: number } = {},
+): Promise<ConversationSummary[]> => {
+  const params = new URLSearchParams()
+  if (options.characterIds && options.characterIds.length > 0) {
+    params.set("characterIds", options.characterIds.join(","))
+  }
+  if (options.limit !== undefined) params.set("limit", String(options.limit))
+  const query = params.size > 0 ? `?${params.toString()}` : ""
+  return apiRequest(`/api/conversations${query}`)
+}
 
 export const getConversation = (id: string): Promise<ConversationDetail> =>
   apiRequest(`/api/conversations/${id}`)

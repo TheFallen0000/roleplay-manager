@@ -90,6 +90,7 @@ const convRepo: ConversationRepository = {
   },
   findByIdWithMessages: async () => null,
   listByCharacterId: async () => [],
+  listByCharacterIds: async () => [],
   list: async () => [],
   update: async (c) => {
     updatedConv = c

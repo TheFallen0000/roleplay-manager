@@ -20,6 +20,12 @@ export interface CharacterSummary {
   updatedAt: string
 }
 
+export interface CharacterListPage {
+  characters: CharacterSummary[]
+  hasMore: boolean
+  nextOffset: number | null
+}
+
 export interface CharacterDetail {
   id: string
   name: string

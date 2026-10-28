@@ -241,6 +241,25 @@ describe("S90 query performance", () => {
         (conversation) => conversation.id,
       ),
     ).toEqual(["conv1"])
+    expect(
+      (await repository.listByCharacterIds(["c1", "missing"])).map(
+        (conversation) => conversation.id,
+      ),
+    ).toEqual(["conv1"])
     expect(await repository.listByCharacterId("missing")).toEqual([])
+  })
+
+  it("paginates current version summaries", async () => {
+    const repository = new DrizzleCharacterRepository(db)
+
+    const page = await repository.listCurrentVersionSummariesPage({
+      limit: 1,
+      offset: 0,
+    })
+
+    expect(page.entries).toHaveLength(1)
+    expect(page.entries[0].character.id).toBe("c1")
+    expect(page.hasMore).toBe(false)
+    expect(page.nextOffset).toBeNull()
   })
 })

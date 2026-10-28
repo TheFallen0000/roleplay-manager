@@ -41,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   el límite de 500 líneas.
 - **Backups**: solo se copian los assets; la base SQLite en vivo, sus sidecars
   WAL/SHM y los logs quedan fuera. Se conservan los 10 backups más recientes.
+- **Paginación de personajes**: `GET /api/characters` acepta `limit`/`offset` y
+  la home carga por páginas con un botón **Cargar más**.
+- **Listas acotadas**: las conversaciones se filtran por los personajes
+  cargados y se limitan a 500; memorias y resúmenes también se limitan a 500
+  por defecto. Se evita cargar listas sin límite.
 
 ## [1.54.6] - 2026-10-27
 

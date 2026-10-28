@@ -1,5 +1,6 @@
 import type {
   CharacterDetail,
+  CharacterListPage,
   CharacterSummary,
   CreateCharacterInput,
   UpdateCharacterInput,
@@ -20,6 +21,16 @@ import { apiRequest } from "./client"
 
 export const listCharacters = (): Promise<CharacterSummary[]> =>
   apiRequest("/api/characters")
+
+export const listCharactersPage = (
+  options: { limit?: number; offset?: number } = {},
+): Promise<CharacterListPage> => {
+  const params = new URLSearchParams()
+  if (options.limit !== undefined) params.set("limit", String(options.limit))
+  if (options.offset !== undefined) params.set("offset", String(options.offset))
+  const query = params.size > 0 ? `?${params.toString()}` : ""
+  return apiRequest(`/api/characters${query}`)
+}
 
 export const getCharacter = (id: string): Promise<CharacterDetail> =>
   apiRequest(`/api/characters/${id}`)
