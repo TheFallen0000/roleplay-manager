@@ -36,6 +36,10 @@ configura.
 - **El porcentaje no bloquea.** Se avisa en ámbar al 80 % y en rojo al 100 %,
   pero el envío sigue permitido. La validación dura y la compactación llegan
   con S122.
+- **El override manual se respeta.** Si la conversación ya tiene ventana, al
+  abrir Modelo no se vuelve a detectar. Cambiar de modelo limpia el valor
+  anterior y lanza la detección; pulsar Detectar en un proveedor que no la
+  expone no borra el preset manual.
 - **Avisos de configuración.** La tarjeta Modelo avisa si la ventana es menor
   de 8k y si `maxTokens` no deja espacio dentro de la ventana. Los ajustes
   rápidos son 4k, 8k, 16k, 32k y 128k; el campo manual acepta cualquier entero.
@@ -99,7 +103,7 @@ configura.
 
 ## Verificación
 
-- Frontend: **368** tests (63 archivos).
+- Frontend: **369** tests (63 archivos).
 - Backend: **689** tests (117 archivos).
 - `pnpm check` y `pnpm build` en verde.
 - Smoke test con un Ollama falso en `127.0.0.1:39114`: el endpoint devuelve

@@ -133,6 +133,26 @@ describe("ModelSelector context window", () => {
     expect(mocks.getModelContextWindow).not.toHaveBeenCalled()
   })
 
+  it("does not erase a manual preset when the provider cannot detect", async () => {
+    const onChange = vi.fn()
+    renderSelector(
+      {
+        ...current,
+        provider: "openai-compatible",
+        model: "gpt-4o-mini",
+        contextWindow: 8_192,
+      },
+      onChange,
+    )
+
+    await userEvent.click(screen.getByRole("button", { name: "Detect" }))
+
+    expect(mocks.getModelContextWindow).not.toHaveBeenCalled()
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ contextWindow: 8_192 }),
+    )
+  })
+
   it("applies a preset over the detected window", async () => {
     const onChange = vi.fn()
     renderSelector(current, onChange)
