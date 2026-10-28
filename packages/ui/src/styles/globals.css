@@ -516,6 +516,9 @@
   /* Touch platform: no tap flash, no pull-to-refresh, immediate taps and no
      long-press selection on controls. */
   html {
+    /* The root background reaches the canvas, so iOS/Android PWA safe areas
+       match the active theme instead of the browser's white. */
+    background-color: var(--background);
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
     overscroll-behavior: none;

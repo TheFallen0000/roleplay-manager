@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Editor de personaje**: la lista de tarjetas crece con el alto disponible
   de la ventana en pantallas grandes, en lugar de quedarse en un máximo fijo
   de 384 px. En pantallas pequeñas ese valor sigue siendo el mínimo.
+- **PWA**: el fondo del `html` sigue el tema activo, así el área segura
+  inferior de la PWA deja de mostrarse blanca en modo oscuro.
 
 ## [1.55.0] - 2026-10-28
 
