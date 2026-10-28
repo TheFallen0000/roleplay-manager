@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.55.0] - 2026-10-28
+
 ### Changed
 
 - **Prompt del personaje**: declara que la historia es ficción privada, pide
