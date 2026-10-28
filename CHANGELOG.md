@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (`/api/updates/backup`, `/api/lan/enable`, reinicio, rollback, etc.). Se
   validan `Origin` y `Sec-Fetch-Site`, con soporte para el proxy de desarrollo,
   LAN y Tailscale.
+- **CSP del sitio**: cada página publica una CSP con `script-src 'self'` y
+  hashes, incluidos los scripts inline que inyecta Starlight. El bootstrap de
+  tema/idioma es externo y `_headers` añade HSTS y `frame-ancestors 'none'`.
 
 ### Fixed
 
