@@ -190,3 +190,73 @@ describe("OllamaAdapter - tool calling", () => {
     expect(out).toEqual([{ content: "x" }])
   })
 })
+
+describe("OllamaAdapter - context window", () => {
+  let originalFetch: typeof fetch
+
+  beforeEach(() => {
+    originalFetch = globalThis.fetch
+  })
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch
+  })
+
+  const mockShow = (body: Record<string, unknown>, ok = true) => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok,
+      status: ok ? 200 : 500,
+      json: async () => body,
+    })
+    globalThis.fetch = fetchMock as unknown as typeof fetch
+    return fetchMock
+  }
+
+  it("prefers the explicit num_ctx of the model parameters", async () => {
+    const fetchMock = mockShow({
+      parameters: "stop <|im_end|>\nnum_ctx 8192",
+      model_info: { "llama.context_length": 131_072 },
+    })
+
+    expect(await buildAdapter().getModelContextWindow("llama3")).toBe(8192)
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:11434/api/show",
+      expect.objectContaining({ method: "POST" }),
+    )
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      model: "llama3",
+    })
+  })
+
+  it("falls back to the architecture context length", async () => {
+    mockShow({
+      parameters: "",
+      model_info: {
+        "general.architecture": "llama",
+        "llama.context_length": 131_072,
+      },
+    })
+
+    expect(await buildAdapter().getModelContextWindow("llama3")).toBe(131_072)
+  })
+
+  it("returns null when the model does not report a window", async () => {
+    mockShow({ model_info: { "llama.embedding_length": 4096 } })
+
+    expect(await buildAdapter().getModelContextWindow("llama3")).toBeNull()
+  })
+
+  it("returns null when /api/show fails", async () => {
+    mockShow({}, false)
+
+    expect(await buildAdapter().getModelContextWindow("llama3")).toBeNull()
+  })
+
+  it("returns null when the network fails", async () => {
+    globalThis.fetch = vi
+      .fn()
+      .mockRejectedValue(new TypeError("fetch failed")) as unknown as typeof fetch
+
+    expect(await buildAdapter().getModelContextWindow("llama3")).toBeNull()
+  })
+})

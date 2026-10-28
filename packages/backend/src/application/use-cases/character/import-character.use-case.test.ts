@@ -175,6 +175,7 @@ describe("ImportCharacterUseCase", () => {
             providerInstanceId: "inst-1",
             recentMessageCount: 12,
             summaryFrequency: 25,
+            contextWindow: 128000,
             temperature: 0.9,
             maxTokens: 4096,
             topP: 0.8,
