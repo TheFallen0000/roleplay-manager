@@ -35,6 +35,8 @@ export interface ConversationDetail {
   providerInstanceId: string | null
   recentMessageCount: number
   summaryFrequency: number
+  /** Model context window in tokens; null when unknown. */
+  contextWindow: number | null
   temperature: number | null
   maxTokens: number | null
   topP: number | null
@@ -81,6 +83,7 @@ export interface ConversationSettingsUpdate {
   providerInstanceId?: string | null
   recentMessageCount?: number
   summaryFrequency?: number
+  contextWindow?: number | null
   temperature?: number
   maxTokens?: number
   topP?: number

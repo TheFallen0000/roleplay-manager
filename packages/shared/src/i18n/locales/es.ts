@@ -317,6 +317,29 @@ export const es: Dictionary = {
     previewSend: "Enviar",
     previewLoading: "Cargando contexto...",
     previewEmpty: "No hay contexto disponible.",
+    previewTokensTitle: "Uso del contexto",
+    previewTokensSystem: "Sistema",
+    previewTokensMessages: "Mensajes",
+    previewTokensOutput: "Reserva de respuesta",
+    previewTokensTotal: "Total",
+    previewTokensOfWindow: "{used} de {window} tokens ({percent}%)",
+    previewTokensNoWindow: "{used} tokens · ventana desconocida",
+    previewTokensEstimated: "Estimado con una heurística conservadora.",
+    contextUsageBadgeAria:
+      "Contexto estimado: {used} de {window} tokens ({percent}%)",
+    contextUsageBadgeAriaUnknown:
+      "Contexto estimado: {used} tokens. Ventana de contexto desconocida.",
+    contextUsageBreakdown: "{used} de {window} tokens ({percent}%)",
+    contextUsageUsed: "{used} tokens en uso",
+    contextUsageUnknown: "Ventana de contexto desconocida",
+    contextUsageReserve: "Reserva para la respuesta: {count} tokens",
+    contextUsageDraft: "Incluye {count} tokens de tu borrador",
+    contextUsageEstimated:
+      "Recuento estimado; el valor exacto depende del tokenizador del modelo.",
+    contextUsageWarning:
+      "El contexto está casi lleno. La próxima respuesta podría cortarse.",
+    contextUsageNoWindow:
+      "Configura la ventana de contexto en Modelo para ver el porcentaje.",
   },
   settings: {
     menuHistory: "Historia",
@@ -360,6 +383,26 @@ export const es: Dictionary = {
     presencePenaltyHint: "Penaliza introducir nuevos tokens",
     maxTokens: "Max tokens",
     maxTokensHint: "Límite máximo de tokens en la respuesta.",
+    contextWindowTitle: "Ventana de contexto",
+    contextWindowDescription:
+      "Tokens que el modelo puede leer y escribir. En Ollama se detecta automáticamente; en otros proveedores se elige un valor manual.",
+    contextWindowLabel: "Ventana (tokens)",
+    contextWindowPlaceholder: "Desconocida",
+    contextWindowAuto: "Detectar",
+    contextWindowDetecting: "Detectando…",
+    contextWindowDetected: "Ventana de contexto detectada: {count} tokens",
+    contextWindowDetectEmpty:
+      "El proveedor no informó una ventana. Configúrala manualmente.",
+    contextWindowDetectFailed: "No se pudo detectar la ventana de contexto",
+    contextWindowHint:
+      "El indicador de uso y los avisos usan este valor. El límite de respuesta (max tokens) cuenta dentro de la ventana.",
+    contextWindowSmallWarning:
+      "Ventana pequeña: una conversación larga la llenará rápido.",
+    contextWindowUnknownWarning:
+      "Sin ventana configurada: el indicador no puede mostrar un porcentaje.",
+    contextWindowMaxTokensWarning:
+      "El límite de respuesta ({maxTokens} tokens) no deja espacio dentro de la ventana de {window} tokens.",
+    contextWindowPresets: "Ajustes rápidos",
     stopSequences: "Stop sequences",
     stopSequencesPlaceholder: "coma, separada, ...",
     stopSequencesHint: "Separadas por coma",

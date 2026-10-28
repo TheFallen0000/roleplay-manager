@@ -11,6 +11,18 @@ export interface PromptContextMetadataDTO {
   recentMessageCount: number
   totalContextMessages: number
   totalCharacters: number
+  /** Estimated tokens of the system prompt. */
+  systemTokens: number
+  /** Estimated tokens of the message window (including the pending message). */
+  messageTokens: number
+  /** systemTokens + messageTokens. */
+  inputTokens: number
+  /** Tokens reserved for the reply. */
+  outputReserve: number
+  /** inputTokens + outputReserve. */
+  totalTokens: number
+  contextWindow: number | null
+  contextPercent: number | null
 }
 
 export interface PromptContextDTO {
