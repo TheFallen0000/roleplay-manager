@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   idioma de la conversación. UPDATE conserva los campos omitidos y DELETE
   solo necesita el id; las propuestas inválidas se descartan individualmente
   y el bloque de respaldo se limpia aunque haya tool calling.
+- **Propuestas de memoria (UI)**: las UPDATE muestran un diff contra la
+  memoria actual y desaconsejan aceptar cambios vacíos; las DELETE muestran
+  la memoria que se borrará y piden confirmación, también al usar **Aceptar
+  todo**. Se añaden la leyenda de prioridad, las etiquetas Crear/Actualizar/
+  Eliminar y la validación del formulario de edición.
 
 ## [1.54.9] - 2026-10-27
 
