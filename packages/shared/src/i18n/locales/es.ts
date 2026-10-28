@@ -930,6 +930,27 @@ export const es: Dictionary = {
     noResults: "Ninguna memoria coincide con la búsqueda.",
     badgeCharacter: "Personaje",
     badgeYou: "Tú",
+    proposalOperationCreate: "Crear",
+    proposalOperationUpdate: "Actualizar",
+    proposalOperationDelete: "Eliminar",
+    priorityHelp:
+      "1-3 detalle menor · 4-6 hecho relevante · 7-9 cambio importante · 10 hecho definitorio",
+    proposalCurrent: "Memoria actual",
+    proposalNoChanges: "Esta propuesta no cambia ningún campo.",
+    proposalTargetMissing:
+      "La memoria objetivo ya no existe. Descarta esta propuesta.",
+    proposalDeleteTarget: "Esta memoria se eliminará",
+    proposalDeleteTitle: "¿Eliminar memoria?",
+    proposalDeleteDescription:
+      "Esta propuesta eliminará permanentemente la memoria de abajo.",
+    proposalDeleteConfirm: "Eliminar memoria",
+    proposalAcceptAllTitle: "¿Aceptar todas las propuestas?",
+    proposalAcceptAllDescription:
+      "Se aplicarán {count} propuestas. Eliminaciones: {deletes}.",
+    proposalAcceptAllWithDeletes: "Se eliminarán las siguientes memorias:",
+    proposalInvalidFields: "El actor y el título son obligatorios.",
+    proposalInvalidPriority:
+      "La prioridad debe ser un entero entre 1 y 10.",
   },
   logs: {
     title: "Registro",

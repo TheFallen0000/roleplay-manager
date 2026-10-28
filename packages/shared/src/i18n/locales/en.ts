@@ -923,6 +923,27 @@ export const en = {
     noResults: "No memories match the search.",
     badgeCharacter: "Character",
     badgeYou: "You",
+    proposalOperationCreate: "Create",
+    proposalOperationUpdate: "Update",
+    proposalOperationDelete: "Delete",
+    priorityHelp:
+      "1-3 minor detail · 4-6 relevant fact · 7-9 important change · 10 defining fact",
+    proposalCurrent: "Current memory",
+    proposalNoChanges: "This proposal does not change any field.",
+    proposalTargetMissing:
+      "The target memory no longer exists. Discard this proposal.",
+    proposalDeleteTarget: "This memory will be deleted",
+    proposalDeleteTitle: "Delete memory?",
+    proposalDeleteDescription:
+      "This proposal will permanently delete the memory below.",
+    proposalDeleteConfirm: "Delete memory",
+    proposalAcceptAllTitle: "Accept all proposals?",
+    proposalAcceptAllDescription:
+      "This will apply {count} proposals. Deletions: {deletes}.",
+    proposalAcceptAllWithDeletes: "The following memories will be deleted:",
+    proposalInvalidFields: "Actor and title are required.",
+    proposalInvalidPriority:
+      "Priority must be an integer between 1 and 10.",
   },
   logs: {
     title: "Logs",
