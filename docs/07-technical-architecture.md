@@ -375,6 +375,10 @@ Cada controlador obtiene los casos de uso que necesita desde el contenedor y los
 
 ## API REST
 
+El contrato detallado para consumidores externos (payloads, SSE y
+límites de confianza) vive en `13-api-contract.md`. Esta tabla es el mapa de
+rutas del backend.
+
 | Método | Ruta | Caso de uso | Notas |
 |---|---|---|---|---|
 | `POST` | `/api/characters` | CreateCharacter | |
@@ -389,10 +393,12 @@ Cada controlador obtiene los casos de uso que necesita desde el contenedor y los
 | `GET` | `/api/conversations` | — (listado) | Filtrable por estado activo/archivado |
 | `GET` | `/api/conversations/:id` | — (consulta) | |
 | `GET` | `/api/conversations/:id/context` | — (previsualización) | Devuelve el `PromptContext` sin invocar al proveedor |
+| `GET` | `/api/conversations/:id/context/stats` | — (previsualización) | Metadatos y estimación de tokens |
 | `POST` | `/api/conversations/:id/messages` | SendMessage | Respuesta por SSE |
 | `GET` | `/api/conversations/:id/messages` | — (consulta) | |
 | `PUT` | `/api/conversations/:id/messages/:messageId` | EditMessage | |
-| `POST` | `/api/conversations/:id/regenerate` | RegenerateReply | Respuesta por SSE |
+| `POST` | `/api/conversations/:id/continue` | ContinueConversation | Respuesta por SSE |
+| `POST` | `/api/conversations/:id/messages/:messageId/regenerate` | RegenerateReply | Respuesta por SSE |
 | `POST` | `/api/conversations/:id/rewind` | RewindConversation | |
 | `POST` | `/api/conversations/:id/title` | GenerateConversationTitle | Genera/aplica título automáticamente |
 | `PATCH` | `/api/conversations/:id/settings` | UpdateConversationSettings | |
@@ -405,11 +411,13 @@ Cada controlador obtiene los casos de uso que necesita desde el contenedor y los
 | `GET` | `/api/conversations/:id/memories/proposals` | — (consulta) | |
 | `POST` | `/api/conversations/:id/memories/proposals/:proposalId/apply` | ApplyMemoryChanges | |
 | `GET` | `/api/conversations/:id/summaries` | — (consulta) | |
+| `POST` | `/api/conversations/:id/summaries/generate` | GenerateSummary | Resumen manual |
 | `PUT` | `/api/conversations/:id/summaries/:summaryId` | UpdateSummary | Edición manual de resumen |
 | `DELETE` | `/api/conversations/:id/summaries/:summaryId` | DeleteSummary | Eliminación manual de resumen |
 | `GET` | `/api/providers` | — (lista proveedores disponibles) | |
 | `GET` | `/api/providers/:id/status` | ValidateProviderConnection | Verifica que el proveedor esté accesible; no modifica estado |
 | `GET` | `/api/providers/:id/models` | ListProviderModels | Lista modelos disponibles; vacío con `manualEntryRequired` si no soporta descubrimiento |
+| `GET` | `/api/providers/:id/model-context` | GetProviderModelContext | Ventana de contexto detectada para un modelo |
 | `GET` | `/api/settings/default-provider` | — (consulta proveedor por defecto) | |
 | `PUT` | `/api/settings/default-provider` | ConfigureDefaultProvider | Establece proveedor y modelo por defecto |
 
@@ -602,6 +610,10 @@ El flujo es:
 3. El frontend muestra los fragmentos en tiempo real en la interfaz de chat.
 4. Al completarse, el frontend recibe el mensaje completo y actualiza la UI.
 
+Los eventos (`saved`, `compacting`, `context-warning`, `summary-generated`,
+`chunk`, `done`, `title-generated`, `error`), sus payloads y el orden que debe
+esperar un consumidor externo están en `13-api-contract.md`.
+
 ### Estado y reactividad
 
 La gestión de estado del frontend se basa en **Zustand**.
@@ -711,7 +723,7 @@ Este enfoque prioriza la transparencia: el usuario entiende qué ocurrió, retie
 
 ### Streaming de proveedores
 
-El adaptador de cada proveedor implementa tanto generación completa como streaming. El caso de uso `GenerateCharacterResponse` delega en el adaptador y, si el proveedor lo soporta, entrega fragmentos al controlador HTTP, que los transmite al frontend mediante **SSE**.
+El adaptador de cada proveedor implementa tanto generación completa como streaming. El `ChatEngine` resuelve el adaptador y delega en él; si el proveedor lo soporta, entrega fragmentos al controlador HTTP, que los transmite al frontend mediante **SSE**.
 
 Si el proveedor no soporta streaming, el adaptador entrega la respuesta completa de una sola vez; el controlador HTTP aún la transmite por SSE en un único evento, manteniendo un único mecanismo de transporte hacia el frontend independientemente del proveedor.
 

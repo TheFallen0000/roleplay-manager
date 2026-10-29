@@ -119,4 +119,34 @@ describe("conversation messages route", () => {
     expect(text).toContain("SUMMARY_FAILED_TRIMMED")
     expect(text).toContain("event: done")
   })
+
+  it("wraps the continue done message in the shared envelope", async () => {
+    const execute = vi.fn(async function* () {
+      yield {
+        type: "done",
+        message: {
+          id: "msg-2",
+          conversationId: "conv-1",
+          role: "assistant",
+          content: "Hi",
+          position: 2,
+          alternatives: [],
+          alternativesCursor: 0,
+          createdAt: "2026-10-28T00:00:00.000Z",
+          editedAt: null,
+        },
+      }
+    })
+    const baseUrl = await startServer(vi.fn(), {
+      continueConversation: { execute },
+    })
+
+    const response = await fetch(`${baseUrl}/conversations/conv-1/continue`, {
+      method: "POST",
+    })
+    const text = await response.text()
+
+    expect(response.status).toBe(200)
+    expect(text).toContain('data: {"message":{"id":"msg-2"')
+  })
 })

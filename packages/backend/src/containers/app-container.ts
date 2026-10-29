@@ -124,6 +124,7 @@ import { GetPromptContextUseCase } from "../application/use-cases/conversation/g
 import { ListSummariesUseCase } from "../application/use-cases/summary/list-summaries.use-case"
 import { GenerateSummaryUseCase } from "../application/use-cases/summary/generate-summary.use-case"
 import { ContextCompactionService } from "../application/services/context-compaction.service"
+import { ChatEngine } from "../application/services/chat-engine.service"
 import { UpdateSummaryUseCase } from "../application/use-cases/summary/update-summary.use-case"
 import { DeleteSummaryUseCase } from "../application/use-cases/summary/delete-summary.use-case"
 import { ListProviderInstancesUseCase } from "../application/use-cases/provider/list-provider-instances.use-case"
@@ -232,6 +233,7 @@ export interface AppContainer {
   listSummaries: ListSummariesUseCase
   generateSummary: GenerateSummaryUseCase
   contextCompaction: ContextCompactionService
+  chatEngine: ChatEngine
   updateSummary: UpdateSummaryUseCase
   deleteSummary: DeleteSummaryUseCase
 
@@ -445,6 +447,24 @@ export const buildContainer = ({
     logger,
   )
 
+  const chatEngine = new ChatEngine({
+    messageRepository,
+    messageHistoryRepository: messageRepository,
+    characterRepository,
+    memoryRepository,
+    memoryChangeProposalRepository,
+    summaryRepository,
+    playerCharacterRepository,
+    promptContextBuilder,
+    contextCompaction,
+    providerRegistry,
+    providerInstanceRepository,
+    getDefaultProvider,
+    applyAllMemoryChanges,
+    generateConversationTitle,
+    logger,
+  })
+
   const sendMessage = new SendMessageUseCase(
     conversationRepository,
     messageRepository,
@@ -463,6 +483,7 @@ export const buildContainer = ({
     contextCompaction,
     generateConversationTitle,
     decayMemories,
+    chatEngine,
   )
 
   const regenerateReply = new RegenerateReplyUseCase(
@@ -482,6 +503,7 @@ export const buildContainer = ({
     summaryRepository,
     contextCompaction,
     generateConversationTitle,
+    chatEngine,
   )
 
   const continueConversation = new ContinueConversationUseCase(
@@ -501,6 +523,7 @@ export const buildContainer = ({
     summaryRepository,
     contextCompaction,
     generateConversationTitle,
+    chatEngine,
   )
 
   const updateConversationSettings = new UpdateConversationSettingsUseCase(
@@ -582,6 +605,7 @@ export const buildContainer = ({
     listSummaries: new ListSummariesUseCase(summaryRepository),
     generateSummary,
     contextCompaction,
+    chatEngine,
     updateSummary: new UpdateSummaryUseCase(summaryRepository),
     deleteSummary: new DeleteSummaryUseCase(summaryRepository),
     createCharacter: new CreateCharacterUseCase(characterRepository),

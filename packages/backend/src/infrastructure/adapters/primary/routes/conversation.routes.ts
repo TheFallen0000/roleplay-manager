@@ -324,7 +324,7 @@ export const buildConversationRouter = (deps: {
               break
             }
             case "done": {
-              res.write(`event: done\ndata: ${JSON.stringify(event.message)}\n\n`)
+              res.write(`event: done\ndata: ${JSON.stringify({ message: event.message })}\n\n`)
               break
             }
             case "compacting": {
@@ -414,7 +414,7 @@ export const buildConversationRouter = (deps: {
               break
             }
             case "done": {
-              res.write(`event: done\ndata: ${JSON.stringify(event.message)}\n\n`)
+              res.write(`event: done\ndata: ${JSON.stringify({ message: event.message })}\n\n`)
               break
             }
             case "compacting": {

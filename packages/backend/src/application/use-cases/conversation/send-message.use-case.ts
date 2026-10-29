@@ -1,8 +1,6 @@
 import { v7 as randomUUIDv7 } from "uuid"
 
-import type { DefaultProviderConfig, ProviderId } from "@workspace/shared/types/provider"
 import type { MessageDTO } from "@workspace/shared/types/message"
-import type { SummaryDTO } from "@workspace/shared/types/summary"
 import type { TitleSource } from "@workspace/shared/types/conversation"
 
 import { Message } from "../../../domain/entities/message.entity"
@@ -17,35 +15,35 @@ import type { MemoryChangeProposalRepository } from "../../../domain/ports/memor
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { GenerateConversationTitleUseCase } from "./generate-conversation-title.use-case"
 import type { ContextCompactionService } from "../../services/context-compaction.service"
+import { ChatEngine } from "../../services/chat-engine.service"
+import type {
+  CompactingEvent,
+  ContextWarningEvent,
+  StreamChunkEvent,
+  StreamErrorEvent,
+  SummaryGeneratedEvent,
+  TitleGeneratedEvent,
+} from "../../services/chat-events"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
-import { resolvePlayerCharacterPrompt } from "./resolve-player-character"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { ProviderRegistry } from "../../../domain/ports/provider.port"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { ApplyAllMemoryChangesUseCase } from "../memory/apply-all-memory-changes.use-case"
 import type { DecayConversationMemoryUseCase } from "../memory/decay-conversation-memory.use-case"
-import { extractProposals, createCleanStream, type CleanStreamState } from "../../../lib/memory-proposal-extractor"
-import { normalizeProposals } from "../../../lib/normalize-proposals"
-import { saveMemoryProposals } from "../../../lib/save-memory-proposals"
-import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
-import { loadMessagesAfterSummary } from "./load-messages-after-summary"
-import { propagateToolCalls, type ToolCallState } from "../../../lib/propagate-tool-calls"
-import {
-  mentionsEmojis,
-  normalizeAssistantReply,
-  normalizeUserContent,
-} from "../../../lib/reply-format"
-import {
-  accumulateToolCallDeltas,
-  buildProposeMemoryChangesTool,
-  toolCallsToRawProposals,
-} from "../../../lib/propose-memory-changes.tool"
-import {
-  ConversationNotFoundError,
-} from "../../../domain/errors"
+import { normalizeUserContent } from "../../../lib/reply-format"
+import { ConversationNotFoundError } from "../../../domain/errors"
 import type { Locale } from "@workspace/shared/i18n"
+
+export type {
+  CompactingEvent,
+  ContextWarningEvent,
+  StreamChunkEvent,
+  StreamErrorEvent,
+  SummaryGeneratedEvent,
+  TitleGeneratedEvent,
+} from "../../services/chat-events"
 
 export interface SendMessageInput {
   conversationId: string
@@ -59,41 +57,11 @@ export interface SendMessageEvents {
   message: MessageDTO
 }
 
-export interface StreamChunkEvent {
-  type: "chunk"
-  content: string
-}
-
 export interface StreamDoneEvent {
   type: "done"
   message: MessageDTO
   title?: string
   titleSource?: TitleSource
-}
-
-export interface SummaryGeneratedEvent {
-  type: "summary-generated"
-  summary: SummaryDTO
-}
-
-export interface CompactingEvent {
-  type: "compacting"
-}
-
-export interface ContextWarningEvent {
-  type: "context-warning"
-  warning: { code: string; message: string }
-}
-
-export interface TitleGeneratedEvent {
-  type: "title-generated"
-  title: string
-  titleSource: TitleSource
-}
-
-export interface StreamErrorEvent {
-  type: "error"
-  error: { code: string; message: string }
 }
 
 export type SendMessageEvent =
@@ -107,6 +75,8 @@ export type SendMessageEvent =
   | ContextWarningEvent
 
 export class SendMessageUseCase {
+  private readonly chatEngine: ChatEngine
+
   constructor(
     private readonly conversationRepository: ConversationRepository,
     private readonly messageRepository: MessageRepository,
@@ -125,7 +95,28 @@ export class SendMessageUseCase {
     private readonly contextCompaction: ContextCompactionService,
     private readonly generateConversationTitle: GenerateConversationTitleUseCase,
     private readonly decayMemories: DecayConversationMemoryUseCase,
-  ) {}
+    chatEngine?: ChatEngine,
+  ) {
+    this.chatEngine =
+      chatEngine ??
+      new ChatEngine({
+        messageRepository,
+        messageHistoryRepository,
+        characterRepository,
+        memoryRepository,
+        memoryChangeProposalRepository,
+        summaryRepository,
+        playerCharacterRepository,
+        promptContextBuilder,
+        contextCompaction,
+        providerRegistry,
+        providerInstanceRepository,
+        getDefaultProvider,
+        applyAllMemoryChanges,
+        generateConversationTitle,
+        logger,
+      })
+  }
 
   async *execute(input: SendMessageInput): AsyncGenerator<SendMessageEvent> {
     const conversation = await this.conversationRepository.findById(
@@ -135,9 +126,6 @@ export class SendMessageUseCase {
       throw new ConversationNotFoundError(input.conversationId)
     }
 
-    const latestSummary = await this.summaryRepository.findLatestByConversationId(
-      input.conversationId,
-    )
     const maxPosition = await this.messageHistoryRepository.findMaxPosition(
       input.conversationId,
     )
@@ -154,13 +142,6 @@ export class SendMessageUseCase {
       const accepted = lastMsg.accept()
       await this.messageRepository.update(accepted)
     }
-
-    const messagesAfterSummary = await loadMessagesAfterSummary({
-      conversationId: input.conversationId,
-      summary: latestSummary,
-      messageHistoryRepository: this.messageHistoryRepository,
-      messageRepository: this.messageRepository,
-    })
 
     const userMessage = Message.create({
       id: randomUUIDv7(),
@@ -180,226 +161,25 @@ export class SendMessageUseCase {
       message: toMessageDTO(userMessage),
     }
 
-    const version = await this.characterRepository.findVersionById(
-      conversation.versionId,
-    )
-    if (!version) {
-      yield {
-        type: "error",
-        error: {
-          code: "CHARACTER_VERSION_NOT_FOUND",
-          message: `Character version '${conversation.versionId}' not found.`,
-        },
-      }
-      return
-    }
-
-    const characterResult = await this.characterRepository.findById(
-      version.characterId,
-    )
-    if (!characterResult) {
-      yield {
-        type: "error",
-        error: {
-          code: "CHARACTER_NOT_FOUND",
-          message: `Character '${version.characterId}' not found.`,
-        },
-      }
-      return
-    }
-
-    const contextMessages = [...messagesAfterSummary, userMessage]
-
-    const memories = await this.memoryRepository.findByConversationId(
-      input.conversationId,
-    )
-    const memoryTurns = (
-      await this.messageHistoryRepository.findUserMessageTimes(input.conversationId)
-    ).map((createdAt) => ({ role: "user", createdAt }))
-
-    const playerCharacter = await resolvePlayerCharacterPrompt(
-      this.playerCharacterRepository,
+    const prepared = yield* this.chatEngine.prepareContext({
       conversation,
-    )
-    const promptMemories = filterMemoriesForPrompt(
-      conversation,
-      memories,
-      memoryTurns,
-    )
-
-    let contextMessagesForPrompt = contextMessages
-    let contextSummary = latestSummary
-    let compactedSummary: SummaryDTO | undefined
-    const compactionInput = {
-      conversation,
-      characterVersion: characterResult.currentVersion,
-      messages: contextMessages,
-      memories: promptMemories,
-      playerCharacter,
-      latestSummary,
+      pendingMessages: [userMessage],
       locale: input.locale,
-    }
-    if (await this.contextCompaction.needsCompaction(compactionInput)) {
-      yield { type: "compacting" }
-      const compaction = await this.contextCompaction.compact(compactionInput)
-      if (!compaction.ok) {
-        yield { type: "error", error: compaction.error }
-        return
-      }
-      if (compaction.warning) {
-        yield { type: "context-warning", warning: compaction.warning }
-      }
-      if (compaction.summaryGenerated) {
-        compactedSummary = compaction.summaryGenerated
-        yield { type: "summary-generated", summary: compaction.summaryGenerated }
-      }
-      contextMessagesForPrompt = compaction.messages
-      contextSummary = compaction.summary
-    }
-
-    const context = await this.promptContextBuilder.build({
-      characterVersion: characterResult.currentVersion,
-      messages: contextMessagesForPrompt,
-      recentMessageCount: contextMessagesForPrompt.length,
-      memories: promptMemories,
-      summary: contextSummary ?? undefined,
-      playerCharacter,
-      locale: input.locale,
-      enableMemoryProposalTool: true,
-      filterOocFromHistory: true,
     })
-
-    let providerId = conversation.provider as ProviderId | null
-    let providerInstanceId = conversation.providerInstanceId
-    let resolvedModel = conversation.model
-    if (!providerId) {
-      const defaultConfig: DefaultProviderConfig =
-        await this.getDefaultProvider.execute()
-      providerId = defaultConfig.provider
-      providerInstanceId = defaultConfig.providerInstanceId
-      resolvedModel ??= defaultConfig.models[providerId as ProviderId] ?? null
-    }
-    if (!providerId) {
-      yield {
-        type: "error",
-        error: {
-          code: "PROVIDER_NOT_CONFIGURED",
-          message: "No se ha configurado un proveedor por defecto.",
-        },
-      }
+    if (!prepared.ok) {
+      yield { type: "error", error: prepared.error }
       return
     }
 
-    let adapter = null
-    if (providerInstanceId) {
-      const instance = await this.providerInstanceRepository.findById(
-        providerInstanceId,
-      )
-      if (instance) {
-        adapter = this.providerRegistry.createAdapter(instance)
-      }
-    }
-    if (!adapter) {
-      adapter = await this.providerRegistry.getAdapter(providerId)
-    }
-    if (!adapter) {
-      yield {
-        type: "error",
-        error: {
-          code: "PROVIDER_NOT_CONFIGURED",
-          message: `Provider '${providerId}' is not configured.`,
-        },
-      }
-      return
-    }
-
-    const model = resolvedModel ?? undefined
-    const cleanState: CleanStreamState = { fullContent: "" }
-    const toolCallState: ToolCallState = { deltas: [] }
-    const tools = [buildProposeMemoryChangesTool()]
-
-    try {
-      for await (const chunk of createCleanStream(
-        propagateToolCalls(
-          adapter.generateStreaming(context, {
-            model,
-            temperature: conversation.temperature,
-            maxTokens: conversation.maxTokens,
-            topP: conversation.topP,
-            frequencyPenalty: conversation.frequencyPenalty,
-            presencePenalty: conversation.presencePenalty,
-            stopSequences: conversation.stopSequences,
-            tools,
-          }),
-          toolCallState,
-        ),
-        cleanState,
-      )) {
-        yield { type: "chunk", content: chunk.content }
-      }
-    } catch (error) {
-      this.logger.error("Streaming failed", error as Error, {
-        conversationId: input.conversationId,
-      })
-      yield {
-        type: "error",
-        error: {
-          code: "STREAMING_FAILED",
-          message: (error as Error).message,
-        },
-      }
-      return
-    }
-
-    const fallback = extractProposals(cleanState.fullContent)
-    const cleanedContent = fallback.cleanedContent
-    const toolProposals =
-      toolCallState.deltas.length > 0
-        ? toolCallsToRawProposals(accumulateToolCallDeltas(toolCallState.deltas))
-        : []
-    const { proposals, dropped } = normalizeProposals(
-      toolProposals.length > 0 ? toolProposals : fallback.proposals,
-      memories,
-    )
-    if (fallback.foundBlock && fallback.proposals.length === 0) {
-      // The block was stripped but nothing could be read: keep a sample so a
-      // model drifting on the format can be diagnosed.
-      this.logger.warn("Memory proposal block could not be parsed", {
-        conversationId: input.conversationId,
-        sample: cleanState.fullContent.slice(0, 500),
-      })
-    }
-    if (dropped > 0) {
-      this.logger.warn("Dropped invalid memory proposals", {
-        conversationId: input.conversationId,
-        dropped,
-      })
-    }
-
-    const normalizedContent = normalizeAssistantReply(cleanedContent, {
-      allowEmojis: mentionsEmojis(characterResult.currentVersion.instructions),
+    const reply = yield* this.chatEngine.streamReply({
+      conversation,
+      context: prepared.context,
+      characterVersion: prepared.characterVersion,
+      memories: prepared.memories,
+      operation: "send",
     })
-
-    if (!normalizedContent) {
-      await saveMemoryProposals(
-        this.memoryChangeProposalRepository,
-        input.conversationId,
-        proposals,
-        this.logger,
-      )
-      if (proposals.length > 0) {
-        this.logger.warn("Empty response with memory proposals", {
-          conversationId: input.conversationId,
-          count: proposals.length,
-        })
-      }
-      yield {
-        type: "error",
-        error: {
-          code: "EMPTY_RESPONSE",
-          message: "The provider returned an empty response.",
-        },
-      }
+    if (!reply.ok) {
+      yield { type: "error", error: reply.error }
       return
     }
 
@@ -407,7 +187,7 @@ export class SendMessageUseCase {
       id: randomUUIDv7(),
       conversationId: input.conversationId,
       role: "assistant",
-      content: normalizedContent,
+      content: reply.content,
       position: nextPosition + 1,
       alternatives: [],
       alternativesCursor: 0,
@@ -416,47 +196,18 @@ export class SendMessageUseCase {
     })
     await this.messageRepository.create(assistantMessage)
 
-    let title: string | undefined
-    let titleSource: TitleSource | undefined
-    if (conversation.title === null) {
-      try {
-        const result = await this.generateConversationTitle.execute(
-          input.conversationId,
-        )
-        title = result.title
-        titleSource = result.titleSource
-      } catch (error) {
-        this.logger.error(
-          "Failed to generate conversation title",
-          error as Error,
-          { conversationId: input.conversationId },
-        )
-      }
-    }
-
-    await saveMemoryProposals(
-      this.memoryChangeProposalRepository,
-      input.conversationId,
-      proposals,
-      this.logger,
+    const ensuredTitle = await this.chatEngine.ensureTitle(conversation)
+    await this.chatEngine.applyMemoryProposals(
+      conversation,
+      reply.proposals,
     )
 
-    if (conversation.memoryProposalMode === "auto" && proposals.length > 0) {
-      try {
-        await this.applyAllMemoryChanges.execute({
-          conversationId: input.conversationId,
-          processedBy: "system",
-        })
-      } catch (error) {
-        this.logger.error(
-          "Failed to auto-apply memory proposals",
-          error as Error,
-          { conversationId: input.conversationId },
-        )
-      }
+    yield {
+      type: "done",
+      message: toMessageDTO(assistantMessage),
+      title: ensuredTitle?.title,
+      titleSource: ensuredTitle?.titleSource,
     }
-
-    yield { type: "done", message: toMessageDTO(assistantMessage), title, titleSource }
 
     if (conversation.memoryDecayMode === "silent") {
       try {
@@ -472,25 +223,17 @@ export class SendMessageUseCase {
       }
     }
 
-    if (compactedSummary && !title) {
-      try {
-        const titleResult = await this.generateConversationTitle.execute(
-          input.conversationId,
-          { locale: input.locale },
-        )
-        if (titleResult.title !== conversation.title) {
-          yield {
-            type: "title-generated",
-            title: titleResult.title,
-            titleSource: "auto",
-          }
+    if (prepared.compactionSummary && !ensuredTitle) {
+      const refreshedTitle = await this.chatEngine.refreshTitle(
+        conversation,
+        input.locale,
+      )
+      if (refreshedTitle) {
+        yield {
+          type: "title-generated",
+          title: refreshedTitle.title,
+          titleSource: refreshedTitle.titleSource,
         }
-      } catch (titleError) {
-        this.logger.error(
-          "Failed to regenerate conversation title",
-          titleError as Error,
-          { conversationId: input.conversationId },
-        )
       }
     }
   }
