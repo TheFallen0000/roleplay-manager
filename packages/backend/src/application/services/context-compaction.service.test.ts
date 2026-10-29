@@ -7,6 +7,7 @@ import type { GenerateSummaryUseCase } from "../use-cases/summary/generate-summa
 import { Conversation } from "../../domain/entities/conversation.entity"
 import { CharacterVersion } from "../../domain/entities/character-version.entity"
 import { Message } from "../../domain/entities/message.entity"
+import { Summary } from "../../domain/entities/summary.entity"
 import type { PromptContextBuilder } from "../../domain/ports/prompt-context-builder"
 import type { Logger } from "../../domain/ports/logger.port"
 
@@ -167,6 +168,122 @@ describe("ContextCompactionService", () => {
       upToMessageId: "msg-7",
       maxTokens: 256,
     })
+  })
+
+  it("shrinks the summary and the output reserve instead of failing", async () => {
+    const execute = vi.fn(async () => ({
+      summary: { ...summaryDTO, content: "short" },
+    }))
+    const summaryUseCase = { execute } as unknown as GenerateSummaryUseCase
+    const service = new ContextCompactionService(
+      builder(500),
+      summaryUseCase,
+      logger,
+    )
+
+    const result = await service.compact({
+      conversation: conversation({ contextWindow: 2_000, maxTokens: 1_200 }),
+      characterVersion: version,
+      messages: messages(3),
+      memories: [],
+      latestSummary: null,
+      locale: "en",
+    })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outputTokens).toBe(1_173)
+    expect(result.warning?.code).toBe("OUTPUT_REDUCED")
+    expect(execute).toHaveBeenCalledWith("conv-1", {
+      locale: "en",
+      upToMessageId: "msg-1",
+      maxTokens: 128,
+    })
+  })
+
+  it("reduces the output reserve instead of failing when there is no prefix", async () => {
+    const latestSummary = Summary.reconstruct({
+      ...summaryDTO,
+      content: "previous",
+      lastMessageId: "msg-0",
+      createdAt: now,
+      editedAt: null,
+    })
+    const service = buildService()
+
+    const result = await service.compact({
+      conversation: conversation({ maxTokens: 900 }),
+      characterVersion: version,
+      messages: messages(2),
+      memories: [],
+      latestSummary,
+      locale: "en",
+    })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.summaryGenerated).toBeNull()
+    expect(result.outputTokens).toBe(332)
+    expect(result.warning?.code).toBe("OUTPUT_REDUCED")
+    expect(result.messages).toHaveLength(2)
+  })
+
+  it("forces a manual compaction and keeps only the newest messages", async () => {
+    const execute = vi.fn(async () => ({ summary: summaryDTO }))
+    const summaryUseCase = { execute } as unknown as GenerateSummaryUseCase
+    const service = new ContextCompactionService(
+      builder(),
+      summaryUseCase,
+      logger,
+    )
+
+    const result = await service.compact(
+      {
+        conversation: conversation(),
+        characterVersion: version,
+        messages: messages(10),
+        memories: [],
+        latestSummary: null,
+        locale: "en",
+      },
+      { force: true, keepRecentMessages: 2 },
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.messages.map((message) => message.id)).toEqual([
+      "msg-8",
+      "msg-9",
+    ])
+    expect(execute).toHaveBeenCalledWith("conv-1", {
+      locale: "en",
+      upToMessageId: "msg-7",
+      maxTokens: 256,
+    })
+  })
+
+  it("drops a summary that does not fit instead of failing", async () => {
+    const longSummary = {
+      ...summaryDTO,
+      content: "s".repeat(5_000),
+    }
+    const summaryUseCase = buildSummaryUseCase({ summary: longSummary })
+    const service = buildService(builder(), summaryUseCase)
+
+    const result = await service.compact({
+      conversation: conversation(),
+      characterVersion: version,
+      messages: messages(10),
+      memories: [],
+      latestSummary: null,
+      locale: "en",
+    })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.summary).toBeNull()
+    expect(result.summaryGenerated).toEqual(longSummary)
+    expect(result.warning?.code).toBe("SUMMARY_DROPPED")
   })
 
   it("trims and warns when the summary fails", async () => {

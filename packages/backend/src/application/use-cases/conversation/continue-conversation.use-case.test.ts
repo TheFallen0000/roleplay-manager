@@ -132,12 +132,23 @@ function buildCharacterRepo(): CharacterRepository {
   }
 }
 
+let capturedPromptMessages: Array<{
+  role: "user" | "assistant" | "system"
+  content: string
+}> = []
+
 function buildPromptContextBuilder(): PromptContextBuilder {
   return {
-    build: async () => ({
-      systemPrompt: "Eres un personaje.",
-      messages: [{ role: "user", content: "Hola" }],
-    }),
+    build: async (params) => {
+      capturedPromptMessages = params.messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      }))
+      return {
+        systemPrompt: "Eres un personaje.",
+        messages: capturedPromptMessages,
+      }
+    },
   }
 }
 
@@ -200,6 +211,7 @@ const buildContextCompaction = (): ContextCompactionService =>
       summary: null,
       compacted: false,
       summaryGenerated: null,
+      outputTokens: 512,
       warning: null,
     }),
   }) as unknown as ContextCompactionService
@@ -291,5 +303,66 @@ describe("ContinueConversationUseCase - tool calls", () => {
     expect(savedProposals).toHaveLength(1)
     expect(savedProposals[0].operation).toBe("CREATE")
     expect(savedProposals[0].actor).toBe("Carol")
+  })
+
+  it("adds a continuation instruction as the last user message", async () => {
+    capturedPromptMessages = []
+    const proposalRepo: MemoryChangeProposalRepository = {
+      create: async (p: any) => p,
+      createMany: async () => {},
+      findById: async () => null,
+      findPendingByConversationId: async () => [],
+      findByConversationId: async () => [],
+      update: async (p: any) => p,
+      markProcessed: async () => {},
+      discardPendingByConversationId: async () => {},
+    }
+    const provider: ProviderRegistry = {
+      listRegistered: () => ["ollama"],
+      createAdapter: vi.fn(),
+      getAdapter: async () => ({
+        validateConnection: async () => "available" as const,
+        listModels: async () => ({ models: [], manualEntryRequired: false }),
+        generateStreaming: async function* () {
+          yield { content: "Continuación" }
+        },
+      }),
+    }
+    const applyAll = {
+      execute: async () => [],
+    } as unknown as ApplyAllMemoryChangesUseCase
+
+    const useCase = new ContinueConversationUseCase(
+      buildConversationRepo(),
+      buildMessageRepo(),
+      buildMessageHistoryRepository(() => baseMessages),
+      buildCharacterRepo(),
+      buildMemoryRepo(),
+      proposalRepo,
+      buildPromptContextBuilder(),
+      playerCharacterRepository,
+      provider,
+      buildLogger(),
+      buildDefaultProvider(),
+      providerInstanceRepository,
+      applyAll,
+      buildSummaryRepo(),
+      buildContextCompaction(),
+      buildGenerateConversationTitle(),
+    )
+
+    for await (const _ of useCase.execute({
+      conversationId: "conv-1",
+      locale: "en",
+    })) {
+      // consume
+    }
+
+    expect(capturedPromptMessages.at(-1)).toMatchObject({
+      role: "user",
+    })
+    expect(capturedPromptMessages.at(-1)?.content).toContain(
+      "Continue the scene",
+    )
   })
 })
