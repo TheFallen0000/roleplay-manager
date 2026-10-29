@@ -176,6 +176,7 @@ export class SendMessageUseCase {
       context: prepared.context,
       characterVersion: prepared.characterVersion,
       memories: prepared.memories,
+      maxTokens: prepared.outputTokens,
       operation: "send",
     })
     if (!reply.ok) {

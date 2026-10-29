@@ -75,6 +75,10 @@ export interface PrepareChatContextInput {
   pendingMessages?: Message[]
   /** Used by regenerate: the assistant message being replaced is not context. */
   excludeMessageId?: string
+  /** Manual "compact now" can run even below the threshold. */
+  forceCompaction?: boolean
+  /** Caps how many recent messages a manual compaction keeps. */
+  keepRecentMessages?: number
   locale?: Locale
 }
 
@@ -85,6 +89,8 @@ export interface PreparedChatContext {
   /** Unfiltered memories, needed to hydrate UPDATE/DELETE proposals. */
   memories: Memory[]
   compactionSummary: SummaryDTO | null
+  /** Effective reply budget after fitting the context. */
+  outputTokens: number
 }
 
 export interface ChatEngineFailure {
@@ -100,6 +106,8 @@ export interface StreamChatReplyInput {
   characterVersion: CharacterVersion
   memories: Memory[]
   operation: "send" | "continue" | "regenerate"
+  /** Effective reply budget returned by prepareContext. */
+  maxTokens?: number
 }
 
 export interface ChatReply {
@@ -193,6 +201,7 @@ export class ChatEngine {
     let promptMessages = contextMessages
     let contextSummary = latestSummary
     let compactionSummary: SummaryDTO | null = null
+    let outputTokens = conversation.maxTokens
     const compactionInput = {
       conversation,
       characterVersion: characterResult.currentVersion,
@@ -203,10 +212,17 @@ export class ChatEngine {
       locale,
     }
 
-    if (await this.deps.contextCompaction.needsCompaction(compactionInput)) {
+    const shouldCompact =
+      input.forceCompaction ||
+      (await this.deps.contextCompaction.needsCompaction(compactionInput))
+    if (shouldCompact) {
       yield { type: "compacting" }
       const compaction = await this.deps.contextCompaction.compact(
         compactionInput,
+        {
+          force: input.forceCompaction,
+          keepRecentMessages: input.keepRecentMessages,
+        },
       )
       if (!compaction.ok) {
         return this.failure(compaction.error.code, compaction.error.message)
@@ -223,6 +239,7 @@ export class ChatEngine {
       }
       promptMessages = compaction.messages
       contextSummary = compaction.summary
+      outputTokens = compaction.outputTokens
     }
 
     const context = await this.deps.promptContextBuilder.build({
@@ -243,7 +260,38 @@ export class ChatEngine {
       characterVersion: characterResult.currentVersion,
       memories,
       compactionSummary,
+      outputTokens,
     }
+  }
+
+  /**
+   * Manual "summary now": runs the same compaction as a normal send even when
+   * the context is below the threshold, and returns the created summary.
+   */
+  async compactNow(
+    conversation: Conversation,
+    locale?: Locale,
+  ): Promise<
+    { ok: true; summary: SummaryDTO } | ChatEngineFailure
+  > {
+    const generator = this.prepareContext({
+      conversation,
+      forceCompaction: true,
+      keepRecentMessages: 2,
+      locale,
+    })
+    let step = await generator.next()
+    while (!step.done) {
+      step = await generator.next()
+    }
+    if (!step.value.ok) return step.value
+    if (!step.value.compactionSummary) {
+      return this.failure(
+        "NO_NEW_MESSAGES",
+        "No messages to summarize",
+      )
+    }
+    return { ok: true, summary: step.value.compactionSummary }
   }
 
   async *streamReply(
@@ -263,7 +311,7 @@ export class ChatEngine {
           provider.adapter.generateStreaming(context, {
             model: provider.model,
             temperature: conversation.temperature,
-            maxTokens: conversation.maxTokens,
+            maxTokens: input.maxTokens ?? conversation.maxTokens,
             topP: conversation.topP,
             frequencyPenalty: conversation.frequencyPenalty,
             presencePenalty: conversation.presencePenalty,

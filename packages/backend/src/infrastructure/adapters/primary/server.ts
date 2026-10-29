@@ -183,7 +183,7 @@ export const buildServer = ({
     "/api",
     buildSummaryRouter({
       listSummaries: container.listSummaries,
-      generateSummary: container.generateSummary,
+      compactConversation: container.compactConversation,
       updateSummary: container.updateSummary,
       deleteSummary: container.deleteSummary,
       generateConversationTitle: container.generateConversationTitle,

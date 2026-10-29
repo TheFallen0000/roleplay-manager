@@ -31,7 +31,7 @@ import type { ProviderInstanceRepository } from "../../../domain/ports/provider-
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { ApplyAllMemoryChangesUseCase } from "../memory/apply-all-memory-changes.use-case"
 import { ConversationNotFoundError } from "../../../domain/errors"
-import type { Locale } from "@workspace/shared/i18n"
+import { translate, type Locale } from "@workspace/shared/i18n"
 
 export type {
   CompactingEvent,
@@ -132,8 +132,24 @@ export class ContinueConversationUseCase {
       await this.messageRepository.update(accepted)
     }
 
+    const continuationMessage = Message.create({
+      id: randomUUIDv7(),
+      conversationId: input.conversationId,
+      role: "user",
+      content: translate(
+        input.locale ?? "en",
+        "prompt.continueInstruction",
+      ),
+      position: nextPosition,
+      alternatives: [],
+      alternativesCursor: 0,
+      createdAt: new Date(),
+      editedAt: null,
+    })
+
     const prepared = yield* this.chatEngine.prepareContext({
       conversation,
+      pendingMessages: [continuationMessage],
       locale: input.locale,
     })
     if (!prepared.ok) {
@@ -146,6 +162,7 @@ export class ContinueConversationUseCase {
       context: prepared.context,
       characterVersion: prepared.characterVersion,
       memories: prepared.memories,
+      maxTokens: prepared.outputTokens,
       operation: "continue",
     })
     if (!reply.ok) {
