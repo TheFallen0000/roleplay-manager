@@ -33,9 +33,16 @@ function resetDocument() {
   document.documentElement.classList.remove("dark")
 }
 
+function resetThemeMetas() {
+  document
+    .querySelectorAll('meta[name="theme-color"]')
+    .forEach((meta) => meta.remove())
+}
+
 beforeEach(() => {
   localStorage.clear()
   resetDocument()
+  resetThemeMetas()
   mockMatchMedia(false)
 })
 
@@ -43,6 +50,7 @@ afterEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
   resetDocument()
+  resetThemeMetas()
 })
 
 describe("ThemeProvider", () => {
@@ -74,6 +82,32 @@ describe("ThemeProvider", () => {
       expect(document.documentElement.classList.contains("dark")).toBe(true),
     )
     expect(localStorage.getItem(MODE_STORAGE_KEY)).toBe("dark")
+  })
+
+  it("sincroniza todas las variantes de theme-color con el modo resuelto", async () => {
+    const light = document.createElement("meta")
+    light.setAttribute("name", "theme-color")
+    light.setAttribute("content", "#fbfafd")
+    light.setAttribute("media", "(prefers-color-scheme: light)")
+    const dark = document.createElement("meta")
+    dark.setAttribute("name", "theme-color")
+    dark.setAttribute("content", "#17131f")
+    dark.setAttribute("media", "(prefers-color-scheme: dark)")
+    document.head.append(light, dark)
+
+    const { result } = renderTheme()
+
+    act(() => result.current.setMode("dark"))
+    await waitFor(() => {
+      expect(light.getAttribute("content")).toBe("#17131f")
+      expect(dark.getAttribute("content")).toBe("#17131f")
+    })
+
+    act(() => result.current.setMode("light"))
+    await waitFor(() => {
+      expect(light.getAttribute("content")).toBe("#fbfafd")
+      expect(dark.getAttribute("content")).toBe("#fbfafd")
+    })
   })
 
   it("sigue la preferencia del sistema en modo sistema", async () => {
