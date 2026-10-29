@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   modelo no devuelva respuestas vacías o demasiado cortas.
 - **Chat**: al entrar en una conversación el scroll queda anclado al último
   mensaje, sin el hueco del spacer del scroller.
+- **PWA**: se declara `color-scheme` y se sincronizan las variantes claro/oscuro
+  de `theme-color` antes del primer pintado para que la barra de estado y el
+  fondo inicial sigan al tema. La barra de navegación inferior de Android la
+  controla el sistema/Chrome y no puede cambiarse desde la web.
 
 ## [1.57.0] - 2026-10-28
 
