@@ -309,7 +309,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
         draftTokens={draftTokens}
         hidden={fullscreen}
         onEnterFullscreen={enterFullscreen}
-        onConversationUpdated={setConv}
+        onConversationUpdated={setConv} onContextRefresh={refreshContextStats}
         onError={setError}
       />
 
@@ -406,7 +406,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                     return (
                       <MessageScrollerItem
                         className="rm-message-enter"
-                        key={msg.id}
+                        key={msg.id} messageId={msg.id}
                         scrollAnchor={
                           i === messages.length - 1 && !isStreaming
                         }

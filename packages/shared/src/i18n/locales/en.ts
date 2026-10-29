@@ -351,6 +351,10 @@ export const en = {
       "The summary could not be generated, so the oldest messages were trimmed to continue.",
     compactionTrimmed:
       "The context was still too large after summarizing, so some old messages were trimmed.",
+    compactionSummaryDropped:
+      "The summary did not fit in the context, so it was dropped and old messages were trimmed to continue.",
+    compactionOutputReduced:
+      "The reply was limited to {count} tokens so it could fit in the context.",
     compactionWindowUnknown:
       "Context window unknown. Automatic compaction is disabled; set it in Model settings.",
     compactionDismiss: "Dismiss warning",
@@ -521,6 +525,8 @@ export const en = {
       "- Reply in the language of the user's last message, unless the character's Instructions specify another language. If the message is ambiguous, use the language of these instructions.",
     roleplayLength:
       "- Keep a narrative pace: 2 to 4 paragraphs per reply, unless the scene calls for something shorter.",
+    continueInstruction:
+      "Continue the scene from the last message. Write only the next part of the character's response; do not repeat what is already written, do not write or act for the user, and keep the established style.",
     personality: "## Personality",
     name: "Name: {name}",
     subtitle: "Subtitle: {subtitle}",

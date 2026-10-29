@@ -63,7 +63,7 @@ error interno. Los códigos de dominio concretos viajan en `error.code`.
 | `GET` | `/api/conversations/:id/context?pendingMessage=` | Contexto que se enviaría, sin proveedor. |
 | `GET` | `/api/conversations/:id/context/stats` | Metadatos y estimación de tokens. |
 | `GET` | `/api/conversations/:id/summaries` | Resúmenes de la conversación. |
-| `POST` | `/api/conversations/:id/summaries/generate` | Generar un resumen manualmente. |
+| `POST` | `/api/conversations/:id/summaries/generate` | Forzar una compactación/resumen manual. |
 | `GET` | `/api/providers` | Proveedores registrados. |
 | `GET` | `/api/providers/:id/status` | Comprobar conexión. |
 | `GET` | `/api/providers/:id/models` | Modelos disponibles. |
@@ -178,12 +178,16 @@ title-generated?       (si cambió el título después)
 |---|---|---|
 | `saved` | `MessageDTO` | Solo `send`: el mensaje del usuario ya está guardado. |
 | `compacting` | `{}` | El servidor está resumiendo/recortando antes de responder. Puede tardar. |
-| `context-warning` | `{ code, message }` | La compactación tuvo que recortar mensajes o no pudo resumir. |
+| `context-warning` | `{ code, message }` | La compactación recortó mensajes, redujo la reserva de respuesta o descartó el resumen. |
 | `summary-generated` | `SummaryDTO` | Se creó un resumen durante la compactación. |
 | `chunk` | `{ "content": "texto" }` | Fragmento de la respuesta. Concatenar en orden. |
 | `done` | `{ "message": MessageDTO, "title"?: string, "titleSource"?: "auto" \| "manual" }` | Respuesta completa. `title` solo aparece si se generó un título. |
 | `title-generated` | `{ "title": string, "titleSource": "auto" \| "manual" }` | Título actualizado después de `done`. |
 | `error` | `{ "code": string, "message": string }` | Error una vez abierto el stream. El HTTP sigue siendo 200. |
+
+Códigos de `context-warning`: `SUMMARY_FAILED_TRIMMED`, `CONTEXT_TRIMMED`,
+`OUTPUT_REDUCED` y `SUMMARY_DROPPED`. El mensaje ya viene localizado; el cliente
+puede mostrarlo tal cual.
 
 `MessageDTO`:
 
@@ -242,16 +246,21 @@ está configurada y el total (entrada + `maxTokens`) alcanza
 `compactionThreshold`, ocurre lo siguiente:
 
 1. Emite `compacting`.
-2. Resume los mensajes más antiguos en uno o varios chunks.
-3. Emite `summary-generated` si creó un resumen.
-4. Emite `context-warning` si tuvo que recortar o si el resumen falló.
-5. Sigue con `chunk`/`done`.
+2. Calcula el espacio real para el resumen después del prompt de sistema, los
+   mensajes mínimos y la reserva de respuesta.
+3. Resume los mensajes más antiguos en uno o varios chunks.
+4. Si la reserva de respuesta es lo que no cabe, la reduce para ese envío
+   (`OUTPUT_REDUCED`) y emite `context-warning`.
+5. Emite `summary-generated` si creó un resumen.
+6. Emite `context-warning` si tuvo que recortar, reducir la respuesta o
+   descartar el resumen.
+7. Sigue con `chunk`/`done`.
 
-Si no hay `contextWindow`, no se compacta. Si el sistema y el último mensaje no
-caben ni recortando, se emite `CONTEXT_TOO_LARGE` y no se genera respuesta.
-
-La compactación **no borra mensajes**: el historial completo sigue en
-`GET /api/conversations/:id/messages`. Solo cambia lo que se envía al modelo.
+Si no hay `contextWindow`, no se compacta. Si el sistema, el último turno y la
+reserva mínima de respuesta tampoco caben, se emite `CONTEXT_TOO_LARGE` y no se
+genera respuesta. La compactación **no borra mensajes**: el historial completo
+sigue en `GET /api/conversations/:id/messages`; solo cambia lo que se envía al
+modelo.
 
 ## Cliente mínimo
 

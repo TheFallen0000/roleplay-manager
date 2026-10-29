@@ -352,6 +352,10 @@ export const es: Dictionary = {
       "No se pudo generar el resumen, así que se recortaron los mensajes más antiguos para continuar.",
     compactionTrimmed:
       "El contexto seguía siendo demasiado grande tras resumir, así que se recortaron algunos mensajes antiguos.",
+    compactionSummaryDropped:
+      "El resumen no cabía en el contexto, así que se descartó y se recortaron mensajes antiguos para continuar.",
+    compactionOutputReduced:
+      "La respuesta se limitó a {count} tokens para que cupiera en el contexto.",
     compactionWindowUnknown:
       "Ventana de contexto desconocida. La compactación automática está desactivada; configúrala en Modelo.",
     compactionDismiss: "Descartar aviso",
@@ -522,6 +526,8 @@ export const es: Dictionary = {
       "- Responde en el idioma del último mensaje del usuario, salvo que las Instrucciones del personaje indiquen otro idioma. Si el mensaje es ambiguo, usa el idioma de estas instrucciones.",
     roleplayLength:
       "- Mantén un ritmo narrativo: de 2 a 4 párrafos por respuesta, salvo que la escena pida algo más corto.",
+    continueInstruction:
+      "Continúa la escena desde el último mensaje. Escribe solo la siguiente parte de la respuesta del personaje; no repitas lo ya escrito, no escribas ni actúes por el usuario y mantén el estilo establecido.",
     personality: "## Personalidad",
     name: "Nombre: {name}",
     subtitle: "Subtítulo: {subtitle}",

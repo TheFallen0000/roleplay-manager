@@ -20,6 +20,8 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area"
 interface SummaryViewerProps {
   conversationId: string
   onTitleGenerated?: (title: string, titleSource: TitleSource) => void
+  /** Lets the chat refresh its context usage after the summary changes. */
+  onSummaryChanged?: () => void | Promise<void>
 }
 
 type DialogMode = null | "view" | "edit" | "delete"
@@ -27,6 +29,7 @@ type DialogMode = null | "view" | "edit" | "delete"
 export function SummaryViewer({
   conversationId,
   onTitleGenerated,
+  onSummaryChanged,
 }: SummaryViewerProps) {
   const { t, locale } = useTranslation()
   const summaries = useSummaryStore((s) => s.summaries)
@@ -74,6 +77,7 @@ export function SummaryViewer({
         if (result.title && result.titleSource) {
           onTitleGenerated?.(result.title, result.titleSource)
         }
+        await onSummaryChanged?.()
       } else {
         toast.error(t("summaries.generateFailed"))
       }
@@ -92,6 +96,7 @@ export function SummaryViewer({
     }
     try {
       await updateSummary(conversationId, target.id, editContent)
+      await onSummaryChanged?.()
       toast.success(t("summaries.updated"))
       setDialogMode(null)
       setTarget(null)
@@ -105,6 +110,7 @@ export function SummaryViewer({
     if (!target) return
     try {
       await deleteSummary(conversationId, target.id)
+      await onSummaryChanged?.()
       toast.success(t("summaries.deleted"))
       setDialogMode(null)
       setTarget(null)
@@ -124,7 +130,11 @@ export function SummaryViewer({
   return (
     <>
       <FieldSet>
-        <Button onClick={handleGenerate} disabled={generating} className="self-end">
+        <Button
+          onClick={handleGenerate}
+          disabled={generating}
+          className="w-full self-stretch sm:w-auto sm:self-end"
+        >
           {generating ? <Spinner /> : null}
           {t("summaries.generateNow")}
         </Button>
@@ -141,8 +151,8 @@ export function SummaryViewer({
           ) : (
             sortedSummaries.map((summary) => (
               <div key={summary.id} className="flex flex-col gap-2 rounded-lg border p-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
+                <div className="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
+                  <span className="shrink-0 text-xs whitespace-nowrap text-muted-foreground">
                     {new Date(summary.createdAt).toLocaleDateString(dateLocale(locale), {
                       day: "numeric",
                       month: "short",
@@ -152,7 +162,13 @@ export function SummaryViewer({
                     })}
                   </span>
                   {summary.model ? (
-                    <Badge variant="secondary">{summary.model}</Badge>
+                    <Badge
+                      variant="secondary"
+                      className="max-w-full truncate sm:max-w-[60%]"
+                      title={summary.model}
+                    >
+                      {summary.model}
+                    </Badge>
                   ) : null}
                 </div>
                 <p className="text-sm whitespace-pre-wrap line-clamp-2">{summary.content}</p>

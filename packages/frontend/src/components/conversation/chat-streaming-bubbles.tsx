@@ -81,6 +81,7 @@ export function RegeneratingBubble({
   return (
     <MessageScrollerItem
       className="rm-message-enter"
+      messageId={message.id}
       scrollAnchor={scrollAnchor}
     >
       {streamingContent ? (

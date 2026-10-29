@@ -59,6 +59,8 @@ interface SettingsPanelProps {
   current: ConversationDetail
   onSettingsChanged: (updated: ConversationDetail) => void
   onTitleGenerated?: (title: string, titleSource: TitleSource) => void
+  /** Refreshes the chat context usage after a summary changes. */
+  onSummaryChanged?: () => void | Promise<void>
   /** Shows the "Fullscreen" entry in the menu when provided. */
   onEnterFullscreen?: () => void
   children?: React.ReactNode
@@ -92,6 +94,7 @@ export function SettingsPanel({
   current,
   onSettingsChanged,
   onTitleGenerated,
+  onSummaryChanged,
   onEnterFullscreen,
   children,
 }: SettingsPanelProps) {
@@ -351,6 +354,7 @@ export function SettingsPanel({
                   <SummaryViewer
                     conversationId={conversationId}
                     onTitleGenerated={onTitleGenerated}
+                    onSummaryChanged={onSummaryChanged}
                   />
                 </AccordionContent>
               </AccordionItem>

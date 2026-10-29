@@ -2,7 +2,7 @@ import { Router } from "express"
 import { z } from "zod"
 
 import type { ListSummariesUseCase } from "../../../../application/use-cases/summary/list-summaries.use-case"
-import type { GenerateSummaryUseCase } from "../../../../application/use-cases/summary/generate-summary.use-case"
+import type { CompactConversationUseCase } from "../../../../application/use-cases/summary/compact-conversation.use-case"
 import type { UpdateSummaryUseCase } from "../../../../application/use-cases/summary/update-summary.use-case"
 import type { DeleteSummaryUseCase } from "../../../../application/use-cases/summary/delete-summary.use-case"
 import type { GenerateConversationTitleUseCase } from "../../../../application/use-cases/conversation/generate-conversation-title.use-case"
@@ -16,7 +16,7 @@ const UpdateSummarySchema = z.object({
 
 export const buildSummaryRouter = (deps: {
   listSummaries: ListSummariesUseCase
-  generateSummary: GenerateSummaryUseCase
+  compactConversation: CompactConversationUseCase
   updateSummary: UpdateSummaryUseCase
   deleteSummary: DeleteSummaryUseCase
   generateConversationTitle: GenerateConversationTitleUseCase
@@ -39,9 +39,10 @@ export const buildSummaryRouter = (deps: {
     async (req, res, next) => {
       try {
         const { id } = req.params as { id: string }
-        const result = await deps.generateSummary.execute(id, {
-          locale: resolveRequestLocale(req.header("accept-language")),
-        })
+        const result = await deps.compactConversation.execute(
+          id,
+          resolveRequestLocale(req.header("accept-language")),
+        )
         if (result.error) {
           res.status(400).json(result)
           return

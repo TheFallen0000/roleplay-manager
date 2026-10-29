@@ -147,6 +147,7 @@ export class RegenerateReplyUseCase {
       context: prepared.context,
       characterVersion: prepared.characterVersion,
       memories: prepared.memories,
+      maxTokens: prepared.outputTokens,
       operation: "regenerate",
     })
     if (!reply.ok) {

@@ -123,6 +123,7 @@ import { GenerateConversationTitleUseCase } from "../application/use-cases/conve
 import { GetPromptContextUseCase } from "../application/use-cases/conversation/get-prompt-context.use-case"
 import { ListSummariesUseCase } from "../application/use-cases/summary/list-summaries.use-case"
 import { GenerateSummaryUseCase } from "../application/use-cases/summary/generate-summary.use-case"
+import { CompactConversationUseCase } from "../application/use-cases/summary/compact-conversation.use-case"
 import { ContextCompactionService } from "../application/services/context-compaction.service"
 import { ChatEngine } from "../application/services/chat-engine.service"
 import { UpdateSummaryUseCase } from "../application/use-cases/summary/update-summary.use-case"
@@ -232,6 +233,7 @@ export interface AppContainer {
   // Summary
   listSummaries: ListSummariesUseCase
   generateSummary: GenerateSummaryUseCase
+  compactConversation: CompactConversationUseCase
   contextCompaction: ContextCompactionService
   chatEngine: ChatEngine
   updateSummary: UpdateSummaryUseCase
@@ -465,6 +467,11 @@ export const buildContainer = ({
     logger,
   })
 
+  const compactConversation = new CompactConversationUseCase(
+    conversationRepository,
+    chatEngine,
+  )
+
   const sendMessage = new SendMessageUseCase(
     conversationRepository,
     messageRepository,
@@ -604,6 +611,7 @@ export const buildContainer = ({
     summaryRepository,
     listSummaries: new ListSummariesUseCase(summaryRepository),
     generateSummary,
+    compactConversation,
     contextCompaction,
     chatEngine,
     updateSummary: new UpdateSummaryUseCase(summaryRepository),

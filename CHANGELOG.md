@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Resúmenes**: la lista ya no se desborda en móvil; el botón de generar ocupa
+  el ancho disponible y el nombre del modelo se trunca en las tarjetas.
+- **Compactación**: el resumen manual ahora ejecuta una compactación real y
+  refresca el indicador; el presupuesto del resumen se calcula con el espacio
+  disponible y, si la reserva de respuesta no cabe, se reduce para ese envío con
+  un aviso. Si el resumen sigue sin caber se recorta o se descarta en vez de
+  bloquear el chat con `CONTEXT_TOO_LARGE`.
+- **Continuar**: se añade una instrucción sintética de continuación para que el
+  modelo no devuelva respuestas vacías o demasiado cortas.
+- **Chat**: al entrar en una conversación el scroll queda anclado al último
+  mensaje, sin el hueco del spacer del scroller.
+
 ## [1.57.0] - 2026-10-28
 
 ### Added

@@ -30,7 +30,7 @@ const summary = {
 
 const buildDeps = () => ({
   listSummaries: { execute: vi.fn(async () => []) },
-  generateSummary: { execute: vi.fn(async () => ({ summary })) },
+  compactConversation: { execute: vi.fn(async () => ({ summary })) },
   updateSummary: { execute: vi.fn(async () => summary) },
   deleteSummary: { execute: vi.fn(async () => undefined) },
   generateConversationTitle: {
@@ -85,6 +85,10 @@ describe("summary routes", () => {
       "conv-1",
       { locale: "en" },
     )
+    expect(deps.compactConversation.execute).toHaveBeenCalledWith(
+      "conv-1",
+      "en",
+    )
   })
 
   it("returns the summary even if the title cannot be generated", async () => {
@@ -110,7 +114,7 @@ describe("summary routes", () => {
 
   it("does not generate a title when the summary has no new messages", async () => {
     const deps = buildDeps()
-    deps.generateSummary.execute.mockResolvedValueOnce({
+    deps.compactConversation.execute.mockResolvedValueOnce({
       error: { code: "NO_NEW_MESSAGES", message: "No new messages" },
     } as never)
     const { baseUrl } = await startServer(deps)
