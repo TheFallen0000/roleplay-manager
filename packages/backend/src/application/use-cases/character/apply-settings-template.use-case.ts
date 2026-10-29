@@ -13,6 +13,10 @@ import { CharacterNotFoundError } from "../../../domain/errors"
 import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { isMessageStyle } from "@workspace/shared/lib/message-style"
 import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
+import {
+  clampContextWindow,
+  clampOutputTokens,
+} from "@workspace/shared/lib/inference"
 import { findCharacterConversations } from "../conversation/find-character-conversations"
 import type { UpdateConversationSettingsUseCase } from "../conversation/update-conversation-settings.use-case"
 import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
@@ -159,7 +163,7 @@ function toSettingsUpdate(
     update.summaryFrequency = settings.summaryFrequency
   }
   if (settings.contextWindow !== undefined) {
-    update.contextWindow = settings.contextWindow
+    update.contextWindow = clampContextWindow(settings.contextWindow)
   }
   if (settings.compactionThreshold !== undefined) {
     update.compactionThreshold = clampCompactionThreshold(
@@ -170,7 +174,7 @@ function toSettingsUpdate(
     update.temperature = settings.temperature
   }
   if (settings.maxTokens !== undefined) {
-    update.maxTokens = settings.maxTokens
+    update.maxTokens = clampOutputTokens(settings.maxTokens)
   }
   if (settings.topP !== undefined) {
     update.topP = settings.topP

@@ -13,6 +13,8 @@ import { FileText, User, Bot, Info } from "lucide-react"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { ContextTokenBreakdown } from "./context-token-breakdown"
 
+const PREVIEW_MESSAGE_LIMIT = 100
+
 interface ContextPreviewDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -29,6 +31,11 @@ export function ContextPreviewDialog({
   loading = false,
 }: ContextPreviewDialogProps) {
   const { t } = useTranslation()
+  const visibleMessages =
+    context?.messages.slice(-PREVIEW_MESSAGE_LIMIT) ?? []
+  const hiddenMessages = context
+    ? context.messages.length - visibleMessages.length
+    : 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,8 +109,16 @@ export function ContextPreviewDialog({
                     count: context.messages.length,
                   })}
                 </h4>
+                {hiddenMessages > 0 ? (
+                  <p className="mb-2 text-[11px] text-muted-foreground">
+                    {t("chat.previewMessagesTruncated", {
+                      shown: visibleMessages.length,
+                      total: context.messages.length,
+                    })}
+                  </p>
+                ) : null}
                 <div className="space-y-2">
-                  {context.messages.map((msg, i) => (
+                  {visibleMessages.map((msg, i) => (
                     <div
                       key={i}
                       className={`flex gap-2 rounded-md border p-2.5 text-xs ${

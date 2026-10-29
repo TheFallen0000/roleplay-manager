@@ -41,6 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Resúmenes**: la generación manual deja los dos mensajes más recientes sin
   resumir para que el siguiente envío conserve contexto literal.
 
+### Fixed
+
+- **Chat**: el indicador de contexto descarta respuestas antiguas y la vista
+  previa limita el renderizado a los últimos 100 mensajes, manteniendo el
+  recuento de tokens completo.
+- **Ajustes**: `maxTokens` se limita a 200 000 y `contextWindow` a 2 000 000;
+  también se recortan al importar personajes o aplicar plantillas.
+- **Accesibilidad**: el aviso “Compactando contexto…” ya no duplica el anuncio
+  del lector de pantalla.
+
 ## [1.56.2] - 2026-10-28
 
 ### Fixed

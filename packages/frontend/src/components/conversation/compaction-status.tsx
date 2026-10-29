@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { Button } from "@workspace/ui/components/button"
-import { Spinner } from "@workspace/ui/components/spinner"
-import { AlertTriangle, Info, X } from "lucide-react"
+import { AlertTriangle, Info, Loader2, X } from "lucide-react"
 
 import { useChatStore } from "@/lib/stores/chat.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
@@ -27,7 +26,7 @@ export function CompactionStatus({
         role="status"
         className="flex items-center gap-2 border-b bg-muted/40 px-4 py-2 text-xs text-muted-foreground"
       >
-        <Spinner />
+        <Loader2 className="size-4 animate-spin" aria-hidden />
         {t("chat.compacting")}
       </div>
     )

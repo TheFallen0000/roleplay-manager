@@ -317,6 +317,8 @@ export const es: Dictionary = {
     previewMetaCharacters: { one: "1 carácter", other: "{count} caracteres" },
     previewMetaRecent: { one: "1 en contexto", other: "{count} en contexto" },
     previewMessagesTitle: "Mensajes ({count})",
+    previewMessagesTruncated:
+      "Mostrando los últimos {shown} de {total} mensajes. El recuento de tokens incluye todos.",
     previewSending: "Enviando...",
     previewSend: "Enviar",
     previewLoading: "Cargando contexto...",

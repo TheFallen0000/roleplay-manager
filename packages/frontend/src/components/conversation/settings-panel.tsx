@@ -33,6 +33,7 @@ import type {
   TitleSource,
 } from "@workspace/shared/types/conversation"
 import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
+import { clampOutputTokens } from "@workspace/shared/lib/inference"
 
 import { updateConversationSettings } from "@/lib/api/conversations"
 import { ApiClientError } from "@/lib/api/client"
@@ -207,10 +208,12 @@ export function SettingsPanel({
 
   const handleSaveModelo = async () => {
     const window = modelUpdate.contextWindow
-    if (window !== null && maxTokens >= window) {
+    const nextMaxTokens = clampOutputTokens(maxTokens)
+    if (nextMaxTokens !== maxTokens) setMaxTokens(nextMaxTokens)
+    if (window !== null && nextMaxTokens >= window) {
       toast.error(
         t("settings.compactionMaxTokensBlocked", {
-          maxTokens,
+          maxTokens: nextMaxTokens,
           window,
         }),
       )
@@ -227,7 +230,8 @@ export function SettingsPanel({
     if (modelUpdate.contextWindow !== (current.contextWindow ?? null))
       settings.contextWindow = modelUpdate.contextWindow
     if (temperature !== (current.temperature ?? 0.7)) settings.temperature = temperature
-    if (maxTokens !== (current.maxTokens ?? 2048)) settings.maxTokens = maxTokens
+    if (nextMaxTokens !== (current.maxTokens ?? 2048))
+      settings.maxTokens = nextMaxTokens
     if (topP !== (current.topP ?? 0.9)) settings.topP = topP
     if (frequencyPenalty !== (current.frequencyPenalty ?? 0))
       settings.frequencyPenalty = frequencyPenalty

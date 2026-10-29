@@ -3,6 +3,8 @@ import { Slider } from "@workspace/ui/components/slider"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
+import { MAX_OUTPUT_TOKENS } from "@workspace/shared/lib/inference"
+
 import { formatTokenCount } from "@/lib/format-token-count"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
@@ -122,6 +124,7 @@ export function InferenceParamsCard({
               id="max-tokens"
               type="number"
               min={1}
+              max={MAX_OUTPUT_TOKENS}
               value={maxTokens}
               onChange={(e) => onMaxTokensChange(Number(e.target.value))}
             />

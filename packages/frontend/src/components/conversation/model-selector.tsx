@@ -13,6 +13,10 @@ import { Input } from "@workspace/ui/components/input"
 
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 import type { ProviderId } from "@workspace/shared/types/provider"
+import {
+  clampContextWindow,
+  MAX_CONTEXT_WINDOW,
+} from "@workspace/shared/lib/inference"
 
 import { formatApiError } from "@/lib/format-api-error"
 import { formatTokenCount } from "@/lib/format-token-count"
@@ -276,7 +280,9 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   const handleContextWindowChange = useCallback((value: string) => {
     const parsed = Number(value)
     setContextWindow(
-      Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : null,
+      Number.isFinite(parsed) && parsed > 0
+        ? clampContextWindow(parsed)
+        : null,
     )
   }, [])
 
@@ -362,6 +368,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
                 id="context-window"
                 type="number"
                 min={1}
+                max={MAX_CONTEXT_WINDOW}
                 inputMode="numeric"
                 value={contextWindow ?? ""}
                 placeholder={t("settings.contextWindowPlaceholder")}
