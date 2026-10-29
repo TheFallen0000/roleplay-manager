@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **API**: el contrato REST/SSE v1 queda documentado en
+  `docs/13-api-contract.md`; los eventos mantienen sus nombres y `done` usa
+  `{ "message": … }` en enviar, continuar y regenerar.
+- **Arquitectura**: la preparación de contexto, la compactación, el proveedor, el
+  streaming y las propuestas se unifican en un `ChatEngine` interno compartido
+  por los tres flujos de respuesta.
 - **Ajustes**: `summaryFrequency` y `recentMessageCount` dejan de aparecer en la
   UI. El motor decide cuántos mensajes enviar según el presupuesto de tokens; las
   columnas de base de datos y exportación se mantienen por compatibilidad.
