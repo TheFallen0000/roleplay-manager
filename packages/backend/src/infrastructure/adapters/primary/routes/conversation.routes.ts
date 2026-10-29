@@ -26,6 +26,10 @@ import type { Logger } from "../../../../domain/ports/logger.port"
 import { validate } from "../middlewares/validation"
 import { parseMultipartBody } from "../middlewares/multipart"
 import { resolveRequestLocale } from "../request-locale"
+import {
+  MAX_CONTEXT_WINDOW,
+  MAX_OUTPUT_TOKENS,
+} from "@workspace/shared/lib/inference"
 
 const CreateConversationSchema = z.object({
   characterId: z.string().min(1, "characterId is required"),
@@ -66,13 +70,19 @@ const CycleAlternativeSchema = z.object({
 const UpdateConversationSettingsSchema = z.object({
   provider: z.enum(["ollama", "openai-compatible"]).optional(),
   providerInstanceId: z.string().nullable().optional(),
-  model: z.string().nullable().optional(),
+  model: z.string().max(200).nullable().optional(),
   recentMessageCount: z.number().int().min(1).optional(),
   summaryFrequency: z.number().int().min(10).optional(),
-  contextWindow: z.number().int().min(1).nullable().optional(),
+  contextWindow: z
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_CONTEXT_WINDOW)
+    .nullable()
+    .optional(),
   compactionThreshold: z.number().int().min(50).max(95).optional(),
   temperature: z.number().min(0).max(2).optional(),
-  maxTokens: z.number().int().min(1).optional(),
+  maxTokens: z.number().int().min(1).max(MAX_OUTPUT_TOKENS).optional(),
   topP: z.number().min(0).max(1).optional(),
   frequencyPenalty: z.number().min(-2).max(2).optional(),
   presencePenalty: z.number().min(-2).max(2).optional(),

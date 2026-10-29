@@ -75,7 +75,7 @@ export const buildProviderRouter = (deps: {
   })
 
   const ModelContextQuerySchema = z.object({
-    model: z.string().min(1),
+    model: z.string().min(1).max(200),
     instanceId: z.string().optional(),
   })
 

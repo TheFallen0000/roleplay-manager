@@ -6,6 +6,10 @@ import type { ProviderId } from "@workspace/shared/types/provider"
 import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { MESSAGE_STYLES, isMessageStyle } from "@workspace/shared/lib/message-style"
 import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
+import {
+  clampContextWindow,
+  clampOutputTokens,
+} from "@workspace/shared/lib/inference"
 
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
@@ -152,7 +156,7 @@ export class UpdateConversationSettingsUseCase {
       input.presencePenalty = clamp(input.presencePenalty, -2, 2)
     }
     if (input.maxTokens !== undefined) {
-      input.maxTokens = Math.max(1, input.maxTokens)
+      input.maxTokens = clampOutputTokens(input.maxTokens)
     }
     if (input.recentMessageCount !== undefined) {
       input.recentMessageCount = Math.max(1, input.recentMessageCount)
@@ -164,11 +168,8 @@ export class UpdateConversationSettingsUseCase {
     if (input.summaryFrequency !== undefined) {
       input.summaryFrequency = Math.max(1, input.summaryFrequency)
     }
-    if (input.contextWindow !== undefined && input.contextWindow !== null) {
-      input.contextWindow = Math.min(
-        2_000_000,
-        Math.max(1, Math.round(input.contextWindow)),
-      )
+    if (input.contextWindow !== undefined) {
+      input.contextWindow = clampContextWindow(input.contextWindow)
     }
     if (input.compactionThreshold !== undefined) {
       input.compactionThreshold = clampCompactionThreshold(

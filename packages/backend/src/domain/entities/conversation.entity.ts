@@ -8,6 +8,10 @@ import {
   clampCompactionThreshold,
   DEFAULT_COMPACTION_THRESHOLD,
 } from "@workspace/shared/lib/compaction"
+import {
+  clampContextWindow,
+  clampOutputTokens,
+} from "@workspace/shared/lib/inference"
 
 export type MemoryProposalMode = "auto" | "manual"
 
@@ -59,10 +63,11 @@ export class Conversation {
   static create(props: ConversationProps): Conversation {
     return new Conversation({
       ...props,
-      contextWindow: props.contextWindow ?? null,
+      contextWindow: clampContextWindow(props.contextWindow),
       compactionThreshold: clampCompactionThreshold(
         props.compactionThreshold ?? DEFAULT_COMPACTION_THRESHOLD,
       ),
+      maxTokens: clampOutputTokens(props.maxTokens),
       customProfileImageAssetId: props.customProfileImageAssetId ?? null,
       backgroundImageAssetId: props.backgroundImageAssetId ?? null,
       backgroundFit: props.backgroundFit ?? "cover",

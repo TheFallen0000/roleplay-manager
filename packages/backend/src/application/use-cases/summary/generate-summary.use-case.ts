@@ -86,7 +86,7 @@ export class GenerateSummaryUseCase {
         ? await this.messageHistoryRepository.findAfterPosition(conversationId, lastPosition)
         : await this.messageRepository.findByConversationId(conversationId)
 
-    const newMessages = await this.selectMessages(
+    const newMessages = this.selectMessages(
       messagesAfterSummary,
       options.upToMessageId,
     )
@@ -217,10 +217,10 @@ export class GenerateSummaryUseCase {
     return { summary: toSummaryDTO(summary) }
   }
 
-  private async selectMessages(
+  private selectMessages(
     messagesAfterSummary: Message[],
     upToMessageId?: string,
-  ): Promise<Message[]> {
+  ): Message[] {
     if (upToMessageId) {
       const index = messagesAfterSummary.findIndex(
         (message) => message.id === upToMessageId,
