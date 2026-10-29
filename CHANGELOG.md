@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.57.0] - 2026-10-28
+
 ### Added
 
 - **Compactación automática**: antes de enviar, la app estima el contexto y, al
