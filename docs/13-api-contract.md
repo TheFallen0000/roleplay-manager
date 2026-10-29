@@ -126,6 +126,8 @@ regenerado no forma parte del contexto que se envía al modelo.
 - `contextWindow` es la ventana del modelo en tokens.
 - `compactionThreshold` es el porcentaje (50-95) que dispara la compactación.
 - `maxTokens` es la reserva de respuesta y debe ser menor que la ventana.
+- Los límites del backend son `maxTokens` ≤ 200 000 y `contextWindow` ≤
+  2 000 000; los valores fuera de rango se recortan o se rechazan.
 - `recentMessageCount` y `summaryFrequency` siguen aceptándose por
   compatibilidad, pero el motor actual no los usa para decidir el contexto.
 

@@ -280,9 +280,11 @@ Contiene las implementaciones concretas de los puertos y los adaptadores de entr
        |         |         └──> [DrizzleMemoryRepository] (SQLite)
        |         └──> construye el PromptContext
        |
-       |---> [GenerateCharacterResponse Use Case]
-       |         |---> [ProviderPort] (puerto)
-       |         |         └──> [OllamaAdapter] (API HTTP a Ollama)
+       |---> [SendMessage / ContinueConversation / RegenerateReply]
+       |         |---> [ChatEngine] (contexto, compactación, proveedor, tools)
+       |         |         |---> [ProviderPort] (puerto)
+       |         |         |         └──> [OllamaAdapter] (API HTTP a Ollama)
+       |         |         └──> [PromptContextBuilder] (prompt)
        |         └──> [MessageRepository] (puerto)
        |                   └──> [DrizzleMessageRepository] (SQLite)
        |                        · almacena la respuesta del asistente
@@ -423,7 +425,7 @@ rutas del backend.
 
 > **ArchiveConversation**: ambos endpoints (`/archive` y `/unarchive`) resuelven al mismo caso de uso, que internamente decide la transición de estado en función del estado actual de la conversación y la ruta invocada. Se mantiene un único caso de uso para preservar la coherencia de las reglas de negocio (no archivar lo ya archivado, no reactivar lo ya activo) en un solo lugar.
 
-> **Previsualización de contexto** (`GET /api/conversations/:id/context`): ejecuta el caso de uso `PromptContextBuilder` con el estado actual de la conversación y devuelve el `PromptContext` serializado en JSON **sin invocar al proveedor**. Esto cumple el principio de transparencia: el usuario puede inspeccionar exactamente qué se enviaría al modelo antes de generar una respuesta. El endpoint acepta un parámetro opcional `?dryRun=true` que simula el contexto sin necesidad de que la conversación esté activa (útil para depuración). La arquitectura hexagonal se mantiene intacta: el `PromptContextBuilder` es un caso de uso que coordina repositorios del dominio; el controlador simplemente no delega en `GenerateCharacterResponse` y devuelve el `PromptContext` directamente.
+> **Previsualización de contexto** (`GET /api/conversations/:id/context`): ejecuta `GetPromptContextUseCase` con el estado actual de la conversación y devuelve el `PromptContext` serializado en JSON **sin invocar al proveedor**. Acepta `?pendingMessage=` para simular el siguiente mensaje del usuario. `GET /api/conversations/:id/context/stats` devuelve solo los metadatos y la estimación de tokens. El `PromptContextBuilder` es un adaptador secundario que coordina el personaje, la memoria, el resumen y los mensajes; el controlador no llama al proveedor.
 
 > **GenerateConversationTitle** (`POST /api/conversations/:id/title`): el título se genera invocando al proveedor con un contexto reducido (no incluye el `PromptContextBuilder` completo) y se **aplica automáticamente** sobre la conversación tras la generación. No constituye una propuesta pendiente —el usuario puede editarlo manualmente en cualquier momento, pero no hay un paso de aprobación intermedio. Durante `SendMessage`, este caso de uso se invoca automáticamente en la primera interacción y tras cada generación de resumen. El endpoint manual permite regenerar el título bajo demanda.
 
@@ -707,7 +709,7 @@ En la versión 1.0, el sistema implementa **únicamente timeouts** como mecanism
 
 * **Timeout por defecto**: **120 segundos** para cualquier generación (respuesta, resumen, título, propuestas de memoria).
 * El timeout es configurable globalmente mediante la clave `provider_timeout_ms` en la tabla `settings`, lo que permite al usuario ajustarlo según su hardware y modelo.
-* Si el proveedor no responde dentro del tiempo establecido, el adaptador lanza un `ProviderTimeoutError`, que el caso de uso `GenerateCharacterResponse` captura sin modificar el estado de la conversación.
+* Si el proveedor no responde dentro del tiempo establecido, el adaptador lanza un `ProviderTimeoutError`, que el `ChatEngine` captura sin modificar el estado de la conversación.
 
 **Comportamiento del frontend ante timeout**:
 

@@ -95,7 +95,7 @@ No se divide el repositorio ni se publica un paquete: el motor vive en
 ## Verificación
 
 - Backend: **700** tests (118 archivos).
-- Frontend: **377** tests (65 archivos), sin cambios de contrato visibles.
+- Frontend: **379** tests (66 archivos), sin cambios de contrato visibles.
 - `pnpm check`, `pnpm build` y `pnpm check:arch` en verde.
 - La prueba manual con un cliente externo (VTuber/teléfono) queda para cuando
   exista ese consumidor; el contrato y los eventos están cubiertos por tests.
