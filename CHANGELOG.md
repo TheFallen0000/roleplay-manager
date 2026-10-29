@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.57.1] - 2026-10-29
+
 ### Fixed
 
 - **Resúmenes**: la lista ya no se desborda en móvil; el botón de generar ocupa
