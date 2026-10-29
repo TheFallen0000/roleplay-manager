@@ -11,9 +11,10 @@
     const root = document.documentElement
     root.dataset.theme = theme
     root.classList.toggle("dark", dark)
+    const themeColor = dark ? "#17131f" : "#fbfafd"
     document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", dark ? "#17131f" : "#fbfafd")
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((meta) => meta.setAttribute("content", themeColor))
   } catch {
     /* localStorage unavailable — fall back to the default theme */
   }
