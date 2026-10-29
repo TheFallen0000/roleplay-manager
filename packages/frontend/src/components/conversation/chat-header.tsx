@@ -31,6 +31,7 @@ interface ChatHeaderProps {
   hidden: boolean
   onEnterFullscreen: () => void
   onConversationUpdated: (next: ConversationDetail) => void
+  onContextRefresh: () => void | Promise<void>
   onError: (message: string) => void
 }
 
@@ -42,6 +43,7 @@ export function ChatHeader({
   hidden,
   onEnterFullscreen,
   onConversationUpdated,
+  onContextRefresh,
   onError,
 }: ChatHeaderProps) {
   const { t } = useTranslation()
@@ -160,6 +162,7 @@ export function ChatHeader({
           onTitleGenerated={(title, titleSource) =>
             onConversationUpdated({ ...conversation, title, titleSource })
           }
+          onSummaryChanged={onContextRefresh}
           onEnterFullscreen={onEnterFullscreen}
         >
           <Button

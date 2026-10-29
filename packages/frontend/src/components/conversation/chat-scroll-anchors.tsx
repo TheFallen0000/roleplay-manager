@@ -15,15 +15,19 @@ export function AnchorChatToEnd({
 }: {
   lastMessageId: string | null
 }) {
-  const { scrollToEnd } = useMessageScroller()
+  const { scrollToEnd, scrollToMessage } = useMessageScroller()
 
   useEffect(() => {
     if (!lastMessageId) return
     const frame = requestAnimationFrame(() => {
-      scrollToEnd({ align: "end", behavior: "instant" })
+      const moved = scrollToMessage(lastMessageId, {
+        align: "end",
+        behavior: "instant",
+      })
+      if (!moved) scrollToEnd({ align: "end", behavior: "instant" })
     })
     return () => cancelAnimationFrame(frame)
-  }, [lastMessageId, scrollToEnd])
+  }, [lastMessageId, scrollToEnd, scrollToMessage])
 
   return null
 }
