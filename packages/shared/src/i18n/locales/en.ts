@@ -316,6 +316,8 @@ export const en = {
     previewMetaCharacters: { one: "1 character", other: "{count} characters" },
     previewMetaRecent: { one: "1 in context", other: "{count} in context" },
     previewMessagesTitle: "Messages ({count})",
+    previewMessagesTruncated:
+      "Showing the last {shown} of {total} messages. Token counts include all of them.",
     previewSending: "Sending…",
     previewSend: "Send",
     previewLoading: "Loading context…",

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import type { PromptContextMetadataDTO } from "@workspace/shared/types/context"
 import { estimateTextTokens } from "@workspace/shared/lib/token-estimate"
@@ -14,27 +14,30 @@ export function useContextUsage(conversationId: string, refreshKey: string) {
     null,
   )
   const [draft, setDraft] = useState("")
+  const requestId = useRef(0)
 
   const refresh = useCallback(async () => {
+    const id = ++requestId.current
     try {
-      setMetadata(await getContextStats(conversationId))
+      const next = await getContextStats(conversationId)
+      if (id === requestId.current) setMetadata(next)
     } catch {
       // The indicator is informative: a failure must not interrupt the chat.
-      setMetadata(null)
+      if (id === requestId.current) setMetadata(null)
     }
   }, [conversationId])
 
   useEffect(() => {
-    let cancelled = false
+    const id = ++requestId.current
     void getContextStats(conversationId)
       .then((next) => {
-        if (!cancelled) setMetadata(next)
+        if (id === requestId.current) setMetadata(next)
       })
       .catch(() => {
-        if (!cancelled) setMetadata(null)
+        if (id === requestId.current) setMetadata(null)
       })
     return () => {
-      cancelled = true
+      requestId.current += 1
     }
   }, [conversationId, refreshKey])
 
