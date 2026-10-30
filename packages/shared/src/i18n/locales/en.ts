@@ -903,6 +903,7 @@ export const en = {
     generated: "Summary generated",
     generateFailed: "The summary could not be generated",
     generateError: "Error generating the summary",
+    noNewMessages: "There are no new messages to summarize yet.",
     emptyContent: "The content cannot be empty",
     updated: "Summary updated",
     updateFailed: "Error updating the summary",

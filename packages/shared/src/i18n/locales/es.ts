@@ -911,6 +911,7 @@ export const es: Dictionary = {
     generated: "Resumen generado",
     generateFailed: "No se pudo generar el resumen",
     generateError: "Error al generar el resumen",
+    noNewMessages: "Todavía no hay mensajes nuevos que resumir.",
     emptyContent: "El contenido no puede estar vacío",
     updated: "Resumen actualizado",
     updateFailed: "Error al actualizar el resumen",

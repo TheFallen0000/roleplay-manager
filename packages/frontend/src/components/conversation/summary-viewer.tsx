@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { toast } from "@workspace/ui/components/sonner"
 import { EyeIcon } from "lucide-react"
 import { FieldSet } from "@workspace/ui/components/field"
+import { ApiClientError } from "@/lib/api/client"
 import { useSummaryStore } from "@/lib/stores/summary.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { dateLocale } from "@/lib/locale"
@@ -72,17 +73,17 @@ export function SummaryViewer({
     setGenerating(true)
     try {
       const result = await generateSummary(conversationId)
-      if (result) {
-        toast.success(t("summaries.generated"))
-        if (result.title && result.titleSource) {
-          onTitleGenerated?.(result.title, result.titleSource)
-        }
-        await onSummaryChanged?.()
-      } else {
-        toast.error(t("summaries.generateFailed"))
+      toast.success(t("summaries.generated"))
+      if (result.title && result.titleSource) {
+        onTitleGenerated?.(result.title, result.titleSource)
       }
-    } catch {
-      toast.error(t("summaries.generateError"))
+      await onSummaryChanged?.()
+    } catch (e) {
+      if (e instanceof ApiClientError && e.code === "NO_NEW_MESSAGES") {
+        toast.warning(t("summaries.noNewMessages"))
+      } else {
+        toast.error(t("summaries.generateError"))
+      }
     } finally {
       setGenerating(false)
     }
