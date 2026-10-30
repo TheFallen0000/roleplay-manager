@@ -407,9 +407,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
                       <MessageScrollerItem
                         className="rm-message-enter"
                         key={msg.id} messageId={msg.id}
-                        scrollAnchor={
-                          i === messages.length - 1 && !isStreaming
-                        }
+                        scrollAnchor={false}
                       >
                         <MessageBubble
                           message={msg}

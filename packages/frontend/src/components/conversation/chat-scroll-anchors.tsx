@@ -33,8 +33,10 @@ export function AnchorChatToEnd({
 }
 
 /**
- * Loads older messages only when the user crosses the top threshold. Starting
- * from `start` avoids an extra request on mount, before the chat is anchored.
+ * Loads older messages when the user comes back to the top. `start` is true
+ * once the viewport has scrolled away from the top, so the first true marks
+ * the initial anchor; only a later true -> false transition means the user
+ * reached the top. This also avoids an extra request on mount.
  */
 export function LoadOlderOnScroll({
   enabled,
@@ -47,9 +49,17 @@ export function LoadOlderOnScroll({
 }) {
   const { start } = useMessageScrollerScrollable()
   const previousStart = useRef(start)
+  const anchored = useRef(false)
 
   useEffect(() => {
-    if (start && !previousStart.current && enabled && !loading) {
+    if (start) anchored.current = true
+    if (
+      anchored.current &&
+      !start &&
+      previousStart.current &&
+      enabled &&
+      !loading
+    ) {
       onLoad()
     }
     previousStart.current = start

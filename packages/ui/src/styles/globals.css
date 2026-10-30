@@ -105,6 +105,15 @@
   to { opacity: 1; translate: 0 0; }
 }
 
+/* Keep the newest messages rendered so the first scroll anchor measures their
+   real height instead of the content-visibility estimate. The scroller adds a
+   spacer as the last child, hence the extra +1 in the selector. */
+[data-slot="message-scroller-content"]
+  > [data-slot="message-scroller-item"]:nth-last-child(-n + 41) {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+}
+
 /* ==========================================================================
    Default world: «Ink & Violet» — cool paper and violet ink.
    Every world defines complete light and dark tokens (`[data-theme="…"]`).
