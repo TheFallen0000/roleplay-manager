@@ -14,7 +14,7 @@ export interface SummaryState {
   loadSummaries: (conversationId: string) => Promise<void>
   generateSummary: (
     conversationId: string,
-  ) => Promise<GenerateSummaryResponse | null>
+  ) => Promise<GenerateSummaryResponse>
   updateSummary: (conversationId: string, summaryId: string, content: string) => Promise<SummaryDTO>
   deleteSummary: (conversationId: string, summaryId: string) => Promise<void>
   reset: () => void
@@ -42,7 +42,7 @@ export const useSummaryStore = create<SummaryState>((set) => ({
       return result
     } catch (e) {
       set({ error: (e as Error).message })
-      return null
+      throw e
     }
   },
 
