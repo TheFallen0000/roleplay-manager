@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   de `theme-color` antes del primer pintado para que la barra de estado y el
   fondo inicial sigan al tema. La barra de navegación inferior de Android la
   controla el sistema/Chrome y no puede cambiarse desde la web.
+- **Resúmenes**: “Generar resumen ahora” sin mensajes nuevos muestra un aviso
+  amarillo localizado en vez de un error rojo (`NO_NEW_MESSAGES`).
+- **Chat**: al entrar o volver a una conversación el scroll queda al final del
+  último mensaje; la carga de mensajes antiguos ya no se dispara al entrar y el
+  ancla mide las alturas reales de los mensajes recientes.
 
 ## [1.57.0] - 2026-10-28
 
