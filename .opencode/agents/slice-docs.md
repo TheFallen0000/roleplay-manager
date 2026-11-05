@@ -8,7 +8,7 @@ permissions:
     resource: "*"
     effect: deny
   - action: edit
-    resource: "docs/*"
+    resource: "docs/**"
     effect: allow
   - action: edit
     resource: "docs/10-slices/*review.md"

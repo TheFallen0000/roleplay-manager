@@ -17,10 +17,10 @@ permissions:
     resource: "*.spec.ts"
     effect: deny
   - action: edit
-    resource: "evals/*"
+    resource: "**/evals/**"
     effect: deny
   - action: edit
-    resource: "docs/*"
+    resource: "docs/**"
     effect: deny
   - action: edit
     resource: "CHANGELOG.md"

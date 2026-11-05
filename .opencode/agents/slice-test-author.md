@@ -17,7 +17,7 @@ permissions:
     resource: "*.spec.ts"
     effect: allow
   - action: edit
-    resource: "evals/*"
+    resource: "**/evals/**"
     effect: allow
   - action: shell
     resource: "*"
