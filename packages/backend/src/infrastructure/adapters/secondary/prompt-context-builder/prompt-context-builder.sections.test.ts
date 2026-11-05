@@ -124,6 +124,9 @@ const EXPECTED_SECTION_IDS = [
   "player",
   "memories",
   "summary",
+  "proposals",
+  "style",
+  "format",
   "ooc",
 ]
 
