@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Dependencias**: `@types/better-sqlite3` 9.6.0 (solo tipos; el runtime
+  `better-sqlite3` sigue en 13.0.3).
+
 ## [1.57.2] - 2026-11-05
 
 ### Fixed

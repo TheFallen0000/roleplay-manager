@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10",
-    "@types/better-sqlite3": "^7.6.11",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/busboy": "^1.5.5",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
