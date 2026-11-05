@@ -24,15 +24,20 @@ import type {
 } from "../../domain/ports/provider.port"
 import type { ProviderInstanceRepository } from "../../domain/ports/provider-instance.repository"
 import type { PromptContext } from "../../domain/value-objects/prompt-context"
+import type { ContextManifestDTO } from "@workspace/shared/types/context"
+import {
+  CharacterNotFoundError,
+  CharacterVersionNotFoundError,
+  ConversationNotFoundError,
+} from "../../domain/errors"
 import type { GetDefaultProviderUseCase } from "../use-cases/provider/get-default-provider.use-case"
 import type { ApplyAllMemoryChangesUseCase } from "../use-cases/memory/apply-all-memory-changes.use-case"
 import type { GenerateConversationTitleUseCase } from "../use-cases/conversation/generate-conversation-title.use-case"
 import type { ContextCompactionService } from "./context-compaction.service"
+import type { ConversationContextLoader } from "./conversation-context-loader.service"
+import type { ContextCompiler } from "./context-compiler.service"
 import type { NormalizedProposal } from "../../lib/normalize-proposals"
 
-import { loadMessagesAfterSummary } from "../use-cases/conversation/load-messages-after-summary"
-import { resolvePlayerCharacterPrompt } from "../use-cases/conversation/resolve-player-character"
-import { filterMemoriesForPrompt } from "../../lib/memory-decay"
 import { createCleanStream, extractProposals, type CleanStreamState } from "../../lib/memory-proposal-extractor"
 import { normalizeProposals } from "../../lib/normalize-proposals"
 import { saveMemoryProposals } from "../../lib/save-memory-proposals"
@@ -61,6 +66,8 @@ export interface ChatEngineDeps {
   playerCharacterRepository: PlayerCharacterRepository
   promptContextBuilder: PromptContextBuilder
   contextCompaction: ContextCompactionService
+  contextLoader: ConversationContextLoader
+  contextCompiler: ContextCompiler
   providerRegistry: ProviderRegistry
   providerInstanceRepository: ProviderInstanceRepository
   getDefaultProvider: GetDefaultProviderUseCase
@@ -85,6 +92,7 @@ export interface PrepareChatContextInput {
 export interface PreparedChatContext {
   ok: true
   context: PromptContext
+  manifest: ContextManifestDTO
   characterVersion: CharacterVersion
   /** Unfiltered memories, needed to hydrate UPDATE/DELETE proposals. */
   memories: Memory[]
@@ -139,75 +147,38 @@ export class ChatEngine {
     input: PrepareChatContextInput,
   ): AsyncGenerator<ChatContextEvent, PrepareChatContextResult> {
     const { conversation, locale } = input
-    const latestSummary =
-      await this.deps.summaryRepository.findLatestByConversationId(
-        conversation.id,
-      )
-    const messagesAfterSummary = await loadMessagesAfterSummary({
-      conversationId: conversation.id,
-      summary: latestSummary,
-      messageHistoryRepository: this.deps.messageHistoryRepository,
-      messageRepository: this.deps.messageRepository,
-    })
-    const loadedIds = new Set(messagesAfterSummary.map((message) => message.id))
-    const pendingMessages = (input.pendingMessages ?? []).filter(
-      (message) => !loadedIds.has(message.id),
-    )
-    const candidateMessages = [...messagesAfterSummary, ...pendingMessages]
-    const contextMessages = input.excludeMessageId
-      ? candidateMessages.filter(
-          (message) => message.id !== input.excludeMessageId,
-        )
-      : candidateMessages
-
-    const version = await this.deps.characterRepository.findVersionById(
-      conversation.versionId,
-    )
-    if (!version) {
-      return this.failure(
-        "CHARACTER_VERSION_NOT_FOUND",
-        `Character version '${conversation.versionId}' not found.`,
-      )
+    let loaded
+    try {
+      loaded = await this.deps.contextLoader.load({
+        conversationId: conversation.id,
+        conversation,
+        pendingMessages: input.pendingMessages,
+        excludeMessageId: input.excludeMessageId,
+      })
+    } catch (error) {
+      if (error instanceof ConversationNotFoundError) {
+        return this.failure("CONVERSATION_NOT_FOUND", error.message)
+      }
+      if (error instanceof CharacterVersionNotFoundError) {
+        return this.failure("CHARACTER_VERSION_NOT_FOUND", error.message)
+      }
+      if (error instanceof CharacterNotFoundError) {
+        return this.failure("CHARACTER_NOT_FOUND", error.message)
+      }
+      throw error
     }
 
-    const characterResult = await this.deps.characterRepository.findById(
-      version.characterId,
-    )
-    if (!characterResult) {
-      return this.failure(
-        "CHARACTER_NOT_FOUND",
-        `Character '${version.characterId}' not found.`,
-      )
-    }
-
-    const memories = await this.deps.memoryRepository.findByConversationId(
-      conversation.id,
-    )
-    const memoryTurns = (
-      await this.deps.messageHistoryRepository.findUserMessageTimes(
-        conversation.id,
-      )
-    ).map((createdAt) => ({ role: "user", createdAt }))
-    const promptMemories = filterMemoriesForPrompt(
-      conversation,
-      memories,
-      memoryTurns,
-    )
-    const playerCharacter = await resolvePlayerCharacterPrompt(
-      this.deps.playerCharacterRepository,
-      conversation,
-    )
-
-    let promptMessages = contextMessages
+    const { characterVersion, latestSummary } = loaded
+    let promptMessages = loaded.messages
     let contextSummary = latestSummary
     let compactionSummary: SummaryDTO | null = null
     let outputTokens = conversation.maxTokens
     const compactionInput = {
       conversation,
-      characterVersion: characterResult.currentVersion,
-      messages: contextMessages,
-      memories: promptMemories,
-      playerCharacter,
+      characterVersion,
+      messages: loaded.messages,
+      memories: loaded.promptMemories,
+      playerCharacter: loaded.playerCharacter,
       latestSummary,
       locale,
     }
@@ -215,6 +186,7 @@ export class ChatEngine {
     const shouldCompact =
       input.forceCompaction ||
       (await this.deps.contextCompaction.needsCompaction(compactionInput))
+    let compactionApplied = false
     if (shouldCompact) {
       yield { type: "compacting" }
       const compaction = await this.deps.contextCompaction.compact(
@@ -240,25 +212,42 @@ export class ChatEngine {
       promptMessages = compaction.messages
       contextSummary = compaction.summary
       outputTokens = compaction.outputTokens
+      compactionApplied = compaction.compacted
     }
 
-    const context = await this.deps.promptContextBuilder.build({
-      characterVersion: characterResult.currentVersion,
+    const pendingIds = new Set(
+      loaded.pendingMessages.map((message) => message.id),
+    )
+    let pendingCount = 0
+    for (let index = promptMessages.length - 1; index >= 0; index -= 1) {
+      if (!pendingIds.has(promptMessages[index].id)) break
+      pendingCount += 1
+    }
+
+    const { context, manifest } = await this.deps.contextCompiler.compile({
+      conversation,
+      characterVersion,
       messages: promptMessages,
-      recentMessageCount: promptMessages.length,
-      memories: promptMemories,
-      summary: contextSummary ?? undefined,
-      playerCharacter,
+      pendingCount,
+      excludedCount: loaded.excludedMessageId ? 1 : 0,
+      memories: loaded.memories,
+      promptMemories: loaded.promptMemories,
+      summary: contextSummary,
+      playerCharacter: loaded.playerCharacter,
       locale,
-      enableMemoryProposalTool: true,
-      filterOocFromHistory: true,
+      outputReserve: outputTokens,
+      compaction: {
+        needed: shouldCompact,
+        applied: shouldCompact && compactionApplied,
+      },
     })
 
     return {
       ok: true,
       context,
-      characterVersion: characterResult.currentVersion,
-      memories,
+      manifest,
+      characterVersion,
+      memories: loaded.memories,
       compactionSummary,
       outputTokens,
     }

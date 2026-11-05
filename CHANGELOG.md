@@ -7,10 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Contexto**: la vista previa muestra un manifiesto por secciones con tokens
+  estimados, fuentes incluidas u omitidas y el motivo; el envío y el preview
+  comparten el mismo compilador.
+- **Evaluación**: banco de evaluación determinista del ensamblado de contexto
+  (`pnpm eval`), sin red ni proveedores reales.
+
 ### Changed
 
 - **Dependencias**: `@types/better-sqlite3` 9.6.0 (solo tipos; el runtime
   `better-sqlite3` sigue en 13.0.3).
+
+### Fixed
+
+- **Contexto**: las conversaciones usan la versión del personaje con la que se
+  crearon, igual que la vista previa; antes el envío podía usar la última versión
+  después de editar el personaje.
 
 ## [1.57.2] - 2026-11-05
 

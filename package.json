@@ -15,6 +15,7 @@
     "typecheck": "turbo typecheck",
     "check:arch": "node scripts/architecture-check.mjs",
     "check": "pnpm check:arch && turbo typecheck && turbo lint",
+    "eval": "pnpm --filter @workspace/backend eval",
     "package:app": "node scripts/package.mjs",
     "brand:generate": "node scripts/generate-brand-assets.mjs",
     "prepare": "husky"

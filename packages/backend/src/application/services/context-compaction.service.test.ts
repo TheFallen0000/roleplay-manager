@@ -79,6 +79,16 @@ const builder = (systemLength = 300): PromptContextBuilder => ({
       content: message.content,
     })),
   }),
+  buildWithSections: async (params) => ({
+    context: {
+      systemPrompt: "s".repeat(systemLength) + (params.summary?.content ?? ""),
+      messages: params.messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
+    },
+    sections: [],
+  }),
 })
 
 const logger: Logger = {

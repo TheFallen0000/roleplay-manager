@@ -202,6 +202,10 @@ const buildPromptContextBuilder = (): PromptContextBuilder => ({
     systemPrompt: "Eres Test.",
     messages: [],
   }),
+  buildWithSections: async () => ({
+    context: { systemPrompt: "Eres Test.", messages: [] },
+    sections: [],
+  }),
 })
 
 let _providerCount = 0
@@ -984,6 +988,18 @@ describe("SendMessageUseCase — memory proposal flow", () => {
           messages: [{ role: "user", content: "Hola" }],
         }
       },
+      buildWithSections: async (params: any) => {
+        buildSystemPrompts.push(params.enableMemoryProposalTool ? "ON" : "OFF")
+        return {
+          context: {
+            systemPrompt: params.enableMemoryProposalTool
+              ? "Eres un personaje. Sin bloque markdown."
+              : "Eres un personaje. ```memory_proposals ... ```",
+            messages: [{ role: "user", content: "Hola" }],
+          },
+          sections: [],
+        }
+      },
     }
 
     const buildProviderWithToolCalls = (): ProviderRegistry => ({
@@ -1103,32 +1119,38 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       clearAlternatives: async () => {},
     })
 
-    const promptContextBuilder: PromptContextBuilder = {
-      build: async (params: any) => {
-        const messages = params.messages as Array<{ role: "user" | "assistant"; content: string }>
-        const lastUserIdx = params.filterOocFromHistory
-          ? messages.map((m) => m.role).lastIndexOf("user")
-          : -1
-        const ctxMessages = messages.map((m, idx) => {
-          if (
-            params.filterOocFromHistory &&
-            m.role === "user" &&
-            idx !== lastUserIdx
-          ) {
-            const cleaned = m.content.replace(/\/\/[^\n]*?\/\//g, "")
-            return { role: m.role, content: cleaned.trim() }
-          }
-          return { role: m.role, content: m.content }
-        })
-        const ctx: PromptContext = {
-          systemPrompt: params.enableMemoryProposalTool
-            ? "system sin bloque markdown"
-            : "system con bloque markdown",
-          messages: ctxMessages,
+    const buildOocContext = (params: any): PromptContext => {
+      const messages = params.messages as Array<{ role: "user" | "assistant"; content: string }>
+      const lastUserIdx = params.filterOocFromHistory
+        ? messages.map((m) => m.role).lastIndexOf("user")
+        : -1
+      const ctxMessages = messages.map((m, idx) => {
+        if (
+          params.filterOocFromHistory &&
+          m.role === "user" &&
+          idx !== lastUserIdx
+        ) {
+          const cleaned = m.content.replace(/\/\/[^\n]*?\/\//g, "")
+          return { role: m.role, content: cleaned.trim() }
         }
-        builtContexts.push(ctx)
-        return ctx
-      },
+        return { role: m.role, content: m.content }
+      })
+      const ctx: PromptContext = {
+        systemPrompt: params.enableMemoryProposalTool
+          ? "system sin bloque markdown"
+          : "system con bloque markdown",
+        messages: ctxMessages,
+      }
+      builtContexts.push(ctx)
+      return ctx
+    }
+
+    const promptContextBuilder: PromptContextBuilder = {
+      build: async (params: any) => buildOocContext(params),
+      buildWithSections: async (params: any) => ({
+        context: buildOocContext(params),
+        sections: [],
+      }),
     }
 
     const useCase = new SendMessageUseCase(
@@ -1296,6 +1318,7 @@ describe("SendMessageUseCase — output guardrails", () => {
     const characterRepo: CharacterRepository = {
       ...buildCharacterRepo(),
       findById: async () => ({ character, currentVersion: versionWithEmojis }),
+      findVersionById: async () => versionWithEmojis,
     }
 
     const savedAssistantContents: string[] = []

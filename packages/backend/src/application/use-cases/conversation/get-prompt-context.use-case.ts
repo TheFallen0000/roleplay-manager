@@ -1,28 +1,19 @@
-import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
-import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
-import type { MemoryRepository } from "../../../domain/ports/memory.repository"
-import type { SummaryRepository } from "../../../domain/ports/summary.repository"
-import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
-import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
-import { resolvePlayerCharacterPrompt } from "./resolve-player-character"
 import type { PromptContextDTO, PromptContextMetadataDTO } from "@workspace/shared/types/context"
-import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
 import { estimateContextTokens } from "@workspace/shared/lib/token-estimate"
-import {
-  ConversationNotFoundError,
-} from "../../../domain/errors"
 import type { Locale } from "@workspace/shared/i18n"
+
+import { Message } from "../../../domain/entities/message.entity"
+import type { ConversationContextLoader } from "../../services/conversation-context-loader.service"
+import type { ContextCompiler } from "../../services/context-compiler.service"
+import type { ContextCompactionService } from "../../services/context-compaction.service"
+
+const DEFAULT_OUTPUT_RESERVE = 2_048
 
 export class GetPromptContextUseCase {
   constructor(
-    private readonly conversationRepository: ConversationRepository,
-    private readonly characterRepository: CharacterRepository,
-    private readonly messageHistoryRepository: MessageHistoryRepository,
-    private readonly memoryRepository: MemoryRepository,
-    private readonly summaryRepository: SummaryRepository,
-    private readonly promptContextBuilder: PromptContextBuilder,
-    private readonly playerCharacterRepository: PlayerCharacterRepository,
+    private readonly contextLoader: ConversationContextLoader,
+    private readonly contextCompiler: ContextCompiler,
+    private readonly contextCompaction: ContextCompactionService,
   ) {}
 
   async execute(
@@ -30,74 +21,79 @@ export class GetPromptContextUseCase {
     pendingMessage?: string,
     locale?: Locale,
   ): Promise<PromptContextDTO> {
-    const conv = await this.conversationRepository.findById(conversationId)
-    if (!conv) {
-      throw new ConversationNotFoundError(conversationId)
-    }
+    const loaded = await this.contextLoader.load({ conversationId })
+    const { conversation, characterVersion, latestSummary } = loaded
 
-    const characterVersion = await this.characterRepository.findVersionById(conv.versionId)
-    const memories = await this.memoryRepository.findByConversationId(conversationId)
-    const summary = await this.summaryRepository.findLatestByConversationId(conversationId)
-    const summaryPosition = summary
-      ? await this.messageHistoryRepository.findPositionById(summary.lastMessageId)
+    const draft = pendingMessage?.trim()
+    const pending = draft
+      ? Message.create({
+          id: `pending-${conversationId}`,
+          conversationId,
+          role: "user",
+          content: draft,
+          position: (loaded.messages.at(-1)?.position ?? -1) + 1,
+          alternatives: [],
+          alternativesCursor: 0,
+          createdAt: new Date(),
+          editedAt: null,
+        })
       : null
-    const contextMessages =
-      await this.messageHistoryRepository.findAfterPosition(
-        conversationId,
-        summaryPosition ?? -1,
-      )
-    const memoryTurns = (
-      await this.messageHistoryRepository.findUserMessageTimes(conversationId)
-    ).map((createdAt) => ({ role: "user", createdAt }))
 
-    const promptMemories = filterMemoriesForPrompt(conv, memories, memoryTurns)
+    const messages = pending ? [...loaded.messages, pending] : loaded.messages
+    const pendingCount = pending ? 1 : 0
 
-    const playerCharacter = await resolvePlayerCharacterPrompt(
-      this.playerCharacterRepository,
-      conv,
-    )
-
-    const context = await this.promptContextBuilder.build({
-      characterVersion: characterVersion!,
-      messages: contextMessages,
-      recentMessageCount: contextMessages.length,
-      memories: promptMemories,
-      summary: summary ?? undefined,
-      playerCharacter,
+    const needsCompaction = await this.contextCompaction.needsCompaction({
+      conversation,
+      characterVersion,
+      messages,
+      memories: loaded.promptMemories,
+      playerCharacter: loaded.playerCharacter,
+      latestSummary,
       locale,
-      enableMemoryProposalTool: true,
-      filterOocFromHistory: true,
     })
 
-    if (pendingMessage && pendingMessage.trim()) {
-      context.messages.push({ role: "user", content: pendingMessage.trim() })
-    }
+    const { context, manifest } = await this.contextCompiler.compile({
+      conversation,
+      characterVersion,
+      messages,
+      pendingCount,
+      excludedCount: loaded.excludedMessageId ? 1 : 0,
+      memories: loaded.memories,
+      promptMemories: loaded.promptMemories,
+      summary: latestSummary,
+      playerCharacter: loaded.playerCharacter,
+      locale,
+      outputReserve: conversation.maxTokens ?? DEFAULT_OUTPUT_RESERVE,
+      compaction: { needed: needsCompaction, applied: false },
+    })
 
-    const totalCharacters = context.systemPrompt.length +
-      context.messages.reduce((acc, m) => acc + m.content.length, 0)
+    const totalCharacters =
+      context.systemPrompt.length +
+      context.messages.reduce((acc, message) => acc + message.content.length, 0)
     const tokenEstimate = estimateContextTokens({
       systemPrompt: context.systemPrompt,
       messages: context.messages,
-      outputReserve: conv.maxTokens ?? 2048,
-      contextWindow: conv.contextWindow,
+      outputReserve: conversation.maxTokens ?? DEFAULT_OUTPUT_RESERVE,
+      contextWindow: conversation.contextWindow,
     })
 
     const metadata: PromptContextMetadataDTO = {
-      characterName: characterVersion?.name ?? "Unknown",
-      characterVersion: characterVersion?.versionNumber ?? 0,
-      summaryId: summary?.id ?? null,
-      memoryCount: promptMemories.length,
+      characterName: characterVersion.name,
+      characterVersion: characterVersion.versionNumber,
+      summaryId: latestSummary?.id ?? null,
+      memoryCount: loaded.promptMemories.length,
       recentMessageCount: context.messages.length,
       totalContextMessages: context.messages.length,
       totalCharacters,
       ...tokenEstimate,
-      compactionThreshold: conv.compactionThreshold,
+      compactionThreshold: conversation.compactionThreshold,
     }
 
     return {
       systemPrompt: context.systemPrompt,
       messages: context.messages,
       metadata,
+      manifest,
     }
   }
 }

@@ -53,6 +53,9 @@ jobs:
       - name: Backend tests
         run: pnpm --filter @workspace/backend test
 
+      - name: Backend evals
+        run: pnpm --filter @workspace/backend eval
+
       - name: Frontend tests
         run: pnpm --filter @workspace/frontend exec vitest run
 

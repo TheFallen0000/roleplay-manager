@@ -20,8 +20,10 @@
   },
   "include": [
     "src/**/*",
+    "evals/**/*",
     "drizzle.config.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "vitest.eval.config.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }
