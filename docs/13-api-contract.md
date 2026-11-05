@@ -20,12 +20,12 @@ mismo contrato.
 
 Valor por defecto: `http://127.0.0.1:3001` (`HOST` y `PORT` son configurables).
 
-| Cabecera | Uso |
-|---|---|
-| `Content-Type: application/json` | Cuerpo JSON en rutas que lo aceptan. |
-| `Accept: text/event-stream` | Respuestas SSE de chat. |
-| `Accept-Language: es` / `en` | Idioma del prompt y de los avisos generados por el backend. |
-| `Origin` | Solo navegadores. Las rutas que cambian estado rechazan peticiones cruzadas; un cliente no-navegador puede omitirla. |
+| Cabecera                         | Uso                                                                                                                  |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `Content-Type: application/json` | Cuerpo JSON en rutas que lo aceptan.                                                                                 |
+| `Accept: text/event-stream`      | Respuestas SSE de chat.                                                                                              |
+| `Accept-Language: es` / `en`     | Idioma del prompt y de los avisos generados por el backend.                                                          |
+| `Origin`                         | Solo navegadores. Las rutas que cambian estado rechazan peticiones cruzadas; un cliente no-navegador puede omitirla. |
 
 Las rutas que cambian estado (`POST`, `PATCH`, `PUT`, `DELETE`) comprueban
 `Origin`/`Sec-Fetch-Site`. CORS no sustituye esa comprobación. No envíes
@@ -50,24 +50,24 @@ error interno. Los códigos de dominio concretos viajan en `error.code`.
 
 ## Endpoints principales
 
-| Método | Ruta | Respuesta |
-|---|---|---|
-| `GET` | `/api/health` | Estado del backend. |
-| `GET` | `/api/conversations` | Lista de conversaciones. |
-| `GET` | `/api/conversations/:id` | Detalle, ajustes y última página de mensajes. |
-| `PATCH` | `/api/conversations/:id/settings` | Ajustes de la conversación. |
-| `GET` | `/api/conversations/:id/messages?before=&limit=` | Página de mensajes. |
-| `POST` | `/api/conversations/:id/messages` | Enviar mensaje; **SSE**. |
-| `POST` | `/api/conversations/:id/continue` | Continuar; **SSE**. |
-| `POST` | `/api/conversations/:id/messages/:messageId/regenerate` | Regenerar; **SSE**. |
-| `GET` | `/api/conversations/:id/context?pendingMessage=` | Contexto que se enviaría, sin proveedor. |
-| `GET` | `/api/conversations/:id/context/stats` | Metadatos y estimación de tokens. |
-| `GET` | `/api/conversations/:id/summaries` | Resúmenes de la conversación. |
-| `POST` | `/api/conversations/:id/summaries/generate` | Forzar una compactación/resumen manual. |
-| `GET` | `/api/providers` | Proveedores registrados. |
-| `GET` | `/api/providers/:id/status` | Comprobar conexión. |
-| `GET` | `/api/providers/:id/models` | Modelos disponibles. |
-| `GET` | `/api/providers/:id/model-context?model=&instanceId=` | Ventana de contexto detectada. |
+| Método  | Ruta                                                    | Respuesta                                                |
+| ------- | ------------------------------------------------------- | -------------------------------------------------------- |
+| `GET`   | `/api/health`                                           | Estado del backend.                                      |
+| `GET`   | `/api/conversations`                                    | Lista de conversaciones.                                 |
+| `GET`   | `/api/conversations/:id`                                | Detalle, ajustes y última página de mensajes.            |
+| `PATCH` | `/api/conversations/:id/settings`                       | Ajustes de la conversación.                              |
+| `GET`   | `/api/conversations/:id/messages?before=&limit=`        | Página de mensajes.                                      |
+| `POST`  | `/api/conversations/:id/messages`                       | Enviar mensaje; **SSE**.                                 |
+| `POST`  | `/api/conversations/:id/continue`                       | Continuar; **SSE**.                                      |
+| `POST`  | `/api/conversations/:id/messages/:messageId/regenerate` | Regenerar; **SSE**.                                      |
+| `GET`   | `/api/conversations/:id/context?pendingMessage=`        | Contexto que se enviaría, con manifiesto, sin proveedor. |
+| `GET`   | `/api/conversations/:id/context/stats`                  | Metadatos y estimación de tokens.                        |
+| `GET`   | `/api/conversations/:id/summaries`                      | Resúmenes de la conversación.                            |
+| `POST`  | `/api/conversations/:id/summaries/generate`             | Forzar una compactación/resumen manual.                  |
+| `GET`   | `/api/providers`                                        | Proveedores registrados.                                 |
+| `GET`   | `/api/providers/:id/status`                             | Comprobar conexión.                                      |
+| `GET`   | `/api/providers/:id/models`                             | Modelos disponibles.                                     |
+| `GET`   | `/api/providers/:id/model-context?model=&instanceId=`   | Ventana de contexto detectada.                           |
 
 El resto de rutas (personajes, memorias, propuestas, imágenes, ajustes
 globales, túnel y LAN) están en `docs/07-technical-architecture.md`.
@@ -139,9 +139,26 @@ GET /api/conversations/{id}/context/stats
 ```
 
 `/context` devuelve el prompt completo (`systemPrompt` y `messages`) y sus
-metadatos sin llamar al proveedor. `/context/stats` devuelve solo los metadatos:
-ventana, umbral de compactación, tokens estimados del sistema, mensajes,
-reserva de respuesta y porcentaje.
+metadatos sin llamar al proveedor, más un `manifest` aditivo (versión `1`) que
+explica cómo se ensambló:
+
+- `version`, `model`, `contextWindow` y `outputReserve`.
+- `estimatedInputTokens` y `estimatedTotalTokens`.
+- `compaction`: `needed`, `applied` y `threshold`.
+- `summary`: `id`, rango (`firstMessageId`/`lastMessageId`) y `messagesAfter`.
+- `memories` y `messages`: totales, incluidas y excluidas.
+- `sections`: `id`, `source` (`system`, `history` o `pending`), `tokens` y
+  `characters` estimados, `included`, `reason` e `itemCount` opcional.
+
+Los tokens son estimaciones heurísticas, no las cifras de un tokenizer real: sirven
+para comparar secciones y detectar problemas de presupuesto, no para facturar. La
+vista previa **nunca** aplica compactación; solo informa `compaction.needed` con
+`applied: false`. Un envío real compacta primero y después compila, así que el
+manifiesto puede diferir del preview cuando `needed` es `true`.
+
+`/context/stats` sigue devolviendo solo metadatos: ventana, umbral de
+compactación, tokens estimados del sistema, mensajes, reserva de respuesta y
+porcentaje. No incluye `systemPrompt`, `messages` ni `manifest`.
 
 ## SSE del chat
 
@@ -174,16 +191,16 @@ title-generated?       (si cambió el título después)
 
 ### Eventos
 
-| Evento | Datos | Cuándo |
-|---|---|---|
-| `saved` | `MessageDTO` | Solo `send`: el mensaje del usuario ya está guardado. |
-| `compacting` | `{}` | El servidor está resumiendo/recortando antes de responder. Puede tardar. |
-| `context-warning` | `{ code, message }` | La compactación recortó mensajes, redujo la reserva de respuesta o descartó el resumen. |
-| `summary-generated` | `SummaryDTO` | Se creó un resumen durante la compactación. |
-| `chunk` | `{ "content": "texto" }` | Fragmento de la respuesta. Concatenar en orden. |
-| `done` | `{ "message": MessageDTO, "title"?: string, "titleSource"?: "auto" \| "manual" }` | Respuesta completa. `title` solo aparece si se generó un título. |
-| `title-generated` | `{ "title": string, "titleSource": "auto" \| "manual" }` | Título actualizado después de `done`. |
-| `error` | `{ "code": string, "message": string }` | Error una vez abierto el stream. El HTTP sigue siendo 200. |
+| Evento              | Datos                                                                             | Cuándo                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `saved`             | `MessageDTO`                                                                      | Solo `send`: el mensaje del usuario ya está guardado.                                   |
+| `compacting`        | `{}`                                                                              | El servidor está resumiendo/recortando antes de responder. Puede tardar.                |
+| `context-warning`   | `{ code, message }`                                                               | La compactación recortó mensajes, redujo la reserva de respuesta o descartó el resumen. |
+| `summary-generated` | `SummaryDTO`                                                                      | Se creó un resumen durante la compactación.                                             |
+| `chunk`             | `{ "content": "texto" }`                                                          | Fragmento de la respuesta. Concatenar en orden.                                         |
+| `done`              | `{ "message": MessageDTO, "title"?: string, "titleSource"?: "auto" \| "manual" }` | Respuesta completa. `title` solo aparece si se generó un título.                        |
+| `title-generated`   | `{ "title": string, "titleSource": "auto" \| "manual" }`                          | Título actualizado después de `done`.                                                   |
+| `error`             | `{ "code": string, "message": string }`                                           | Error una vez abierto el stream. El HTTP sigue siendo 200.                              |
 
 Códigos de `context-warning`: `SUMMARY_FAILED_TRIMMED`, `CONTEXT_TRIMMED`,
 `OUTPUT_REDUCED` y `SUMMARY_DROPPED`. El mensaje ya viene localizado; el cliente
@@ -225,16 +242,16 @@ puede mostrarlo tal cual.
 
 Códigos propios del chat:
 
-| Código | Significado |
-|---|---|
-| `CHARACTER_VERSION_NOT_FOUND` | La versión del personaje ya no existe. |
-| `CHARACTER_NOT_FOUND` | El personaje ya no existe. |
-| `PROVIDER_NOT_CONFIGURED` | No hay proveedor/modelo utilizable. |
-| `STREAMING_FAILED` | El proveedor falló durante el streaming. |
-| `EMPTY_RESPONSE` | El proveedor devolvió una respuesta vacía. |
-| `CONTEXT_TOO_LARGE` | Ni compactando cabe el prompt (o el sistema solo no cabe). |
-| `NOT_ASSISTANT_MESSAGE` | Se intentó regenerar un mensaje que no es del asistente. |
-| `INTERNAL_ERROR` | Fallo inesperado antes de poder mapear el error. |
+| Código                        | Significado                                                |
+| ----------------------------- | ---------------------------------------------------------- |
+| `CHARACTER_VERSION_NOT_FOUND` | La versión del personaje ya no existe.                     |
+| `CHARACTER_NOT_FOUND`         | El personaje ya no existe.                                 |
+| `PROVIDER_NOT_CONFIGURED`     | No hay proveedor/modelo utilizable.                        |
+| `STREAMING_FAILED`            | El proveedor falló durante el streaming.                   |
+| `EMPTY_RESPONSE`              | El proveedor devolvió una respuesta vacía.                 |
+| `CONTEXT_TOO_LARGE`           | Ni compactando cabe el prompt (o el sistema solo no cabe). |
+| `NOT_ASSISTANT_MESSAGE`       | Se intentó regenerar un mensaje que no es del asistente.   |
+| `INTERNAL_ERROR`              | Fallo inesperado antes de poder mapear el error.           |
 
 Si el error ocurre antes de enviar las cabeceras SSE, se devuelve el JSON de
 error normal. Si ya se abrió el stream, se emite `error` y se cierra.
@@ -275,7 +292,7 @@ const response = await fetch(
       "Accept-Language": "es",
     },
     body: JSON.stringify({ content: "Hola" }),
-  },
+  }
 )
 
 const reader = response.body!.getReader()
@@ -295,14 +312,22 @@ for (;;) {
     else if (line.startsWith("data: ")) {
       const data = JSON.parse(line.slice(6))
       switch (event) {
-        case "saved": /* mensaje del usuario */ break
-        case "compacting": /* mostrar estado */ break
-        case "context-warning": /* avisar */ break
-        case "chunk": /* concatenar data.content */ break
-        case "done": /* data.message; no cerrar aún */ break
-        case "title-generated": /* actualizar título */ break
-        case "error": /* data.code / data.message */ break
-        default: /* ignorar eventos nuevos */ break
+        case "saved":
+          /* mensaje del usuario */ break
+        case "compacting":
+          /* mostrar estado */ break
+        case "context-warning":
+          /* avisar */ break
+        case "chunk":
+          /* concatenar data.content */ break
+        case "done":
+          /* data.message; no cerrar aún */ break
+        case "title-generated":
+          /* actualizar título */ break
+        case "error":
+          /* data.code / data.message */ break
+        default:
+          /* ignorar eventos nuevos */ break
       }
     }
   }

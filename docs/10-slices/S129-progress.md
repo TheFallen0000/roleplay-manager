@@ -1,8 +1,8 @@
 # S129 — Compilador de contexto, manifiesto e inspector
 
-**Estado:** Aprobado
+**Estado:** Completado (pendiente de release batched)
 **Inicio:** 2026-11-05
-**Fin:** —
+**Fin:** 2026-11-05
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -11,8 +11,10 @@
 
 Extrae la construcción del contexto a un compilador único, produce un
 manifiesto legible por máquina y añade un banco de evaluación determinista.
-No cambia el comportamiento del modelo: cambia la capacidad de **ver, comparar y
-probar** por qué el contexto enviado es el que es.
+No cambia la redacción del prompt para la misma entrada: cambia la capacidad de
+**ver, comparar y probar** por qué el contexto enviado es el que es. Además,
+corrige la resolución de la versión del personaje para que envío y preview
+coincidan.
 
 Es la base de S130 (ventanas de modelo), S132 (lorebook) y S133 (memoria v2).
 
@@ -129,28 +131,28 @@ cero regresiones en tests existentes.
 
 ## Criterios de aceptación
 
-- [ ] `ConversationContextLoader` centraliza la carga y no importa
+- [x] `ConversationContextLoader` centraliza la carga y no importa
       infraestructura.
-- [ ] `ContextCompiler` produce `{ context, manifest }` y no tiene efectos
+- [x] `ContextCompiler` produce `{ context, manifest }` y no tiene efectos
       secundarios.
-- [ ] `ChatEngine.prepareContext` y `GetPromptContextUseCase` usan el mismo
+- [x] `ChatEngine.prepareContext` y `GetPromptContextUseCase` usan el mismo
       loader/compilador; no queda duplicada la selección de resumen, mensajes,
       memorias ni personaje del jugador.
-- [ ] `PromptContextBuilder.build` devuelve exactamente el mismo string que
+- [x] `PromptContextBuilder.build` devuelve exactamente el mismo string que
       antes para los fixtures de paridad.
-- [ ] `PromptContextDTO` incluye `manifest` aditivo; los consumidores actuales
+- [x] `PromptContextDTO` incluye `manifest` aditivo; los consumidores actuales
       siguen funcionando sin cambios obligatorios.
-- [ ] `GET /api/conversations/:id/context` devuelve el manifiesto; `/context/stats`
+- [x] `GET /api/conversations/:id/context` devuelve el manifiesto; `/context/stats`
       mantiene su contrato actual.
-- [ ] El preview muestra secciones, tokens, incluidas/omitidas y motivo.
-- [ ] El manifiesto distingue `compaction.needed` de `compaction.applied`.
-- [ ] Existe `packages/backend/evals/` con 5 fixtures y runner.
-- [ ] `pnpm --filter @workspace/backend eval` pasa y CI lo ejecuta.
-- [ ] Tests nuevos: compilador, loader, paridad preview/envío, ruta `/context`,
+- [x] El preview muestra secciones, tokens, incluidas/omitidas y motivo.
+- [x] El manifiesto distingue `compaction.needed` de `compaction.applied`.
+- [x] Existe `packages/backend/evals/` con 5 fixtures y runner.
+- [x] `pnpm --filter @workspace/backend eval` pasa y CI lo ejecuta.
+- [x] Tests nuevos: compilador, loader, paridad preview/envío, ruta `/context`,
       componente de manifiesto.
-- [ ] `pnpm check`, tests, build y `pnpm audit --prod` en verde.
-- [ ] `CHANGELOG.md` actualizado bajo `[Unreleased]`.
-- [ ] Sin migraciones ni cambios de esquema.
+- [x] `pnpm check`, tests, build y `pnpm audit --prod` en verde.
+- [x] `CHANGELOG.md` actualizado bajo `[Unreleased]`.
+- [x] Sin migraciones ni cambios de esquema.
 
 ## Red tests
 
@@ -169,34 +171,80 @@ cero regresiones en tests existentes.
 
 ## Decisiones
 
-Se completará durante la implementación.
+- **Loader y compilador como única fuente de verdad (read-only).** `send` y el
+  preview comparten `ConversationContextLoader` y `ContextCompiler`; ninguno de
+  los dos persiste, compacta ni llama a proveedores. El envío añade la
+  compactación antes de compilar.
+- **El builder particiona el `systemParts` existente.** `buildWithSections`
+  reutiliza las mismas piezas y separadores que `build`, de modo que la salida
+  de `build()` es byte a byte idéntica. La refactorización no cambia el prompt.
+- **Manifiesto aditivo y efímero.** `PromptContextDTO.manifest` es opcional, no
+  hay tablas nuevas ni migraciones y los consumidores actuales siguen
+  funcionando sin cambios.
+- **El preview marca `compaction.needed` con `applied: false`.** No compacta ni
+  escribe resumen; el envío compacta primero y después compila, así que el
+  manifiesto del envío puede diferir del preview cuando `needed` es `true`.
+- **Las conversaciones quedan fijadas a `conversation.versionId`.** El envío
+  anterior resolvía `currentVersion` y podía cambiar el prompt tras editar el
+  personaje; el preview ya usaba la versión fijada. Es un arreglo intencional y
+  se documenta en el CHANGELOG.
+- **Eval determinista, sin red y con 5 fixtures.** Usa factories y fixtures
+  propias, se ejecuta con Vitest en `packages/backend/evals/` y cubre frontera de
+  resumen, prioridad/decaimiento de memorias, pendiente + OOC, compactación
+  necesaria y ausencia de ventana.
 
 ## Verificación
 
-Pendiente.
+- **Tests:** backend **731** tests (123 archivos); eval **33** tests; frontend
+  **393** tests (69 archivos).
+- **`pnpm check`:** en verde.
+- **`pnpm build`:** en verde.
+- **`pnpm audit --prod`:** en verde.
+- **`pnpm check:arch`:** en verde.
+- **Paridad de prompt:** el revisor comparó manualmente el builder plano antiguo
+  con la salida seccionada nueva y es byte a byte idéntica. No se capturó un
+  snapshot generado por la versión anterior (diferido).
+- **Tests nuevos:** loader, compilador, paridad preview/envío, ruta `/context`,
+  orden de secciones, manifiesto en frontend, conteos de excluidas y versión de
+  personaje fijada.
 
 ## Review
 
-- **Estado:** pendiente
+- **Estado:** PASS WITH NOTES
 - **Informe:** `docs/10-slices/S129-review.md`
-- **Bloqueantes resueltos:** —
+- **Notas:** el snapshot pre-refactor no se materializó (deuda explícita); el eval
+  de tokens reutiliza el estimador de producción; los fallbacks de
+  `send-message`, `continue-conversation` y `regenerate-reply` construyen su
+  propio loader/compilador cuando no reciben `ChatEngine`; el test de orden ya
+  cubre todas las secciones.
+- **Bloqueantes resueltos:** la versión de personaje fijada a la conversación se
+  mantiene como cambio deliberado, con test de regresión y entrada en el
+  CHANGELOG.
 
 ## Deferred
 
+- Golden snapshot del builder anterior para fijar la paridad byte a byte.
+- Tokenizer real por proveedor (hoy los tokens son estimaciones heurísticas) →
+  S130/S133.
+- Construcción duplicada de loader/compilador en los fallbacks de los use cases
+  de respuesta.
+- `summary.messagesAfter` es aproximado después de una compactación.
+- Las aserciones de tokens del eval reutilizan el estimador de producción; el
+  valor es informativo.
 - Detección de ventanas por modelo → S130.
 - Lorebook y activación → S132.
 - Memoria estructurada/RAG → S133.
 - Persistencia de manifiestos para auditoría histórica → evaluar después de S133.
-- Tokenizer real por proveedor → S130/S133.
 
 ## Commits
 
-1. `feat(shared): add context manifest types`
-2. `feat(backend): add conversation context loader`
-3. `feat(backend): add context compiler and sectioned prompt builder`
-4. `feat(backend): expose context manifest in preview`
-5. `feat(frontend): show context manifest in preview`
-6. `test(backend): cover loader, compiler and preview parity`
-7. `test(frontend): cover context manifest view`
-8. `test(evals): add context assembly fixtures`
-9. `docs(slice): document S129`
+1. `docs(slice): add S129 RFC`
+2. `chore(workflow): allow nested eval fixtures`
+3. `test(backend): add S129 red tests and eval runner`
+4. `feat(shared): add context manifest types`
+5. `feat(backend): add context loader, compiler and manifest`
+6. `test(backend): adapt context and chat tests to S129`
+7. `feat(frontend): show context manifest in preview`
+8. `test(frontend): cover context manifest view`
+9. `test(backend): strengthen section order coverage`
+10. `docs(slice): document S129`
