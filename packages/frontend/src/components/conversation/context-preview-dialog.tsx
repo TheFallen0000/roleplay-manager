@@ -11,6 +11,7 @@ import { Separator } from "@workspace/ui/components/separator"
 import { FileText, User, Bot, Info } from "lucide-react"
 
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { ContextManifestView } from "./context-manifest-view"
 import { ContextTokenBreakdown } from "./context-token-breakdown"
 
 const PREVIEW_MESSAGE_LIMIT = 100
@@ -89,6 +90,10 @@ export function ContextPreviewDialog({
             </div>
 
             <Separator />
+
+            {context.manifest ? (
+              <ContextManifestView manifest={context.manifest} />
+            ) : null}
 
             <ContextTokenBreakdown metadata={context.metadata} />
 
