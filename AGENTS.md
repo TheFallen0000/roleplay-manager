@@ -309,12 +309,15 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 
 ### Slice doc
 
-- Create `docs/10-slices/SX-progress.md` (`SX` = next slice number) documenting:
+- Create `docs/10-slices/SX-progress.md` (`SX` = next slice number) from
+  `docs/10-slices/TEMPLATE.md`, documenting:
   - **Descripción** — what the slice delivers and why.
-  - **Decisions** — the choices taken and their rationale (including what is out of scope).
+  - **RFC** — problem, constraints, options, decision and out of scope.
+  - **Plan de eval** — required for memory, context, prompt or model behaviour.
+  - **Decisions** — the choices taken and their rationale.
   - **Criterios de aceptación** — the checklist that defines "done".
   - **Commits** — the list of commits for the slice.
-- Use the most recent `S*-progress.md` as the template.
+- Use the most recent `S*-progress.md` as a worked example.
 
 ### Backlog
 
@@ -346,11 +349,41 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 - Several slices may accumulate under `[Unreleased]` when the user wants to
   avoid a release per change. Keep merging slice PRs and prepare a single
   `chore(release): vX.Y.Z` PR at the end of the batch.
+- Use `/release` for this flow. It proposes the semver bump, prepares the release
+  PR, waits for approval before push/merge and verifies the published assets.
+  The GitHub Actions release workflow creates the tag and the GitHub release;
+  never create them by hand.
 
 ### Commits
 
 - When asked to commit, keep commits **small and descriptive**, in conventional-commit style (`feat(scope): …`, `fix(scope): …`, `test(scope): …`, `docs(scope): …`, `release: …`).
 - Typical sequence: shared types → backend → ui → frontend → tests → docs/backlog → release (bump + changelog).
+
+### Automated slice workflow (`/slice`)
+
+- `/slice SX` runs the workflow in
+  `.opencode/skills/slice-workflow/SKILL.md` through the primary `slice` agent.
+  The human-readable guide is `docs/10-slices/WORKFLOW.md`.
+- Stages: **RFC → red tests → implementation → independent review → docs →
+  release preparation**. Each stage leaves an artifact in the slice doc or
+  `docs/10-slices/SX-review.md`.
+- Subagents: `slice-test-author` (tests/evals only), `slice-implementer`
+  (production code only), `slice-reviewer` (read-only), `slice-docs`
+  (docs/changelog only) and `slice-release` (release checks, read-only). The
+  orchestrator decides which one to launch; do not ask the user to choose.
+- The RFC must be `Estado: Aprobado` before implementation starts. Only the user
+  changes `Draft` to `Aprobado`.
+- `/slice` may push, open and merge the slice PR only after explicit approval.
+  It never bumps the version or publishes a release.
+- `/release` is the separate batched release flow: version bump, changelog roll,
+  release PR, merge and verification. It never touches feature code, tags
+  manually or creates a GitHub release by hand; the release workflow publishes.
+- **Human gates:** RFC approval, scope or architecture changes, review blockers
+  that require a redesign, slice push/merge, version choice, release push/merge
+  and publish.
+- Model routing (current): V4 Pro for RFC, tests and review; Flash for
+  implementation, docs and release. Do not use the same model to author and
+  review a slice.
 
 ---
 
