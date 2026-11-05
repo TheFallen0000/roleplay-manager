@@ -27,8 +27,51 @@ export interface PromptContextMetadataDTO {
   compactionThreshold: number
 }
 
+export interface ContextManifestSectionDTO {
+  id: string
+  source: "system" | "history" | "pending"
+  tokens: number
+  characters: number
+  included: boolean
+  reason: string
+  itemCount?: number
+}
+
+export interface ContextManifestDTO {
+  version: 1
+  model: string | null
+  contextWindow: number | null
+  outputReserve: number
+  estimatedInputTokens: number
+  estimatedTotalTokens: number
+  compaction: {
+    needed: boolean
+    applied: boolean
+    threshold: number
+  }
+  summary: {
+    id: string | null
+    firstMessageId: string | null
+    lastMessageId: string | null
+    messagesAfter: number
+  }
+  memories: {
+    total: number
+    included: number
+    excluded: number
+  }
+  messages: {
+    afterSummary: number
+    pending: number
+    excluded: number
+    total: number
+  }
+  sections: ContextManifestSectionDTO[]
+}
+
 export interface PromptContextDTO {
   systemPrompt: string
   messages: PromptContextMessageDTO[]
   metadata: PromptContextMetadataDTO
+  manifest?: ContextManifestDTO
 }
