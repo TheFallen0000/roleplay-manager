@@ -1,6 +1,6 @@
 # S129 — Compilador de contexto, manifiesto e inspector
 
-**Estado:** Draft
+**Estado:** Aprobado
 **Inicio:** 2026-11-05
 **Fin:** —
 
@@ -154,9 +154,18 @@ cero regresiones en tests existentes.
 
 ## Red tests
 
-- **Comando:**
-- **Fallo esperado:**
-- **Salida relevante:**
+- **Comando:** `pnpm --filter @workspace/backend test`
+- **Fallo esperado:** módulos `conversation-context-loader.service` y
+  `context-compiler.service` inexistentes; `buildWithSections` no existe;
+  `manifest` no existe en el DTO; `ChatEngineDeps` sin `contextLoader`/
+  `contextCompiler`.
+- **Salida relevante:** `Test Files 4 failed | 119 passed (123)`,
+  `Tests 5 failed | 709 passed (714)`. Los fallos son de contrato, no de
+  aserciones débiles.
+- **Eval:** `pnpm --filter @workspace/backend eval` falla con
+  `Cannot find module '../src/application/services/conversation-context-loader.service'`.
+- **Typecheck:** `TS2307` por módulos ausentes, `TS2339` por
+  `buildWithSections`/`manifest` y `TS2554` por el constructor del use case.
 
 ## Decisiones
 
