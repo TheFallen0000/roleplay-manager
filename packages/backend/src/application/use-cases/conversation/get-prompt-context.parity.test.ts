@@ -112,7 +112,10 @@ interface Repos {
   playerCharacterRepository: PlayerCharacterRepository
 }
 
-const buildRepos = (messages: Message[]): Repos => {
+const buildRepos = (
+  messages: Message[],
+  conversation: Conversation = buildConversation(),
+): Repos => {
   const byId = new Map(messages.map((m) => [m.id, m]))
   const findPositionById = async (id: string) => {
     const message = byId.get(id)
@@ -122,13 +125,13 @@ const buildRepos = (messages: Message[]): Repos => {
   return {
     conversationRepository: {
       create: async (c) => c,
-      findById: async () => buildConversation(),
+      findById: async () => conversation,
       list: async () => [],
       listByCharacterId: async () => [],
       listByCharacterIds: async () => [],
       existsByAssetId: async () => false,
       update: async (c) => c,
-      updateSettings: async (_id, _s) => buildConversation(),
+      updateSettings: async (_id, _s) => conversation,
       clearProviderInstanceId: async () => {},
     },
     characterRepository: {
@@ -317,7 +320,7 @@ describe("preview/send context parity", () => {
       contextWindow: 400,
       compactionThreshold: 50,
     })
-    const repos = buildRepos(messages)
+    const repos = buildRepos(messages, conversation)
     const builder = new PromptContextBuilderImpl()
     const loader = new ConversationContextLoader(repos as never)
     const compiler = new ContextCompiler(builder)

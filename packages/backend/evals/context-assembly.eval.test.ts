@@ -94,8 +94,10 @@ const mkConversation = (
     providerInstanceId: null,
     recentMessageCount: 20,
     summaryFrequency: 20,
-    contextWindow: overrides.contextWindow ?? 8_000,
-    compactionThreshold: overrides.compactionThreshold ?? 80,
+    contextWindow:
+      "contextWindow" in overrides ? overrides.contextWindow : 8_000,
+    compactionThreshold:
+      "compactionThreshold" in overrides ? overrides.compactionThreshold : 80,
     temperature: 0.7,
     maxTokens: 2_048,
     topP: 0.9,

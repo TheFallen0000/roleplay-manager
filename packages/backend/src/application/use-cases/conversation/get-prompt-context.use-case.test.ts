@@ -5,9 +5,13 @@ import type { ConversationRepository } from "../../../domain/ports/conversation.
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
+import type { MessageRepository } from "../../../domain/ports/message.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
+import { ConversationContextLoader } from "../../services/conversation-context-loader.service"
+import { ContextCompiler } from "../../services/context-compiler.service"
+import type { ContextCompactionService } from "../../services/context-compaction.service"
 import { Conversation } from "../../../domain/entities/conversation.entity"
 import { Message } from "../../../domain/entities/message.entity"
 import { Character } from "../../../domain/entities/character.entity"
@@ -131,17 +135,36 @@ const buildSummaryRepo = (summary: Summary | null): SummaryRepository => ({
   deleteByIds: async () => {},
 })
 
+const makeContext = (params: {
+  messages?: Message[]
+}): { systemPrompt: string; messages: { role: "user" | "assistant"; content: string }[] } => {
+  _capturedBuildParams = params as unknown as Record<string, unknown>
+  return {
+    systemPrompt: `Eres TestChar. A test character.\n\n## Personalidad\nNombre: TestChar`,
+    messages: (params.messages ?? []).map((m: any) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    })),
+  }
+}
+
 const buildPromptContextBuilder = (): PromptContextBuilder => ({
-  build: async (params) => {
-    _capturedBuildParams = params as unknown as Record<string, unknown>
-    return {
-      systemPrompt: `Eres TestChar. A test character.\n\n## Personalidad\nNombre: TestChar`,
-      messages: (params.messages ?? []).map((m: any) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      })),
-    }
-  },
+  build: async (params) => makeContext(params),
+  buildWithSections: async (params) => ({
+    context: makeContext(params),
+    sections: [],
+  }),
+})
+
+const buildMessageRepo = (messages: Message[]): MessageRepository => ({
+  create: async (m) => m,
+  findByConversationId: async () => messages,
+  findById: async (id) => messages.find((m) => m.id === id) ?? null,
+  findLastByConversationId: async () => messages.at(-1) ?? null,
+  update: async (m) => m,
+  deleteById: async () => {},
+  deleteAfterPosition: async () => {},
+  clearAlternatives: async () => {},
 })
 
 function buildUseCase(params: {
@@ -153,15 +176,25 @@ function buildUseCase(params: {
 }) {
   _capturedBuildParams = {}
   const messages = params.messages ?? buildMessages(12)
-  return new GetPromptContextUseCase(
-    buildConversationRepo(params.conv ?? activeConv, params.nonexistentIds ?? []),
-    buildCharacterRepo(),
-    buildMessageHistoryRepository(() => messages),
-    buildMemoryRepo(params.memories ?? []),
-    buildSummaryRepo(params.summary ?? null),
-    buildPromptContextBuilder(),
+  const conv = params.conv ?? activeConv
+  const builder = buildPromptContextBuilder()
+  const loader = new ConversationContextLoader({
+    conversationRepository: buildConversationRepo(
+      conv,
+      params.nonexistentIds ?? [],
+    ),
+    characterRepository: buildCharacterRepo(),
+    messageHistoryRepository: buildMessageHistoryRepository(() => messages),
+    messageRepository: buildMessageRepo(messages),
+    memoryRepository: buildMemoryRepo(params.memories ?? []),
+    summaryRepository: buildSummaryRepo(params.summary ?? null),
     playerCharacterRepository,
-  )
+  })
+  const compiler = new ContextCompiler(builder)
+  const contextCompaction = {
+    needsCompaction: async () => false,
+  } as unknown as ContextCompactionService
+  return new GetPromptContextUseCase(loader, compiler, contextCompaction)
 }
 
 describe("GetPromptContextUseCase", () => {

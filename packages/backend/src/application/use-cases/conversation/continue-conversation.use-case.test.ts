@@ -149,6 +149,19 @@ function buildPromptContextBuilder(): PromptContextBuilder {
         messages: capturedPromptMessages,
       }
     },
+    buildWithSections: async (params) => {
+      capturedPromptMessages = params.messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      }))
+      return {
+        context: {
+          systemPrompt: "Eres un personaje.",
+          messages: capturedPromptMessages,
+        },
+        sections: [],
+      }
+    },
   }
 }
 

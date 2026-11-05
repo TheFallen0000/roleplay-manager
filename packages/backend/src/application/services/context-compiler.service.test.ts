@@ -255,6 +255,19 @@ describe("ContextCompiler", () => {
     expect(pendingSection.tokens).toBeGreaterThan(0)
   })
 
+  it("pins the excluded-message counts into the manifest", async () => {
+    const compiler = new ContextCompiler(fakeBuilder)
+    const { manifest } = await compiler.compile(buildInput({ excludedCount: 1 }))
+
+    expect(manifest.messages).toEqual({
+      afterSummary: 3,
+      pending: 1,
+      excluded: 1,
+      total: 4,
+    })
+    expect(manifest.summary.messagesAfter).toBe(3)
+  })
+
   it("reports compaction needed vs applied without changing the estimate", async () => {
     const compiler = new ContextCompiler(fakeBuilder)
 

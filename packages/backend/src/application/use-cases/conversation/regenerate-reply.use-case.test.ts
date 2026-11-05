@@ -137,6 +137,13 @@ function buildPromptContextBuilder(): PromptContextBuilder {
       systemPrompt: "Eres un personaje.",
       messages: [{ role: "user", content: "Hola" }],
     }),
+    buildWithSections: async () => ({
+      context: {
+        systemPrompt: "Eres un personaje.",
+        messages: [{ role: "user", content: "Hola" }],
+      },
+      sections: [],
+    }),
   }
 }
 
@@ -301,6 +308,10 @@ describe("RegenerateReplyUseCase - tool calls", () => {
       build: async (params) => {
         sentMessages.push(...params.messages)
         return { systemPrompt: "", messages: [] }
+      },
+      buildWithSections: async (params) => {
+        sentMessages.push(...params.messages)
+        return { context: { systemPrompt: "", messages: [] }, sections: [] }
       },
     }
 

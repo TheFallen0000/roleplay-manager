@@ -149,11 +149,14 @@ const buildRepos = (overrides: {
   const characterRepository: CharacterRepository = {
     createWithFirstVersion: async () => ({ character, version }),
     findById: async () =>
-      overrides.character ?? { character, currentVersion: version },
+      overrides.character !== undefined
+        ? overrides.character
+        : { character, currentVersion: version },
     list: async () => [],
     update: async (c) => c,
     delete: async () => {},
-    findVersionById: async () => overrides.version ?? version,
+    findVersionById: async () =>
+      overrides.version !== undefined ? overrides.version : version,
     findVersionsByCharacterId: async () => [],
     findMaxVersionNumber: async () => 0,
     saveVersion: async (v) => v,
@@ -391,6 +394,50 @@ describe("ConversationContextLoader", () => {
       name: "Alice",
       description: "A curious explorer.",
     })
+  })
+
+  it("stays pinned to the conversation's original character version (S129)", async () => {
+    const oldVersion = CharacterVersion.create({
+      id: "ver-old",
+      characterId: "char-1",
+      name: "Test Character",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "Old description",
+      instructions: null,
+      greeting: "Hello!",
+      versionNumber: 1,
+      createdAt: now,
+      cards: [],
+    })
+    const newVersion = CharacterVersion.create({
+      id: "ver-new",
+      characterId: "char-1",
+      name: "Test Character",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "New description",
+      instructions: null,
+      greeting: "Hello!",
+      versionNumber: 2,
+      createdAt: now,
+      cards: [],
+    })
+    const pinnedConversation = Conversation.create({
+      ...conversationProps(),
+      versionId: "ver-old",
+    })
+    const repos = buildRepos({
+      conversation: pinnedConversation,
+      version: oldVersion,
+      character: { character, currentVersion: newVersion },
+    })
+    const loader = new ConversationContextLoader(repos as never)
+
+    const result = await loader.load({ conversationId: "conv-1" })
+
+    expect(result.characterVersion.id).toBe("ver-old")
+    expect(result.characterVersion.description).toBe("Old description")
   })
 
   it("throws ConversationNotFoundError for a missing conversation", async () => {

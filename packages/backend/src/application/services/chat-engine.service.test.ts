@@ -4,6 +4,11 @@ import type { SummaryDTO } from "@workspace/shared/types/summary"
 
 import { ChatEngine, type ChatEngineDeps } from "./chat-engine.service"
 import type { ContextCompactionService } from "./context-compaction.service"
+import { ConversationContextLoader } from "./conversation-context-loader.service"
+import {
+  ContextCompiler,
+  type ContextCompileInput,
+} from "./context-compiler.service"
 import { Conversation } from "../../domain/entities/conversation.entity"
 import { CharacterVersion } from "../../domain/entities/character-version.entity"
 import { Message } from "../../domain/entities/message.entity"
@@ -89,17 +94,54 @@ const summaryEntity = Summary.reconstruct({
   editedAt: null,
 })
 
+const makeContext = (params: Parameters<PromptContextBuilder["build"]>[0]) => ({
+  systemPrompt: `Summary: ${params.summary?.content ?? "none"}`,
+  messages: params.messages.map((message) => ({
+    role: message.role,
+    content: message.content,
+  })),
+})
+
 const promptBuilder = (): PromptContextBuilder => ({
-  build: vi.fn(
+  build: vi.fn(async (params: Parameters<PromptContextBuilder["build"]>[0]) =>
+    makeContext(params),
+  ),
+  buildWithSections: vi.fn(
     async (params: Parameters<PromptContextBuilder["build"]>[0]) => ({
-      systemPrompt: `Summary: ${params.summary?.content ?? "none"}`,
-      messages: params.messages.map((message) => ({
-        role: message.role,
-        content: message.content,
-      })),
+      context: makeContext(params),
+      sections: [],
     }),
   ),
 })
+
+const contextLoader = {
+  load: async () => ({
+    conversation,
+    characterVersion: version,
+    character: { id: "char-1", name: "TestChar", createdAt: now, updatedAt: now },
+    latestSummary: null,
+    messagesAfterSummary: [],
+    pendingMessages: [],
+    excludedMessageId: null,
+    messages: [],
+    memories: [],
+    promptMemories: [],
+    playerCharacter: undefined,
+  }),
+} as unknown as ConversationContextLoader
+
+const contextCompiler = {
+  compile: async (input: ContextCompileInput) => ({
+    context: {
+      systemPrompt: `Summary: ${input.summary?.content ?? "none"}`,
+      messages: input.messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
+    },
+    manifest: {} as never,
+  }),
+} as unknown as ContextCompiler
 
 const provider = (): ProviderPort => ({
   validateConnection: async () => "available",
@@ -189,6 +231,8 @@ const buildDeps = (
       warning: null,
     }),
   } as unknown as ContextCompactionService,
+  contextLoader,
+  contextCompiler,
   providerRegistry: {
     listRegistered: () => ["ollama"],
     getAdapter: async () => provider(),
