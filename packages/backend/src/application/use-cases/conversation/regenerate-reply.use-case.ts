@@ -12,6 +12,8 @@ import type { MemoryChangeProposalRepository } from "../../../domain/ports/memor
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { ContextCompactionService } from "../../services/context-compaction.service"
 import { ChatEngine } from "../../services/chat-engine.service"
+import { ConversationContextLoader } from "../../services/conversation-context-loader.service"
+import { ContextCompiler } from "../../services/context-compiler.service"
 import type {
   CompactingEvent,
   ContextWarningEvent,
@@ -98,6 +100,16 @@ export class RegenerateReplyUseCase {
         playerCharacterRepository,
         promptContextBuilder,
         contextCompaction,
+        contextLoader: new ConversationContextLoader({
+          conversationRepository,
+          characterRepository,
+          messageHistoryRepository,
+          messageRepository,
+          memoryRepository,
+          summaryRepository,
+          playerCharacterRepository,
+        }),
+        contextCompiler: new ContextCompiler(promptContextBuilder),
         providerRegistry,
         providerInstanceRepository,
         getDefaultProvider,

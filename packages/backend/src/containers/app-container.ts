@@ -125,6 +125,8 @@ import { ListSummariesUseCase } from "../application/use-cases/summary/list-summ
 import { GenerateSummaryUseCase } from "../application/use-cases/summary/generate-summary.use-case"
 import { CompactConversationUseCase } from "../application/use-cases/summary/compact-conversation.use-case"
 import { ContextCompactionService } from "../application/services/context-compaction.service"
+import { ConversationContextLoader } from "../application/services/conversation-context-loader.service"
+import { ContextCompiler } from "../application/services/context-compiler.service"
 import { ChatEngine } from "../application/services/chat-engine.service"
 import { UpdateSummaryUseCase } from "../application/use-cases/summary/update-summary.use-case"
 import { DeleteSummaryUseCase } from "../application/use-cases/summary/delete-summary.use-case"
@@ -338,6 +340,17 @@ export const buildContainer = ({
     new DrizzleProviderInstanceRepository(database)
   const getDefaultProvider = new GetDefaultProviderUseCase(settings, providerInstanceRepository)
 
+  const conversationContextLoader = new ConversationContextLoader({
+    conversationRepository,
+    characterRepository,
+    messageHistoryRepository: messageRepository,
+    messageRepository,
+    memoryRepository,
+    summaryRepository,
+    playerCharacterRepository,
+  })
+  const contextCompiler = new ContextCompiler(promptContextBuilder)
+
   const tunnelController = new TailscaleServeAdapter({
     targetUrl: tunnelTargetUrl,
     binPath: tailscaleBin,
@@ -459,6 +472,8 @@ export const buildContainer = ({
     playerCharacterRepository,
     promptContextBuilder,
     contextCompaction,
+    contextLoader: conversationContextLoader,
+    contextCompiler,
     providerRegistry,
     providerInstanceRepository,
     getDefaultProvider,
@@ -708,13 +723,9 @@ export const buildContainer = ({
     ),
     regenerateReply,
     getPromptContext: new GetPromptContextUseCase(
-      conversationRepository,
-      characterRepository,
-      messageRepository,
-      memoryRepository,
-      summaryRepository,
-      promptContextBuilder,
-      playerCharacterRepository,
+      conversationContextLoader,
+      contextCompiler,
+      contextCompaction,
     ),
     rewindConversation: new RewindConversationUseCase(
       conversationRepository,

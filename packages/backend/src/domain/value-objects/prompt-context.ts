@@ -8,6 +8,14 @@ export interface PromptContext {
   messages: PromptContextMessage[]
 }
 
+export interface PromptContextSection {
+  id: string
+  source: "system"
+  content: string
+  reason: string
+  itemCount?: number
+}
+
 export interface ToolFunctionDefinition {
   name: string
   description: string
