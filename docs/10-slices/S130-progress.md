@@ -608,6 +608,9 @@ Matriz detallada: `docs/10-slices/S130-test-plan.md`. Tests escritos el 2026-11-
   cambia la política de compactación. El antiguo NIT-3 (Apply reaplicaba el
   valor guardado) ya no aplica: Apply sobrescribe un valor manual.
 
+  **Decisión (2026-11-06):** se acepta la doble reserva conservadora en S130 y
+  se deja el follow-up para un slice posterior; no bloquea el PR.
+
 ## Commits
 
 > `ca3dc3a docs(slice): add S130 RFC` ya existe. El resto de commits se crean
