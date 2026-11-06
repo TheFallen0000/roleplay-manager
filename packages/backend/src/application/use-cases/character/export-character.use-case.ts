@@ -281,6 +281,7 @@ function toSettings(conversation: Conversation): ExportSettings {
     recentMessageCount: conversation.recentMessageCount,
     summaryFrequency: conversation.summaryFrequency,
     contextWindow: conversation.contextWindow,
+    workingWindow: conversation.workingWindow,
     compactionThreshold: conversation.compactionThreshold,
     temperature: conversation.temperature,
     maxTokens: conversation.maxTokens,

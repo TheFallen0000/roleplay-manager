@@ -71,11 +71,19 @@ export class ApplySettingsTemplateUseCase {
     }
 
     for (const conversation of conversations) {
+      const update: ConversationSettingsUpdate = { ...baseUpdate }
+      if (input.settings.workingWindow !== undefined) {
+        // A net window only makes sense for the model it was computed for.
+        const sameModel = input.settings.model === conversation.model
+        const sameProvider = input.settings.provider === conversation.provider
+        update.workingWindow = sameModel && sameProvider
+          ? input.settings.workingWindow
+          : null
+      }
+
       // The settings use case clamps values in place, so each conversation
       // gets its own copy.
-      await this.updateConversationSettings.execute(conversation.id, {
-        ...baseUpdate,
-      })
+      await this.updateConversationSettings.execute(conversation.id, update)
     }
 
     return { applied: conversations.length, warnings }

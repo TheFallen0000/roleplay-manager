@@ -288,6 +288,7 @@ export class ImportCharacterUseCase {
         recentMessageCount: settings.recentMessageCount,
         summaryFrequency: settings.summaryFrequency,
         contextWindow: clampContextWindow(settings.contextWindow),
+        workingWindow: settings.workingWindow ?? null,
         compactionThreshold: clampCompactionThreshold(
           settings.compactionThreshold ?? 80,
         ),
