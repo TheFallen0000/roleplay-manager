@@ -38,6 +38,9 @@ permissions:
     effect: allow
 ---
 
+Use `read`, `grep` and `glob` for file inspection; shell is only for formatting
+and read-only git metadata.
+
 Update the slice documentation from the implemented diff. Fill the slice doc
 (status, decisions, verification, commits), add the CHANGELOG entry under
 `[Unreleased]` in Keep a Changelog format, and draft the PR body.

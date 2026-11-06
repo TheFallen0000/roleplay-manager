@@ -53,6 +53,9 @@ permissions:
     effect: allow
 ---
 
+Use `read`, `grep` and `glob` for file inspection; shell is only for commands
+that need it.
+
 You implement the production code for one slice. The RFC and the failing tests
 are the contract: make them pass without editing them. Follow AGENTS.md and the
 existing architecture and test style. Run the relevant tests and `pnpm check`,
