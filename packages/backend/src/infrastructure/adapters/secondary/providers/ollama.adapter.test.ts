@@ -260,3 +260,73 @@ describe("OllamaAdapter - context window", () => {
     expect(await buildAdapter().getModelContextWindow("llama3")).toBeNull()
   })
 })
+
+describe("OllamaAdapter - resolveCapabilities", () => {
+  let originalFetch: typeof fetch
+
+  beforeEach(() => {
+    originalFetch = globalThis.fetch
+  })
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch
+  })
+
+  const mockShow = (body: Record<string, unknown>, ok = true) => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok,
+      status: ok ? 200 : 500,
+      json: async () => body,
+    })
+    globalThis.fetch = fetchMock as unknown as typeof fetch
+    return fetchMock
+  }
+
+  it("claims num_ctx with high confidence ahead of the architecture length", async () => {
+    mockShow({
+      parameters: "stop <|im_end|>\nnum_ctx 8192",
+      model_info: { "llama.context_length": 131_072 },
+    })
+
+    const claims = await buildAdapter().resolveCapabilities("llama3")
+
+    expect(claims).toHaveLength(1)
+    expect(claims[0]).toMatchObject({
+      source: "runtime-introspection",
+      confidence: "high",
+      model: "llama3",
+      specificity: "exact",
+      contextWindow: 8_192,
+    })
+    expect(claims[0].maxOutputTokens ?? null).toBeNull()
+  })
+
+  it("claims the architecture context length when num_ctx is absent", async () => {
+    mockShow({
+      parameters: "",
+      model_info: { "llama.context_length": 131_072 },
+    })
+
+    const claims = await buildAdapter().resolveCapabilities("llama3")
+
+    expect(claims[0]).toMatchObject({
+      source: "runtime-introspection",
+      confidence: "high",
+      contextWindow: 131_072,
+    })
+  })
+
+  it("returns no claim when /api/show reports no window", async () => {
+    mockShow({ model_info: { "llama.embedding_length": 4_096 } })
+
+    expect(await buildAdapter().resolveCapabilities("llama3")).toEqual([])
+  })
+
+  it("returns no claim when the request fails", async () => {
+    globalThis.fetch = vi
+      .fn()
+      .mockRejectedValue(new TypeError("fetch failed")) as unknown as typeof fetch
+
+    expect(await buildAdapter().resolveCapabilities("llama3")).toEqual([])
+  })
+})

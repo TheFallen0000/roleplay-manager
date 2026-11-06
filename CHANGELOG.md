@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Modelos**: cada modelo resuelve su ventana de contexto y su límite de
+  salida con procedencia y confianza (override manual, introspección del
+  servidor, catálogo del proveedor, tabla curada de LiteLLM, heurística por
+  tamaño y valor por defecto) y calcula una ventana de trabajo segura que
+  reserva la salida y un margen de seguridad del 5 %.
+- **Modelos**: catálogo curado vendorizado desde LiteLLM, con alias por prefijo
+  de proveedor y script de refresco
+  (`pnpm --filter @workspace/backend catalog:refresh`).
+- **Modelos**: overrides manuales por app, modelo e instancia en `settings`,
+  caché en memoria de los sondeos (15 min) y endpoint
+  `GET /api/providers/:id/capabilities`.
+- **Ajustes**: el diálogo Modelo muestra la ventana resuelta, el límite de
+  salida, la procedencia, la confianza y la ventana de trabajo segura, con un
+  botón «Aplicar detectado».
 - **Contexto**: la vista previa muestra un manifiesto por secciones con tokens
   estimados, fuentes incluidas u omitidas y el motivo; el envío y el preview
   comparten el mismo compilador.
@@ -17,11 +31,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Modelos**: `GET /api/providers/:id/model-context` conserva su contrato y
+  ahora solo devuelve lo que detecta el sondeo en vivo: no usa tabla curada,
+  heurística, valores por defecto ni caché expirada.
+- **Ajustes**: «Detectar» refresca el caché del backend y vuelve a leer la
+  sugerencia; en OpenAI-compatible solo refresca la resolución, sin aviso de
+  detección vacía.
 - **Dependencias**: `@types/better-sqlite3` 9.6.0 (solo tipos; el runtime
   `better-sqlite3` sigue en 13.0.3).
 
 ### Fixed
 
+- **Ajustes**: «Aplicar detectado» sobrescribe explícitamente una ventana
+  manual y escribe la ventana de trabajo segura, no la ventana bruta ni el
+  límite de salida; «Detectar» también actualiza cuando hay un valor manual.
+- **Ajustes**: cambiar de modelo ya no borra una ventana escrita a mano; solo
+  se reemplaza el valor detectado automáticamente.
+- **Modelos**: un sondeo correcto que no devuelve datos ya no conserva un claim
+  antiguo en caché.
+- **Modelos**: editar o borrar una instancia de proveedor invalida las
+  capacidades cacheadas de esa instancia.
 - **Contexto**: las conversaciones usan la versión del personaje con la que se
   crearon, igual que la vista previa; antes el envío podía usar la última versión
   después de editar el personaje.

@@ -4,7 +4,7 @@ import { z } from "zod"
 import type { ListProvidersUseCase } from "../../../../application/use-cases/provider/list-providers.use-case"
 import type { ValidateProviderConnectionUseCase } from "../../../../application/use-cases/provider/validate-provider-connection.use-case"
 import type { ListProviderModelsUseCase } from "../../../../application/use-cases/provider/list-provider-models.use-case"
-import type { GetProviderModelContextUseCase } from "../../../../application/use-cases/provider/get-provider-model-context.use-case"
+import type { GetModelCapabilitiesUseCase } from "../../../../application/use-cases/provider/get-model-capabilities.use-case"
 
 const ProviderIdSchema = z.enum(["ollama", "openai-compatible"])
 
@@ -12,7 +12,7 @@ export const buildProviderRouter = (deps: {
   listProviders: ListProvidersUseCase
   validateProviderConnection: ValidateProviderConnectionUseCase
   listProviderModels: ListProviderModelsUseCase
-  getProviderModelContext: GetProviderModelContextUseCase
+  getModelCapabilities: GetModelCapabilitiesUseCase
 }): Router => {
   const router = Router()
 
@@ -77,6 +77,12 @@ export const buildProviderRouter = (deps: {
   const ModelContextQuerySchema = z.object({
     model: z.string().min(1).max(200),
     instanceId: z.string().optional(),
+    refresh: z.enum(["true", "false"]).optional(),
+  })
+
+  const CapabilitiesQuerySchema = ModelContextQuerySchema.extend({
+    contextWindow: z.coerce.number().int().positive().optional(),
+    maxTokens: z.coerce.number().int().positive().optional(),
   })
 
   router.get("/providers/:id/model-context", async (req, res, next) => {
@@ -101,11 +107,59 @@ export const buildProviderRouter = (deps: {
         })
         return
       }
-      const result = await deps.getProviderModelContext.execute(
-        idResult.data,
-        queryResult.data.model,
-        queryResult.data.instanceId,
-      )
+      const refresh = queryResult.data.refresh === "true"
+      const result = await deps.getModelCapabilities.execute({
+        id: idResult.data,
+        model: queryResult.data.model,
+        providerInstanceId: queryResult.data.instanceId,
+        probeOnly: true,
+        ...(refresh ? { refresh } : {}),
+      })
+      res.json({
+        id: result.id,
+        model: result.model,
+        contextWindow: result.capabilities.contextWindow,
+      })
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.get("/providers/:id/capabilities", async (req, res, next) => {
+    try {
+      const idResult = ProviderIdSchema.safeParse(req.params.id)
+      if (!idResult.success) {
+        res.status(404).json({
+          error: {
+            code: "PROVIDER_NOT_FOUND",
+            message: `Unknown provider id: ${req.params.id}`,
+          },
+        })
+        return
+      }
+      const queryResult = CapabilitiesQuerySchema.safeParse(req.query)
+      if (!queryResult.success) {
+        res.status(400).json({
+          error: {
+            code: "INVALID_REQUEST",
+            message: "A model query parameter is required.",
+          },
+        })
+        return
+      }
+      const { contextWindow, maxTokens } = queryResult.data
+      const conversationOverride =
+        contextWindow !== undefined || maxTokens !== undefined
+          ? { contextWindow, maxTokens }
+          : undefined
+      const refresh = queryResult.data.refresh === "true"
+      const result = await deps.getModelCapabilities.execute({
+        id: idResult.data,
+        model: queryResult.data.model,
+        providerInstanceId: queryResult.data.instanceId,
+        ...(refresh ? { refresh } : {}),
+        ...(conversationOverride ? { conversationOverride } : {}),
+      })
       res.json(result)
     } catch (error) {
       next(error)

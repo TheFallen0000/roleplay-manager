@@ -2,21 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "@workspace/ui/components/sonner"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
 
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
 import type { ProviderId } from "@workspace/shared/types/provider"
-import {
-  clampContextWindow,
-  MAX_CONTEXT_WINDOW,
-} from "@workspace/shared/lib/inference"
+import { clampContextWindow } from "@workspace/shared/lib/inference"
 
 import { formatApiError } from "@/lib/format-api-error"
 import { formatTokenCount } from "@/lib/format-token-count"
@@ -32,6 +21,9 @@ import { ProviderCard } from "@/components/shared/provider/provider-card"
 import { InstanceFormDialog } from "@/components/shared/provider/instance-form-dialog"
 import { useInstanceDialog } from "@/components/shared/provider/use-instance-dialog"
 
+import { ContextWindowCard } from "./context-window-card"
+import { useModelCapabilities } from "./use-model-capabilities"
+
 export interface ModelUpdate {
   provider: ProviderId | string | null
   providerInstanceId: string | null
@@ -43,8 +35,6 @@ interface ModelSelectorProps {
   current: ConversationDetail
   onChange: (update: ModelUpdate) => void
 }
-
-const CONTEXT_WINDOW_PRESETS = [4_096, 8_192, 16_384, 32_768, 131_072]
 
 export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   const { t, locale } = useTranslation()
@@ -59,20 +49,38 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   const verifyOllama = useProviderStore((state) => state.verifyOllama)
   const verifyInstance = useProviderStore((state) => state.verifyInstance)
 
-  const [provider, setProvider] = useState<ProviderId | string | null>(current.provider ?? "ollama")
-  const [providerInstanceId, setProviderInstanceId] = useState<string | null>(current.providerInstanceId ?? null)
-  const [model, setModel] = useState<string | null>(current.model)
-  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(current.providerInstanceId ?? null)
-  const [contextWindow, setContextWindow] = useState<number | null>(
-    current.contextWindow ?? null,
+  const [provider, setProvider] = useState<ProviderId | string | null>(
+    current.provider ?? "ollama"
   )
+  const [providerInstanceId, setProviderInstanceId] = useState<string | null>(
+    current.providerInstanceId ?? null
+  )
+  const [model, setModel] = useState<string | null>(current.model)
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(
+    current.providerInstanceId ?? null
+  )
+  const [contextWindow, setContextWindow] = useState<number | null>(
+    current.contextWindow ?? null
+  )
+  const contextWindowManual = useRef(current.contextWindow !== null)
   const [detectingContext, setDetectingContext] = useState(false)
   const contextRequestId = useRef(0)
+
+  const {
+    capabilities,
+    loading: capabilitiesLoading,
+    refresh: refreshCapabilities,
+  } = useModelCapabilities({
+    provider: provider as ProviderId | null,
+    model,
+    instanceId: providerInstanceId,
+    conversationMaxTokens: current.maxTokens,
+  })
 
   // A saved window is respected; a legacy conversation with a model but no
   // window is detected once when the dialog opens.
   const lastContextModel = useRef<string | null>(
-    current.contextWindow === null ? "__detect_on_open__" : current.model,
+    current.contextWindow === null ? "__detect_on_open__" : current.model
   )
 
   const dialog = useInstanceDialog()
@@ -87,17 +95,20 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   }, [])
 
   const loadContextWindow = useCallback(
-    async (modelToDetect: string, notify: boolean) => {
+    async (modelToDetect: string, notify: boolean, refresh = false) => {
       if (provider !== "ollama") {
         if (!notify) resetContextWindow()
-        if (notify) toast.info(t("settings.contextWindowDetectEmpty"))
         return
       }
       if (!notify) resetContextWindow()
       const requestId = ++contextRequestId.current
       setDetectingContext(true)
       try {
-        const result = await getModelContextWindow("ollama", modelToDetect)
+        const result = refresh
+          ? await getModelContextWindow("ollama", modelToDetect, undefined, {
+              refresh: true,
+            })
+          : await getModelContextWindow("ollama", modelToDetect)
         if (requestId !== contextRequestId.current) return
         setContextWindow(result.contextWindow)
         if (notify) {
@@ -107,7 +118,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
             toast.success(
               t("settings.contextWindowDetected", {
                 count: formatTokenCount(result.contextWindow, locale),
-              }),
+              })
             )
           }
         }
@@ -125,12 +136,13 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         }
       }
     },
-    [provider, locale, t, resetContextWindow],
+    [provider, locale, t, resetContextWindow]
   )
 
   useEffect(() => {
-    if (!model || model === lastContextModel.current) return
+    if (model === lastContextModel.current) return
     lastContextModel.current = model
+    if (contextWindowManual.current || !model) return
     void loadContextWindow(model, false)
   }, [model, loadContextWindow])
 
@@ -151,7 +163,10 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         await load()
         if (current.provider === "ollama") {
           void verifyOllama()
-        } else if (current.provider === "openai-compatible" && current.providerInstanceId) {
+        } else if (
+          current.provider === "openai-compatible" &&
+          current.providerInstanceId
+        ) {
           setSelectedInstanceId(current.providerInstanceId)
           void verifyInstance(current.providerInstanceId)
         }
@@ -161,7 +176,14 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         })
       }
     })()
-  }, [current.provider, current.providerInstanceId, load, verifyOllama, verifyInstance, t])
+  }, [
+    current.provider,
+    current.providerInstanceId,
+    load,
+    verifyOllama,
+    verifyInstance,
+    t,
+  ])
 
   const handleSelectProvider = useCallback(
     (id: ProviderId | string) => {
@@ -176,9 +198,10 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
       }
       setModel(null)
       lastContextModel.current = null
+      contextWindowManual.current = false
       resetContextWindow()
     },
-    [provider, selectedInstanceId, verifyOllama, resetContextWindow],
+    [provider, selectedInstanceId, verifyOllama, resetContextWindow]
   )
 
   const handleSelectInstance = useCallback(
@@ -188,10 +211,11 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
       setProviderInstanceId(id)
       setModel(null)
       lastContextModel.current = null
+      contextWindowManual.current = false
       resetContextWindow()
       void verifyInstance(id)
     },
-    [selectedInstanceId, verifyInstance, resetContextWindow],
+    [selectedInstanceId, verifyInstance, resetContextWindow]
   )
 
   const handleCreateInstance = useCallback(
@@ -207,17 +231,20 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         setProviderInstanceId(instance.id)
         setModel(null)
         lastContextModel.current = null
+        contextWindowManual.current = false
         resetContextWindow()
         void verifyInstance(instance.id)
         dialog.close()
-        toast.success(t("settings.instanceCreated"), { description: instance.name })
+        toast.success(t("settings.instanceCreated"), {
+          description: instance.name,
+        })
       } catch (error) {
         toast.error(t("settings.instanceCreateFailed"), {
           description: formatApiError(error, t("common.unknownError")),
         })
       }
     },
-    [createInstance, verifyInstance, dialog, t, resetContextWindow],
+    [createInstance, verifyInstance, dialog, t, resetContextWindow]
   )
 
   const handleUpdateInstance = useCallback(
@@ -236,7 +263,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         })
       }
     },
-    [updateInstance, dialog, t],
+    [updateInstance, dialog, t]
   )
 
   const handleDeleteInstance = useCallback(
@@ -254,42 +281,85 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         })
       }
     },
-    [deleteInstance, selectedInstanceId, t],
+    [deleteInstance, selectedInstanceId, t]
   )
 
   const handleDialogSave = useCallback(
     (name: string, url: string, apiKey: string) => {
       if (dialog.state.mode === "edit" && dialog.state.editingInstance) {
-        void handleUpdateInstance(dialog.state.editingInstance.id, name, url, apiKey)
+        void handleUpdateInstance(
+          dialog.state.editingInstance.id,
+          name,
+          url,
+          apiKey
+        )
       } else {
         void handleCreateInstance(name, url, apiKey)
       }
     },
-    [dialog.state, handleCreateInstance, handleUpdateInstance],
+    [dialog.state, handleCreateInstance, handleUpdateInstance]
   )
 
   const handleModelChange = useCallback(
     (value: string) => {
       const next = value || null
-      if (next !== model) resetContextWindow()
+      if (!next && !contextWindowManual.current) resetContextWindow()
       setModel(next)
     },
-    [model, resetContextWindow],
+    [resetContextWindow]
   )
 
   const handleContextWindowChange = useCallback((value: string) => {
+    contextWindowManual.current = true
     const parsed = Number(value)
     setContextWindow(
-      Number.isFinite(parsed) && parsed > 0
-        ? clampContextWindow(parsed)
-        : null,
+      Number.isFinite(parsed) && parsed > 0 ? clampContextWindow(parsed) : null
     )
+  }, [])
+
+  const handlePreset = useCallback((preset: number) => {
+    contextWindowManual.current = true
+    setContextWindow(preset)
+  }, [])
+
+  const handleDetect = useCallback(() => {
+    if (!model) return
+    if (provider === "ollama") {
+      contextWindowManual.current = false
+      void (async () => {
+        await loadContextWindow(model, true, true)
+        // The raw probe refreshed the shared backend cache; re-read it so the
+        // suggestion card does not keep the previous snapshot.
+        await refreshCapabilities()
+      })()
+      return
+    }
+    void (async () => {
+      const result = await refreshCapabilities()
+      const detectedWindow = result?.capabilities.contextWindow
+      if (typeof detectedWindow === "number" && detectedWindow > 0) {
+        contextWindowManual.current = false
+        setContextWindow(clampContextWindow(detectedWindow))
+      }
+    })()
+  }, [model, provider, loadContextWindow, refreshCapabilities])
+
+  const handleApplyDetected = useCallback((workingWindow: number | null) => {
+    if (workingWindow === null || workingWindow <= 0) return
+    // An explicit apply always wins, even over a manually typed value. The
+    // stored value is the safe working window; compaction still treats it as
+    // the raw model window and reserves maxTokens again, so this stays
+    // conservative until compaction is aligned (see S130 Deferred).
+    contextWindowManual.current = true
+    setContextWindow(clampContextWindow(workingWindow))
   }, [])
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">{t("settings.providerLabel")}</span>
+        <span className="text-sm text-muted-foreground">
+          {t("settings.providerLabel")}
+        </span>
         <div className="flex gap-1">
           <Button
             type="button"
@@ -333,7 +403,9 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
           status={openaiRuntime.status}
           statusMessage={openaiRuntime.message}
           verifying={openaiRuntime.verifying}
-          onVerify={() => { if (selectedInstanceId) void verifyInstance(selectedInstanceId) }}
+          onVerify={() => {
+            if (selectedInstanceId) void verifyInstance(selectedInstanceId)
+          }}
           verifyDisabled={!selectedInstanceId}
           model={openaiModel}
           models={openaiRuntime.models}
@@ -348,79 +420,17 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
         />
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("settings.contextWindowTitle")}</CardTitle>
-          <CardDescription>
-            {t("settings.contextWindowDescription")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="context-window"
-              className="text-sm font-medium"
-            >
-              {t("settings.contextWindowLabel")}
-            </label>
-            <div className="flex gap-2">
-              <Input
-                id="context-window"
-                type="number"
-                min={1}
-                max={MAX_CONTEXT_WINDOW}
-                inputMode="numeric"
-                value={contextWindow ?? ""}
-                placeholder={t("settings.contextWindowPlaceholder")}
-                onChange={(e) => handleContextWindowChange(e.target.value)}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  if (model) void loadContextWindow(model, true)
-                }}
-                disabled={!model || detectingContext}
-              >
-                {detectingContext ? <Spinner /> : null}
-                {detectingContext
-                  ? t("settings.contextWindowDetecting")
-                  : t("settings.contextWindowAuto")}
-              </Button>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-1">
-            <span className="text-xs text-muted-foreground">
-              {t("settings.contextWindowPresets")}:
-            </span>
-            {CONTEXT_WINDOW_PRESETS.map((preset) => (
-              <Button
-                key={preset}
-                type="button"
-                size="sm"
-                variant={contextWindow === preset ? "default" : "outline"}
-                aria-pressed={contextWindow === preset}
-                onClick={() => setContextWindow(preset)}
-              >
-                {preset / 1024}k
-              </Button>
-            ))}
-          </div>
-          {contextWindow === null ? (
-            <p className="text-xs text-muted-foreground">
-              {t("settings.contextWindowUnknownWarning")}
-            </p>
-          ) : null}
-          {contextWindow !== null && contextWindow < 8192 ? (
-            <p className="text-xs text-amber-600 dark:text-amber-400">
-              {t("settings.contextWindowSmallWarning")}
-            </p>
-          ) : null}
-          <p className="text-xs text-muted-foreground">
-            {t("settings.contextWindowHint")}
-          </p>
-        </CardContent>
-      </Card>
+      <ContextWindowCard
+        model={model}
+        contextWindow={contextWindow}
+        detecting={detectingContext}
+        capabilities={capabilities}
+        capabilitiesLoading={capabilitiesLoading}
+        onDetect={handleDetect}
+        onContextWindowChange={handleContextWindowChange}
+        onPreset={handlePreset}
+        onApplyDetected={handleApplyDetected}
+      />
 
       <InstanceFormDialog
         open={dialog.state.open}

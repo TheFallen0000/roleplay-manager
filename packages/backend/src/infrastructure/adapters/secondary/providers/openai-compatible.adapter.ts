@@ -1,5 +1,7 @@
 import OpenAI from "openai"
 
+import type { CapabilityClaim } from "@workspace/shared/types/model-capabilities"
+import { normalizeModelIdentity } from "@workspace/shared/lib/model-capabilities"
 import type {
   ProviderModel,
   ProviderStatus,
@@ -143,6 +145,99 @@ export class OpenAICompatibleAdapter implements ProviderPort {
         `Failed to list OpenAI-compatible models: ${(error as Error).message}`,
       )
     }
+  }
+
+  /**
+   * Opportunistic capability probe. vLLM and some servers expose
+   * `max_model_len`/`context_length` per model; OpenRouter publishes the
+   * catalog shape (`context_length` + `top_provider.max_completion_tokens`).
+   * When the server exposes neither, no claim is emitted and the resolver
+   * falls back to the curated table.
+   */
+  async resolveCapabilities(model: string): Promise<CapabilityClaim[]> {
+    try {
+      const response = await this.fetchWithTimeout("/models", { method: "GET" })
+      if (!response.ok) {
+        this.options.logger.warn(
+          "OpenAI-compatible /v1/models returned non-OK status",
+          { model, status: response.status },
+        )
+        return []
+      }
+      const body = (await response.json()) as Record<string, unknown>
+      const raw = (body.data ?? body.models ?? []) as Array<unknown>
+      const entry = raw.find((candidate) => this.matchesModel(candidate, model))
+      if (typeof entry !== "object" || entry === null) return []
+      const record = entry as Record<string, unknown>
+      const normalizedModel =
+        normalizeModelIdentity("openai-compatible", model).normalizedModel
+
+      if (this.isOpenRouter()) {
+        const topProvider = record.top_provider
+        const maxOutputTokens = this.readPositiveNumber(
+          typeof topProvider === "object" && topProvider !== null
+            ? (topProvider as Record<string, unknown>).max_completion_tokens
+            : undefined,
+        )
+        const contextWindow = this.readPositiveNumber(record.context_length)
+        if (contextWindow === null && maxOutputTokens === null) return []
+        return [
+          {
+            source: "provider-api",
+            confidence: "medium",
+            model: normalizedModel,
+            specificity: "exact",
+            contextWindow,
+            maxOutputTokens,
+          },
+        ]
+      }
+
+      const contextWindow =
+        this.readPositiveNumber(record.max_model_len) ??
+        this.readPositiveNumber(record.context_length)
+      if (contextWindow === null) return []
+      return [
+        {
+          source: "runtime-introspection",
+          confidence: "high",
+          model: normalizedModel,
+          specificity: "exact",
+          contextWindow,
+          maxOutputTokens: null,
+        },
+      ]
+    } catch (error) {
+      this.options.logger.warn(
+        "Could not read OpenAI-compatible model capabilities",
+        { model, message: (error as Error).message },
+      )
+      return []
+    }
+  }
+
+  private isOpenRouter(): boolean {
+    return this.baseUrl.includes("openrouter.ai")
+  }
+
+  private matchesModel(candidate: unknown, model: string): boolean {
+    const candidateId =
+      typeof candidate === "string"
+        ? candidate
+        : typeof candidate === "object" && candidate !== null
+          ? (candidate as Record<string, unknown>).id
+          : undefined
+    if (typeof candidateId !== "string") return false
+    return (
+      normalizeModelIdentity("openai-compatible", candidateId).normalizedModel ===
+      normalizeModelIdentity("openai-compatible", model).normalizedModel
+    )
+  }
+
+  private readPositiveNumber(value: unknown): number | null {
+    return typeof value === "number" && Number.isFinite(value) && value > 0
+      ? Math.floor(value)
+      : null
   }
 
   private translateToUnavailable(error: unknown): ProviderStatus {

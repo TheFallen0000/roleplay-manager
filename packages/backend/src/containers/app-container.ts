@@ -5,7 +5,10 @@ import { HealthCheckUseCase } from "../application/use-cases/health/health-check
 import { ListProvidersUseCase } from "../application/use-cases/provider/list-providers.use-case"
 import { ValidateProviderConnectionUseCase } from "../application/use-cases/provider/validate-provider-connection.use-case"
 import { ListProviderModelsUseCase } from "../application/use-cases/provider/list-provider-models.use-case"
-import { GetProviderModelContextUseCase } from "../application/use-cases/provider/get-provider-model-context.use-case"
+import { GetModelCapabilitiesUseCase } from "../application/use-cases/provider/get-model-capabilities.use-case"
+import { ModelCapabilitiesCache } from "../application/services/model-capabilities-cache.service"
+import { CURATED_MODEL_CATALOG } from "../infrastructure/adapters/secondary/model-catalog/curated-model-catalog"
+import { inferModelCapabilitiesHeuristic } from "@workspace/shared/lib/model-capabilities"
 import { GetDefaultProviderUseCase } from "../application/use-cases/provider/get-default-provider.use-case"
 import { ConfigureDefaultProviderUseCase } from "../application/use-cases/provider/configure-default-provider.use-case"
 import { DrizzleSettingsRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-settings.repository"
@@ -145,7 +148,7 @@ export interface AppContainer {
   listProviders: ListProvidersUseCase
   validateProviderConnection: ValidateProviderConnectionUseCase
   listProviderModels: ListProviderModelsUseCase
-  getProviderModelContext: GetProviderModelContextUseCase
+  getModelCapabilities: GetModelCapabilitiesUseCase
   getDefaultProvider: GetDefaultProviderUseCase
   configureDefaultProvider: ConfigureDefaultProviderUseCase
   settings: SettingsRepository
@@ -338,6 +341,8 @@ export const buildContainer = ({
   const summaryRepository: SummaryRepository = new DrizzleSummaryRepository(database)
   const providerInstanceRepository: ProviderInstanceRepository =
     new DrizzleProviderInstanceRepository(database)
+  // Probe claims are shared across requests; the cache is lost on restart.
+  const modelCapabilitiesCache = new ModelCapabilitiesCache()
   const getDefaultProvider = new GetDefaultProviderUseCase(settings, providerInstanceRepository)
 
   const conversationContextLoader = new ConversationContextLoader({
@@ -574,11 +579,16 @@ export const buildContainer = ({
       providerInstanceRepository,
       logger,
     ),
-    getProviderModelContext: new GetProviderModelContextUseCase(
-      providerRegistry,
+    getModelCapabilities: new GetModelCapabilitiesUseCase({
+      registry: providerRegistry,
       providerInstanceRepository,
+      settings,
+      cache: modelCapabilitiesCache,
+      curatedTable: CURATED_MODEL_CATALOG,
+      heuristicForModel: inferModelCapabilitiesHeuristic,
+      defaults: { contextWindow: 4_096, maxOutputTokens: 2_048 },
       logger,
-    ),
+    }),
     getDefaultProvider,
     configureDefaultProvider: new ConfigureDefaultProviderUseCase(
       providerRegistry,
@@ -763,11 +773,13 @@ export const buildContainer = ({
     updateProviderInstance: new UpdateProviderInstanceUseCase(
       providerInstanceRepository,
       logger,
+      modelCapabilitiesCache,
     ),
     deleteProviderInstance: new DeleteProviderInstanceUseCase(
       providerInstanceRepository,
       conversationRepository,
       settings,
+      modelCapabilitiesCache,
     ),
     validateProviderInstance: new ValidateProviderInstanceUseCase(
       providerInstanceRepository,

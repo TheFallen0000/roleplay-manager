@@ -1,3 +1,5 @@
+import type { CapabilityClaim } from "@workspace/shared/types/model-capabilities"
+import { normalizeModelIdentity } from "@workspace/shared/lib/model-capabilities"
 import type { ProviderModel, ProviderStatus } from "@workspace/shared/types/provider"
 
 import {
@@ -138,6 +140,11 @@ export class OllamaAdapter implements ProviderPort {
    * the UI falls back to the manual presets.
    */
   async getModelContextWindow(model: string): Promise<number | null> {
+    const claims = await this.resolveCapabilities(model)
+    return claims[0]?.contextWindow ?? null
+  }
+
+  async resolveCapabilities(model: string): Promise<CapabilityClaim[]> {
     try {
       const response = await this.fetchWithTimeout("/api/show", {
         method: "POST",
@@ -149,31 +156,49 @@ export class OllamaAdapter implements ProviderPort {
           model,
           status: response.status,
         })
-        return null
+        return []
       }
       const body = (await response.json()) as {
         parameters?: string
         model_info?: Record<string, unknown>
       }
-      const numCtx = /^\s*num_ctx\s+(\d+)\s*$/m.exec(body.parameters ?? "")
-      if (numCtx) {
-        const parsed = Number.parseInt(numCtx[1], 10)
-        if (Number.isFinite(parsed) && parsed > 0) return parsed
-      }
-      const contextLength = Object.entries(body.model_info ?? {}).find(
-        ([key]) => key.endsWith(".context_length"),
-      )?.[1]
-      if (typeof contextLength === "number" && contextLength > 0) {
-        return Math.floor(contextLength)
-      }
-      return null
+      const contextWindow = this.readContextWindow(body)
+      if (contextWindow === null) return []
+      return [
+        {
+          source: "runtime-introspection",
+          confidence: "high",
+          model: normalizeModelIdentity("ollama", model).normalizedModel,
+          specificity: "exact",
+          contextWindow,
+          maxOutputTokens: null,
+        },
+      ]
     } catch (error) {
       this.options.logger.warn("Could not detect Ollama context window", {
         model,
         message: (error as Error).message,
       })
-      return null
+      return []
     }
+  }
+
+  private readContextWindow(body: {
+    parameters?: string
+    model_info?: Record<string, unknown>
+  }): number | null {
+    const numCtx = /^\s*num_ctx\s+(\d+)\s*$/m.exec(body.parameters ?? "")
+    if (numCtx) {
+      const parsed = Number.parseInt(numCtx[1], 10)
+      if (Number.isFinite(parsed) && parsed > 0) return parsed
+    }
+    const contextLength = Object.entries(body.model_info ?? {}).find(
+      ([key]) => key.endsWith(".context_length"),
+    )?.[1]
+    if (typeof contextLength === "number" && contextLength > 0) {
+      return Math.floor(contextLength)
+    }
+    return null
   }
 
   async *generateStreaming(

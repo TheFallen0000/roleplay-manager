@@ -1,5 +1,11 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest"
-import { cleanup, render, screen, waitFor } from "@testing-library/react"
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
@@ -9,6 +15,7 @@ import { ModelSelector } from "./model-selector"
 
 const mocks = vi.hoisted(() => ({
   getModelContextWindow: vi.fn(),
+  getModelCapabilities: vi.fn(),
   load: vi.fn(async () => {}),
   verifyOllama: vi.fn(async () => ({ ok: true, models: [] })),
   providerState: {
@@ -34,6 +41,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/api/providers", () => ({
   getModelContextWindow: mocks.getModelContextWindow,
+  getModelCapabilities: mocks.getModelCapabilities,
 }))
 
 vi.mock("@/lib/stores/provider.store", () => ({
@@ -45,8 +53,9 @@ vi.mock("@/lib/stores/provider.store", () => ({
     modelsLoading: false,
   },
   OLLAMA_KEY: "ollama",
-  useProviderStore: (selector: (state: typeof mocks.providerState) => unknown) =>
-    selector(mocks.providerState),
+  useProviderStore: (
+    selector: (state: typeof mocks.providerState) => unknown
+  ) => selector(mocks.providerState),
 }))
 
 const current: ConversationDetail = {
@@ -89,23 +98,91 @@ const current: ConversationDetail = {
   messagesNextCursor: null,
 }
 
+const openaiConversation: ConversationDetail = {
+  ...current,
+  provider: "openai-compatible",
+  model: "gpt-4o-mini",
+  contextWindow: 8_192,
+  maxTokens: 4_096,
+}
+
+const manualConversation: ConversationDetail = {
+  ...current,
+  contextWindow: 8_192,
+}
+
 const renderSelector = (
   conversation: ConversationDetail = current,
-  onChange = vi.fn(),
+  onChange = vi.fn()
 ) =>
   render(
     <I18nProvider initialLocale="en">
       <ModelSelector current={conversation} onChange={onChange} />
-    </I18nProvider>,
+    </I18nProvider>
   )
+
+const buildCapabilitiesResult = (
+  id: "ollama" | "openai-compatible",
+  model: string,
+  contextWindow: number
+) => {
+  const safetyMargin = Math.max(128, Math.floor((contextWindow * 5) / 100))
+  return {
+    id,
+    model,
+    capabilities: {
+      identity: {
+        provider: id,
+        instanceId: null,
+        normalizedModel: model.toLowerCase(),
+      },
+      contextWindow,
+      contextWindowSource: "runtime-introspection" as const,
+      contextWindowConfidence: "high" as const,
+      maxOutputTokens: null,
+      maxOutputTokensSource: null,
+      maxOutputTokensConfidence: null,
+      confidence: "high" as const,
+      warnings: [],
+    },
+    workingWindow: {
+      status: "ok" as const,
+      contextWindow,
+      outputReserve: 2_048,
+      safetyMargin,
+      workingWindow: contextWindow - 2_048 - safetyMargin,
+      warnings: [],
+    },
+  }
+}
+
+const capabilitiesWithWorkingWindow = (
+  status: "unknown" | "infeasible",
+  workingWindow: number | null
+) => {
+  const base = buildCapabilitiesResult("ollama", "llama3", 32_768)
+  return {
+    ...base,
+    workingWindow: { ...base.workingWindow, status, workingWindow },
+  }
+}
+
+const detectedWindow = (model: string) => (model === "llama3" ? 32_768 : 65_536)
 
 beforeEach(() => {
   mocks.getModelContextWindow.mockReset()
-  mocks.getModelContextWindow.mockResolvedValue({
-    id: "ollama",
-    model: "llama3",
-    contextWindow: 32_768,
-  })
+  mocks.getModelContextWindow.mockImplementation(
+    async (id: "ollama" | "openai-compatible", model: string) => ({
+      id,
+      model,
+      contextWindow: detectedWindow(model),
+    })
+  )
+  mocks.getModelCapabilities.mockReset()
+  mocks.getModelCapabilities.mockImplementation(
+    async (id: "ollama" | "openai-compatible", model: string) =>
+      buildCapabilitiesResult(id, model, detectedWindow(model))
+  )
 })
 
 afterEach(cleanup)
@@ -118,13 +195,13 @@ describe("ModelSelector context window", () => {
     await waitFor(() =>
       expect(mocks.getModelContextWindow).toHaveBeenCalledWith(
         "ollama",
-        "llama3",
-      ),
+        "llama3"
+      )
     )
     await waitFor(() =>
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ contextWindow: 32_768 }),
-      ),
+        expect.objectContaining({ contextWindow: 32_768 })
+      )
     )
   })
 
@@ -134,7 +211,7 @@ describe("ModelSelector context window", () => {
     expect(mocks.getModelContextWindow).not.toHaveBeenCalled()
   })
 
-  it("does not erase a manual preset when the provider cannot detect", async () => {
+  it("updates the window from the capabilities result on Detect", async () => {
     const onChange = vi.fn()
     renderSelector(
       {
@@ -143,15 +220,17 @@ describe("ModelSelector context window", () => {
         model: "gpt-4o-mini",
         contextWindow: 8_192,
       },
-      onChange,
+      onChange
     )
 
     await userEvent.click(screen.getByRole("button", { name: "Detect" }))
 
-    expect(mocks.getModelContextWindow).not.toHaveBeenCalled()
-    expect(onChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ contextWindow: 8_192 }),
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contextWindow: 65_536 })
+      )
     )
+    expect(mocks.getModelContextWindow).not.toHaveBeenCalled()
   })
 
   it("applies a preset over the detected window", async () => {
@@ -159,14 +238,177 @@ describe("ModelSelector context window", () => {
     renderSelector(current, onChange)
     await waitFor(() =>
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ contextWindow: 32_768 }),
-      ),
+        expect.objectContaining({ contextWindow: 32_768 })
+      )
     )
 
     await userEvent.click(screen.getByRole("button", { name: "8k" }))
 
     expect(onChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ contextWindow: 8_192 }),
+      expect.objectContaining({ contextWindow: 8_192 })
+    )
+  })
+
+  it("keeps a typed context window when the model changes", async () => {
+    const onChange = vi.fn()
+    renderSelector(current, onChange)
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contextWindow: 32_768 })
+      )
+    )
+
+    const windowInput = screen.getByLabelText("Window (tokens)")
+    await userEvent.clear(windowInput)
+    await userEvent.type(windowInput, "16384")
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contextWindow: 16_384 })
+      )
+    )
+
+    fireEvent.change(screen.getByPlaceholderText("Select or type a model"), {
+      target: { value: "qwen2.5" },
+    })
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ model: "qwen2.5" })
+      )
+    )
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ contextWindow: 16_384 })
+    )
+  })
+
+  it("replaces an auto-detected context window when the model changes", async () => {
+    const onChange = vi.fn()
+    renderSelector(current, onChange)
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contextWindow: 32_768 })
+      )
+    )
+
+    fireEvent.change(screen.getByPlaceholderText("Select or type a model"), {
+      target: { value: "qwen2.5" },
+    })
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ model: "qwen2.5", contextWindow: 65_536 })
+      )
+    )
+  })
+})
+
+describe("ModelSelector capabilities detection", () => {
+  it("uses the capabilities refresh for openai-compatible detection", async () => {
+    renderSelector(openaiConversation)
+
+    await userEvent.click(screen.getByRole("button", { name: "Detect" }))
+
+    await waitFor(() =>
+      expect(mocks.getModelCapabilities).toHaveBeenCalledWith(
+        "openai-compatible",
+        "gpt-4o-mini",
+        undefined,
+        expect.objectContaining({ refresh: true })
+      )
+    )
+    expect(mocks.getModelContextWindow).not.toHaveBeenCalled()
+  })
+
+  it("forwards the reply budget without the saved window", async () => {
+    renderSelector(openaiConversation)
+
+    await waitFor(() =>
+      expect(mocks.getModelCapabilities).toHaveBeenCalledWith(
+        "openai-compatible",
+        "gpt-4o-mini",
+        undefined,
+        {
+          conversationOverride: { maxTokens: 4_096 },
+        }
+      )
+    )
+  })
+
+  it("applies the safe working window over a manual value", async () => {
+    const onChange = vi.fn()
+    renderSelector(manualConversation, onChange)
+
+    const apply = await screen.findByRole("button", { name: /apply/i })
+    await userEvent.click(apply)
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contextWindow: 29_082 })
+      )
+    )
+    expect(onChange).not.toHaveBeenLastCalledWith(
+      expect.objectContaining({ contextWindow: 32_768 })
+    )
+    expect(onChange).not.toHaveBeenLastCalledWith(
+      expect.objectContaining({ contextWindow: 2_048 })
+    )
+  })
+
+  it("updates a manual window from the raw Detect probe", async () => {
+    const onChange = vi.fn()
+    renderSelector(manualConversation, onChange)
+
+    await userEvent.click(screen.getByRole("button", { name: "Detect" }))
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contextWindow: 32_768 })
+      )
+    )
+  })
+
+  it("does not apply an unknown working window", async () => {
+    mocks.getModelCapabilities.mockImplementation(async () =>
+      capabilitiesWithWorkingWindow("unknown", null)
+    )
+    const onChange = vi.fn()
+    renderSelector(manualConversation, onChange)
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contextWindow: 8_192 })
+      )
+    )
+    const apply = await screen.findByRole("button", { name: /apply/i })
+    expect(apply).toBeDisabled()
+    await userEvent.click(apply)
+
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ contextWindow: 8_192 })
+    )
+  })
+
+  it("does not apply an infeasible working window", async () => {
+    mocks.getModelCapabilities.mockImplementation(async () =>
+      capabilitiesWithWorkingWindow("infeasible", 0)
+    )
+    const onChange = vi.fn()
+    renderSelector(manualConversation, onChange)
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ contextWindow: 8_192 })
+      )
+    )
+    const apply = await screen.findByRole("button", { name: /apply/i })
+    expect(apply).toBeDisabled()
+    await userEvent.click(apply)
+
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ contextWindow: 8_192 })
     )
   })
 })

@@ -1,3 +1,4 @@
+import type { CapabilityClaim } from "@workspace/shared/types/model-capabilities"
 import type {
   ListModelsResult,
   ProviderId,
@@ -12,6 +13,8 @@ export interface ProviderPort {
   listModels(): Promise<{ models: ProviderModel[]; manualEntryRequired: boolean }>
   /** Best-effort model context window; null when the provider cannot tell. */
   getModelContextWindow?(model: string): Promise<number | null>
+  /** Rich capability claims from runtime introspection or the provider API. */
+  resolveCapabilities?(model: string): Promise<CapabilityClaim[]>
   generateStreaming(
     context: PromptContext,
     options?: GenerateOptions,
