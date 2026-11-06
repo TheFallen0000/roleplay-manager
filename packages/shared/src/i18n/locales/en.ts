@@ -441,6 +441,23 @@ export const en = {
     contextWindowMaxTokensWarning:
       "The reply budget ({maxTokens} tokens) does not leave room inside the {window}-token window.",
     contextWindowPresets: "Presets",
+    capabilitiesTitle: "Detected capabilities",
+    capabilitiesLoading: "Resolving model capabilities…",
+    capabilitiesUnavailable: "No capabilities available for this model.",
+    capabilitiesResolvedWindow: "Resolved window: {window}",
+    capabilitiesWindowUnknown: "Resolved window: unknown",
+    capabilitiesMaxOutput: "Max output: {count}",
+    capabilitiesSource: "Source: {source}",
+    capabilitiesConfidence: "Confidence: {confidence}",
+    capabilitiesWorkingWindow: "Safe working window: {window}",
+    capabilitiesWorkingWindowUnknown: "Safe working window: unknown.",
+    capabilitiesWorkingWindowDegraded:
+      "The safe working window is small; consider lowering the reply budget.",
+    capabilitiesWorkingWindowInfeasible:
+      "The reply budget does not fit inside the context window.",
+    capabilitiesApply: "Apply detected",
+    capabilitiesTypedOverride:
+      "Applying replaces your typed window ({window}).",
     stopSequences: "Stop sequences",
     stopSequencesPlaceholder: "comma, separated, ...",
     stopSequencesHint: "Comma separated",

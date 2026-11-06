@@ -442,6 +442,23 @@ export const es: Dictionary = {
     contextWindowMaxTokensWarning:
       "El límite de respuesta ({maxTokens} tokens) no deja espacio dentro de la ventana de {window} tokens.",
     contextWindowPresets: "Ajustes rápidos",
+    capabilitiesTitle: "Capacidades detectadas",
+    capabilitiesLoading: "Resolviendo las capacidades del modelo…",
+    capabilitiesUnavailable: "No hay capacidades disponibles para este modelo.",
+    capabilitiesResolvedWindow: "Ventana resuelta: {window}",
+    capabilitiesWindowUnknown: "Ventana resuelta: desconocida",
+    capabilitiesMaxOutput: "Salida máxima: {count}",
+    capabilitiesSource: "Origen: {source}",
+    capabilitiesConfidence: "Confianza: {confidence}",
+    capabilitiesWorkingWindow: "Ventana de trabajo segura: {window}",
+    capabilitiesWorkingWindowUnknown: "Ventana de trabajo segura: desconocida.",
+    capabilitiesWorkingWindowDegraded:
+      "La ventana de trabajo segura es pequeña; considera bajar el límite de respuesta.",
+    capabilitiesWorkingWindowInfeasible:
+      "El límite de respuesta no cabe dentro de la ventana de contexto.",
+    capabilitiesApply: "Aplicar detectado",
+    capabilitiesTypedOverride:
+      "Aplicar reemplaza tu ventana escrita ({window}).",
     stopSequences: "Stop sequences",
     stopSequencesPlaceholder: "coma, separada, ...",
     stopSequencesHint: "Separadas por coma",
