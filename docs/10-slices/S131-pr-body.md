@@ -1,5 +1,3 @@
-**Suggested PR title:** `fix(context): align compaction with the applied working window`
-
 ## Summary
 
 S131 addresses the three S130 follow-ups: it removes the double output reserve in
@@ -55,9 +53,11 @@ changes, no new features, no version bump.
 - `pnpm check`: architecture 7/7, typecheck 5/5, lint 5/5.
 - `pnpm build`: 4/4 tasks.
 - `pnpm --filter @workspace/backend eval`: 1 file / 33 tests.
+- `pnpm audit --prod`: no known vulnerabilities.
 - `git diff --check`: clean.
+- Release audit: **READY (PASS)** — [S131 release audit](docs/10-slices/S131-release.md).
 - Not run: manual app test; release dry-run (no packaging, native-module or
-  lockfile changes); `pnpm audit --prod` in this verification (CI covers it).
+  lockfile changes).
 
 ## Review
 

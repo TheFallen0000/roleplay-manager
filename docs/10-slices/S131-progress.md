@@ -446,7 +446,7 @@ prompt; `pnpm check`, build y `pnpm audit --prod` en verde.
       bump de `EXPORT_SCHEMA_VERSION`).
 - [x] Sin cambios de prompt; snapshots S129 intactos; `pnpm check` y
       `pnpm build` en verde.
-- [ ] `pnpm audit --prod` en verde: no re-ejecutado en esta verificación; lo
+- [x] `pnpm audit --prod` en verde: `No known vulnerabilities found`; lo
       cubre CI.
 - [x] Un par neto inseguro (`workingWindow + maxTokens > contextWindow`) cae a
       bruto + reserva; un import inválido y una plantilla sin modelo/proveedor
@@ -562,10 +562,12 @@ Matriz detallada: `docs/10-slices/S131-test-plan.md`. Tests escritos el
 - **Evaluación:** `pnpm --filter @workspace/backend eval` → 1 archivo / 33
   tests.
 - **`git diff --check`:** limpio.
-- **`pnpm audit --prod`:** no re-ejecutado en esta verificación; lo cubre CI.
+- **`pnpm audit --prod`:** `No known vulnerabilities found` (auditoría de
+  release, `docs/10-slices/S131-release.md`).
 - **Release dry-run:** no ejecutado; el slice no toca empaquetado, módulos
-  nativos ni lockfile.
-- **Prueba manual:** no ejecutada.
+  nativos ni lockfile. Auditoría: **READY (PASS)**.
+- **Prueba manual:** no ejecutada; recomendada antes del merge (badge y
+  compactación con una ventana aplicada).
 
 ## Review
 
@@ -581,6 +583,7 @@ Matriz detallada: `docs/10-slices/S131-test-plan.md`. Tests escritos el
   `workingWindow` que no encajaba podía abortar el apply; bajar `contextWindow`
   sin enviar `workingWindow` dejaba un par inconsistente.
 - **Nits restantes:** en Deferred; ninguno bloqueante.
+- **Auditoría de release:** READY (PASS) — `docs/10-slices/S131-release.md`.
 
 ## Deferred
 
@@ -631,4 +634,5 @@ Matriz detallada: `docs/10-slices/S131-test-plan.md`. Tests escritos el
 13. `test(backend): cover unsafe working window fallbacks` (3603a17)
 14. `docs(slice): add S131 review` (92bc16b)
 15. `docs(changelog): add S131 entries` (c551c3c)
-16. `docs(slice): document S131` (this commit)
+16. `docs(slice): document S131` (f38646c)
+17. `docs(slice): add S131 release audit` (this commit)
