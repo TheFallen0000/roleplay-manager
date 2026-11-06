@@ -108,6 +108,7 @@ export function SettingsPanel({
     providerInstanceId: current.providerInstanceId ?? null,
     model: current.model,
     contextWindow: current.contextWindow ?? null,
+    workingWindow: current.workingWindow ?? null,
   })
   const [temperature, setTemperature] = useState(current.temperature ?? 0.7)
   const [maxTokens, setMaxTokens] = useState(current.maxTokens ?? 2048)
@@ -143,6 +144,7 @@ export function SettingsPanel({
     modelUpdate.providerInstanceId !== current.providerInstanceId ||
     modelUpdate.model !== current.model ||
     modelUpdate.contextWindow !== (current.contextWindow ?? null) ||
+    modelUpdate.workingWindow !== (current.workingWindow ?? null) ||
     temperature !== (current.temperature ?? 0.7) ||
     maxTokens !== (current.maxTokens ?? 2048) ||
     topP !== (current.topP ?? 0.9) ||
@@ -230,8 +232,21 @@ export function SettingsPanel({
       settings.providerInstanceId = modelUpdate.providerInstanceId
     }
     if (modelUpdate.model !== current.model) settings.model = modelUpdate.model
-    if (modelUpdate.contextWindow !== (current.contextWindow ?? null))
-      settings.contextWindow = modelUpdate.contextWindow
+    const contextWindowChanged =
+      modelUpdate.contextWindow !== (current.contextWindow ?? null)
+    const modelChanged =
+      modelUpdate.model !== current.model ||
+      modelUpdate.provider !== (current.provider ?? "ollama") ||
+      modelUpdate.providerInstanceId !== current.providerInstanceId
+    if (contextWindowChanged) settings.contextWindow = modelUpdate.contextWindow
+    // A manual window or model change invalidates the applied working window.
+    const nextWorkingWindow =
+      (contextWindowChanged || modelChanged) &&
+      modelUpdate.workingWindow === (current.workingWindow ?? null)
+        ? null
+        : modelUpdate.workingWindow
+    if (nextWorkingWindow !== (current.workingWindow ?? null))
+      settings.workingWindow = nextWorkingWindow
     if (temperature !== (current.temperature ?? 0.7)) settings.temperature = temperature
     if (nextMaxTokens !== (current.maxTokens ?? 2048))
       settings.maxTokens = nextMaxTokens

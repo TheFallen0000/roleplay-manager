@@ -29,6 +29,7 @@ export interface ModelUpdate {
   providerInstanceId: string | null
   model: string | null
   contextWindow: number | null
+  workingWindow: number | null
 }
 
 interface ModelSelectorProps {
@@ -62,6 +63,9 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   const [contextWindow, setContextWindow] = useState<number | null>(
     current.contextWindow ?? null
   )
+  const [workingWindow, setWorkingWindow] = useState<number | null>(
+    current.workingWindow ?? null
+  )
   const contextWindowManual = useRef(current.contextWindow !== null)
   const [detectingContext, setDetectingContext] = useState(false)
   const contextRequestId = useRef(0)
@@ -86,12 +90,26 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   const dialog = useInstanceDialog()
 
   useEffect(() => {
-    onChange({ provider, providerInstanceId, model, contextWindow })
-  }, [onChange, provider, providerInstanceId, model, contextWindow])
+    onChange({
+      provider,
+      providerInstanceId,
+      model,
+      contextWindow,
+      workingWindow,
+    })
+  }, [
+    onChange,
+    provider,
+    providerInstanceId,
+    model,
+    contextWindow,
+    workingWindow,
+  ])
 
   const resetContextWindow = useCallback(() => {
     contextRequestId.current += 1
     setContextWindow(null)
+    setWorkingWindow(null)
   }, [])
 
   const loadContextWindow = useCallback(
@@ -111,6 +129,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
           : await getModelContextWindow("ollama", modelToDetect)
         if (requestId !== contextRequestId.current) return
         setContextWindow(result.contextWindow)
+        setWorkingWindow(null)
         if (notify) {
           if (result.contextWindow === null) {
             toast.info(t("settings.contextWindowDetectEmpty"))
@@ -303,6 +322,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   const handleModelChange = useCallback(
     (value: string) => {
       const next = value || null
+      setWorkingWindow(null)
       if (!next && !contextWindowManual.current) resetContextWindow()
       setModel(next)
     },
@@ -312,6 +332,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   const handleContextWindowChange = useCallback((value: string) => {
     contextWindowManual.current = true
     const parsed = Number(value)
+    setWorkingWindow(null)
     setContextWindow(
       Number.isFinite(parsed) && parsed > 0 ? clampContextWindow(parsed) : null
     )
@@ -319,6 +340,7 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
 
   const handlePreset = useCallback((preset: number) => {
     contextWindowManual.current = true
+    setWorkingWindow(null)
     setContextWindow(preset)
   }, [])
 
@@ -339,20 +361,25 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
       const detectedWindow = result?.capabilities.contextWindow
       if (typeof detectedWindow === "number" && detectedWindow > 0) {
         contextWindowManual.current = false
+        setWorkingWindow(null)
         setContextWindow(clampContextWindow(detectedWindow))
       }
     })()
   }, [model, provider, loadContextWindow, refreshCapabilities])
 
-  const handleApplyDetected = useCallback((workingWindow: number | null) => {
-    if (workingWindow === null || workingWindow <= 0) return
-    // An explicit apply always wins, even over a manually typed value. The
-    // stored value is the safe working window; compaction still treats it as
-    // the raw model window and reserves maxTokens again, so this stays
-    // conservative until compaction is aligned (see S130 Deferred).
-    contextWindowManual.current = true
-    setContextWindow(clampContextWindow(workingWindow))
-  }, [])
+  const handleApplyDetected = useCallback(
+    (safeWorkingWindow: number | null) => {
+      const rawWindow = capabilities?.capabilities.contextWindow ?? null
+      if (rawWindow === null || rawWindow <= 0) return
+      if (safeWorkingWindow === null || safeWorkingWindow <= 0) return
+      // Apply stores both values: the raw window is the model's own, and the
+      // working window is already net of the reply reserve.
+      contextWindowManual.current = true
+      setContextWindow(clampContextWindow(rawWindow))
+      setWorkingWindow(safeWorkingWindow)
+    },
+    [capabilities]
+  )
 
   return (
     <div className="flex flex-col gap-3">
