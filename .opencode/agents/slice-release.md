@@ -11,7 +11,7 @@ permissions:
     effect: allow
   - action: shell
     resource: "*"
-    effect: ask
+    effect: deny
   - action: shell
     resource: "pnpm *"
     effect: allow
@@ -120,13 +120,13 @@ relevant output:
 - `git diff --check`
 
 If the slice changes `package.json`, `pnpm-lock.yaml`, native modules or
-packaging, request approval before triggering the release dry-run:
+packaging, report the exact dry-run command and let the orchestrator trigger it:
 
 ```sh
 gh workflow run release.yml --repo TheFallen0000/roleplay-manager --ref <branch> -f publish=false
 ```
 
-Then watch the run and verify the five targets. If a build rewrites a tracked
+You may watch an existing run with `gh run watch`. If a build rewrites a tracked
 generated file (for example `packages/website/src/data/release.json`), leave it
 dirty and report it; the orchestrator restores it. Do not run
 `git checkout`/`git restore`, push, merge, tag, bump the version or publish. If a

@@ -38,7 +38,7 @@ permissions:
     effect: allow
   - action: shell
     resource: "*"
-    effect: ask
+    effect: deny
   - action: shell
     resource: "pnpm *"
     effect: allow
