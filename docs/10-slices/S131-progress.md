@@ -360,15 +360,33 @@ prompt; `pnpm check`, build y `pnpm audit --prod` en verde.
 
 ## Red tests
 
-- **Comando:** `pnpm --filter @workspace/backend test` y
-  `pnpm --filter @workspace/frontend exec vitest run`.
-- **Fallo esperado:** los tests nuevos importan `workingWindow` del contrato
-  todavía inexistente (`Conversation`/`ConversationDetail` sin `workingWindow`,
-  columna sin migrar) y la compactación no ramifica por ventana neta.
-- **Salida relevante:** errores de tipo/propiedad ausente en
-  `context-compaction.service.test.ts`, `drizzle-conversation.repository.test.ts`,
-  `get-prompt-context` y en `model-selector.test.tsx` (NIT-4: el caso `null`
-  sigue enviando override hasta implementar el ajuste).
+Matriz detallada: `docs/10-slices/S131-test-plan.md`. Tests escritos el
+2026-11-06 (21 casos agrupados en 9 comportamientos).
+
+- **Comando:**
+  - `pnpm --filter @workspace/backend test`
+  - `pnpm --filter @workspace/frontend exec vitest run`
+- **Fallo esperado:** el contrato nuevo todavía no existe: falta el helper puro
+  `@workspace/shared/lib/context-window`, la propiedad/columna `workingWindow`,
+  la rama neta de compactación y el envío selectivo de `conversationOverride`.
+- **Salida relevante (confirmada por el orquestador):**
+  - Backend: `10 failed | 119 passed (129 files)`, `13 failed | 779 passed
+    (792 tests)`. `context-window.resolver.test.ts` falla al importar
+    `Cannot find package '@workspace/shared/lib/context-window'`; compactación
+    neta sigue disparando en `input ≥ 2540` y usa `maxTokens: 819` en vez de
+    `573`; repositorio devuelve `workingWindow: undefined` en vez de `5735`/`null`;
+    preview devuelve `contextWindow: 8192` en vez de `5735`; export/import/rama/
+    plantilla omiten `workingWindow`; el guard de settings no rechaza
+    `workingWindow > contextWindow`.
+  - Frontend: `2 failed | 68 passed (70 files)`, `11 failed | 398 passed (409
+    tests)`. El hook sigue enviando `{ maxTokens: null }`/`{ maxTokens: 0 }`;
+    Apply escribe `contextWindow: 29082` en vez de
+    `{ contextWindow: 32768, workingWindow: 29082 }`; Detect/preset/tecleo/
+    cambio de modelo no limpian `workingWindow`; el guardado de
+    `settings-panel` no envía `workingWindow`.
+- **Suites verdes por diseño (anclas de no regresión):** compactación raw,
+  robustez de ventana neta pequeña, plantilla no coincidente y NIT-4 positivo;
+  sus suites siguen rojas por los demás casos.
 
 ---
 
