@@ -189,6 +189,20 @@ export class UpdateConversationSettingsUseCase {
       }
     }
     if (
+      input.workingWindow === undefined &&
+      (input.contextWindow !== undefined || input.maxTokens !== undefined) &&
+      conv.workingWindow !== null
+    ) {
+      const storedWorkingWindow = conv.workingWindow
+      if (
+        finalWindow === null ||
+        storedWorkingWindow > finalWindow ||
+        storedWorkingWindow + finalMaxTokens >= finalWindow
+      ) {
+        input.workingWindow = null
+      }
+    }
+    if (
       (input.contextWindow !== undefined || input.maxTokens !== undefined) &&
       finalWindow !== null &&
       finalMaxTokens >= finalWindow

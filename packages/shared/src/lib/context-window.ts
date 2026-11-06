@@ -9,9 +9,10 @@ export interface EffectiveWindow {
 
 /**
  * Resolves the window a consumer must budget against. A positive working
- * window that fits inside the raw model window is already net of the reply
- * reserve, so it is used as-is. Anything else falls back to the raw window
- * plus the requested reply reserve, which keeps legacy rows unchanged.
+ * window that fits inside the raw model window and still leaves room for the
+ * requested reply is already net of the reply reserve, so it is used as-is.
+ * Anything else falls back to the raw window plus the requested reply reserve,
+ * which keeps legacy rows and unsafe hand-edited values conservative.
  */
 export const resolveEffectiveWindow = (params: {
   contextWindow: number | null
@@ -19,6 +20,7 @@ export const resolveEffectiveWindow = (params: {
   maxTokens: number | null | undefined
 }): EffectiveWindow => {
   const { contextWindow, workingWindow, maxTokens } = params
+  const replyReserve = maxTokens ?? 2_048
 
   if (
     workingWindow != null &&
@@ -26,7 +28,8 @@ export const resolveEffectiveWindow = (params: {
     workingWindow > 0 &&
     contextWindow != null &&
     Number.isFinite(contextWindow) &&
-    workingWindow <= contextWindow
+    workingWindow <= contextWindow &&
+    workingWindow + replyReserve <= contextWindow
   ) {
     return { window: workingWindow, outputReserve: 0, net: true }
   }

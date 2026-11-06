@@ -277,6 +277,17 @@ export class ImportCharacterUseCase {
         exported.backgroundImageAssetId ?? null,
       )
 
+      const importedContextWindow = clampContextWindow(settings.contextWindow)
+      const importedMaxTokens = clampOutputTokens(settings.maxTokens)
+      const importedWorkingWindow =
+        settings.workingWindow != null &&
+        settings.workingWindow > 0 &&
+        importedContextWindow !== null &&
+        settings.workingWindow <= importedContextWindow &&
+        settings.workingWindow + importedMaxTokens <= importedContextWindow
+          ? settings.workingWindow
+          : null
+
       const conversation = Conversation.create({
         id: conversationId,
         versionId: newIdByOldVersionId.get(exported.versionId) ?? fallbackVersionId,
@@ -287,13 +298,13 @@ export class ImportCharacterUseCase {
         providerInstanceId: settings.providerInstanceId,
         recentMessageCount: settings.recentMessageCount,
         summaryFrequency: settings.summaryFrequency,
-        contextWindow: clampContextWindow(settings.contextWindow),
-        workingWindow: settings.workingWindow ?? null,
+        contextWindow: importedContextWindow,
+        workingWindow: importedWorkingWindow,
         compactionThreshold: clampCompactionThreshold(
           settings.compactionThreshold ?? 80,
         ),
         temperature: settings.temperature,
-        maxTokens: clampOutputTokens(settings.maxTokens),
+        maxTokens: importedMaxTokens,
         topP: settings.topP,
         frequencyPenalty: settings.frequencyPenalty,
         presencePenalty: settings.presencePenalty,

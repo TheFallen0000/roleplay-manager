@@ -73,11 +73,27 @@ export class ApplySettingsTemplateUseCase {
     for (const conversation of conversations) {
       const update: ConversationSettingsUpdate = { ...baseUpdate }
       if (input.settings.workingWindow !== undefined) {
-        // A net window only makes sense for the model it was computed for.
+        // A net window only makes sense for the model it was computed for, and
+        // it must leave room for the reply inside the target's raw window.
         const sameModel = input.settings.model === conversation.model
         const sameProvider = input.settings.provider === conversation.provider
-        update.workingWindow = sameModel && sameProvider
-          ? input.settings.workingWindow
+        const finalWindow =
+          update.contextWindow !== undefined
+            ? update.contextWindow
+            : conversation.contextWindow
+        const finalMaxTokens =
+          update.maxTokens !== undefined
+            ? update.maxTokens
+            : conversation.maxTokens
+        const templateWindow = input.settings.workingWindow
+        const fits =
+          templateWindow != null &&
+          templateWindow > 0 &&
+          finalWindow !== null &&
+          templateWindow <= finalWindow &&
+          templateWindow + finalMaxTokens <= finalWindow
+        update.workingWindow = sameModel && sameProvider && fits
+          ? templateWindow
           : null
       }
 
