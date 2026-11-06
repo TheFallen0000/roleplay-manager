@@ -12,6 +12,9 @@ export class UpdateProviderInstanceUseCase {
   constructor(
     private readonly providerInstanceRepository: ProviderInstanceRepository,
     private readonly logger: Logger,
+    private readonly capabilitiesCache?: {
+      invalidateInstance(id: string): void
+    },
   ) {}
 
   async execute(
@@ -53,6 +56,7 @@ export class UpdateProviderInstanceUseCase {
     }
 
     const updated = await this.providerInstanceRepository.update(id, input)
+    this.capabilitiesCache?.invalidateInstance(id)
     return toProviderInstanceDTO(updated)
   }
 }

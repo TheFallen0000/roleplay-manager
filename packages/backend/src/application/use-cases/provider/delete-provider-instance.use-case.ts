@@ -10,6 +10,9 @@ export class DeleteProviderInstanceUseCase {
     private readonly providerInstanceRepository: ProviderInstanceRepository,
     private readonly conversationRepository: ConversationRepository,
     private readonly settingsRepository: SettingsRepository,
+    private readonly capabilitiesCache?: {
+      invalidateInstance(id: string): void
+    },
   ) {}
 
   async execute(id: string): Promise<void> {
@@ -32,5 +35,6 @@ export class DeleteProviderInstanceUseCase {
     }
 
     await this.providerInstanceRepository.delete(id)
+    this.capabilitiesCache?.invalidateInstance(id)
   }
 }
