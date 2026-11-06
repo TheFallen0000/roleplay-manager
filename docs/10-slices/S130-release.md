@@ -1,6 +1,6 @@
 # S130 — Release audit
 
-**Estado:** READY
+**Estado:** READY (re-test manual pendiente)
 **Auditor:** slice-release (read-only)
 **Fecha:** 2026-11-06
 **Rama:** `feat/s130-model-capabilities`
