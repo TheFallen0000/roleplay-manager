@@ -2,3 +2,4 @@
 export * from "./lib/ooc-parser"
 export * from "./lib/memory-decay"
 export * from "./lib/image"
+export * from "./types/model-capabilities"
