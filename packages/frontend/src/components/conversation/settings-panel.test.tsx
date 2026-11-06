@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render as rtlRender, screen, cleanup, waitFor, within, fireEvent } from "@testing-library/react"
-import type * as React from "react"
+import * as React from "react"
 import userEvent from "@testing-library/user-event"
 
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
@@ -13,6 +13,13 @@ const render = (ui: React.ReactElement) =>
 
 const mocks = vi.hoisted(() => ({
   updateConversationSettings: vi.fn(),
+  modelUpdate: {
+    provider: "ollama" as string | null,
+    providerInstanceId: null as string | null,
+    model: null as string | null,
+    contextWindow: null as number | null,
+    workingWindow: null as number | null,
+  },
 }))
 
 vi.mock("@/lib/api/conversations", () => ({
@@ -34,7 +41,16 @@ vi.mock("@/lib/stores/summary.store", () => ({
 
 vi.mock("./model-selector", () => ({
   __esModule: true,
-  ModelSelector: () => <div data-testid="model-selector" />,
+  ModelSelector: ({
+    onChange,
+  }: {
+    onChange: (update: typeof mocks.modelUpdate) => void
+  }) => {
+    React.useEffect(() => {
+      onChange(mocks.modelUpdate)
+    }, [onChange])
+    return <div data-testid="model-selector" />
+  },
 }))
 
 vi.mock("./customization-tab", () => ({
@@ -75,6 +91,7 @@ const baseConversation = (overrides: Partial<ConversationDetail> = {}): Conversa
   recentMessageCount: 10,
   summaryFrequency: 20,
   contextWindow: null,
+  workingWindow: null,
   compactionThreshold: 80,
   temperature: null,
   maxTokens: null,
@@ -94,12 +111,17 @@ const baseConversation = (overrides: Partial<ConversationDetail> = {}): Conversa
   ...overrides,
 })
 
-const renderPanel = (options: { onEnterFullscreen?: () => void } = {}) => {
+const renderPanel = (
+  options: {
+    onEnterFullscreen?: () => void
+    current?: ConversationDetail
+  } = {},
+) => {
   const onSettingsChanged = vi.fn()
   render(
     <SettingsPanel
       conversationId="conv-1"
-      current={baseConversation()}
+      current={options.current ?? baseConversation()}
       onSettingsChanged={onSettingsChanged}
       onEnterFullscreen={options.onEnterFullscreen}
     >
@@ -124,6 +146,13 @@ beforeEach(() => {
     async (_id: string, settings: Record<string, unknown>) =>
       ({ ...baseConversation(), ...settings }) as ConversationDetail,
   )
+  mocks.modelUpdate = {
+    provider: "ollama",
+    providerInstanceId: null,
+    model: null,
+    contextWindow: null,
+    workingWindow: null,
+  }
   localStorage.clear()
 })
 
@@ -221,6 +250,56 @@ describe("SettingsPanel", () => {
       expect(onSettingsChanged).toHaveBeenCalledWith(
         expect.objectContaining({ maxTokens: 5555 }),
       )
+    })
+  })
+
+  it("saves the raw window and the working window from the Modelo dialog", async () => {
+    mocks.modelUpdate = {
+      provider: "ollama",
+      providerInstanceId: null,
+      model: null,
+      contextWindow: 32_768,
+      workingWindow: 29_082,
+    }
+    renderPanel()
+    await openSection("Modelo")
+
+    const apply = screen.getByRole("button", { name: "Aplicar cambios" })
+    await waitFor(() => expect(apply).toBeEnabled())
+    await userEvent.click(apply)
+
+    await waitFor(() => {
+      expect(mocks.updateConversationSettings).toHaveBeenCalledWith("conv-1", {
+        contextWindow: 32_768,
+        workingWindow: 29_082,
+      })
+    })
+  })
+
+  it("saves a cleared working window", async () => {
+    mocks.modelUpdate = {
+      provider: "ollama",
+      providerInstanceId: null,
+      model: null,
+      contextWindow: 32_768,
+      workingWindow: null,
+    }
+    renderPanel({
+      current: baseConversation({
+        contextWindow: 32_768,
+        workingWindow: 29_082,
+      }),
+    })
+    await openSection("Modelo")
+
+    const apply = screen.getByRole("button", { name: "Aplicar cambios" })
+    await waitFor(() => expect(apply).toBeEnabled())
+    await userEvent.click(apply)
+
+    await waitFor(() => {
+      expect(mocks.updateConversationSettings).toHaveBeenCalledWith("conv-1", {
+        workingWindow: null,
+      })
     })
   })
 
