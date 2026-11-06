@@ -1,8 +1,8 @@
 # S131 — Alinear la compactación con la ventana de trabajo y pulir follow-ups de S130
 
-**Estado:** Aprobado
+**Estado:** Completado (pendiente de merge del PR #135)
 **Inicio:** 2026-11-06
-**Fin:** —
+**Fin:** 2026-11-06
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -227,6 +227,118 @@ Se elige **A** (raw + `working_window`).
    fallback ante archivo ausente. La compresión necesitaría un descompresor en
    runtime y no elimina el coste de parseo.
 
+### Plan de migración
+
+- **Migración `0018_wet_absorbing_man.sql`.** `ALTER TABLE conversations ADD
+  working_window integer;` (nullable, sin `DEFAULT` y sin backfill). El esquema
+  Drizzle añade `workingWindow: integer("working_window")`; el snapshot
+  `meta/0018_snapshot.json` y la entrada del journal (`idx` 18, `version` 6,
+  `breakpoints: true`) se generan con `db:generate`. `scripts/package.mjs` copia
+  la carpeta completa de migraciones a la app empaquetada, así que la nueva
+  entra sin cambios en el empaquetado.
+- **Filas existentes.** `working_window` queda `NULL` en todas las filas
+  actuales (no hay forma fiable de distinguir un bruto tecleado de un neto
+  aplicado por S130). `NULL` significa «sin ventana de trabajo aplicada»: el
+  resolver cae a la ventana bruta + reserva, que es exactamente el
+  comportamiento conservador actual.
+- **Export/import (`EXPORT_SCHEMA_VERSION` sigue en 1).** `ExportSettings`
+  añade `workingWindow?: number | null`; una exportación antigua sin la clave
+  importa `workingWindow = null`. `export-character` copia el valor e
+  `import-character` lo valida contra la ventana bruta y `maxTokens` ya
+  normalizados: si no encaja, se guarda `null`.
+- **Ramas.** `branch-conversation` copia `contextWindow` y `workingWindow` del
+  origen.
+- **Plantillas.** `apply-settings-template` copia `workingWindow` solo cuando el
+  modelo y el proveedor de la plantilla coinciden con los del destino y la
+  ventana neta encaja en la ventana bruta final con su `maxTokens` final; en
+  cualquier otro caso escribe `null` (una ventana neta de otro modelo no es
+  reutilizable y nunca debe abortar el apply).
+- **Actualización de settings.** `update-conversation-settings` rechaza con
+  `INVALID_CONTEXT_BUDGET` un `workingWindow` explícito mayor que
+  `contextWindow`; si cambian `contextWindow`/`maxTokens` sin enviar
+  `workingWindow`, limpia la ventana almacenada que ya no encaja.
+- **Rollback/downgrade.** Revertir el código deja la columna en SQLite
+  (ignorada por versiones anteriores, que siguen leyendo solo `context_window`);
+  no hay migración inversa ni pérdida de datos. Eliminar la columna perdería
+  solo la ventana de trabajo aplicada.
+- **Round-trip.** Entidad (`workingWindow?: number | null`, getter `?? null`, sin
+  `clampContextWindow`), repositorio Drizzle (`create`, `findById`,
+  `updateSettings`), `ConversationDetail`/`ConversationSettingsUpdate` y Zod
+  (`min(1).max(MAX_CONTEXT_WINDOW).nullable().optional()` en settings;
+  `min(1).nullable().optional()` en export) conservan el valor y `null`. La
+  validez no se decide en la entidad: solo `resolveEffectiveWindow` clasifica el
+  par como neto o bruto.
+
+### Contrato y aritmética de compactación
+
+**Resolver compartido** (`@workspace/shared/lib/context-window`,
+`resolveEffectiveWindow({ contextWindow, workingWindow, maxTokens })`):
+
+```
+replyReserve = maxTokens ?? 2048
+net = workingWindow != null && finite && > 0
+      && contextWindow != null && finite
+      && workingWindow <= contextWindow
+      && workingWindow + replyReserve <= contextWindow
+net  → { window: workingWindow, outputReserve: 0, net: true }
+else → { window: contextWindow > 0 ? contextWindow : null,
+         outputReserve: replyReserve, net: false }
+```
+
+La última condición es la salvaguarda post-review: un par
+`workingWindow + maxTokens > contextWindow` no puede ser neto (el prompt más la
+respuesta desbordarían el modelo), así que cae a bruto + reserva. También cae a
+bruto cualquier valor `0`, negativo, `NaN`, `Infinity`, `null` o mayor que la
+ventana bruta.
+
+**Presupuestos** (`context-compaction.service.ts`), con `window` y `net` del
+resolver:
+
+```
+threshold        = window * compactionThreshold / 100        // float
+desiredOutput    = maxTokens ?? 2048
+totalBudget      = floor(threshold)
+fixedTokens      = systemTokens + minimumKeptTokens
+preferredSummary = min(1024, max(256, floor(window * 0.1)))
+thresholdBudget  = net ? totalBudget
+                       : max(1, totalBudget - outputTokens)
+targetBudget     = net ? max(1, floor(window * targetRatio))
+                       : max(1, floor(window * targetRatio) - outputTokens)
+keepBudget       = max(0, targetBudget - systemTokens - summaryBudget)
+totalTokens      = inputTokens + (net ? 0 : maxTokens ?? 2048)
+contextPercent   = round(totalTokens / window * 100)
+```
+
+`needsCompaction` dispara cuando `estimate.totalTokens >= threshold`. `compact`
+devuelve siempre `outputTokens = desiredOutput`, pero solo lo resta de los
+presupuestos en modo bruto (`outputCost = net ? 0 : outputTokens`); la reducción
+adicional de la salida y del resumen a los mínimos (`MIN_OUTPUT_RESERVE` /
+`MIN_SUMMARY_BUDGET`) solo se aplica cuando `!net`. El recorte básico del
+resumen al espacio libre (`totalBudget - fixedTokens - outputCost`) se aplica en
+ambos modos. `buildContext` pasa `outputReserve` y `contextWindow` efectivos.
+`get-prompt-context` y el manifiesto de `context-compiler` usan el mismo
+resolver, así que preview y compactación comparten ventana y porcentaje.
+`generate-summary` sigue leyendo `contextWindow` bruto (sin cambios).
+
+**Ejemplo reproducido** (`contextWindow = 8192`, `workingWindow = 5735`,
+`maxTokens = 2048`, `compactionThreshold = 80`, `targetRatio = 0.6`):
+
+| Escenario | Umbral | Dispara cuando | Presupuesto de entrada | Porcentaje con `input = 4600` |
+| --- | --- | --- | --- | --- |
+| Antes (S130: Apply = 5735 en `context_window`) | `5735·0,8 = 4588` | `input + 2048 >= 4588` → `input >= 2540` | `4588 - 2048 = 2540` | `round(6648/5735·100) = 116 %` |
+| Después (neto: 8192 bruto + 5735 neto) | `5735·0,8 = 4588` | `input >= 4588` | `4588` | `round(4600/5735·100) = 80 %` |
+| Legacy (8192 bruto, `working_window = NULL`) | `8192·0,8 = 6553,6` | `input + 2048 >= 6553,6` → `input >= 4505,6` | `4505` (sin cambio) | `round(6648/8192·100) = 81 %` |
+
+El presupuesto de resumen preferido es 573 en neto y 819 en bruto; los tests de
+compactación fijan ambos. **Casos post-review:** un par inseguro (p. ej.
+`workingWindow = 8000`, `contextWindow = 8192`, `maxTokens = 2048`) no cumple
+`8000 + 2048 <= 8192` y se trata como bruto. Esto incluye los applies de S130
+en los que `computeWorkingWindow` recortó la reserva por debajo de
+`conversation.maxTokens`: el valor guardado sigue siendo conservador, pero el
+resolver no puede demostrar que deja sitio a la respuesta y cae a bruto +
+reserva completa. Un `workingWindow` persistido que no cumple el predicado queda
+explícitamente ignorado (NIT en Deferred).
+
 ### Fuera de alcance
 
 - Tokenizer real por proveedor (sigue diferido en S133 / slice propio).
@@ -311,28 +423,36 @@ prompt; `pnpm check`, build y `pnpm audit --prod` en verde.
 
 ## Criterios de aceptación
 
-- [ ] Migración `0018_…` añade `working_window` (integer nullable) con snapshot y
+- [x] Migración `0018_…` añade `working_window` (integer nullable) con snapshot y
       journal; `db:generate` + `db:migrate` correctos; `scripts/package.mjs` ya
       copia la carpeta completa de migraciones.
-- [ ] `Conversation` (entidad) expone `workingWindow` (nullable, clamp) y el repo
-      Drizzle lo mapea en `create`/`findById`/`updateSettings`.
-- [ ] `ConversationDetail` y `ConversationSettingsUpdate` llevan
+- [x] `Conversation` (entidad) expone `workingWindow` (nullable, sin clamp; la
+      validez vive en `resolveEffectiveWindow`) y el repo Drizzle lo mapea en
+      `create`/`findById`/`updateSettings`.
+- [x] `ConversationDetail` y `ConversationSettingsUpdate` llevan
       `workingWindow?: number | null`; ruta/Zod de settings lo acepta
-      (nullable, ≥ 0 o acotado por `MAX_CONTEXT_WINDOW`).
-- [ ] La compactación usa la ventana efectiva: neta → no resta salida; legacy
+      (nullable, acotado por `MAX_CONTEXT_WINDOW`).
+- [x] La compactación usa la ventana efectiva: neta → no resta salida; legacy
       bruta → comportamiento idéntico al actual (no regresión).
-- [ ] `get-prompt-context` y el manifest reportan ventana efectiva y porcentaje
+- [x] `get-prompt-context` y el manifest reportan ventana efectiva y porcentaje
       sin doble reserva; el badge del frontend muestra el porcentaje correcto.
-- [ ] `generate-summary` sigue leyendo `contextWindow` bruto (sin cambio de
+- [x] `generate-summary` sigue leyendo `contextWindow` bruto (sin cambio de
       comportamiento en filas legacy; correcto en applies nuevos).
-- [ ] «Aplicar detectado» escribe bruto + `workingWindow`; teclear/preset/Detect
+- [x] «Aplicar detectado» escribe bruto + `workingWindow`; teclear/preset/Detect
       limpian `workingWindow`.
-- [ ] `use-model-capabilities` omite `conversationOverride` salvo con
+- [x] `use-model-capabilities` omite `conversationOverride` salvo con
       `maxTokens` positivo; caso válido (4 096) intacto.
-- [ ] Export/import/rama/plantilla propagan `workingWindow` (campo opcional, sin
+- [x] Export/import/rama/plantilla propagan `workingWindow` (campo opcional, sin
       bump de `EXPORT_SCHEMA_VERSION`).
-- [ ] Sin cambios de prompt; snapshots S129 intactos; `pnpm check`, `pnpm build`
-      y `pnpm audit --prod` en verde.
+- [x] Sin cambios de prompt; snapshots S129 intactos; `pnpm check` y
+      `pnpm build` en verde.
+- [ ] `pnpm audit --prod` en verde: no re-ejecutado en esta verificación; lo
+      cubre CI.
+- [x] Un par neto inseguro (`workingWindow + maxTokens > contextWindow`) cae a
+      bruto + reserva; un import inválido y una plantilla sin modelo/proveedor
+      coincidente o sin encaje guardan `workingWindow = null`.
+- [x] Bajar `contextWindow`/`maxTokens` sin enviar `workingWindow` limpia la
+      ventana almacenada que ya no encaja.
 
 ---
 
@@ -387,28 +507,80 @@ Matriz detallada: `docs/10-slices/S131-test-plan.md`. Tests escritos el
 - **Suites verdes por diseño (anclas de no regresión):** compactación raw,
   robustez de ventana neta pequeña, plantilla no coincidente y NIT-4 positivo;
   sus suites siguen rojas por los demás casos.
+- **Cierre:** esta evidencia es la foto histórica del rojo; los conteos verdes
+  finales están en Verificación.
 
 ---
 
 ## Decisiones
 
-(Pendientes de implementación; se rellenan al cerrar el slice. La decisión de
-RFC está arriba.)
+- **Opción A (bruto + `working_window` nullable).** `context_window` conserva
+  siempre la ventana bruta del modelo; la ventana neta aplicada vive aparte.
+  Evita la ambigüedad de B y no pierde el denominador real que necesitan
+  `generate-summary` y el manifiesto.
+- **Filas legacy conservadoras.** Sin backfill: `NULL` → bruto + reserva, que
+  reproduce el comportamiento actual de S130. Solo los applies nuevos usan el
+  camino neto.
+- **Resolver con salvaguarda.** `resolveEffectiveWindow` exige que la ventana
+  neta sea positiva, finita, `<= contextWindow` y que
+  `workingWindow + (maxTokens ?? 2048) <= contextWindow`. Un par inseguro cae a
+  bruto (nunca se confía en un neto que no deja sitio a la respuesta).
+- **Limpieza al cambiar la ventana bruta.** `update-conversation-settings`
+  rechaza un `workingWindow` explícito mayor que `contextWindow` y limpia la
+  ventana almacenada cuando cambian `contextWindow`/`maxTokens` y el par deja
+  de encajar; así no sobrevive un neto viejo emparejado con un bruto nuevo.
+- **Validación en import y plantillas.** Import normaliza `contextWindow` y
+  `maxTokens` con los clamps existentes y descarta (`null`) una ventana neta
+  que no encaje; la plantilla exige modelo/proveedor coincidentes y encaje en
+  la ventana final, y nunca aborta el apply por un `workingWindow` inválido.
+- **NIT-4 positivo.** `use-model-capabilities` solo construye
+  `conversationOverride` con un `maxTokens` numérico, finito y `> 0`; `null`,
+  `undefined`, `0` y negativos omiten la clave. La capa API mantiene su filtro
+  como defensa en profundidad y el valor válido (4 096) no cambia.
+- **Frontend Apply/limpieza.** «Aplicar detectado» escribe la ventana bruta en
+  `contextWindow` y la neta en `workingWindow`; teclear, preset, «Detectar»,
+  cambio de modelo o de proveedor limpian `workingWindow`. `settings-panel`
+  envía ambos campos y limpia el neto si el usuario cambió la ventana o el
+  modelo sin reaplicarlo.
+- **Catálogo diferido con baseline medido.** ~8,3 ms de arranque, ~6,6 MB RSS y
+  ~43,6 KB gzip; no se externaliza ni se comprime en este slice.
+- **Sin cambios de prompt ni de política.** Umbrales, target, ensamblado y
+  snapshots S129 quedan intactos; `generate-summary` sigue leyendo bruto.
+- **Sin bump de versión.** Las entradas van a `[Unreleased]`; el release se
+  prepara por separado. Aunque el RFC excluía `CHANGELOG`, el flujo del repo
+  exige documentar cada slice: se añadieron entradas (Added/Changed/Fixed) sin
+  bump ni release.
 
 ## Verificación
 
-- Tests: ...
-- `pnpm check`: ...
-- `pnpm build`: ...
-- `pnpm audit --prod`: ...
-- Release dry-run: ...
-- Prueba manual: ...
+- **Backend:** `pnpm --filter @workspace/backend test` → 129 archivos / 798
+  tests en verde.
+- **Frontend:** `pnpm --filter @workspace/frontend exec vitest run` → 70
+  archivos / 409 tests en verde.
+- **`pnpm check`:** `check:arch` 7/7, typecheck 5/5, lint 5/5.
+- **`pnpm build`:** 4/4 tareas.
+- **Evaluación:** `pnpm --filter @workspace/backend eval` → 1 archivo / 33
+  tests.
+- **`git diff --check`:** limpio.
+- **`pnpm audit --prod`:** no re-ejecutado en esta verificación; lo cubre CI.
+- **Release dry-run:** no ejecutado; el slice no toca empaquetado, módulos
+  nativos ni lockfile.
+- **Prueba manual:** no ejecutada.
 
 ## Review
 
-- **Estado:** pendiente
-- **Informe:** `docs/10-slices/S131-review.md`
-- **Bloqueantes resueltos:** ...
+- **Estado:** PASS — `docs/10-slices/S131-review.md`.
+- **Hallazgo mayor (resuelto):** el guard de `update-conversation-settings` solo
+  comprobaba `workingWindow <= contextWindow`, pero la compactación confía en
+  que ese valor ya es neto. Un par como 8000/8192/2048 (alcanzable por API
+  directa o datos editados a mano) podía desbordar el prompt más la respuesta.
+  Se corrigió con la salvaguarda del resolver
+  (`workingWindow + (maxTokens ?? 2048) <= contextWindow`), que degrada a bruto
+  + reserva, y con la validación/limpieza en import, plantilla y settings.
+- **Menores resueltos:** import persistía un par inválido; una plantilla con
+  `workingWindow` que no encajaba podía abortar el apply; bajar `contextWindow`
+  sin enviar `workingWindow` dejaba un par inconsistente.
+- **Nits restantes:** en Deferred; ninguno bloqueante.
 
 ## Deferred
 
@@ -422,19 +594,41 @@ RFC está arriba.)
   si falta el archivo, y resolución de ruta coherente en `tsx`/bundle/app
   empaquetada. La compresión se descarta (descompresor en runtime sin eliminar el
   parseo).
+- **NIT — igualdad en el límite.** El resolver acepta el neto cuando
+  `workingWindow + maxTokens === contextWindow`, mientras que la limpieza de
+  `update-conversation-settings` usa `>=` y lo borra en ese mismo límite. Es
+  conservador (borrar nunca desborda), pero conviene unificar el comparador en
+  un helper compartido.
+- **NIT — `workingWindow` persistido pero ignorado.** Un valor guardado que no
+  cumple el predicado (por ejemplo, un apply de S130 con la salida recortada)
+  permanece en `working_window` y el resolver lo ignora. No hay reescritura ni
+  aviso en la UI; un slice posterior puede normalizarlo al leer o mostrar que
+  la ventana aplicada ya no es válida.
+- **NIT — fallback conservador para applies con salida recortada.** El resolver
+  no puede demostrar que un neto antiguo deja sitio a `maxTokens` y cae a bruto
+  + reserva completa; es seguro pero sobre-reserva. Arreglarlo requiere registrar
+  la reserva de salida usada al aplicar (o descartar el neto al detectarlo).
 - **Adoptar `workingWindow` en `send/continue/regenerate`** (más allá de la
-  compactación) → slice posterior.
+  compactación) → slice posterior; hoy siguen reservando la salida como antes.
 - **NIT-4 adicional (opcional):** estrechar el tipo `conversationOverride` en
   `providers.ts` a valores positivos no nulos (defensa en profundidad).
 - **Tokenizer real por proveedor** → S133 (ya diferido en S130).
 
 ## Commits
 
-1. `docs(slice): add S131 RFC`
-2. `feat(backend): add working_window column and thread it through conversation`
-3. `feat(backend): use effective window in compaction and prompt context`
-4. `feat(frontend): apply raw window + workingWindow and clear on manual edit`
-5. `fix(frontend): only send conversationOverride for a positive maxTokens`
-6. `test(backend): cover migration round-trip, compaction math and preview parity`
-7. `test(frontend): cover apply/detect and NIT-4 override`
-8. `docs(slice): document S131`
+1. `docs(slice): add S131 RFC` (49d6a83)
+2. `docs(slice): approve S131 RFC` (088210c)
+3. `docs(slice): add S131 test plan` (4f9a759)
+4. `test(backend): cover S131 working window and compaction contract` (e162b60)
+5. `test(frontend): cover S131 apply/detect and NIT-4 override` (8a4a147)
+6. `docs(slice): record S131 red tests` (919701c)
+7. `feat(shared): add effective window resolver and working window types` (6d27227)
+8. `feat(backend): add working_window column and thread it through conversations` (8f6bb0d)
+9. `feat(backend): propagate working_window through export, import and templates` (437cf92)
+10. `feat(backend): use effective window in compaction and prompt preview` (d7d8063)
+11. `feat(frontend): apply raw and working window with NIT-4 guard` (3f89a38)
+12. `fix(backend): treat unsafe working windows as raw` (80010e6)
+13. `test(backend): cover unsafe working window fallbacks` (3603a17)
+14. `docs(slice): add S131 review` (92bc16b)
+15. `docs(changelog): add S131 entries` (c551c3c)
+16. `docs(slice): document S131` (this commit)
