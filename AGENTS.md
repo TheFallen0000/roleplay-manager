@@ -393,6 +393,9 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 - Start a new session per slice and, for large slices, per stage. Use the RFC and
   tests as the handoff; do not continue a session that already carries a huge
   context. Subagents have no fixed step limit; split a task that fails twice.
+- Subagents use deny-by-default for unknown shell commands so an unattended run
+  fails fast instead of waiting for an approval. If a legitimate command is
+  missing, the orchestrator expands that agent's allowlist.
 
 ---
 

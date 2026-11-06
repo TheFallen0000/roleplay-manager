@@ -184,6 +184,9 @@ sesiones existentes se recuperan con `Ctrl+X` y luego `L`, o con `/sessions`.
 
 Los subagentes tienen permisos por rol, no edición global. Eso es deliberado: el
 reviewer queda read-only y el test-author no puede tocar código de producción.
+Los subagentes usan **deny-by-default** para shell: si un comando legítimo falta,
+fallan rápido y el orquestador amplía la allowlist. No usan `ask`, porque una
+sesión desatendida se quedaría esperando una aprobación que nadie ve.
 
 Si un subagente reporta un bloqueo de permisos:
 

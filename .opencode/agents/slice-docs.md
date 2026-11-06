@@ -17,7 +17,7 @@ permissions:
     effect: allow
   - action: shell
     resource: "*"
-    effect: ask
+    effect: deny
   - action: shell
     resource: "pnpm *"
     effect: allow
@@ -36,10 +36,17 @@ permissions:
   - action: shell
     resource: "git rev-parse *"
     effect: allow
+  - action: shell
+    resource: "gh pr view *"
+    effect: allow
+  - action: shell
+    resource: "gh pr list *"
+    effect: allow
 ---
 
 Use `read`, `grep` and `glob` for file inspection; shell is only for formatting
-and read-only git metadata.
+and read-only git metadata. Never edit files with `python`, `sed`, `awk`,
+heredocs or shell redirection; use the `write`/`edit` tools.
 
 Update the slice documentation from the implemented diff. Fill the slice doc
 (status, decisions, verification, commits), add the CHANGELOG entry under

@@ -5,6 +5,7 @@
     { "action": "shell", "resource": "wc *", "effect": "allow" },
     { "action": "shell", "resource": "du *", "effect": "allow" },
     { "action": "shell", "resource": "pwd", "effect": "allow" },
+    { "action": "shell", "resource": "cd *", "effect": "allow" },
     {
       "action": "shell",
       "resource": "TURBO_FORCE=1 pnpm *",
