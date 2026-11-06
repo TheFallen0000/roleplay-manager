@@ -37,6 +37,8 @@ export interface ConversationDetail {
   summaryFrequency: number
   /** Model context window in tokens; null when unknown. */
   contextWindow: number | null
+  /** Net window already excluding the reply reserve; null when not applied. */
+  workingWindow?: number | null
   /** Percentage of the window that triggers automatic compaction. */
   compactionThreshold: number
   temperature: number | null
@@ -86,6 +88,7 @@ export interface ConversationSettingsUpdate {
   recentMessageCount?: number
   summaryFrequency?: number
   contextWindow?: number | null
+  workingWindow?: number | null
   compactionThreshold?: number
   temperature?: number
   maxTokens?: number
