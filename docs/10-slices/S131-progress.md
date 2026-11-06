@@ -1,6 +1,6 @@
 # S131 — Alinear la compactación con la ventana de trabajo y pulir follow-ups de S130
 
-**Estado:** Draft
+**Estado:** Aprobado
 **Inicio:** 2026-11-06
 **Fin:** —
 
