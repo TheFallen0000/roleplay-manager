@@ -348,6 +348,7 @@ describe("ApplySettingsTemplateUseCase", () => {
     const target = buildConversation("conv-1", "ver-1", now, {
       model: "gpt-4o-mini",
       provider: "ollama",
+      contextWindow: 8_192,
     })
     const { useCase, updateSettings } = buildUseCase({
       conversations: [target],
@@ -366,6 +367,28 @@ describe("ApplySettingsTemplateUseCase", () => {
       "conv-1",
       expect.objectContaining({ workingWindow: 5_735 }),
     )
+  })
+
+  it("clears the working window when the target has no raw window", async () => {
+    const target = buildConversation("conv-1", "ver-1", now, {
+      model: "gpt-4o-mini",
+      provider: "ollama",
+    })
+    const { useCase, updateSettings } = buildUseCase({
+      conversations: [target],
+    })
+
+    await useCase.execute({
+      characterId: "char-1",
+      settings: {
+        model: "gpt-4o-mini",
+        provider: "ollama",
+        workingWindow: 5_735,
+      },
+    })
+
+    const update = updateSettings.execute.mock.calls[0][1] as ConversationSettingsUpdate
+    expect(update.workingWindow ?? null).toBeNull()
   })
 
   it("clears the working window when the template changes the model", async () => {

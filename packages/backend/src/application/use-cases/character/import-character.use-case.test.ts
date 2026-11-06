@@ -435,6 +435,29 @@ describe("ImportCharacterUseCase", () => {
     expect(created.customProfileImageAssetId).toBe("new-asset-id")
   })
 
+  it("discards a working window that leaves no room for the reply", async () => {
+    const repos = buildRepos()
+    const payload = buildPayload({
+      conversations: [
+        exportConversation({
+          settings: {
+            ...DEFAULT_EXPORT_SETTINGS,
+            contextWindow: 8_192,
+            workingWindow: 8_000,
+            maxTokens: 2_048,
+          },
+        }),
+      ],
+    })
+
+    await buildUseCase(repos).execute({ payload })
+
+    const created = (
+      repos.conversationRepository.create as ReturnType<typeof vi.fn>
+    ).mock.calls[0][0]
+    expect(created.workingWindow).toBeNull()
+  })
+
   it("limpia las referencias de imagen sin binario en la exportación", async () => {
     const repos = buildRepos()
     const payload = buildPayload({

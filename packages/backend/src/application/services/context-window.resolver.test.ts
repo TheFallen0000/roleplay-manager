@@ -22,7 +22,7 @@ describe("resolveEffectiveWindow", () => {
   })
 
   it("falls back to the raw window when the working window is not usable", () => {
-    const cases = [null, undefined, 0, -5, Number.NaN, 9_000]
+    const cases = [null, undefined, 0, -5, Number.NaN, 8_000, 9_000]
 
     for (const workingWindow of cases) {
       expect(

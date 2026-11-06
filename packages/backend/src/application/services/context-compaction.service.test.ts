@@ -451,8 +451,8 @@ describe("ContextCompactionService effective window", () => {
       ...netInput(40),
       conversation: conversation({
         contextWindow: 2_048,
-        workingWindow: 2_048,
-        maxTokens: 2_048,
+        workingWindow: 768,
+        maxTokens: 1_280,
       }),
     }
 
@@ -460,7 +460,7 @@ describe("ContextCompactionService effective window", () => {
 
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.outputTokens).toBe(2_048)
+    expect(result.outputTokens).toBe(1_280)
     expect(execute).toHaveBeenCalledWith(
       "conv-1",
       expect.objectContaining({ maxTokens: 256 }),

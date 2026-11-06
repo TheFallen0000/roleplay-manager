@@ -436,4 +436,35 @@ describe("UpdateConversationSettingsUseCase", () => {
     expect(capturedSettings.contextWindow).toBe(8_192)
     expect(capturedSettings.workingWindow).toBe(5_735)
   })
+
+  it("clears the stored working window when the raw window is lowered", async () => {
+    const conversation = Conversation.create({
+      id: "conv-1",
+      versionId: "ver-1",
+      title: null,
+      titleSource: null,
+      model: null,
+      provider: null,
+      providerInstanceId: null,
+      recentMessageCount: 10,
+      summaryFrequency: 20,
+      contextWindow: 8_192,
+      workingWindow: 5_735,
+      compactionThreshold: 80,
+      temperature: 0.7,
+      maxTokens: 2_048,
+      topP: 0.9,
+      frequencyPenalty: 0,
+      presencePenalty: 0,
+      stopSequences: [],
+      memoryProposalMode: "auto",
+      createdAt: now,
+      updatedAt: now,
+    })
+    const useCase = buildUseCase(conversation)
+
+    await useCase.execute("conv-1", { contextWindow: 4_000 })
+
+    expect(capturedSettings.workingWindow).toBeNull()
+  })
 })
