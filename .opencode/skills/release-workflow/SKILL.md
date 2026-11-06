@@ -34,7 +34,7 @@ git status --short --branch
 git switch master
 git pull --ff-only
 git log --oneline -5
-git tag --sort=-v:refname | head -5
+git tag --list --sort=-v:refname | head -5
 gh release list --limit 3
 gh pr list --state open
 ```

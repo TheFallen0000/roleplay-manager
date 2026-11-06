@@ -2,7 +2,6 @@
 description: Audits release readiness for a slice with checks and dry-runs; read-only, never pushes, merges or publishes.
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
-steps: 40
 permissions:
   - action: edit
     resource: "*"
@@ -21,6 +20,21 @@ permissions:
     effect: allow
   - action: shell
     resource: "git log *"
+    effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git rev-parse *"
+    effect: allow
+  - action: shell
+    resource: "git describe *"
+    effect: allow
+  - action: shell
+    resource: "git tag --list *"
+    effect: allow
+  - action: shell
+    resource: "git tag -l *"
     effect: allow
   - action: shell
     resource: "gh pr view *"

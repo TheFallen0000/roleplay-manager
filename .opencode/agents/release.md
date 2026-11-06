@@ -2,7 +2,6 @@
 description: Prepares and publishes a batched release: version bump, changelog, release PR, merge and verification.
 mode: primary
 model: opencode-go/deepseek-v4.1-flash
-steps: 80
 permissions:
   - action: edit
     resource: "*"
@@ -33,6 +32,15 @@ permissions:
     effect: allow
   - action: shell
     resource: "git log *"
+    effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git rev-parse *"
+    effect: allow
+  - action: shell
+    resource: "git describe *"
     effect: allow
   - action: shell
     resource: "git add *"
@@ -79,6 +87,12 @@ permissions:
   - action: shell
     resource: "git tag *"
     effect: deny
+  - action: shell
+    resource: "git tag --list *"
+    effect: allow
+  - action: shell
+    resource: "git tag -l *"
+    effect: allow
   - action: shell
     resource: "gh release create *"
     effect: deny

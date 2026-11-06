@@ -2,7 +2,6 @@
 description: Updates the slice doc, CHANGELOG and release notes from an implemented diff; never edits code or tests.
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
-steps: 30
 permissions:
   - action: edit
     resource: "*"
@@ -20,6 +19,9 @@ permissions:
     resource: "*"
     effect: ask
   - action: shell
+    resource: "pnpm *"
+    effect: allow
+  - action: shell
     resource: "git status *"
     effect: allow
   - action: shell
@@ -27,6 +29,12 @@ permissions:
     effect: allow
   - action: shell
     resource: "git log *"
+    effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git rev-parse *"
     effect: allow
 ---
 

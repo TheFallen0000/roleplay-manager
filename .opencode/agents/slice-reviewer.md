@@ -2,7 +2,6 @@
 description: Read-only adversarial review of a slice diff against its RFC; reports findings by severity and never edits.
 mode: subagent
 model: opencode-go/deepseek-v4-pro
-steps: 40
 permissions:
   - action: edit
     resource: "*"
@@ -21,6 +20,36 @@ permissions:
     effect: allow
   - action: shell
     resource: "git log *"
+    effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git rev-parse *"
+    effect: allow
+  - action: shell
+    resource: "gh pr view *"
+    effect: allow
+  - action: shell
+    resource: "gh pr list *"
+    effect: allow
+  - action: shell
+    resource: "gh pr checks *"
+    effect: allow
+  - action: shell
+    resource: "gh run list *"
+    effect: allow
+  - action: shell
+    resource: "gh run view *"
+    effect: allow
+  - action: shell
+    resource: "gh run watch *"
+    effect: allow
+  - action: shell
+    resource: "gh release view *"
+    effect: allow
+  - action: shell
+    resource: "gh release list *"
     effect: allow
 ---
 
