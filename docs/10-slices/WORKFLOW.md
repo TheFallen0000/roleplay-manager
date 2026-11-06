@@ -67,7 +67,7 @@ crea una rama corta (`feat/SX-slug`, `fix/SX-slug`, `docs/SX-slug` o
 Orquestador. Lee el RFC, detecta la etapa, decide qué subagente usar y ejecuta
 las comprobaciones deterministas. Es el único que puede preparar el release.
 
-- Modelo: `opencode-go/deepseek-v4.1-flash`.
+- Modelo: `opencode-go/deepseek-v4.1-flash#max`.
 - Puede editar código, docs y tests.
 - No puede publicar, taggear, mergear ni hacer push sin aprobación.
 
@@ -195,6 +195,12 @@ Si un subagente reporta un bloqueo de permisos:
 No des edición al reviewer ni acceso a tests/configs al implementador. Si una
 tarea necesita un rol más amplio, divídela.
 
+`slice-release` es read-only salvo su informe: escribe
+`docs/10-slices/SX-release.md` con la herramienta de edición, no con
+redirecciones de shell. Para inspeccionar archivos usa `read`/`grep`/`glob`; el
+shell queda para `pnpm`, git y gh. Si el build ensucia un archivo generado, lo
+reporta y el orquestador lo restaura.
+
 ## Puertas humanas
 
 El flujo se detiene y pide intervención solo cuando:
@@ -290,7 +296,8 @@ el comando se queda corto.
 El routing está pensado para no quemar el modelo caro:
 
 - **V4 Pro:** RFC, diseño de tests delicados y review.
-- **Flash:** orquestación, tests normales, implementación, docs y release.
+- **Flash `#max`:** orquestación.
+- **Flash:** tests normales, implementación, docs y release.
 - El trabajo mecánico no consume V4 Pro.
 - Los subagentes no tienen límite fijo de pasos. Si uno falla dos veces o la
   tarea crece, se divide; no entra en bucles.

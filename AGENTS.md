@@ -384,8 +384,9 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
   that require a redesign, slice push/merge, version choice, release push/merge
   and publish.
 - Model routing (current): V4 Pro for RFC, delicate test design and review;
-  Flash for orchestration, normal test authoring, implementation, docs and
-  release. Do not use the same model to author and review a slice.
+  Flash `#max` for orchestration; Flash for normal test authoring,
+  implementation, docs and release. Do not use the same model to author and
+  review a slice.
 - Start a new session per slice and, for large slices, per stage. Use the RFC and
   tests as the handoff; do not continue a session that already carries a huge
   context. Subagents have no fixed step limit; split a task that fails twice.

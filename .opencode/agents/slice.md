@@ -1,7 +1,7 @@
 ---
-description: Orchestrates a slice from RFC to release preparation with Flash; delegates RFC and review to V4 Pro.
+description: Orchestrates a slice from RFC to release preparation with Flash max; delegates RFC and review to V4 Pro.
 mode: primary
-model: opencode-go/deepseek-v4.1-flash
+model: opencode-go/deepseek-v4.1-flash#max
 permissions:
   - action: shell
     resource: "*"
