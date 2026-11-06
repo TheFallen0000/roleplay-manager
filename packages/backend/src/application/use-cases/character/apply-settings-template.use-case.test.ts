@@ -11,7 +11,10 @@ import type { UpdateConversationSettingsUseCase } from "../conversation/update-c
 import type { CharacterAssetWriter } from "../../services/store-character-asset.service"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
-import { Conversation } from "../../../domain/entities/conversation.entity"
+import {
+  Conversation,
+  type ConversationProps,
+} from "../../../domain/entities/conversation.entity"
 
 const now = new Date("2026-10-06T12:00:00Z")
 
@@ -28,7 +31,12 @@ const ver2 = CharacterVersion.create({
   greeting: "hi", versionNumber: 1, createdAt: now, cards: [],
 })
 
-const buildConversation = (id: string, versionId: string, updatedAt = now) =>
+const buildConversation = (
+  id: string,
+  versionId: string,
+  updatedAt = now,
+  overrides: Partial<ConversationProps> = {},
+) =>
   Conversation.create({
     id,
     versionId,
@@ -48,6 +56,7 @@ const buildConversation = (id: string, versionId: string, updatedAt = now) =>
     memoryProposalMode: "auto",
     createdAt: now,
     updatedAt,
+    ...overrides,
   })
 
 const conversations = [
@@ -63,11 +72,13 @@ const buildCharacterRepo = (exists = true): CharacterRepository =>
       id === "ver-1" ? ver1 : id === "ver-2" ? ver2 : null,
   }) as unknown as CharacterRepository
 
-const buildConversationRepo = (): ConversationRepository =>
+const buildConversationRepo = (
+  list: Conversation[] = conversations,
+): ConversationRepository =>
   ({
-    list: async () => conversations,
+    list: async () => list,
     listByCharacterId: async (characterId: string) =>
-      conversations
+      list
         .filter((conversation) =>
           characterId === "char-1"
             ? conversation.versionId === "ver-1"
@@ -96,7 +107,11 @@ const buildAssetRepository = (
   }) as unknown as CharacterAssetRepository
 
 const buildUseCase = (
-  options: { characterExists?: boolean; instanceExists?: boolean } = {},
+  options: {
+    characterExists?: boolean
+    instanceExists?: boolean
+    conversations?: Conversation[]
+  } = {},
 ) => {
   const updateSettings = buildUpdateSettings()
   const store = {
@@ -104,7 +119,7 @@ const buildUseCase = (
   } as unknown as CharacterAssetWriter
   const useCase = new ApplySettingsTemplateUseCase(
     buildCharacterRepo(options.characterExists ?? true),
-    buildConversationRepo(),
+    buildConversationRepo(options.conversations),
     buildProviderInstances(options.instanceExists ?? true),
     updateSettings.useCase,
     buildAssetRepository(),
@@ -327,5 +342,51 @@ describe("ApplySettingsTemplateUseCase", () => {
       "conv-1",
       expect.objectContaining({ customProfileImageAssetId: null }),
     )
+  })
+
+  it("copies the working window when the template matches the target model", async () => {
+    const target = buildConversation("conv-1", "ver-1", now, {
+      model: "gpt-4o-mini",
+      provider: "ollama",
+    })
+    const { useCase, updateSettings } = buildUseCase({
+      conversations: [target],
+    })
+
+    await useCase.execute({
+      characterId: "char-1",
+      settings: {
+        model: "gpt-4o-mini",
+        provider: "ollama",
+        workingWindow: 5_735,
+      },
+    })
+
+    expect(updateSettings.execute).toHaveBeenCalledWith(
+      "conv-1",
+      expect.objectContaining({ workingWindow: 5_735 }),
+    )
+  })
+
+  it("clears the working window when the template changes the model", async () => {
+    const target = buildConversation("conv-1", "ver-1", now, {
+      model: "gpt-4o-mini",
+      provider: "ollama",
+    })
+    const { useCase, updateSettings } = buildUseCase({
+      conversations: [target],
+    })
+
+    await useCase.execute({
+      characterId: "char-1",
+      settings: {
+        model: "gpt-4o",
+        provider: "ollama",
+        workingWindow: 5_735,
+      },
+    })
+
+    const update = updateSettings.execute.mock.calls[0][1] as ConversationSettingsUpdate
+    expect(update.workingWindow ?? null).toBeNull()
   })
 })

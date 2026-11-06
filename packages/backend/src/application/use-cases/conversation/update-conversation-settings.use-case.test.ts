@@ -413,4 +413,27 @@ describe("UpdateConversationSettingsUseCase", () => {
       useCase.execute("conv-1", { characterDialogueColor: "violet" }),
     ).rejects.toThrow("dialogue colour")
   })
+
+  it("rechaza una ventana de trabajo mayor que la ventana bruta", async () => {
+    const useCase = buildUseCase()
+
+    await expect(
+      useCase.execute("conv-1", {
+        contextWindow: 8_192,
+        workingWindow: 9_000,
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_CONTEXT_BUDGET" })
+  })
+
+  it("persiste una ventana de trabajo que cabe en la ventana bruta", async () => {
+    const useCase = buildUseCase()
+
+    await useCase.execute("conv-1", {
+      contextWindow: 8_192,
+      workingWindow: 5_735,
+    })
+
+    expect(capturedSettings.contextWindow).toBe(8_192)
+    expect(capturedSettings.workingWindow).toBe(5_735)
+  })
 })

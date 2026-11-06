@@ -13,29 +13,45 @@ import type { ProviderInstanceRepository } from "../../../domain/ports/provider-
 import { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { PromptContext } from "../../../domain/value-objects/prompt-context"
+import {
+  Conversation,
+  type ConversationProps,
+} from "../../../domain/entities/conversation.entity"
 
-const buildConversationRepo = (exists: boolean): ConversationRepository => ({
+const buildConversationEntity = (
+  overrides: Partial<ConversationProps> = {},
+): Conversation =>
+  Conversation.create({
+    id: "conv-1",
+    versionId: "ver-1",
+    title: null,
+    titleSource: null,
+    model: "llama3",
+    provider: "ollama",
+    providerInstanceId: null,
+    recentMessageCount: 10,
+    summaryFrequency: 15,
+    contextWindow: 2_500,
+    compactionThreshold: 80,
+    temperature: 0.7,
+    maxTokens: 2_048,
+    topP: 0.9,
+    frequencyPenalty: 0,
+    presencePenalty: 0,
+    stopSequences: [],
+    memoryProposalMode: "auto",
+    createdAt: new Date("2026-11-06T12:00:00.000Z"),
+    updatedAt: new Date("2026-11-06T12:00:00.000Z"),
+    ...overrides,
+  })
+
+const buildConversationRepo = (
+  exists: boolean,
+  conversation: Conversation = buildConversationEntity(),
+): ConversationRepository => ({
   findById: async () =>
     exists
-      ? ({
-          id: "conv-1",
-          versionId: "ver-1",
-          provider: "ollama",
-          providerInstanceId: null,
-          model: "llama3",
-          summaryFrequency: 15,
-          temperature: 0.7,
-          contextWindow: 2_500,
-          maxTokens: 2048,
-          topP: 0.9,
-          frequencyPenalty: 0,
-          presencePenalty: 0,
-          stopSequences: [],
-          memoryDecayMode: "silent",
-          memoryDecayThreshold: 3,
-          memoryDecayAgeThreshold: 30,
-          memoryDecaySpeed: 10,
-        } as never)
+      ? conversation
       : null,
   listByCharacterId: async () => [],
   listByCharacterIds: async () => [],
@@ -208,10 +224,11 @@ const buildUseCase = (
   hasPrevSummary: boolean,
   capture?: boolean,
   contentLength = 0,
+  conversation?: Conversation,
 ): GenerateSummaryUseCase => {
   const messageRepo = buildMessageRepo(msgCount, contentLength)
   return new GenerateSummaryUseCase(
-    buildConversationRepo(convExists),
+    buildConversationRepo(convExists, conversation),
     messageRepo,
     buildMessageHistoryRepository(
       (conversationId) => messageRepo.findByConversationId(conversationId),
@@ -369,5 +386,38 @@ describe("GenerateSummaryUseCase", () => {
     expect(capturedContext!.messages[0].content).toContain(
       "[Assistant (TestChar)]: Message 1",
     )
+  })
+
+  it("chunks with the raw context window even when a working window exists", async () => {
+    const withWorking = buildConversationEntity({ workingWindow: 5_735 })
+    expect(withWorking.workingWindow).toBe(5_735)
+
+    capturedContexts = []
+    await buildUseCase(
+      true,
+      6,
+      true,
+      0,
+      false,
+      true,
+      2_000,
+      withWorking,
+    ).execute("conv-1", { locale: "es" })
+    const withWorkingChunks = capturedContexts.length
+
+    capturedContexts = []
+    await buildUseCase(
+      true,
+      6,
+      true,
+      0,
+      false,
+      true,
+      2_000,
+      buildConversationEntity(),
+    ).execute("conv-1", { locale: "es" })
+
+    expect(withWorkingChunks).toBeGreaterThan(1)
+    expect(capturedContexts.length).toBe(withWorkingChunks)
   })
 })

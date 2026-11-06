@@ -47,6 +47,8 @@ const origin = Conversation.create({
   providerInstanceId: "inst-1",
   recentMessageCount: 12,
   summaryFrequency: 25,
+  contextWindow: 8_192,
+  workingWindow: 5_735,
   temperature: 0.9,
   maxTokens: 4096,
   topP: 0.8,
@@ -282,6 +284,8 @@ describe("BranchConversationUseCase", () => {
     expect(messageRepo.create).toHaveBeenCalledTimes(2)
 
     const created = conversationCreate.mock.calls[0][0]
+    expect(created.contextWindow).toBe(8_192)
+    expect(created.workingWindow).toBe(5_735)
     expect(created.customProfileImageAssetId).toBe("asset-9")
     expect(created.backgroundImageAssetId).toBe("asset-bg")
     expect(created.backgroundFit).toBe("contain")
