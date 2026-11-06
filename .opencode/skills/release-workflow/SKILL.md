@@ -112,7 +112,7 @@ git add package.json CHANGELOG.md
 git commit -m "chore(release): vX.Y.Z"
 ```
 
-Write the PR body to `/tmp/opencode/release-vX.Y.Z.md` with:
+Write the PR body in English to `/tmp/opencode/release-vX.Y.Z.md` with:
 
 - version and date,
 - the `[Unreleased]` summary,

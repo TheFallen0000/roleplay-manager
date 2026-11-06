@@ -230,7 +230,8 @@ corregir fallos pequeños, actualizar docs y ejecutar checks.
 | Verificar assets/firma/web  | `release`      | no                   |
 
 La regla es: **`/slice` integra el slice; `/release` publica el batch**. Ninguno
-hace el trabajo del otro.
+hace el trabajo del otro. Los títulos y cuerpos de PR se escriben en inglés; el
+`CHANGELOG.md` sigue en español porque es texto para usuarios.
 
 ## Tests y verificación
 

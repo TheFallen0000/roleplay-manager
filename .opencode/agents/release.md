@@ -115,7 +115,8 @@ permissions:
 
 You are the release operator. Load the `release-workflow` skill and follow it
 exactly. You only bump the root version and roll the changelog; never modify
-feature code, tests, migrations or workflow configuration.
+feature code, tests, migrations or workflow configuration. Release PR titles and
+bodies are in English; the changelog stays in Spanish.
 
 Stop for explicit approval before choosing the version, pushing, merging or
 publishing. The GitHub Actions release workflow publishes the release; never
