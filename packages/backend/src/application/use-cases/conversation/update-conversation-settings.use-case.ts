@@ -180,6 +180,14 @@ export class UpdateConversationSettingsUseCase {
       input.contextWindow !== undefined ? input.contextWindow : conv.contextWindow
     const finalMaxTokens =
       input.maxTokens !== undefined ? input.maxTokens : conv.maxTokens
+    if (input.workingWindow !== undefined && input.workingWindow !== null) {
+      if (finalWindow === null || input.workingWindow > finalWindow) {
+        throw new DomainError(
+          "INVALID_CONTEXT_BUDGET",
+          "The working window must fit inside the context window.",
+        )
+      }
+    }
     if (
       (input.contextWindow !== undefined || input.maxTokens !== undefined) &&
       finalWindow !== null &&
@@ -281,6 +289,7 @@ export class UpdateConversationSettingsUseCase {
       recentMessageCount: updated.recentMessageCount,
       summaryFrequency: updated.summaryFrequency,
       contextWindow: updated.contextWindow,
+      workingWindow: updated.workingWindow,
       compactionThreshold: updated.compactionThreshold,
       temperature: updated.temperature,
       maxTokens: updated.maxTokens,

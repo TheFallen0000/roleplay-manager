@@ -80,6 +80,13 @@ const UpdateConversationSettingsSchema = z.object({
     .max(MAX_CONTEXT_WINDOW)
     .nullable()
     .optional(),
+  workingWindow: z
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_CONTEXT_WINDOW)
+    .nullable()
+    .optional(),
   compactionThreshold: z.number().int().min(50).max(95).optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().min(1).max(MAX_OUTPUT_TOKENS).optional(),

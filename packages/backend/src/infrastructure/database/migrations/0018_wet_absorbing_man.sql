@@ -1,0 +1,1 @@
+ALTER TABLE `conversations` ADD `working_window` integer;
