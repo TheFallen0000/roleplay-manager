@@ -179,8 +179,8 @@ Delegate to `slice-docs` with:
 It updates:
 
 - `docs/10-slices/SX-progress.md` (status, decisions, verification, commits),
-- `CHANGELOG.md` under `[Unreleased]`,
-- the PR body draft.
+- `CHANGELOG.md` under `[Unreleased]` (Spanish),
+- the PR body draft in English.
 
 It must not edit code, tests, migrations or configuration. Verify the diff after
 it returns.

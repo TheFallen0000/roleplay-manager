@@ -331,6 +331,9 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 - The `CI` workflow (job **Checks**) must be green before merging. Merge with
   **squash** and delete the branch; the agent merges the PR after a green CI
   unless the user says otherwise.
+- **Pull request titles and bodies are written in English.** Use a
+  conventional-commit title and an English description. `CHANGELOG.md` remains in
+  Spanish because it is user-facing.
 - Pull requests **never** bump the version on their own: the release commit
   (version bump + `CHANGELOG.md`) travels in a dedicated
   `chore(release): vX.Y.Z` pull request prepared on demand (see below).
