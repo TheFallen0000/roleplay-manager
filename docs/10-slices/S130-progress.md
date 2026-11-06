@@ -1,8 +1,8 @@
 # S130 — Resolución de capacidades de modelo y ventana de trabajo segura
 
-**Estado:** Draft
+**Estado:** Completado (pendiente de release batched)
 **Inicio:** 2026-11-05
-**Fin:** —
+**Fin:** 2026-11-06
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -95,17 +95,17 @@ Consecuencias observables:
 
 ### Opciones consideradas
 
-| Opción | Ventajas | Costes | ¿Elegida? |
-| ------ | -------- | ------ | --------- |
-| A. Solo introspección del proveedor (ampliar S121 con `maxOutputTokens`) | Barato; usa lo que ya hay (`/api/show`) | Sigue sin cubrir OpenAI-compatible/OpenRouter; sin procedencia/confianza; sin tabla para modelos conocidos; sin ventana de trabajo | No |
-| B. Tabla curada *vendida* (LiteLLM JSON) + sondeos runtime opcionales + precedencia | Offline, determinista, cubre online y local, sin red para modelos conocidos, precedencia explícita | Hay que vendorizar y refrescar un JSON (~miles de entradas); decisión de licencia; hay que documentar el refresco | **Sí** |
-| C. Fetch remoto en runtime (models.dev / OpenRouter en cada resolución) | Datos siempre frescos | Red en el camino de configuración, depende de un tercero, latencia, sin offline, rate limits y cambios de esquema ajenos | No (deferido el fetch remoto automático) |
-| D. Ampliar la tabla de BD con catálogo por modelo (migración) | Persistente y consultable | Migración + esquema + sincronización de datos; sobredimensionado para datos derivados y estáticos | No |
+| Opción                                                                              | Ventajas                                                                                           | Costes                                                                                                                             | ¿Elegida?                                |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| A. Solo introspección del proveedor (ampliar S121 con `maxOutputTokens`)            | Barato; usa lo que ya hay (`/api/show`)                                                            | Sigue sin cubrir OpenAI-compatible/OpenRouter; sin procedencia/confianza; sin tabla para modelos conocidos; sin ventana de trabajo | No                                       |
+| B. Tabla curada _vendida_ (LiteLLM JSON) + sondeos runtime opcionales + precedencia | Offline, determinista, cubre online y local, sin red para modelos conocidos, precedencia explícita | Hay que vendorizar y refrescar un JSON (~miles de entradas); decisión de licencia; hay que documentar el refresco                  | **Sí**                                   |
+| C. Fetch remoto en runtime (models.dev / OpenRouter en cada resolución)             | Datos siempre frescos                                                                              | Red en el camino de configuración, depende de un tercero, latencia, sin offline, rate limits y cambios de esquema ajenos           | No (deferido el fetch remoto automático) |
+| D. Ampliar la tabla de BD con catálogo por modelo (migración)                       | Persistente y consultable                                                                          | Migración + esquema + sincronización de datos; sobredimensionado para datos derivados y estáticos                                  | No                                       |
 
 **Descarte explícito de C como mecanismo por defecto:** descargar catálogos en
 runtime convierte una resolución determinista en una llamada de red frágil y
 opaca; se conserva solo como **sondeo `provider-api` opcional** (OpenRouter) para
-los casos en que la instancia lo expone, y el *auto-refresco* remoto queda
+los casos en que la instancia lo expone, y el _auto-refresco_ remoto queda
 diferido.
 
 ### Decisión
@@ -131,15 +131,14 @@ infraestructura:
 
 3. **Fuentes y precedencia** (mayor gana):
 
-   | Orden | `CapabilitySource` | Qué significa | Confianza por defecto |
-   | ----- | ------------------ | ------------- | --------------------- |
-   | 0 | `manual-override` | valor que el usuario guardó explícitamente (conversación/modelo/app) | `high` |
-   | 1 | `runtime-introspection` | medición del servidor de modelo en ejecución (Ollama `/api/show`, vLLM `/v1/models` con `context_length`) | `high` |
-   | 2 | `provider-api` | catálogo API del proveedor alojado (OpenRouter `/api/v1/models`: `context_length`, `top_provider.max_completion_tokens`) | `medium` |
-   | 3 | `curated-table` | tabla vendida fuera de línea (LiteLLM `model_prices_and_context_window.json`) | `medium` |
-   | 4 | `heuristic` | deducción por nombre (familia/tamaño: `qwen2.5:14b` → 32k) | `low` |
-   | 5 | `default` | constante segura de último recurso | `low` |
-
+   | Orden | `CapabilitySource`      | Qué significa                                                                                                            | Confianza por defecto |
+   | ----- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------- |
+   | 0     | `manual-override`       | valor que el usuario guardó explícitamente (conversación/modelo/app)                                                     | `high`                |
+   | 1     | `runtime-introspection` | medición del servidor de modelo en ejecución (Ollama `/api/show`, vLLM `/v1/models` con `context_length`)                | `high`                |
+   | 2     | `provider-api`          | catálogo API del proveedor alojado (OpenRouter `/api/v1/models`: `context_length`, `top_provider.max_completion_tokens`) | `medium`              |
+   | 3     | `curated-table`         | tabla vendida fuera de línea (LiteLLM `model_prices_and_context_window.json`)                                            | `medium`              |
+   | 4     | `heuristic`             | deducción por nombre (familia/tamaño: `qwen2.5:14b` → 32k)                                                               | `low`                 |
+   | 5     | `default`               | constante segura de último recurso                                                                                       | `low`                 |
    - **Por campo.** `contextWindow` y `maxOutputTokens` se resuelven
      **independientemente** a través de la cadena; el resultado registra
      `source` y `confidence` por campo. `confidence` global = la del campo
@@ -238,7 +237,7 @@ infraestructura:
    - **Modelo y app:** tabla `settings` (KV ya existente), claves con namespace:
      `model_capabilities.override.default` (app) y
      `model_capabilities.override.model.<provider>[:<instanceId>]:<normalizedModel>`.
-     El alcance por *provider instance* se pliega en la identidad de modelo (la
+     El alcance por _provider instance_ se pliega en la identidad de modelo (la
      clave openai-compatible incluye `instanceId`); un override por instancia
      dedicado queda deferido.
    - **Coexistencia con S121:** la sugerencia del resolvedor es el **valor por
@@ -338,95 +337,291 @@ prompt (snapshots de S129 intactos).
 
 ## Criterios de aceptación
 
-- [ ] `ModelCapabilities`/`CapabilityClaim`/`WorkingWindow` tipados en shared y
+- [x] `ModelCapabilities`/`CapabilityClaim`/`WorkingWindow` tipados en shared y
       re-exportados.
-- [ ] `normalizeModelIdentity` normaliza alias/prefix (`qwen2.5:14b`,
+- [x] `normalizeModelIdentity` normaliza alias/prefix (`qwen2.5:14b`,
       `gpt-4o-mini`, OpenRouter `vendor/model`, nombres locales).
-- [ ] `resolveModelCapabilities` es puro, determinista y resuelve cada campo con
+- [x] `resolveModelCapabilities` es puro, determinista y resuelve cada campo con
       la precedencia `manual > runtime > provider-api > curated > heuristic > default`.
-- [ ] Empates/conflictos en la misma fuente se resuelven por especificidad y
+- [x] Empates/conflictos en la misma fuente se resuelven por especificidad y
       orden estable.
-- [ ] `computeWorkingWindow` produce `workingWindow` con aritmética entera, nunca
+- [x] `computeWorkingWindow` produce `workingWindow` con aritmética entera, nunca
       negativo, con estados `ok/degraded/infeasible/unknown` y warnings.
-- [ ] Ollama y OpenAI-compatible (vLLM) emiten claims de introspección; OpenRouter
+- [x] Ollama y OpenAI-compatible (vLLM) emiten claims de introspección; OpenRouter
       emite claim `provider-api` cuando la instancia lo es.
-- [ ] La tabla curada (LiteLLM) está vendida y se inyecta como dato; licencia
+- [x] La tabla curada (LiteLLM) está vendida y se inyecta como dato; licencia
       documentada.
-- [ ] `ModelCapabilitiesCache` cubre hit/miss/stale/invalidation y nunca guarda
+- [x] `ModelCapabilitiesCache` cubre hit/miss/stale/invalidation y nunca guarda
       secretos.
-- [ ] El override manual (conversación/modelo/app) tiene precedencia y no rompe el
+- [x] El override manual (conversación/modelo/app) tiene precedencia y no rompe el
       `contextWindow` por conversación de S121.
-- [ ] La sugerencia es el valor por defecto de conversaciones nuevas y un valor
+- [x] La sugerencia es el valor por defecto de conversaciones nuevas y un valor
       guardado siempre gana; cambiar de modelo no pisa un valor tecleado.
-- [ ] La UI muestra ventana resuelta, `maxOutputTokens`, procedencia/confianza y
-      ventana de trabajo con un botón «Aplicar/usar detectado».
-- [ ] Sin migraciones de esquema ni cambios en export/import/ramas/plantillas.
-- [ ] `GET /api/providers/:id/model-context` mantiene su contrato; el nuevo
+- [x] La UI muestra ventana resuelta, `maxOutputTokens`, procedencia/confianza y
+      ventana de trabajo con un botón «Aplicar detectado».
+- [x] «Aplicar detectado» escribe `workingWindow.workingWindow`; «Detectar»
+      actualiza aunque haya un valor manual; `unknown`/`infeasible` no aplican.
+- [x] Sin migraciones de esquema ni cambios en export/import/ramas/plantillas.
+- [x] `GET /api/providers/:id/model-context` mantiene su contrato; el nuevo
       endpoint/caso de uso devuelve `ModelCapabilities`.
-- [ ] Tests nuevos del resolvedor (ejecutados desde backend), de los sondeos y de
+- [x] Tests nuevos del resolvedor (ejecutados desde backend), de los sondeos y de
       la UI, todos sin red; `pnpm check`, build y `pnpm audit --prod` en verde.
+
+> Todos los criterios quedan cubiertos por tests o revisión de código. La
+> sugerencia para conversaciones nuevas se muestra en la tarjeta y se persiste
+> solo al pulsar «Aplicar detectado» (no se escribe sola en la conversación),
+> que es la semántica acordada en el RFC. La prueba manual en la app sigue
+> pendiente y se describe en Verificación.
 
 ## Red tests
 
-> Pendiente: los tests aún no existen; el test-author los escribe en la fase de
-> red tests. Comandos y fallos esperados previstos:
+Matriz detallada: `docs/10-slices/S130-test-plan.md`. Tests escritos el 2026-11-06.
 
 - **Comando:** `pnpm --filter @workspace/backend test` (incluye los tests del
-  resolvedor compartido) y `pnpm --filter @workspace/frontend exec vitest run`
-- **Fallo esperado:** módulos `model-capabilities` (shared lib y types) y
-  `get-model-capabilities.use-case` inexistentes; `resolveCapabilities` no existe
-  en `ProviderPort`; `computeWorkingWindow` no existe; `ModelCapabilitiesCache`
-  inexistente; `ModelCapabilities` no está en el DTO del endpoint.
-- **Salida relevante:** fallos de contrato (`Cannot find module ...`,
-  `TS2307`/`TS2339`) y aserciones de precedencia/presupuesto aún sin implementar.
+  resolvedor compartido) y `pnpm --filter @workspace/frontend exec vitest run`.
+- **Fallo esperado:** los módulos nuevos no existen todavía.
+- **Salida relevante:**
+  - `model-capabilities.resolver.test.ts` y `compute-working-window.test.ts`:
+    `Cannot find package '@workspace/shared/lib/model-capabilities'`.
+  - `model-capabilities-cache.service.test.ts`: `Cannot find module
+'./model-capabilities-cache.service'`.
+  - `get-model-capabilities.use-case.test.ts`: `Cannot find module
+'./get-model-capabilities.use-case'`.
+  - `ollama.adapter.test.ts` / `openai-compatible.adapter.test.ts`:
+    4 + 4 `TypeError: ...resolveCapabilities is not a function`; el resto de
+    tests existentes sigue en verde.
+  - `model-capabilities-suggestion.test.tsx`: `Failed to resolve import
+"./model-capabilities-suggestion"`.
+  - `model-selector.test.tsx`: la aserción de conservar una ventana tecleada
+    falla porque S121 la resetea a `null` al cambiar de modelo.
+- **Suites:** backend `6 failed | 120 passed`, frontend `2 failed | 68 passed`;
+  solo fallan los archivos nuevos o extendidos de S130.
 
 ## Decisiones
 
-(Pendiente — se rellena durante la implementación. Si cambia el RFC, aquí se
-explica por qué.)
+- **`probeOnly` para la ruta legacy.** `GetModelCapabilitiesUseCase` acepta
+  `probeOnly`: resuelve solo el claim del sondeo en vivo, sin tabla curada,
+  heurística, defaults ni overrides, y no sirve `stale` si el sondeo falla.
+  `GET /api/providers/:id/model-context` lo pasa siempre, así que conserva el
+  contrato S121 (`{ id, model, contextWindow }`) y sigue devolviendo `null`
+  cuando el proveedor no puede medir la ventana. Evita que la tabla curada
+  convierta un «desconocido» en un número inventado para los consumidores
+  antiguos.
+- **El override de conversación viaja por `/capabilities`, pero la UI solo manda
+  `maxTokens`.** El endpoint sigue aceptando `contextWindow` y `maxTokens` y los
+  reenvía como `conversationOverride`; el backend mantiene el soporte de la
+  ventana por conversación. La UI, en cambio, manda únicamente el presupuesto de
+  salida para que la resolución use la ventana **detectada del modelo** y
+  `workingWindow` refleje la reserva real. Si enviara también la ventana
+  guardada, esta ganaría como `manual-override` y «Aplicar detectado» no podría
+  reemplazarla (solo reescribiría el mismo valor).
+- **Semántica de «Aplicar detectado» y «Detectar».** «Aplicar detectado» es una
+  acción explícita: escribe siempre `workingWindow.workingWindow` (no la ventana
+  bruta ni `maxOutputTokens`), sobrescribe incluso un valor manual y lo deja
+  marcado como manual. El botón se deshabilita con estados `unknown` o
+  `infeasible`, o con ventana `null`/≤ 0. La nota de ventana tecleada se compara
+  contra la ventana de trabajo aplicada, no contra la resuelta. «Detectar»
+  re-sondea y actualiza el input y la sugerencia aunque haya un valor manual: en
+  Ollama usa el sondeo legacy crudo y después refresca capacidades; en
+  OpenAI-compatible usa directamente el resultado de capacidades.
+- **Doble reserva de salida en la compactación (aceptada como follow-up).**
+  `context-compaction.service.ts` trata `conversation.contextWindow` como la
+  **ventana bruta del modelo** y resta `maxTokens` de nuevo como reserva de
+  salida (`threshold = window * compactionThreshold/100`, después
+  `outputTokens`). Desde que «Aplicar detectado» guarda
+  `workingWindow.workingWindow` —que ya restó `outputReserve` + margen del 5 %—
+  la compactación reserva la salida dos veces: es conservador, no incorrecto,
+  pero no es lo ideal. S130 lo acepta para no cambiar la política de
+  compactación; la corrección mínima queda como follow-up: (a) mantener la
+  ventana bruta en `conversation.contextWindow` y usar la ventana de trabajo
+  solo como sugerencia de UI, o (b) añadir una marca/columna (p. ej.
+  `contextWindowIsWorkingWindow` / `contextWindowKind`) para que la compactación
+  omita la segunda reserva. Se recomienda (b) o un slice dedicado. La
+  compactación **no** se ha modificado en S130.
+- **Precedencia de overrides en el caso de uso, no en el resolvedor.** El
+  resolvedor puro recibe un único `override` ya fusionado. El caso de uso lee
+  `settings` con tres capas —app (`model_capabilities.override.default`),
+  provider (`model_capabilities.override.model.<provider>:<model>`) e instancia
+  (`model_capabilities.override.model.<provider>:<instanceId>:<model>`)— y
+  después aplica la conversación, que gana sobre todas. Se añade la capa
+  provider-wide respecto al RFC para que una instancia nueva herede el valor sin
+  duplicar claves.
+- **Caché en memoria, solo de claims de sondeo.** `ModelCapabilitiesCache`
+  guarda `{ claim, cachedAt }` con TTL de 15 min y reloj inyectable; nunca
+  guarda overrides (se leen frescos), tabla, heurística ni defaults. `get`
+  devuelve `null` al expirar y `getStale` permite servir el claim expirado con
+  warning `STALE_CACHE` si el re-sondeo falla. La clave es
+  `<provider>:<instanceId?>:<modelo normalizado>`; la invalidación por
+  instancia parsea solo los dos primeros separadores porque el nombre del
+  modelo puede llevar `:` (`qwen2.5:14b`).
+- **Invalidación cableada a la edición y borrado de instancias.** Los
+  constructores de `UpdateProviderInstanceUseCase` y
+  `DeleteProviderInstanceUseCase` aceptan un colaborador opcional con
+  `invalidateInstance(id)`; el contenedor inyecta el caché compartido. Un
+  sondeo correcto que no devuelve claims invalida la entrada previa en vez de
+  conservarla.
+- **Catálogo curado generado desde LiteLLM con expansión de alias.** El script
+  `packages/backend/scripts/generate-model-catalog.mjs`
+  (`pnpm --filter @workspace/backend catalog:refresh`) descarga
+  `model_prices_and_context_window.json`, conserva solo entradas de chat,
+  completion o responses con ventana o límite de salida, y genera alias
+  quitando prefijos de proveedor y de región (`azure/gpt-4o-mini` →
+  `gpt-4o-mini`) más el último segmento. Se emite un `.ts` tipado, no se edita a
+  mano y la licencia MIT (fuera de `enterprise/`) queda documentada en el
+  README del catálogo.
+- **Heurística por tamaño de parámetros.** `inferModelCapabilitiesHeuristic`
+  lee el tamaño en miles de millones del nombre normalizado y aplica tramos
+  conservadores: ≤4B → 8 192/2 048, ≤9B → 16 384/2 048, ≤34B → 32 768/4 096 y
+  el resto → 16 384/4 096. Solo actúa cuando ni el proveedor ni la tabla
+  conocen el modelo y siempre con confianza `low`.
+- **Defaults 4 096/2 048.** El contenedor inyecta
+  `{ contextWindow: 4_096, maxOutputTokens: 2_048 }` como último recurso; la
+  reserva de salida por defecto reutiliza la constante 2 048 ya usada por el
+  presupuesto de contexto.
+- **El resolvedor mantiene la pureza y la aritmética del RFC.**
+  `resolveModelCapabilities` resuelve cada campo por separado con la precedencia
+  `manual > runtime > provider-api > curated > heuristic > default`; dentro de
+  una fuente gana la mayor especificidad y, a igualdad, el primer índice del
+  array. `computeWorkingWindow` usa aritmética entera, clampa la reserva al
+  máximo del modelo con warning y nunca devuelve un valor negativo.
+- **Frontend: manual frente a auto con una ref.** `contextWindowManual` marca
+  el valor como escrito por el usuario al teclear, elegir preset o aplicar lo
+  detectado; un valor guardado en la conversación arranca como manual. Al
+  cambiar de modelo solo se re-detecta si el valor no es manual, de modo que un
+  cambio de modelo ya no borra una ventana tecleada. «Detectar» limpia la marca
+  y actualiza aunque haya un valor manual. «Aplicar detectado» es una acción
+  explícita: sobrescribe el valor manual con `workingWindow.workingWindow` y
+  nunca escribe `maxOutputTokens` ni la ventana bruta.
+- **Refresco de un solo uso.** `useModelCapabilities` consume una ref
+  `refreshRequested` en la siguiente petición y añade `refreshToken` a la clave,
+  así que el refresco no se repite en cada cambio posterior y una respuesta
+  lenta no pisa la de una selección más reciente. En Ollama «Detectar» usa el
+  sondeo legacy (que refresca el caché compartido) y después relee la
+  sugerencia; en OpenAI-compatible solo llama a `refreshCapabilities()` y no
+  muestra el toast de «vacío».
+- **La UI se extrae para respetar el límite de 500 líneas.**
+  `model-selector.tsx` delega en `context-window-card.tsx` (tarjeta y presets),
+  `model-capabilities-suggestion.tsx` (procedencia, confianza, ventana de
+  trabajo y «Aplicar detectado») y `use-model-capabilities.ts` (fetch y
+  refresco). «Aplicar detectado» solo escribe la ventana de contexto: la
+  conversación no guarda el límite de salida del modelo en este slice.
 
 ## Verificación
 
-- Tests: ...
-- `pnpm check`: ...
-- `pnpm build`: ...
-- `pnpm audit --prod`: ...
-- Release dry-run: ...
-- Prueba manual: ...
+- **Tests backend:** 128 archivos / **778 tests** en verde
+  (`pnpm --filter @workspace/backend test`), incluidos los tests del resolvedor
+  compartido ejecutados desde backend.
+- **Tests frontend:** 70 archivos / **405 tests** en verde
+  (`pnpm --filter @workspace/frontend exec vitest run`), incluidos los tests de
+  regresión de la corrección post-review.
+- **`pnpm check`:** arch **7/7**, typecheck **5/5**, lint **5/5**.
+- **`pnpm build`:** **4/4** tareas correctas.
+- **`pnpm audit --prod`:** sin vulnerabilidades conocidas.
+- **`git diff --check`:** limpio.
+- **Release dry-run:** no ejecutado; el slice no cambia empaquetado,
+  dependencias nativas ni el lockfile.
+- **UX fixes (2026-11-06):** la prueba manual detectó cuatro fallos de UX,
+  corregidos antes del PR:
+  1. El hook ya no manda la ventana guardada como override de conversación; solo
+     manda `maxTokens`, así que la sugerencia resuelve la ventana **detectada**
+     del modelo y `workingWindow` refleja la reserva real. `refresh()` pasa a ser
+     async y devuelve el resultado.
+  2. «Aplicar detectado» escribe `workingWindow.workingWindow` (no la ventana
+     bruta ni `maxOutputTokens`) y sobrescribe incluso un valor manual.
+  3. «Aplicar detectado» se deshabilita con estados `unknown` o `infeasible`, o
+     con ventana `null`/≤ 0; la nota de ventana tecleada se compara con la
+     ventana de trabajo aplicada.
+  4. «Detectar» re-sondea y actualiza el input y la sugerencia aunque haya un
+     valor manual (Ollama: sondeo legacy crudo + refresco de capacidades;
+     OpenAI-compatible: resultado de capacidades).
+- **Tests de regresión nuevos:** aplicar sobre un valor manual lo sobrescribe;
+  «Detectar» actualiza un valor manual; aplicar escribe la ventana de trabajo
+  segura (no la bruta ni el máximo de salida); `unknown`/`infeasible` no aplican
+  (botón deshabilitado). Se suman a los 405 tests de frontend.
+- **Prueba manual (re-test):** pendiente tras la corrección. Flujo a comprobar:
+  1. Abrir una conversación con un modelo Ollama y pulsar «Detectar»: la
+     sugerencia muestra ventana, procedencia `runtime-introspection`, confianza
+     alta y ventana de trabajo; «Aplicar detectado» escribe la ventana de
+     trabajo segura.
+  2. Repetir con una instancia OpenAI-compatible (vLLM u OpenRouter): la
+     sugerencia debe mostrar `runtime-introspection` o `provider-api` según lo
+     que exponga `/v1/models`, y caer al catálogo curado si no expone nada.
+  3. Escribir una ventana a mano y cambiar de modelo: el valor tecleado se
+     conserva; usar «Detectar» lo reemplaza.
+  4. Editar la URL de una instancia y volver a abrir el diálogo: se re-sondea
+     (el caché de esa instancia se ha invalidado).
 
 ## Review
 
-- **Estado:** pendiente
+- **Estado:** PASS WITH NOTES
 - **Informe:** `docs/10-slices/S130-review.md`
-- **Bloqueantes resueltos:** ...
+- **Bloqueantes resueltos:** contrato `unknown → null` de la ruta legacy
+  (`probeOnly`); override de conversación por HTTP; invalidación del caché al
+  editar/borrar instancias; sondeo vacío que limpia el claim previo; «Detectar»
+  sin doble sondeo ni toast engañoso; script de refresco portable; aviso de
+  reemplazo condicionado y parámetro descartado documentado.
+- **Notas no bloqueantes:** NIT-4 (`conversationOverride` se construye siempre
+  en el hook, pero la capa de API filtra los nulos) y el follow-up de alineación
+  de la compactación (doble reserva, ver Deferred), que no bloquea. NIT-3 queda
+  retirado: «Aplicar detectado» ya sobrescribe un valor manual.
+- **Pase UX post-review (2026-11-06):** revisión de las cuatro correcciones
+  (override solo `maxTokens`, Apply sobre la ventana de trabajo, Apply
+  deshabilitado en `unknown`/`infeasible` y Detect sobre valores manuales) y de
+  sus tests de regresión. Sin bloqueantes nuevos; el veredicto se mantiene.
+- **Corrección post-review:** la prueba manual del usuario detectó cuatro fallos:
+  la sugerencia recibía la ventana guardada como override, «Aplicar detectado»
+  no sobrescribía una ventana manual, «Detectar» no actuaba con valor manual y
+  se aplicaba la ventana bruta en vez de la ventana de trabajo. Corregido con
+  tests de regresión; frontend pasa a **405 tests**.
 
 ## Deferred
 
 - **Tokenizer real por proveedor** (tiktoken/SentencePiece/HF) → S133 o slice
-  propio; hoy el conteo sigue siendo la heurística `chars/3` de S121.
+  propio; hoy el conteo sigue siendo la heurística `chars/3` de S121 y el
+  resolvedor solo aporta la ventana y la reserva.
 - **Adoptar `workingWindow` en la compactación y el camino de envío** como
-  denominador (hoy usa `contextWindow`) → paso posterior, para no tocar
-  `send/continue/regenerate` en el mismo slice.
+  denominador (hoy usan `contextWindow` y restan `maxTokens`) → paso posterior,
+  para no tocar `send/continue/regenerate` en el mismo slice. S130 entrega la
+  aritmética y la expone en la UI; ver también la alineación de la doble reserva.
 - **models.dev** como fuente curada alternativa → se usa LiteLLM por forma de
   datos (input/output por entrada); ambos repos son MIT, pero queda pendiente
-  revisar el origen/licencia de los datos agregados antes de vendorizar.
-- **llama.cpp `/props`** como sondeo dedicado → se cubre oportunistamente vía
-  `context_length` de `/v1/models` si el servidor lo expone.
-- **Auto-refresco del catálogo remoto en runtime** y persistencia del caché
-  on-disk/BD → evaluar tras S130 si el re-sondeo es un coste real.
-- **Override manual por provider-instance dedicado** (hoy plegado en la identidad
-  de modelo).
+  revisar el origen/licencia de los datos agregados antes de cambiar de fuente.
+- **llama.cpp `/props`** como sondeo dedicado → hoy se cubre oportunistamente
+  vía `context_length`/`max_model_len` de `/v1/models` si el servidor lo expone.
+- **Persistencia on-disk/BD del caché y auto-refresco del catálogo remoto** →
+  el caché es en memoria y se pierde al reiniciar; el catálogo se refresca con
+  `catalog:refresh` y el release, no por TTL. Evaluar si el re-sondeo es un
+  coste real.
+- **Override por provider-instance dedicado** → las claves
+  `model_capabilities.override.model.<provider>:<instanceId>:<model>` ya se leen
+  en `settings`, pero no hay UI/API dedicada para editarlas; hoy son
+  configuración manual. Un override por instancia con superficie propia queda
+  para un slice posterior.
+- **Alinear la compactación con la ventana de trabajo aplicada.** Desde que
+  «Aplicar detectado» guarda `workingWindow.workingWindow`,
+  `context-compaction.service.ts` vuelve a restar `maxTokens` como reserva de
+  salida y reserva dos veces (conservador, pero no ideal). Opciones: (a)
+  mantener la ventana bruta en `conversation.contextWindow` y usar la ventana de
+  trabajo solo como sugerencia de UI; (b) añadir una marca/columna (p. ej.
+  `contextWindowIsWorkingWindow` / `contextWindowKind`) para que la compactación
+  omita la segunda reserva. Se recomienda (b) o un slice dedicado; S130 no
+  cambia la política de compactación. El antiguo NIT-3 (Apply reaplicaba el
+  valor guardado) ya no aplica: Apply sobrescribe un valor manual.
 
 ## Commits
 
-1. `docs(slice): add S130 RFC`
+> `ca3dc3a docs(slice): add S130 RFC` ya existe. El resto de commits se crean
+> al cerrar el slice sobre la rama `feat/s130-model-capabilities`; la
+> implementación está actualmente en el árbol de trabajo.
+
+1. `docs(slice): add S130 RFC` — existente (`ca3dc3a`).
 2. `feat(shared): add model capabilities types and resolver`
 3. `feat(shared): add safe working window math`
-4. `feat(backend): vendor curated model catalog`
-5. `feat(backend): add model capabilities resolver use case and cache`
+4. `feat(backend): vendor curated model catalog and refresh script`
+5. `feat(backend): add model capabilities use case and cache`
 6. `feat(backend): probe capabilities from ollama, vllm and openrouter`
 7. `feat(frontend): show resolved capabilities and working window in model settings`
-8. `test(shared): cover resolver precedence and budget math`
-9. `test(backend): cover use case, cache and probes`
-10. `test(frontend): cover capabilities suggestion UI`
+8. `test(backend): cover resolver precedence, budget math, cache and probes`
+9. `test(frontend): cover capabilities suggestion and model selector state`
+10. `fix(frontend): apply safe working window and unblock manual detect`
 11. `docs(slice): document S130`
