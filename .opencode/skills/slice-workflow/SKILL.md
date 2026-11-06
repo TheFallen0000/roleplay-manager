@@ -62,36 +62,48 @@ commits small and conventional (`feat(scope): ...`, `test(scope): ...`,
 
 ## Stage 1 — RFC
 
-1. Read `AGENTS.md`, `docs/08-workflow.md`, the most recent slice docs and the
-   relevant code.
-2. Create or update `docs/10-slices/SX-progress.md` from
-   `docs/10-slices/TEMPLATE.md`.
-3. Fill: problem, constraints, options considered, decision, out of scope,
-   acceptance criteria, eval plan, risks.
-4. For memory, context, prompt or model-behaviour work, include a `## Plan de
-eval` with fixtures, metrics, baseline and thresholds.
-5. Set `Estado: Draft`.
-6. Stop and ask the user to approve the RFC. Do not implement while it is
+1. Delegate to `slice-architect` with the slice number and the known scope.
+2. It reads `AGENTS.md`, `docs/08-workflow.md`, the template, the most recent
+   slices and the relevant code, then creates or updates
+   `docs/10-slices/SX-progress.md`.
+3. It fills: problem, constraints, options, decision, out of scope, acceptance
+   criteria, eval plan and risks; it sets `Estado: Draft`.
+4. Read the RFC yourself and check it against the request. Fix only small
+   omissions; send it back to the architect if the scope or eval plan is wrong.
+5. Stop and ask the user to approve the RFC. Do not implement while it is
    `Draft`.
 
-Do not mark your own RFC as `Aprobado`. The user changes that field.
+Do not mark the RFC as `Aprobado`. The user changes that field. If the
+architect is unavailable, write the RFC yourself in the current session, but
+keep it short and ask for approval.
 
 ## Stage 2 — Red tests
 
-1. Delegate to `slice-test-author` with:
+Default test authoring is Flash (`slice-test-author`). For delicate work, add a
+short V4 Pro design pass first:
+
+1. **Delicate slices:** memory/context selection, prompt parity, security,
+   migrations, concurrency or anything with a high blast radius. Delegate to
+   `slice-test-architect` to write `docs/10-slices/SX-test-plan.md` with the few
+   cases that prove the contract, fixtures, assertions and commands.
+2. Delegate to `slice-test-author` with:
    - the RFC path,
+   - the test plan path if it exists,
    - the acceptance criteria,
    - the eval plan,
    - the exact test commands,
    - the files or modules involved.
-2. The test author may edit only tests and `evals/`.
-3. Run the tests yourself after it returns.
-4. Record in the slice doc under `## Red tests`:
+3. The test author may edit tests, test utilities, test configs and `evals/`.
+4. Run the tests yourself after it returns.
+5. Record in the slice doc under `## Red tests`:
    - exact command,
    - expected failure,
    - relevant output.
-5. If the tests pass unexpectedly, they are not red. Ask the test author to fix
+6. If the tests pass unexpectedly, they are not red. Ask the test author to fix
    them or explain why the behaviour already exists.
+
+Keep the matrix small: one test per acceptance criterion, plus the negative
+cases that protect the contract. Do not ask for an exhaustive suite.
 
 ## Stage 3 — Implementation
 
@@ -222,24 +234,61 @@ Do not bump the version, create a tag or publish a release. Those belong to
 
 ## Subagent routing
 
-| Stage          | Agent                       | Model          | May edit             | Must produce            |
-| -------------- | --------------------------- | -------------- | -------------------- | ----------------------- |
-| RFC            | self                        | V4 Pro         | slice doc            | approved RFC            |
-| Red tests      | `slice-test-author`         | V4 Pro         | tests/evals only     | failing tests + command |
-| Implementation | self or `slice-implementer` | V4 Pro / Flash | production code only | green tests             |
-| Review         | `slice-reviewer`            | V4 Pro         | nothing              | findings by severity    |
-| Docs           | `slice-docs`                | Flash          | docs/CHANGELOG       | updated docs + PR body  |
-| Release checks | `slice-release`             | Flash          | nothing              | checklist + dry-run     |
-| Ship           | self                        | V4 Pro         | git/PR only          | merged slice PR         |
+| Stage          | Agent                       | Model  | May edit                | Must produce            |
+| -------------- | --------------------------- | ------ | ----------------------- | ----------------------- |
+| RFC            | `slice-architect`           | V4 Pro | slice doc               | RFC in `Draft`          |
+| Test plan      | `slice-test-architect`      | V4 Pro | test plan only          | focused test matrix     |
+| Red tests      | `slice-test-author`         | Flash  | tests/evals/config only | failing tests + command |
+| Implementation | self or `slice-implementer` | Flash  | production code only    | green tests             |
+| Review         | `slice-reviewer`            | V4 Pro | nothing                 | findings by severity    |
+| Docs           | `slice-docs`                | Flash  | docs/CHANGELOG          | updated docs + PR body  |
+| Release checks | `slice-release`             | Flash  | nothing                 | checklist + dry-run     |
+| Ship           | self                        | Flash  | git/PR only             | merged slice PR         |
 
-Decide from this table. Do not ask the user which subagent to use.
+Decide from this table. Do not ask the user which subagent to use. V4 Pro is
+reserved for RFC, delicate test design and review; everything else uses Flash.
+
+## Sessions and context
+
+Start a new session for each slice, and preferably for each stage (RFC,
+implementation, review). The RFC and tests are files; they are the handoff, not
+the chat history.
+
+- Do not continue a very long session that already carries other slices.
+- If a session accumulates a huge context (for example, more than ~20m cache
+  reads), stop and continue in a new session from the RFC and the branch.
+- Use `opencode stats --project . --days 0 --full` at stage boundaries when
+  available.
+- Keep tool outputs small: use `read` with offsets, `grep`, `glob` and
+  `explore`; avoid dumping whole files, full diffs or long test logs into the
+  main session.
+- Summarize results in the slice doc or a subagent report instead of keeping
+  them in the conversation.
+
+## Permissions
+
+Subagents have role-scoped edit permissions, not blanket edit. That is
+intentional: the reviewer stays read-only and the test author cannot change
+production code.
+
+If a subagent reports a permission blocker:
+
+1. Confirm the path is part of that role's job.
+2. Update the agent permission in `.opencode/agents/<agent>.md`.
+3. Re-run the task from the last artifact; do not ask the subagent to work
+   around the permission with shell writes.
+
+Do not grant edit access to the reviewer. Do not grant test/config access to the
+implementer. If a task genuinely needs a broader role, split the task instead of
+widening permissions.
 
 ## Autonomy and human gates
 
 Autonomous:
 
 - stage detection,
-- test-author, implementer, reviewer, docs and release-check deployment,
+- test-plan, test-author, implementer, reviewer, docs and release-check
+  deployment,
 - retries after a failed test,
 - small fixes that do not change the RFC,
 - release checks and dry-run.
@@ -253,7 +302,8 @@ Human gates:
 - push and merge of the slice PR,
 - version bump, tag and publish (delegate to `/release`).
 
-If a subagent fails twice, stop and report. Do not loop.
+Subagents have no fixed step limit. If one fails twice or the task keeps growing,
+stop and split the task; do not loop or let it run unbounded.
 
 ## Failure handling
 

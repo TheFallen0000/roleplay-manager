@@ -367,10 +367,12 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 - Stages: **RFC → red tests → implementation → independent review → docs →
   release preparation**. Each stage leaves an artifact in the slice doc or
   `docs/10-slices/SX-review.md`.
-- Subagents: `slice-test-author` (tests/evals only), `slice-implementer`
-  (production code only), `slice-reviewer` (read-only), `slice-docs`
-  (docs/changelog only) and `slice-release` (release checks, read-only). The
-  orchestrator decides which one to launch; do not ask the user to choose.
+- Subagents: `slice-architect` (RFC, V4 Pro), `slice-test-architect` (test plan
+  for delicate slices, V4 Pro), `slice-test-author` (tests/evals only, Flash),
+  `slice-implementer` (production code only, Flash), `slice-reviewer`
+  (read-only, V4 Pro), `slice-docs` (docs/changelog only, Flash) and
+  `slice-release` (release checks, read-only, Flash). The orchestrator decides
+  which one to launch; do not ask the user to choose.
 - The RFC must be `Estado: Aprobado` before implementation starts. Only the user
   changes `Draft` to `Aprobado`.
 - `/slice` may push, open and merge the slice PR only after explicit approval.
@@ -381,9 +383,12 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 - **Human gates:** RFC approval, scope or architecture changes, review blockers
   that require a redesign, slice push/merge, version choice, release push/merge
   and publish.
-- Model routing (current): V4 Pro for RFC, tests and review; Flash for
-  implementation, docs and release. Do not use the same model to author and
-  review a slice.
+- Model routing (current): V4 Pro for RFC, delicate test design and review;
+  Flash for orchestration, normal test authoring, implementation, docs and
+  release. Do not use the same model to author and review a slice.
+- Start a new session per slice and, for large slices, per stage. Use the RFC and
+  tests as the handoff; do not continue a session that already carries a huge
+  context. Subagents have no fixed step limit; split a task that fails twice.
 
 ---
 

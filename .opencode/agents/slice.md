@@ -1,7 +1,7 @@
 ---
-description: Orchestrates a slice from RFC to release preparation and decides which slice subagent to launch.
+description: Orchestrates a slice from RFC to release preparation with Flash; delegates RFC and review to V4 Pro.
 mode: primary
-model: opencode-go/deepseek-v4-pro
+model: opencode-go/deepseek-v4.1-flash
 permissions:
   - action: shell
     resource: "*"
@@ -17,6 +17,18 @@ permissions:
     effect: allow
   - action: shell
     resource: "git log *"
+    effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git rev-parse *"
+    effect: allow
+  - action: shell
+    resource: "git describe *"
+    effect: allow
+  - action: shell
+    resource: "git remote *"
     effect: allow
   - action: shell
     resource: "git add *"

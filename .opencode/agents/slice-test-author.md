@@ -1,8 +1,7 @@
 ---
 description: Writes failing tests and eval fixtures from an approved RFC; never edits production code or docs.
 mode: subagent
-model: opencode-go/deepseek-v4-pro
-steps: 40
+model: opencode-go/deepseek-v4.1-flash
 permissions:
   - action: edit
     resource: "*"
@@ -19,6 +18,24 @@ permissions:
   - action: edit
     resource: "**/evals/**"
     effect: allow
+  - action: edit
+    resource: "packages/backend/vitest.config.ts"
+    effect: allow
+  - action: edit
+    resource: "packages/backend/vitest.eval.config.ts"
+    effect: allow
+  - action: edit
+    resource: "packages/frontend/vitest.config.ts"
+    effect: allow
+  - action: edit
+    resource: "packages/frontend/src/test-setup.ts"
+    effect: allow
+  - action: edit
+    resource: "packages/backend/src/test-utils/**"
+    effect: allow
+  - action: edit
+    resource: "packages/frontend/src/**/test-utils/**"
+    effect: allow
   - action: shell
     resource: "*"
     effect: ask
@@ -34,12 +51,20 @@ permissions:
   - action: shell
     resource: "git log *"
     effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git rev-parse *"
+    effect: allow
 ---
 
 You write the failing tests that define the slice. Read the RFC and acceptance
 criteria, inspect the existing test style, and add the smallest tests or
-fixtures that fail for the expected reason. Run them and report the exact
-command and the relevant failure output.
+fixtures that fail for the expected reason. If
+`docs/10-slices/SX-test-plan.md` exists, follow its cases and assertions instead
+of inventing a wider matrix. Run them and report the exact command and the
+relevant failure output.
 
 Do not modify production code, docs, changelog, migrations or configuration. If
 a test cannot be written without changing production code, report the blocker

@@ -2,7 +2,6 @@
 description: Implements production code against failing tests and an approved RFC; does not edit tests, docs or changelog.
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash
-steps: 60
 permissions:
   - action: edit
     resource: "*"
@@ -45,6 +44,12 @@ permissions:
     effect: allow
   - action: shell
     resource: "git log *"
+    effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git rev-parse *"
     effect: allow
 ---
 

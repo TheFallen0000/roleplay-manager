@@ -50,8 +50,9 @@ crea una rama corta (`feat/SX-slug`, `fix/SX-slug`, `docs/SX-slug` o
 
 | Etapa          | Artefacto                                                 | Quién                         |
 | -------------- | --------------------------------------------------------- | ----------------------------- |
-| RFC            | `docs/10-slices/SX-progress.md` con `Estado: Draft`       | `slice`                       |
+| RFC            | `docs/10-slices/SX-progress.md` con `Estado: Draft`       | `slice-architect`             |
 | Aprobación     | `Estado: Aprobado`                                        | el usuario                    |
+| Test plan      | `docs/10-slices/SX-test-plan.md` (solo tests delicados)   | `slice-test-architect`        |
 | Tests rojos    | Tests/evals que fallan + comando y salida en el slice doc | `slice-test-author`           |
 | Implementación | Código de producción + tests verdes                       | `slice` o `slice-implementer` |
 | Review         | `docs/10-slices/SX-review.md` con hallazgos por severidad | `slice-reviewer`              |
@@ -66,17 +67,35 @@ crea una rama corta (`feat/SX-slug`, `fix/SX-slug`, `docs/SX-slug` o
 Orquestador. Lee el RFC, detecta la etapa, decide qué subagente usar y ejecuta
 las comprobaciones deterministas. Es el único que puede preparar el release.
 
-- Modelo: `opencode-go/deepseek-v4-pro`.
+- Modelo: `opencode-go/deepseek-v4.1-flash`.
 - Puede editar código, docs y tests.
 - No puede publicar, taggear, mergear ni hacer push sin aprobación.
+
+### `slice-architect` (subagente)
+
+Escribe el RFC. Es read-only para el código y solo edita el slice doc.
+
+- Modelo: `opencode-go/deepseek-v4-pro`.
+- Rellena problema, restricciones, opciones, decisión, fuera de alcance,
+  criterios de aceptación y plan de eval.
+- Deja `Estado: Draft`; no implementa.
+
+### `slice-test-architect` (subagente)
+
+Diseña la matriz de tests para slices delicados. No escribe tests ni código.
+
+- Modelo: `opencode-go/deepseek-v4-pro`.
+- Solo edita `docs/10-slices/SX-test-plan.md`.
+- Casos, fixtures, aserciones, comandos y riesgos; una página como máximo.
 
 ### `slice-test-author` (subagente)
 
 Escribe los tests que fallan y los fixtures del eval. No toca código de
 producción ni documentación.
 
-- Modelo: `opencode-go/deepseek-v4-pro`.
-- Solo puede editar `*.test.ts`, `*.test.tsx`, `*.spec.ts` y `evals/*`.
+- Modelo: `opencode-go/deepseek-v4.1-flash`.
+- Puede editar tests, `test-utils`, configs de test y `**/evals/**`.
+- Si existe `SX-test-plan.md`, lo sigue; no amplía la matriz por su cuenta.
 - Devuelve el comando exacto y el fallo esperado.
 
 ### `slice-implementer` (subagente)
@@ -131,15 +150,50 @@ body temporal; nunca código de features.
 
 El orquestador no pregunta qué subagente usar; lo decide con esta tabla:
 
-- **RFC:** lo escribe él mismo.
-- **Tests:** siempre `slice-test-author` si el slice necesita tests nuevos.
-- **Implementación:** él mismo si es pequeño y de una capa; `slice-implementer`
-  si cruza capas o supera cinco archivos.
-- **Review:** siempre `slice-reviewer`, nunca auto-review.
-- **Docs:** siempre `slice-docs` después de un review limpio.
-- **Release checks:** siempre `slice-release`, después de docs.
-- **Ship del slice:** el orquestador, con aprobación para push y merge.
+- **RFC:** `slice-architect` en V4 Pro.
+- **Tests delicados:** primero `slice-test-architect` (V4 Pro) escribe el plan;
+  después `slice-test-author` (Flash) lo implementa.
+- **Tests normales:** directamente `slice-test-author` (Flash).
+- **Implementación:** el orquestador si es pequeño y de una capa;
+  `slice-implementer` (Flash) si cruza capas o supera cinco archivos.
+- **Review:** siempre `slice-reviewer` (V4 Pro), nunca auto-review.
+- **Docs:** siempre `slice-docs` (Flash) después de un review limpio.
+- **Release checks:** siempre `slice-release` (Flash), después de docs.
+- **Ship del slice:** el orquestador (Flash), con aprobación para push y merge.
 - **Bump de versión y publish:** comando `/release`, no `/slice`.
+
+## Sesiones y contexto
+
+Una sesión larga reenvía todo su historial en cada paso. Por eso el flujo usa el
+repo como handoff, no el chat:
+
+- Empieza una **sesión nueva por slice** y, si el slice es grande, una por etapa:
+  RFC, implementación, review.
+- No continúes una sesión que ya lleva varios slices o un contexto enorme.
+- Si una sesión supera aproximadamente **20m de cache reads**, corta y sigue en
+  una sesión nueva desde el RFC y la rama.
+- Usa `opencode stats --project . --days 0 --full` al cerrar cada etapa.
+- No vuelques archivos enteros, diffs completos ni logs largos en la sesión
+  principal: usa `read` con límites, `grep`, `glob` y `explore`.
+- Guarda resultados en el slice doc o en el informe del subagente, no en el chat.
+
+En la TUI, una sesión nueva se abre con `Ctrl+X` y luego `N`, o con `/new`. Las
+sesiones existentes se recuperan con `Ctrl+X` y luego `L`, o con `/sessions`.
+
+## Permisos
+
+Los subagentes tienen permisos por rol, no edición global. Eso es deliberado: el
+reviewer queda read-only y el test-author no puede tocar código de producción.
+
+Si un subagente reporta un bloqueo de permisos:
+
+1. Confirma que la ruta forma parte de su trabajo.
+2. Amplía el permiso en `.opencode/agents/<agente>.md`.
+3. Retoma desde el último artefacto; no le pidas que escriba con shell para
+   saltarse el permiso.
+
+No des edición al reviewer ni acceso a tests/configs al implementador. Si una
+tarea necesita un rol más amplio, divídela.
 
 ## Puertas humanas
 
@@ -235,15 +289,18 @@ el comando se queda corto.
 
 El routing está pensado para no quemar el modelo caro:
 
-- V4 Pro: RFC, tests y review.
-- Flash: implementación y docs.
+- **V4 Pro:** RFC, diseño de tests delicados y review.
+- **Flash:** orquestación, tests normales, implementación, docs y release.
 - El trabajo mecánico no consume V4 Pro.
-- Si un subagente falla dos veces, se detiene; no entra en bucles.
+- Los subagentes no tienen límite fijo de pasos. Si uno falla dos veces o la
+  tarea crece, se divide; no entra en bucles.
+- La mayor palanca es la sesión: una sesión nueva por etapa suele ahorrar más
+  que cambiar de modelo.
 
 ## Añadir un subagente
 
 1. Crea `.opencode/agents/slice-<rol>.md`.
-2. Usa `mode: subagent`, `model`, `steps` y `permissions`.
+2. Usa `mode: subagent`, `model` y `permissions`; no pongas `steps`.
 3. Restringe la edición a lo que ese rol necesita.
 4. Añádelo a la tabla de routing de la skill.
 5. Ejecuta `opencode debug agents` para comprobar que se descubre.
