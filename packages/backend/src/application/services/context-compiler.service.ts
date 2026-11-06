@@ -1,3 +1,4 @@
+import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
 import {
   estimateMessagesTokens,
   estimateTextTokens,
@@ -110,6 +111,13 @@ export class ContextCompiler {
       })
     }
 
+    const effective = resolveEffectiveWindow({
+      contextWindow: input.conversation.contextWindow,
+      workingWindow: input.conversation.workingWindow,
+      maxTokens: input.conversation.maxTokens,
+    })
+    const outputReserve = effective.net ? 0 : input.outputReserve
+
     const estimatedInputTokens =
       estimateTextTokens(context.systemPrompt) +
       estimateMessagesTokens(context.messages)
@@ -117,10 +125,10 @@ export class ContextCompiler {
     const manifest: ContextManifestDTO = {
       version: 1,
       model: input.conversation.model ?? null,
-      contextWindow: input.conversation.contextWindow,
-      outputReserve: input.outputReserve,
+      contextWindow: effective.window,
+      outputReserve,
       estimatedInputTokens,
-      estimatedTotalTokens: estimatedInputTokens + input.outputReserve,
+      estimatedTotalTokens: estimatedInputTokens + outputReserve,
       compaction: {
         needed: input.compaction.needed,
         applied: input.compaction.applied,

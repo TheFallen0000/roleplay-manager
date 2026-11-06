@@ -65,6 +65,8 @@ const conversationProps = {
   providerInstanceId: "inst-1",
   recentMessageCount: 12,
   summaryFrequency: 25,
+  contextWindow: 8_192,
+  workingWindow: 5_735,
   temperature: 0.9,
   maxTokens: 4096,
   topP: 0.8,
@@ -282,6 +284,8 @@ describe("ExportCharacterUseCase", () => {
     expect(exported?.memories).toHaveLength(1)
     expect(exported?.summaries).toHaveLength(1)
     expect(exported?.settings?.model).toBe("gpt-4o-mini")
+    expect(exported?.settings?.contextWindow).toBe(8_192)
+    expect(exported?.settings?.workingWindow).toBe(5_735)
     expect(exported?.settings?.memoryDecayMode).toBe("manual")
     expect(exported?.customProfileImageAssetId).toBe("asset-9")
     expect(exported?.backgroundImageAssetId).toBeNull()

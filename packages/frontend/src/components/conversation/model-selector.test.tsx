@@ -200,7 +200,10 @@ describe("ModelSelector context window", () => {
     )
     await waitFor(() =>
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ contextWindow: 32_768 })
+        expect.objectContaining({
+          contextWindow: 32_768,
+          workingWindow: null,
+        })
       )
     )
   })
@@ -227,7 +230,10 @@ describe("ModelSelector context window", () => {
 
     await waitFor(() =>
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ contextWindow: 65_536 })
+        expect.objectContaining({
+          contextWindow: 65_536,
+          workingWindow: null,
+        })
       )
     )
     expect(mocks.getModelContextWindow).not.toHaveBeenCalled()
@@ -245,7 +251,10 @@ describe("ModelSelector context window", () => {
     await userEvent.click(screen.getByRole("button", { name: "8k" }))
 
     expect(onChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ contextWindow: 8_192 })
+      expect.objectContaining({
+        contextWindow: 8_192,
+        workingWindow: null,
+      })
     )
   })
 
@@ -265,7 +274,10 @@ describe("ModelSelector context window", () => {
 
     await waitFor(() =>
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ contextWindow: 16_384 })
+        expect.objectContaining({
+          contextWindow: 16_384,
+          workingWindow: null,
+        })
       )
     )
 
@@ -279,7 +291,10 @@ describe("ModelSelector context window", () => {
       )
     )
     expect(onChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ contextWindow: 16_384 })
+      expect.objectContaining({
+        contextWindow: 16_384,
+        workingWindow: null,
+      })
     )
   })
 
@@ -299,7 +314,11 @@ describe("ModelSelector context window", () => {
 
     await waitFor(() =>
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ model: "qwen2.5", contextWindow: 65_536 })
+        expect.objectContaining({
+          model: "qwen2.5",
+          contextWindow: 65_536,
+          workingWindow: null,
+        })
       )
     )
   })
@@ -337,7 +356,31 @@ describe("ModelSelector capabilities detection", () => {
     )
   })
 
-  it("applies the safe working window over a manual value", async () => {
+  it("omits the conversation override when maxTokens is null", async () => {
+    renderSelector({ ...current, maxTokens: null })
+
+    await waitFor(() =>
+      expect(mocks.getModelCapabilities).toHaveBeenCalled()
+    )
+
+    for (const call of mocks.getModelCapabilities.mock.calls) {
+      expect(call[3]?.conversationOverride).toBeUndefined()
+    }
+  })
+
+  it("omits the conversation override when maxTokens is zero", async () => {
+    renderSelector({ ...current, maxTokens: 0 })
+
+    await waitFor(() =>
+      expect(mocks.getModelCapabilities).toHaveBeenCalled()
+    )
+
+    for (const call of mocks.getModelCapabilities.mock.calls) {
+      expect(call[3]?.conversationOverride).toBeUndefined()
+    }
+  })
+
+  it("applies the raw window and the safe working window", async () => {
     const onChange = vi.fn()
     renderSelector(manualConversation, onChange)
 
@@ -346,11 +389,14 @@ describe("ModelSelector capabilities detection", () => {
 
     await waitFor(() =>
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ contextWindow: 29_082 })
+        expect.objectContaining({
+          contextWindow: 32_768,
+          workingWindow: 29_082,
+        })
       )
     )
     expect(onChange).not.toHaveBeenLastCalledWith(
-      expect.objectContaining({ contextWindow: 32_768 })
+      expect.objectContaining({ contextWindow: 29_082 })
     )
     expect(onChange).not.toHaveBeenLastCalledWith(
       expect.objectContaining({ contextWindow: 2_048 })
@@ -365,7 +411,10 @@ describe("ModelSelector capabilities detection", () => {
 
     await waitFor(() =>
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ contextWindow: 32_768 })
+        expect.objectContaining({
+          contextWindow: 32_768,
+          workingWindow: null,
+        })
       )
     )
   })

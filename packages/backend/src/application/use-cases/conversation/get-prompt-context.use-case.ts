@@ -1,4 +1,5 @@
 import type { PromptContextDTO, PromptContextMetadataDTO } from "@workspace/shared/types/context"
+import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
 import { estimateContextTokens } from "@workspace/shared/lib/token-estimate"
 import type { Locale } from "@workspace/shared/i18n"
 
@@ -6,8 +7,6 @@ import { Message } from "../../../domain/entities/message.entity"
 import type { ConversationContextLoader } from "../../services/conversation-context-loader.service"
 import type { ContextCompiler } from "../../services/context-compiler.service"
 import type { ContextCompactionService } from "../../services/context-compaction.service"
-
-const DEFAULT_OUTPUT_RESERVE = 2_048
 
 export class GetPromptContextUseCase {
   constructor(
@@ -42,6 +41,12 @@ export class GetPromptContextUseCase {
     const messages = pending ? [...loaded.messages, pending] : loaded.messages
     const pendingCount = pending ? 1 : 0
 
+    const effective = resolveEffectiveWindow({
+      contextWindow: conversation.contextWindow,
+      workingWindow: conversation.workingWindow,
+      maxTokens: conversation.maxTokens,
+    })
+
     const needsCompaction = await this.contextCompaction.needsCompaction({
       conversation,
       characterVersion,
@@ -63,7 +68,7 @@ export class GetPromptContextUseCase {
       summary: latestSummary,
       playerCharacter: loaded.playerCharacter,
       locale,
-      outputReserve: conversation.maxTokens ?? DEFAULT_OUTPUT_RESERVE,
+      outputReserve: effective.outputReserve,
       compaction: { needed: needsCompaction, applied: false },
     })
 
@@ -73,8 +78,8 @@ export class GetPromptContextUseCase {
     const tokenEstimate = estimateContextTokens({
       systemPrompt: context.systemPrompt,
       messages: context.messages,
-      outputReserve: conversation.maxTokens ?? DEFAULT_OUTPUT_RESERVE,
-      contextWindow: conversation.contextWindow,
+      outputReserve: effective.outputReserve,
+      contextWindow: effective.window,
     })
 
     const metadata: PromptContextMetadataDTO = {

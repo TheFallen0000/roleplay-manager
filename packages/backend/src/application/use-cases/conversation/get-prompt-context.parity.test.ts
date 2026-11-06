@@ -16,6 +16,7 @@ import type {
   MessageRepository,
 } from "../../../domain/ports/message.repository"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
+import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import { PromptContextBuilderImpl } from "../../../infrastructure/adapters/secondary/prompt-context-builder/prompt-context-builder.impl"
@@ -186,6 +187,26 @@ const buildRepos = (
   }
 }
 
+const exactLengthBuilder = (systemLength: number): PromptContextBuilder => ({
+  build: async (params) => ({
+    systemPrompt: "s".repeat(systemLength),
+    messages: params.messages.map((message) => ({
+      role: message.role,
+      content: message.content,
+    })),
+  }),
+  buildWithSections: async (params) => ({
+    context: {
+      systemPrompt: "s".repeat(systemLength),
+      messages: params.messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
+    },
+    sections: [],
+  }),
+})
+
 const collect = async <T, R>(generator: AsyncGenerator<T, R>) => {
   let step = await generator.next()
   while (!step.done) step = await generator.next()
@@ -343,5 +364,52 @@ describe("preview/send context parity", () => {
       applied: false,
       threshold: 50,
     })
+  })
+})
+
+describe("preview/manifest parity with a working window", () => {
+  it("reports the effective window without adding the reserve twice", async () => {
+    // 110 system tokens + 39 * 114 + 44 = 4600 input tokens.
+    const messages = [
+      ...Array.from({ length: 39 }, (_, index) =>
+        buildMessage(
+          `msg-${index}`,
+          index % 2 === 0 ? "user" : "assistant",
+          "x".repeat(300),
+          index
+        )
+      ),
+      buildMessage("msg-39", "assistant", "x".repeat(108), 39),
+    ]
+    const conversation = buildConversation({
+      contextWindow: 8_192,
+      workingWindow: 5_735,
+      maxTokens: 2_048,
+    })
+    const repos = buildRepos(messages, conversation)
+    const builder = exactLengthBuilder(300)
+    const loader = new ConversationContextLoader(repos as never)
+    const compiler = new ContextCompiler(builder)
+    const contextCompaction = {
+      needsCompaction: async () => false,
+    } as unknown as ContextCompactionService
+
+    const useCase = new GetPromptContextUseCase(
+      loader,
+      compiler,
+      contextCompaction
+    )
+    const preview = await useCase.execute("conv-1", undefined, "en")
+
+    expect(preview.metadata.inputTokens).toBe(4_600)
+    expect(preview.metadata.contextWindow).toBe(5_735)
+    expect(preview.metadata.outputReserve).toBe(0)
+    expect(preview.metadata.contextPercent).toBe(80)
+
+    expect(preview.manifest).toBeDefined()
+    const manifest = preview.manifest!
+    expect(manifest.contextWindow).toBe(5_735)
+    expect(manifest.outputReserve).toBe(0)
+    expect(manifest.estimatedTotalTokens).toBe(manifest.estimatedInputTokens)
   })
 })

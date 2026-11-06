@@ -26,6 +26,7 @@ export interface ConversationProps {
   recentMessageCount: number
   summaryFrequency: number
   contextWindow?: number | null
+  workingWindow?: number | null
   compactionThreshold?: number
   temperature: number
   maxTokens: number
@@ -64,6 +65,9 @@ export class Conversation {
     return new Conversation({
       ...props,
       contextWindow: clampContextWindow(props.contextWindow),
+      // Kept as a nullable passthrough: 0/negative must reach the resolver so
+      // it can fall back instead of looking like a valid net window.
+      workingWindow: props.workingWindow ?? null,
       compactionThreshold: clampCompactionThreshold(
         props.compactionThreshold ?? DEFAULT_COMPACTION_THRESHOLD,
       ),
@@ -93,6 +97,7 @@ export class Conversation {
   get recentMessageCount(): number { return this.props.recentMessageCount }
   get summaryFrequency(): number { return this.props.summaryFrequency }
   get contextWindow(): number | null { return this.props.contextWindow ?? null }
+  get workingWindow(): number | null { return this.props.workingWindow ?? null }
   get compactionThreshold(): number { return this.props.compactionThreshold ?? DEFAULT_COMPACTION_THRESHOLD }
   get temperature(): number { return this.props.temperature }
   get maxTokens(): number { return this.props.maxTokens }

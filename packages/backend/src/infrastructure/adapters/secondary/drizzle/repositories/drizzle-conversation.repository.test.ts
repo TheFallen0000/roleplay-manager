@@ -75,6 +75,77 @@ describe("DrizzleConversationRepository context window", () => {
     expect((await repository.findById("conv-1"))?.contextWindow).toBeNull()
   })
 
+  it("persists the raw and working windows together", async () => {
+    const repository = new DrizzleConversationRepository(db)
+    await repository.create(
+      Conversation.create({
+        id: "conv-working",
+        versionId: "ver-1",
+        title: null,
+        titleSource: null,
+        model: "llama3",
+        provider: "ollama",
+        providerInstanceId: null,
+        recentMessageCount: 10,
+        summaryFrequency: 20,
+        contextWindow: 8_192,
+        workingWindow: 5_735,
+        compactionThreshold: 80,
+        temperature: 0.7,
+        maxTokens: 2048,
+        topP: 0.9,
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+        stopSequences: [],
+        memoryProposalMode: "auto",
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+
+    const found = await repository.findById("conv-working")
+    expect(found?.contextWindow).toBe(8_192)
+    expect(found?.workingWindow).toBe(5_735)
+  })
+
+  it("keeps legacy rows null and clears the working window on update", async () => {
+    const repository = new DrizzleConversationRepository(db)
+    await repository.create(
+      Conversation.create({
+        id: "conv-legacy",
+        versionId: "ver-1",
+        title: null,
+        titleSource: null,
+        model: "llama3",
+        provider: "ollama",
+        providerInstanceId: null,
+        recentMessageCount: 10,
+        summaryFrequency: 20,
+        contextWindow: 8_192,
+        compactionThreshold: 80,
+        temperature: 0.7,
+        maxTokens: 2048,
+        topP: 0.9,
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+        stopSequences: [],
+        memoryProposalMode: "auto",
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+
+    expect((await repository.findById("conv-legacy"))?.workingWindow).toBeNull()
+
+    await repository.updateSettings("conv-legacy", { workingWindow: 5_735 })
+    expect((await repository.findById("conv-legacy"))?.workingWindow).toBe(
+      5_735,
+    )
+
+    await repository.updateSettings("conv-legacy", { workingWindow: null })
+    expect((await repository.findById("conv-legacy"))?.workingWindow).toBeNull()
+  })
+
   it("persists and updates the compaction threshold", async () => {
     const repository = new DrizzleConversationRepository(db)
     await repository.create(

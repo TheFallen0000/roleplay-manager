@@ -29,7 +29,11 @@ const buildOptions = (
 ): RequestOptions | undefined => {
   const options: RequestOptions = {}
   if (refresh) options.refresh = true
-  if (conversationMaxTokens !== undefined) {
+  if (
+    typeof conversationMaxTokens === "number" &&
+    Number.isFinite(conversationMaxTokens) &&
+    conversationMaxTokens > 0
+  ) {
     options.conversationOverride = { maxTokens: conversationMaxTokens }
   }
   return Object.keys(options).length > 0 ? options : undefined

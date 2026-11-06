@@ -29,6 +29,7 @@ const version = CharacterVersion.create({
 
 const conversation = (overrides: {
   contextWindow?: number | null
+  workingWindow?: number | null
   maxTokens?: number
   compactionThreshold?: number
 } = {}) =>
@@ -63,6 +64,23 @@ const messages = (count: number, length = 300): Message[] =>
       conversationId: "conv-1",
       role: index % 2 === 0 ? "user" : "assistant",
       content: `${index}:` + "x".repeat(length),
+      position: index,
+      alternatives: [],
+      alternativesCursor: 0,
+      createdAt: now,
+      editedAt: null,
+    }),
+  )
+
+// Exact 300-char messages so the fixture matrix's token arithmetic holds:
+// 110 system tokens + 114 tokens per message.
+const uniformMessages = (count: number): Message[] =>
+  Array.from({ length: count }, (_, index) =>
+    Message.create({
+      id: `msg-${index}`,
+      conversationId: "conv-1",
+      role: index % 2 === 0 ? "user" : "assistant",
+      content: "x".repeat(300),
       position: index,
       alternatives: [],
       alternativesCursor: 0,
@@ -332,5 +350,141 @@ describe("ContextCompactionService", () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.error.code).toBe("CONTEXT_TOO_LARGE")
+  })
+})
+
+describe("ContextCompactionService effective window", () => {
+  const netInput = (count: number) => ({
+    conversation: conversation({
+      contextWindow: 8_192,
+      workingWindow: 5_735,
+      maxTokens: 2_048,
+    }),
+    characterVersion: version,
+    messages: uniformMessages(count),
+    memories: [],
+    latestSummary: null,
+    locale: "en" as const,
+  })
+
+  it("does not apply the output reserve twice in net mode", async () => {
+    const service = buildService()
+
+    // input at 39 messages = 110 + 39 * 114 = 4556, below 4588.
+    expect(await service.needsCompaction(netInput(39))).toBe(false)
+    // input at 40 messages = 110 + 40 * 114 = 4670, above 4588.
+    expect(await service.needsCompaction(netInput(40))).toBe(true)
+  })
+
+  it("keeps the output reserve for a legacy raw row", async () => {
+    const service = buildService()
+    const input = {
+      ...netInput(39),
+      conversation: conversation({
+        contextWindow: 8_192,
+        workingWindow: null,
+        maxTokens: 2_048,
+      }),
+    }
+
+    // 4556 input + 2048 reserve = 6604, above 6553.6 (8192 * 80%).
+    expect(await service.needsCompaction(input)).toBe(true)
+  })
+
+  it("compacts a net conversation without subtracting the output twice", async () => {
+    const execute = vi.fn(async () => ({ summary: summaryDTO }))
+    const service = new ContextCompactionService(
+      builder(),
+      { execute } as unknown as GenerateSummaryUseCase,
+      logger,
+    )
+
+    const result = await service.compact(netInput(40))
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.compacted).toBe(true)
+    expect(result.outputTokens).toBe(2_048)
+    expect(execute).toHaveBeenCalledWith("conv-1", {
+      locale: "en",
+      upToMessageId: "msg-15",
+      maxTokens: 573,
+    })
+  })
+
+  it("keeps the legacy raw budget identical", async () => {
+    const execute = vi.fn(async () => ({ summary: summaryDTO }))
+    const service = new ContextCompactionService(
+      builder(),
+      { execute } as unknown as GenerateSummaryUseCase,
+      logger,
+    )
+    const input = {
+      ...netInput(40),
+      conversation: conversation({
+        contextWindow: 8_192,
+        workingWindow: null,
+        maxTokens: 2_048,
+      }),
+    }
+
+    const result = await service.compact(input)
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outputTokens).toBe(2_048)
+    expect(execute).toHaveBeenCalledWith("conv-1", {
+      locale: "en",
+      upToMessageId: "msg-23",
+      maxTokens: 819,
+    })
+  })
+
+  it("does not shrink the summary budget in net mode", async () => {
+    const execute = vi.fn(async () => ({ summary: summaryDTO }))
+    const service = new ContextCompactionService(
+      builder(),
+      { execute } as unknown as GenerateSummaryUseCase,
+      logger,
+    )
+    const input = {
+      ...netInput(40),
+      conversation: conversation({
+        contextWindow: 2_048,
+        workingWindow: 768,
+        maxTokens: 1_280,
+      }),
+    }
+
+    const result = await service.compact(input)
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outputTokens).toBe(1_280)
+    expect(execute).toHaveBeenCalledWith(
+      "conv-1",
+      expect.objectContaining({ maxTokens: 256 }),
+    )
+  })
+
+  it("stays robust with a tiny positive working window", async () => {
+    const service = buildService()
+    const input = {
+      ...netInput(40),
+      conversation: conversation({
+        contextWindow: 8_192,
+        workingWindow: 128,
+        maxTokens: 2_048,
+      }),
+    }
+
+    const result = await service.compact(input)
+
+    expect(result).toHaveProperty("ok")
+    if (result.ok) {
+      expect(result.outputTokens).toBeGreaterThanOrEqual(0)
+    } else {
+      expect(result.error.code).toBe("CONTEXT_TOO_LARGE")
+    }
   })
 })

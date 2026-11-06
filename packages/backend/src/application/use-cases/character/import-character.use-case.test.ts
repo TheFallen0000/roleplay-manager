@@ -176,6 +176,7 @@ describe("ImportCharacterUseCase", () => {
             recentMessageCount: 12,
             summaryFrequency: 25,
             contextWindow: 128000,
+            workingWindow: 5_735,
             compactionThreshold: 80,
             temperature: 0.9,
             maxTokens: 4096,
@@ -275,6 +276,8 @@ describe("ImportCharacterUseCase", () => {
     expect(createdConversation.id).not.toBe("old-conv")
     expect(createdConversation.versionId).toBe(createdVersion.id)
     expect(createdConversation.model).toBe("gpt-4o-mini")
+    expect(createdConversation.contextWindow).toBe(128_000)
+    expect(createdConversation.workingWindow).toBe(5_735)
     expect(createdConversation.temperature).toBe(0.9)
     expect(createdConversation.memoryDecayMode).toBe("manual")
     expect(createdConversation.messageStyle).toBe("document")
@@ -432,6 +435,29 @@ describe("ImportCharacterUseCase", () => {
     expect(created.customProfileImageAssetId).toBe("new-asset-id")
   })
 
+  it("discards a working window that leaves no room for the reply", async () => {
+    const repos = buildRepos()
+    const payload = buildPayload({
+      conversations: [
+        exportConversation({
+          settings: {
+            ...DEFAULT_EXPORT_SETTINGS,
+            contextWindow: 8_192,
+            workingWindow: 8_000,
+            maxTokens: 2_048,
+          },
+        }),
+      ],
+    })
+
+    await buildUseCase(repos).execute({ payload })
+
+    const created = (
+      repos.conversationRepository.create as ReturnType<typeof vi.fn>
+    ).mock.calls[0][0]
+    expect(created.workingWindow).toBeNull()
+  })
+
   it("limpia las referencias de imagen sin binario en la exportación", async () => {
     const repos = buildRepos()
     const payload = buildPayload({
@@ -450,6 +476,7 @@ describe("ImportCharacterUseCase", () => {
     ).mock.calls[0][0]
     expect(created.customProfileImageAssetId).toBeNull()
     expect(created.backgroundImageAssetId).toBeNull()
+    expect(created.workingWindow).toBeNull()
     expect(repos.storeCharacterAsset.store).not.toHaveBeenCalled()
   })
 })

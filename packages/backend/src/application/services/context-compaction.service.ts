@@ -2,6 +2,8 @@ import type { SummaryDTO } from "@workspace/shared/types/summary"
 import type { Locale } from "@workspace/shared/i18n"
 import { translate } from "@workspace/shared/i18n"
 import { resolveCompactionTarget } from "@workspace/shared/lib/compaction"
+import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
+import type { EffectiveWindow } from "@workspace/shared/lib/context-window"
 import {
   estimateContextTokens,
   estimateMessagesTokens,
@@ -91,13 +93,19 @@ export class ContextCompactionService {
   ) {}
 
   async needsCompaction(input: ContextCompactionInput): Promise<boolean> {
-    const window = input.conversation.contextWindow
+    const effective = resolveEffectiveWindow({
+      contextWindow: input.conversation.contextWindow,
+      workingWindow: input.conversation.workingWindow,
+      maxTokens: input.conversation.maxTokens,
+    })
+    const window = effective.window
     if (!window || window <= 0) return false
 
     const current = await this.buildContext(
       input,
       input.latestSummary,
       input.messages,
+      effective,
     )
     const threshold = window * (input.conversation.compactionThreshold / 100)
     return current.estimate.totalTokens >= threshold
@@ -107,14 +115,25 @@ export class ContextCompactionService {
     input: ContextCompactionInput,
     options: ContextCompactionOptions = {},
   ): Promise<ContextCompactionResult> {
-    const window = input.conversation.contextWindow
     const desiredOutput =
       input.conversation.maxTokens ?? DEFAULT_OUTPUT_RESERVE
+    const effective = resolveEffectiveWindow({
+      contextWindow: input.conversation.contextWindow,
+      workingWindow: input.conversation.workingWindow,
+      maxTokens: input.conversation.maxTokens,
+    })
+    const window = effective.window
+    const net = effective.net
     if (!window || window <= 0) {
       return this.unchanged(input, desiredOutput)
     }
     if (input.messages.length === 0) {
-      const context = await this.buildContext(input, input.latestSummary, [])
+      const context = await this.buildContext(
+        input,
+        input.latestSummary,
+        [],
+        effective,
+      )
       const threshold = window * (input.conversation.compactionThreshold / 100)
       return context.estimate.totalTokens >= threshold
         ? this.tooLarge(input.locale)
@@ -127,6 +146,7 @@ export class ContextCompactionService {
       input,
       input.latestSummary,
       input.messages,
+      effective,
     )
     if (!options.force && current.estimate.totalTokens < threshold) {
       return this.unchanged(input, desiredOutput)
@@ -134,7 +154,7 @@ export class ContextCompactionService {
 
     const targetRatio =
       resolveCompactionTarget(input.conversation.compactionThreshold) / 100
-    const base = await this.buildContext(input, undefined, [])
+    const base = await this.buildContext(input, undefined, [], effective)
     const minimumKept = selectKeptMessages(input.messages, 0)
     const minimumKeptTokens = estimateMessagesTokens(minimumKept)
     const fixedTokens = base.estimate.systemTokens + minimumKeptTokens
@@ -145,11 +165,14 @@ export class ContextCompactionService {
     )
     let outputTokens = desiredOutput
     let summaryBudget = preferredSummary
+    // In net mode the working window already excluded the reply reserve, so
+    // it must not be subtracted from the budgets again.
+    const outputCost = net ? 0 : outputTokens
 
-    if (fixedTokens + summaryBudget + outputTokens > totalBudget) {
-      summaryBudget = Math.max(0, totalBudget - fixedTokens - outputTokens)
+    if (fixedTokens + summaryBudget + outputCost > totalBudget) {
+      summaryBudget = Math.max(0, totalBudget - fixedTokens - outputCost)
     }
-    if (summaryBudget < MIN_SUMMARY_BUDGET) {
+    if (summaryBudget < MIN_SUMMARY_BUDGET && !net) {
       const outputForMinSummary =
         totalBudget - fixedTokens - MIN_SUMMARY_BUDGET
       if (outputForMinSummary >= MIN_OUTPUT_RESERVE) {
@@ -164,16 +187,17 @@ export class ContextCompactionService {
       }
     }
 
-    if (fixedTokens + outputTokens > totalBudget) {
+    if (fixedTokens + (net ? 0 : outputTokens) > totalBudget) {
       return this.tooLarge(input.locale)
     }
 
-    const outputReduced = outputTokens < desiredOutput
-    const thresholdBudget = Math.max(1, totalBudget - outputTokens)
-    const targetBudget = Math.max(
-      1,
-      Math.floor(window * targetRatio) - outputTokens,
-    )
+    const outputReduced = net ? false : outputTokens < desiredOutput
+    const thresholdBudget = net
+      ? totalBudget
+      : Math.max(1, totalBudget - outputTokens)
+    const targetBudget = net
+      ? Math.max(1, Math.floor(window * targetRatio))
+      : Math.max(1, Math.floor(window * targetRatio) - outputTokens)
     const keepBudget = Math.max(
       0,
       targetBudget - base.estimate.systemTokens - summaryBudget,
@@ -201,6 +225,7 @@ export class ContextCompactionService {
       if (options.force) return this.unchanged(input, desiredOutput)
       return this.trimWithoutSummary(
         input,
+        effective,
         input.messages,
         thresholdBudget,
         minimumKept.length,
@@ -214,6 +239,7 @@ export class ContextCompactionService {
     if (summaryBudget < MIN_SUMMARY_BUDGET) {
       return this.trimWithoutSummary(
         input,
+        effective,
         kept,
         thresholdBudget,
         minimumKept.length,
@@ -240,6 +266,7 @@ export class ContextCompactionService {
       })
       return this.trimWithoutSummary(
         input,
+        effective,
         kept,
         thresholdBudget,
         minimumKept.length,
@@ -252,14 +279,14 @@ export class ContextCompactionService {
 
     const summary = toSummaryEntity(summaryResult.summary)
     let finalMessages = kept
-    let final = await this.buildContext(input, summary, finalMessages)
+    let final = await this.buildContext(input, summary, finalMessages, effective)
 
     while (
       final.estimate.inputTokens > thresholdBudget &&
       finalMessages.length > minimumKept.length
     ) {
       finalMessages = finalMessages.slice(1)
-      final = await this.buildContext(input, summary, finalMessages)
+      final = await this.buildContext(input, summary, finalMessages, effective)
     }
 
     if (final.estimate.inputTokens > thresholdBudget) {
@@ -269,6 +296,7 @@ export class ContextCompactionService {
       })
       return this.trimWithoutSummary(
         input,
+        effective,
         finalMessages,
         thresholdBudget,
         minimumKept.length,
@@ -298,6 +326,7 @@ export class ContextCompactionService {
 
   private async trimWithoutSummary(
     input: ContextCompactionInput,
+    effective: EffectiveWindow,
     kept: Message[],
     thresholdBudget: number,
     minimumKeptLength: number,
@@ -309,27 +338,32 @@ export class ContextCompactionService {
   ): Promise<ContextCompactionResult> {
     let messages = kept
     let sourceSummary = summary
-    let final = await this.buildContext(input, sourceSummary, messages)
+    let final = await this.buildContext(
+      input,
+      sourceSummary,
+      messages,
+      effective,
+    )
 
     while (
       final.estimate.inputTokens > thresholdBudget &&
       messages.length > minimumKeptLength
     ) {
       messages = messages.slice(1)
-      final = await this.buildContext(input, sourceSummary, messages)
+      final = await this.buildContext(input, sourceSummary, messages, effective)
     }
 
     // The previous summary itself may be the part that does not fit. Dropping
     // it is lossy, but it keeps the conversation usable instead of failing.
     if (final.estimate.inputTokens > thresholdBudget && sourceSummary !== null) {
       sourceSummary = null
-      final = await this.buildContext(input, null, messages)
+      final = await this.buildContext(input, null, messages, effective)
       while (
         final.estimate.inputTokens > thresholdBudget &&
         messages.length > minimumKeptLength
       ) {
         messages = messages.slice(1)
-        final = await this.buildContext(input, null, messages)
+        final = await this.buildContext(input, null, messages, effective)
       }
     }
 
@@ -427,6 +461,7 @@ export class ContextCompactionService {
     input: ContextCompactionInput,
     summary: Summary | null | undefined,
     messages: Message[],
+    effective: EffectiveWindow,
   ) {
     const context = await this.promptContextBuilder.build({
       characterVersion: input.characterVersion,
@@ -442,8 +477,8 @@ export class ContextCompactionService {
     const estimate = estimateContextTokens({
       systemPrompt: context.systemPrompt,
       messages: context.messages,
-      outputReserve: input.conversation.maxTokens ?? DEFAULT_OUTPUT_RESERVE,
-      contextWindow: input.conversation.contextWindow,
+      outputReserve: effective.outputReserve,
+      contextWindow: effective.window,
     })
     return { context, estimate }
   }

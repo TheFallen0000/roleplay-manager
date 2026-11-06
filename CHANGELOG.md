@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   comparten el mismo compilador.
 - **Evaluación**: banco de evaluación determinista del ensamblado de contexto
   (`pnpm eval`), sin red ni proveedores reales.
+- **Contexto**: la conversación guarda la ventana de trabajo aplicada en un
+  campo propio, separada de la ventana bruta del modelo, que se conserva
+  intacta.
 
 ### Changed
 
@@ -39,12 +42,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   detección vacía.
 - **Dependencias**: `@types/better-sqlite3` 9.6.0 (solo tipos; el runtime
   `better-sqlite3` sigue en 13.0.3).
+- **Compactación**: la compactación y la vista previa usan la ventana de trabajo
+  aplicada cuando existe y dejan de restar la reserva de respuesta dos veces;
+  las conversaciones sin ventana de trabajo mantienen el comportamiento
+  anterior.
 
 ### Fixed
 
 - **Ajustes**: «Aplicar detectado» sobrescribe explícitamente una ventana
-  manual y escribe la ventana de trabajo segura, no la ventana bruta ni el
-  límite de salida; «Detectar» también actualiza cuando hay un valor manual.
+  manual y guarda la ventana bruta del modelo junto con la ventana de trabajo
+  segura; «Detectar» también actualiza cuando hay un valor manual.
 - **Ajustes**: cambiar de modelo ya no borra una ventana escrita a mano; solo
   se reemplaza el valor detectado automáticamente.
 - **Modelos**: un sondeo correcto que no devuelve datos ya no conserva un claim
@@ -54,6 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Contexto**: las conversaciones usan la versión del personaje con la que se
   crearon, igual que la vista previa; antes el envío podía usar la última versión
   después de editar el personaje.
+- **Ajustes**: «Aplicar detectado» ya no reserva la salida dos veces; el límite
+  de respuesta solo se envía cuando es un valor positivo; las ventanas de
+  trabajo importadas o de plantilla que no encajan se descartan de forma segura.
 
 ## [1.57.2] - 2026-11-05
 

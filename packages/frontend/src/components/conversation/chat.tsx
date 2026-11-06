@@ -93,7 +93,7 @@ function ChatContent({ conversation }: { conversation: ConversationDetail }) {
     draftTokens,
     setDraft,
     refresh: refreshContextStats,
-  } = useContextUsage(conv.id, `${conv.contextWindow}:${conv.maxTokens}:${conv.updatedAt}`)
+  } = useContextUsage(conv.id, `${conv.contextWindow}:${conv.workingWindow ?? ""}:${conv.maxTokens}:${conv.updatedAt}`)
 
   const {
     hasMore: hasMoreMessages,
