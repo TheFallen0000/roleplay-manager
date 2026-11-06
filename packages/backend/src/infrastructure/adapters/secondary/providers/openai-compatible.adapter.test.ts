@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
 import type { Logger } from "../../../../domain/ports/logger.port"
 import type { ToolDefinition } from "../../../../domain/value-objects/prompt-context"
@@ -206,5 +206,92 @@ describe("OpenAICompatibleAdapter - tool calling", () => {
     }
 
     expect(out).toEqual([{ content: "x" }])
+  })
+})
+
+describe("OpenAICompatibleAdapter - resolveCapabilities", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const mockModels = (body: Record<string, unknown>) => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => body,
+    })
+    vi.stubGlobal("fetch", fetchMock)
+    return fetchMock
+  }
+
+  const buildOpenRouterAdapter = () =>
+    new OpenAICompatibleAdapter({
+      baseUrl: "https://openrouter.ai/api/v1",
+      apiKey: null,
+      timeoutMs: 1_000,
+      streamingTimeoutMs: 1_000,
+      logger: silentLogger,
+    })
+
+  it("claims max_model_len from a vLLM /v1/models entry", async () => {
+    mockModels({ data: [{ id: "llama3", max_model_len: 8_192 }] })
+
+    const claims = await buildAdapter().resolveCapabilities("llama3")
+
+    expect(claims).toHaveLength(1)
+    expect(claims[0]).toMatchObject({
+      source: "runtime-introspection",
+      confidence: "high",
+      model: "llama3",
+      specificity: "exact",
+      contextWindow: 8_192,
+    })
+    expect(claims[0].maxOutputTokens ?? null).toBeNull()
+  })
+
+  it("claims context_length from /v1/models when max_model_len is absent", async () => {
+    mockModels({ data: [{ id: "qwen2.5", context_length: 32_768 }] })
+
+    const claims = await buildAdapter().resolveCapabilities("qwen2.5")
+
+    expect(claims[0]).toMatchObject({
+      source: "runtime-introspection",
+      confidence: "high",
+      contextWindow: 32_768,
+    })
+  })
+
+  it("maps the OpenRouter catalog to a provider-api claim", async () => {
+    mockModels({
+      data: [
+        {
+          id: "anthropic/claude-3.5-sonnet",
+          context_length: 200_000,
+          top_provider: { max_completion_tokens: 8_192 },
+        },
+      ],
+    })
+
+    const claims = await buildOpenRouterAdapter().resolveCapabilities(
+      "anthropic/claude-3.5-sonnet",
+    )
+
+    expect(claims).toHaveLength(1)
+    expect(claims[0]).toMatchObject({
+      source: "provider-api",
+      confidence: "medium",
+      model: "anthropic/claude-3.5-sonnet",
+      specificity: "exact",
+      contextWindow: 200_000,
+      maxOutputTokens: 8_192,
+    })
+  })
+
+  it("returns no claim when the model entry exposes no window", async () => {
+    mockModels({ data: [{ id: "gpt-4o-mini" }] })
+
+    expect(
+      await buildAdapter().resolveCapabilities("gpt-4o-mini"),
+    ).toEqual([])
   })
 })

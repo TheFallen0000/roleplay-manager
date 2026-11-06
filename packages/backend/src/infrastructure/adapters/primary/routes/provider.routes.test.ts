@@ -15,6 +15,48 @@ const fakeLogger = {
   child: vi.fn(() => fakeLogger),
 }
 
+const makeCapabilitiesResult = (
+  id: "ollama" | "openai-compatible",
+  model: string,
+  contextWindow: number | null
+) => {
+  const safetyMargin =
+    contextWindow === null
+      ? null
+      : Math.max(128, Math.floor((contextWindow * 5) / 100))
+  return {
+    id,
+    model,
+    capabilities: {
+      identity: {
+        provider: id,
+        instanceId: null,
+        normalizedModel: model.toLowerCase(),
+      },
+      contextWindow,
+      contextWindowSource:
+        contextWindow === null ? null : "runtime-introspection",
+      contextWindowConfidence: contextWindow === null ? null : "high",
+      maxOutputTokens: null,
+      maxOutputTokensSource: null,
+      maxOutputTokensConfidence: null,
+      confidence: contextWindow === null ? null : "high",
+      warnings: [],
+    },
+    workingWindow: {
+      status: contextWindow === null ? "unknown" : "ok",
+      contextWindow,
+      outputReserve: contextWindow === null ? null : 2_048,
+      safetyMargin,
+      workingWindow:
+        contextWindow === null || safetyMargin === null
+          ? null
+          : contextWindow - 2_048 - safetyMargin,
+      warnings: [],
+    },
+  }
+}
+
 describe("provider routes", () => {
   let server: Server | undefined
 
@@ -27,9 +69,9 @@ describe("provider routes", () => {
   })
 
   const start = async (
-    getProviderModelContext: Parameters<
+    getModelCapabilities: Parameters<
       typeof buildProviderRouter
-    >[0]["getProviderModelContext"],
+    >[0]["getModelCapabilities"]
   ): Promise<string> => {
     const app = express()
     app.use(
@@ -37,8 +79,8 @@ describe("provider routes", () => {
         listProviders: { execute: vi.fn() } as never,
         validateProviderConnection: { execute: vi.fn() } as never,
         listProviderModels: { execute: vi.fn() } as never,
-        getProviderModelContext,
-      }),
+        getModelCapabilities,
+      })
     )
     app.use(buildErrorHandler(fakeLogger as never))
     server = app.listen(0)
@@ -50,16 +92,13 @@ describe("provider routes", () => {
     return `http://127.0.0.1:${address.port}`
   }
 
-  it("returns the detected context window", async () => {
-    const execute = vi.fn(async () => ({
-      id: "ollama",
-      model: "llama3",
-      contextWindow: 32_768,
-    }))
+  it("maps the legacy route to the context window shape", async () => {
+    const result = makeCapabilitiesResult("ollama", "llama3", 32_768)
+    const execute = vi.fn(async () => result)
     const base = await start({ execute } as never)
 
     const response = await fetch(
-      `${base}/providers/ollama/model-context?model=llama3`,
+      `${base}/providers/ollama/model-context?model=llama3`
     )
 
     expect(response.status).toBe(200)
@@ -68,26 +107,85 @@ describe("provider routes", () => {
       model: "llama3",
       contextWindow: 32_768,
     })
-    expect(execute).toHaveBeenCalledWith("ollama", "llama3", undefined)
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "ollama",
+        model: "llama3",
+        providerInstanceId: undefined,
+        probeOnly: true,
+      })
+    )
   })
 
-  it("forwards the instance id", async () => {
-    const execute = vi.fn(async () => ({
-      id: "openai-compatible",
-      model: "qwen2.5",
-      contextWindow: null,
-    }))
+  it("forwards the instance id on the legacy route", async () => {
+    const result = makeCapabilitiesResult("openai-compatible", "qwen2.5", null)
+    const execute = vi.fn(async () => result)
     const base = await start({ execute } as never)
 
     const response = await fetch(
-      `${base}/providers/openai-compatible/model-context?model=qwen2.5&instanceId=inst-1`,
+      `${base}/providers/openai-compatible/model-context?model=qwen2.5&instanceId=inst-1`
+    )
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({
+      id: "openai-compatible",
+      model: "qwen2.5",
+      contextWindow: null,
+    })
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "openai-compatible",
+        model: "qwen2.5",
+        providerInstanceId: "inst-1",
+        probeOnly: true,
+      })
+    )
+  })
+
+  it("returns the full capabilities result", async () => {
+    const result = makeCapabilitiesResult(
+      "openai-compatible",
+      "gpt-4o-mini",
+      128_000
+    )
+    const execute = vi.fn(async () => result)
+    const base = await start({ execute } as never)
+
+    const response = await fetch(
+      `${base}/providers/openai-compatible/capabilities?model=gpt-4o-mini&instanceId=inst-1`
+    )
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(result)
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "openai-compatible",
+        model: "gpt-4o-mini",
+        providerInstanceId: "inst-1",
+      })
+    )
+  })
+
+  it("forwards the conversation override on the capabilities route", async () => {
+    const result = makeCapabilitiesResult(
+      "openai-compatible",
+      "gpt-4o-mini",
+      8_192
+    )
+    const execute = vi.fn(async () => result)
+    const base = await start({ execute } as never)
+
+    const response = await fetch(
+      `${base}/providers/openai-compatible/capabilities?model=gpt-4o-mini&contextWindow=8192&maxTokens=4096`
     )
 
     expect(response.status).toBe(200)
     expect(execute).toHaveBeenCalledWith(
-      "openai-compatible",
-      "qwen2.5",
-      "inst-1",
+      expect.objectContaining({
+        id: "openai-compatible",
+        model: "gpt-4o-mini",
+        conversationOverride: { contextWindow: 8_192, maxTokens: 4_096 },
+      })
     )
   })
 
@@ -106,7 +204,7 @@ describe("provider routes", () => {
     const base = await start({ execute } as never)
 
     const response = await fetch(
-      `${base}/providers/unknown/model-context?model=llama3`,
+      `${base}/providers/unknown/model-context?model=llama3`
     )
 
     expect(response.status).toBe(404)
