@@ -59,6 +59,9 @@ permissions:
     effect: allow
 ---
 
+Use `read`, `grep` and `glob` for file inspection; shell is only for running
+tests and read-only git metadata.
+
 You write the failing tests that define the slice. Read the RFC and acceptance
 criteria, inspect the existing test style, and add the smallest tests or
 fixtures that fail for the expected reason. If
