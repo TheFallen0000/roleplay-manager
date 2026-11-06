@@ -1,98 +1,87 @@
-## S130 — Resolución de capacidades de modelo y ventana de trabajo segura
+## S130 — Model capabilities and safe working window
 
-Sustituye la detección puntual de S121 (solo Ollama, solo ventana) por un
-resolvedor de capacidades con precedencia determinista, procedencia y confianza
-por campo, caché local y override manual. A partir de la ventana de contexto y
-del límite de salida del modelo calcula una **ventana de trabajo segura** y la
-muestra en el diálogo Modelo.
+Replaces the ad-hoc S121 detection (Ollama-only, context window only) with a
+deterministic capability resolver that reports provenance and confidence, a
+local cache, manual overrides, and a safe working window. The Model dialog shows
+where each value came from and how much room is actually available for input.
 
-### Alcance
+### Scope
 
-- **Shared**: tipos `ModelIdentity`, `CapabilityClaim`, `ModelCapabilities`,
-  `WorkingWindow` y `CuratedModelEntry`; resolvedor puro
+- **Shared:** `ModelIdentity`, `CapabilityClaim`, `ModelCapabilities`,
+  `WorkingWindow` and `CuratedModelEntry`; pure resolver
   (`resolveModelCapabilities`, `normalizeModelIdentity`, `matchCuratedEntry`,
-  `inferModelCapabilitiesHeuristic`) y aritmética entera de `workingWindow` con
-  estados `ok/degraded/infeasible/unknown`.
-- **Backend**: catálogo curado vendorizado desde LiteLLM y script
-  `catalog:refresh`; `ModelCapabilitiesCache` en memoria (TTL 15 min, reloj
-  inyectable, `getStale`); `GetModelCapabilitiesUseCase` con capas de override
-  app < provider < instancia < conversación; sondeos de Ollama `/api/show`,
-  OpenAI-compatible `/v1/models` (vLLM) y OpenRouter (`provider-api`);
-  invalidación al editar/borrar una instancia.
-- **API**: nuevo `GET /api/providers/:id/capabilities` con
-  `model`, `instanceId`, `refresh`, `contextWindow` y `maxTokens`.
-  `GET /api/providers/:id/model-context` conserva su contrato.
-- **Frontend**: `use-model-capabilities`, `model-capabilities-suggestion` y
-  `context-window-card`; la sugerencia muestra ventana resuelta, límite de
-  salida, procedencia, confianza y ventana de trabajo, con «Aplicar detectado».
-  Un valor escrito a mano ya no se borra al cambiar de modelo.
+  `inferModelCapabilitiesHeuristic`) and integer `workingWindow` math with
+  `ok`/`degraded`/`infeasible`/`unknown` states.
+- **Backend:** LiteLLM catalog vendored with alias expansion and a refresh
+  script; `ModelCapabilitiesCache` (15-minute TTL, injectable clock, stale
+  reads); `GetModelCapabilitiesUseCase` with app/provider/instance/conversation
+  override layers; Ollama `/api/show`, OpenAI-compatible/vLLM `/v1/models` and
+  OpenRouter probes; cache invalidation on provider-instance edit/delete.
+- **API:** `GET /api/providers/:id/capabilities` with `model`, `instanceId`,
+  `refresh`, `contextWindow` and `maxTokens`.
+  `GET /api/providers/:id/model-context` keeps its contract via `probeOnly`.
+- **Frontend:** `use-model-capabilities`, `model-capabilities-suggestion` and
+  `context-window-card`; the suggestion shows resolved window, max output,
+  source, confidence and safe working window, with an “Apply detected” action.
+  A typed window survives a model change.
+- **Post-review UX fixes:** “Apply detected” overwrites a manual window with
+  `workingWindow.workingWindow`; “Detect” also updates when a manual value
+  exists; the applied value is no longer the raw window or `maxOutputTokens`.
 
-### Decisiones clave
+### Key decisions
 
-- **Ruta legacy `probeOnly`.** `/model-context` solo resuelve el sondeo en vivo:
-  sin tabla curada, heurística, defaults, overrides ni `stale`, así que sigue
-  devolviendo `null` cuando el proveedor no puede medir la ventana.
-- **El override de conversación viaja por `/capabilities`.** El caso de uso lo
-  aplica después de las capas de `settings`; `maxTokens` es presupuesto de
-  salida, no el máximo del modelo.
-- **Caché solo de claims de sondeo.** Overrides, tabla, heurística y defaults
-  se recalculan siempre; el caché nunca guarda URLs ni API keys.
-- **Catálogo generado, no editado.** LiteLLM (MIT fuera de `enterprise/`) se
-  filtra a chat/completion/responses y se expanden alias por prefijo de
-  proveedor y región.
-- **Heurística conservadora y defaults 4 096/2 048** como últimos recursos, con
-  confianza `low`.
-- **Manual frente a auto en la UI.** Teclear, elegir preset o aplicar lo
-  detectado marca el valor como manual; cambiar de modelo solo reemplaza el
-  valor automático. «Detectar» refresca el caché una sola vez y relee la
-  sugerencia.
-- **UI extraída** a componentes y hook propios para respetar el límite de 500
-  líneas de `model-selector.tsx`.
-- **Aplicar/Detectar corregidos:** «Aplicar detectado» sobrescribe una ventana
-  manual con `workingWindow.workingWindow`; «Detectar» actualiza aunque haya un
-  valor manual. Tests de regresión incluidos.
+- **`probeOnly` for the legacy route.** `/model-context` only trusts the live
+  probe, so it still returns `null` when the provider cannot measure the window
+  and never invents a value from the curated table.
+- **Conversation override travels through `/capabilities`.** The UI sends only
+  `maxTokens`; the saved context window is not sent as an override, so
+  “Apply detected” can replace it.
+- **Cache only probe claims.** Overrides, the curated table, the heuristic and
+  defaults are recomputed; the cache never stores URLs or API keys.
+- **Catalog is generated, not hand-edited.** LiteLLM (MIT outside
+  `enterprise/`) is filtered to chat/completion/responses and expanded by
+  provider/region prefix.
+- **Conservative defaults and heuristic.** 4,096/2,048 fallbacks and a
+  parameter-size heuristic with `low` confidence.
+- **Manual vs auto in the UI.** Typing, choosing a preset or applying a detection
+  marks the value as manual; changing the model only replaces automatic values.
+  “Detect” refreshes the probe once and rereads the suggestion.
+- **UI extracted** into small components/hooks to keep `model-selector.tsx`
+  under the 500-line limit.
 
-### Verificación
+### Verification
 
-- `pnpm --filter @workspace/backend test` → **128 archivos / 778 tests** en
-  verde.
-- `pnpm --filter @workspace/frontend exec vitest run` → **70 archivos / 405
-  tests** en verde.
+- `pnpm --filter @workspace/backend test` → **128 files / 778 tests**.
+- `pnpm --filter @workspace/frontend exec vitest run` → **70 files / 405 tests**.
 - `pnpm check` → arch **7/7**, typecheck **5/5**, lint **5/5**.
-- `pnpm build` → **4/4** tareas.
-- `pnpm audit --prod` → sin vulnerabilidades conocidas.
-- `git diff --check` → limpio.
-- Prueba manual en la app: ejecutada; se corrigieron «Aplicar detectado» sobre
-  ventana manual, «Detectar» con valor manual y el valor aplicado (ahora la
-  ventana de trabajo segura). Re-test pendiente antes de publicar.
-- Sin migraciones, sin cambios de export/import, sin dependencias nuevas ni
-  cambios de lockfile.
+- `pnpm build` → **4/4** tasks.
+- `pnpm audit --prod` → no known vulnerabilities.
+- `git diff --check` → clean.
+- Manual test executed; the post-review re-test passed.
+- No migrations, export/import changes, new dependencies or lockfile changes.
 
 ### Review
 
-- Independiente: **PASS WITH NOTES**
+- Independent review: **PASS WITH NOTES**
   (`docs/10-slices/S130-review.md`).
-- Bloqueantes resueltos: contrato `unknown → null` de la ruta legacy, override
-  de conversación por HTTP, invalidación del caché por instancia, sondeo vacío
-  que limpia el claim previo, «Detectar» sin doble sondeo y script de refresco
-  portable.
-- Notas no bloqueantes: NIT-3 (con ventana guardada, «Aplicar detectado»
-  reaplica el mismo valor; usar «Detectar» para reemplazarla) y NIT-4
-  (el hook construye `conversationOverride` siempre; la capa de API filtra los
-  nulos).
+- Resolved blockers: legacy `unknown → null` contract, conversation override
+  over HTTP, cache invalidation on instance edit/delete, empty probe clearing the
+  previous claim, “Detect” without a double probe or misleading toast, portable
+  refresh script.
+- Post-review fixes: manual Apply/Detect behavior and safe-window application,
+  covered by regression tests.
 
-### Diferido
+### Deferred
 
-- Tokenizer real por proveedor (se mantiene la heurística `chars/3`).
-- Adoptar `workingWindow` como denominador en compactación y envío.
-- models.dev como fuente curada alternativa.
-- Sondeo dedicado de llama.cpp `/props`.
-- Persistencia on-disk/BD del caché y auto-refresco remoto del catálogo.
-- UI/API dedicada para el override por instancia.
-- NIT-3: flujo explícito para reemplazar una ventana guardada obsoleta.
+- Real tokenizer per provider (the `chars/3` heuristic remains).
+- Adopting `workingWindow` in the compaction/send path, including the documented
+  conservative double-reserve follow-up.
+- models.dev as an alternative curated source.
+- Dedicated llama.cpp `/props` probe.
+- On-disk/DB cache persistence and automatic remote catalog refresh.
+- Dedicated UI/API for per-instance overrides.
 
 ### Release
 
-Sin bump de versión ni release: las entradas van bajo `[Unreleased]` en
-`CHANGELOG.md` y viajarán en el próximo `chore(release): vX.Y.Z` batched. No
-toca empaquetado, módulos nativos ni el lockfile.
+No version bump or release: entries live under `[Unreleased]` in `CHANGELOG.md`
+and will ship in the next batched `chore(release): vX.Y.Z`.

@@ -57,7 +57,7 @@ La prueba manual detectó tres fallos de UX que se corrigieron antes de commitea
 Corregido en `model-selector.tsx`, `context-window-card.tsx`,
 `model-capabilities-suggestion.tsx` y `use-model-capabilities.ts`, con tests de
 regresión en `model-selector.test.tsx`. El frontend pasa a **405 tests** y el
-re-test manual queda pendiente.
+re-test manual pasó.
 
 ## Verificación revisada
 

@@ -370,8 +370,8 @@ prompt (snapshots de S129 intactos).
 > Todos los criterios quedan cubiertos por tests o revisión de código. La
 > sugerencia para conversaciones nuevas se muestra en la tarjeta y se persiste
 > solo al pulsar «Aplicar detectado» (no se escribe sola en la conversación),
-> que es la semántica acordada en el RFC. La prueba manual en la app sigue
-> pendiente y se describe en Verificación.
+> que es la semántica acordada en el RFC. La prueba manual se ejecutó y el
+> re-test tras la corrección pasó; el flujo queda en Verificación.
 
 ## Red tests
 
@@ -538,7 +538,7 @@ Matriz detallada: `docs/10-slices/S130-test-plan.md`. Tests escritos el 2026-11-
   «Detectar» actualiza un valor manual; aplicar escribe la ventana de trabajo
   segura (no la bruta ni el máximo de salida); `unknown`/`infeasible` no aplican
   (botón deshabilitado). Se suman a los 405 tests de frontend.
-- **Prueba manual (re-test):** pendiente tras la corrección. Flujo a comprobar:
+- **Prueba manual (re-test):** correcta tras la corrección. Flujo comprobado:
   1. Abrir una conversación con un modelo Ollama y pulsar «Detectar»: la
      sugerencia muestra ventana, procedencia `runtime-introspection`, confianza
      alta y ventana de trabajo; «Aplicar detectado» escribe la ventana de

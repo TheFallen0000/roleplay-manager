@@ -1,6 +1,6 @@
 # S130 — Release audit
 
-**Estado:** READY (re-test manual pendiente)
+**Estado:** READY
 **Auditor:** slice-release (read-only)
 **Fecha:** 2026-11-06
 **Rama:** `feat/s130-model-capabilities`
@@ -115,11 +115,11 @@ Nits de documentación (no bloquean):
 
 ## Riesgos y pendientes
 
-1. **Prueba manual ejecutada; re-test pendiente tras la corrección.** El usuario
-   probó Ollama/OpenAI-compatible, ventana manual y cambio de modelo, y detectó
-   que «Aplicar detectado» no sobrescribía, «Detectar» no actuaba con valor
-   manual y se aplicaba la ventana bruta. Corregido con tests de regresión
-   (frontend 405 tests); falta repetir el flujo antes de publicar.
+1. **Prueba manual ejecutada y re-test correcto.** El usuario probó
+   Ollama/OpenAI-compatible, ventana manual y cambio de modelo, y detectó que
+   «Aplicar detectado» no sobrescribía, «Detectar» no actuaba con valor manual y
+   se aplicaba la ventana bruta. Corregido con tests de regresión (frontend 405
+   tests); el re-test confirmó el comportamiento esperado.
 2. **Implementación sin commitear**: hay que crear los commits 2–10 del progreso
    antes de abrir el PR; `CI` (job **Checks**) debe estar en verde.
 3. **NIT-3**: con ventana guardada, «Aplicar detectado» reaplica el mismo valor;
@@ -153,6 +153,6 @@ Nits de documentación (no bloquean):
 - [x] Review independiente: **PASS WITH NOTES** (bloqueantes resueltos)
 - [ ] Commits 2–10 creados sobre `feat/s130-model-capabilities`
 - [x] Prueba manual ejecutada; bugs corregidos con tests de regresión
-- [ ] Re-test manual tras la corrección
+- [x] Re-test manual tras la corrección
 - [ ] `CI` / **Checks** en verde en el PR
 - [ ] Aprobación humana para push/merge del PR del slice
