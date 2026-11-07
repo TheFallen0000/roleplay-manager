@@ -14,7 +14,12 @@ import {
 } from "@/lib/api/characters"
 import { uploadCharacterAsset } from "@/lib/api/client"
 import { createConversation } from "@/lib/api/conversations"
-import { getLorebook, importLorebook } from "@/lib/api/lorebook"
+import {
+  exportLorebook,
+  getLorebook,
+  importLorebook,
+  previewLorebook,
+} from "@/lib/api/lorebook"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import {
   buildCardSnapshot,
@@ -32,8 +37,10 @@ import {
   cardFieldsToInput,
   emptyLorebook,
   lorebookToEditorValue,
+  parseLorebookPayload,
   serializeLorebook,
 } from "./character-form-fields"
+import { downloadLorebook } from "./lorebook-file"
 
 export interface CardEntry {
   id: string
@@ -244,6 +251,39 @@ export function useCharacterForm(
     setProfileImageAssetId(null)
   }, [])
 
+  const handleLorebookImportFile = useCallback(
+    async (file: File) => {
+      try {
+        const payload = await file.text()
+        if (character?.id) {
+          await previewLorebook({ format: "json", payload })
+        }
+        setLorebook(parseLorebookPayload(payload))
+        toast.success(t("characters.lorebookImportDone"))
+      } catch {
+        toast.error(t("characters.lorebookImportFailed"))
+      }
+    },
+    [character, t],
+  )
+
+  const handleLorebookExport = useCallback(async () => {
+    try {
+      const payload = character?.id
+        ? await exportLorebook(character.id, "ccv3").catch(() =>
+            JSON.parse(serializeLorebook(lorebook)),
+          )
+        : JSON.parse(serializeLorebook(lorebook))
+      downloadLorebook(
+        payload,
+        lorebook.name || character?.name || t("characters.lorebookSlugFallback"),
+      )
+      toast.success(t("characters.lorebookExportDone"))
+    } catch {
+      toast.error(t("characters.lorebookExportFailed"))
+    }
+  }, [character, lorebook, t])
+
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     setAttemptedSubmit(true)
@@ -304,7 +344,9 @@ export function useCharacterForm(
           nextLorebookSnapshot,
         ))
 
-        if (lorebook.entries.length > 0 && nextLorebookSnapshot !== previousLorebook) {
+        const hasLorebookContent =
+          lorebook.entries.length > 0 || lorebook.name.trim() !== ""
+        if (hasLorebookContent && nextLorebookSnapshot !== previousLorebook) {
           try {
             const imported = await importLorebook(character.id, {
               format: "ccv3",
@@ -334,7 +376,7 @@ export function useCharacterForm(
             .filter((c) => c.title.trim() && c.content.trim())
             .map((c) => ({ title: c.title, content: c.content, active: c.active })),
           ...cardFieldsToInput(cardFields),
-          ...(lorebook.entries.length > 0
+          ...(lorebook.entries.length > 0 || lorebook.name.trim() !== ""
             ? {
                 lorebook: {
                   format: "ccv3" as const,
@@ -430,6 +472,8 @@ export function useCharacterForm(
     setCardField,
     lorebook,
     setLorebook,
+    handleLorebookImportFile,
+    handleLorebookExport,
     versionNumber,
     activeTab, setActiveTab,
     saving,

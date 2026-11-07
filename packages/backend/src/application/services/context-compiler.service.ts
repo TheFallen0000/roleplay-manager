@@ -156,6 +156,13 @@ export class ContextCompiler {
           input.memories.length - input.promptMemories.length,
         ),
       },
+      ...(input.lorebook
+        ? {
+            lorebook: {
+              overBudget: input.lorebook.overBudgetCount ?? 0,
+            },
+          }
+        : {}),
       messages: {
         afterSummary: Math.max(
           0,

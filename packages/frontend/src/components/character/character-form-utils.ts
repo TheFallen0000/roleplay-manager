@@ -55,7 +55,14 @@ export function buildCardSnapshot(fields: CardSnapshotFields): string {
 export function buildLorebookSnapshot(lorebook: LorebookEditorValue): string {
   return JSON.stringify({
     name: lorebook.name.trim(),
+    description: lorebook.description ?? null,
+    scanDepth: lorebook.scanDepth ?? 4,
+    tokenBudget: lorebook.tokenBudget ?? 400,
+    recursiveScanning: lorebook.recursiveScanning ?? false,
+    extensions: lorebook.extensions ?? null,
+    unknownFields: lorebook.unknownFields ?? null,
     entries: lorebook.entries.map((entry) => ({
+      sourceId: entry.sourceId ?? null,
       name: entry.name,
       keys: entry.keys,
       content: entry.content,
@@ -71,6 +78,9 @@ export function buildLorebookSnapshot(lorebook: LorebookEditorValue): string {
       wholeWords: entry.wholeWords,
       comment: entry.comment,
       rawPosition: entry.rawPosition ?? null,
+      order: entry.order ?? null,
+      extensions: entry.extensions ?? null,
+      unknownFields: entry.unknownFields ?? null,
     })),
   })
 }

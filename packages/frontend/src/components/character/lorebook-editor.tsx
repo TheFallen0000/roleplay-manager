@@ -1,15 +1,17 @@
 import { useRef } from "react"
-import { PlusIcon, UploadIcon } from "lucide-react"
+import { DownloadIcon, PlusIcon, UploadIcon } from "lucide-react"
 
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
 import { useTranslation } from "@/lib/hooks/use-translation"
 
+import { LorebookEntryForm } from "./lorebook-entry-form"
+
 export interface LorebookEditorEntry {
   id?: string
+  sourceId?: string | null
   name: string
   keys: string[]
   content: string
@@ -25,10 +27,19 @@ export interface LorebookEditorEntry {
   wholeWords: boolean
   comment: string | null
   rawPosition?: string | null
+  order?: number
+  extensions?: unknown
+  unknownFields?: unknown
 }
 
 export interface LorebookEditorValue {
   name: string
+  description?: string | null
+  scanDepth?: number
+  tokenBudget?: number
+  recursiveScanning?: boolean
+  extensions?: unknown
+  unknownFields?: unknown
   entries: LorebookEditorEntry[]
 }
 
@@ -37,6 +48,7 @@ interface LorebookEditorProps {
   onChange: (value: LorebookEditorValue) => void
   onImportRequest?: () => void
   onImportFile?: (file: File) => void
+  onExport?: () => void
 }
 
 const emptyEntry = (): LorebookEditorEntry => ({
@@ -62,12 +74,29 @@ export function LorebookEditor({
   onChange,
   onImportRequest,
   onImportFile,
+  onExport,
 }: LorebookEditorProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const addEntry = () => {
     onChange({ ...value, entries: [...value.entries, emptyEntry()] })
+  }
+
+  const updateEntry = (index: number, entry: LorebookEditorEntry) => {
+    onChange({
+      ...value,
+      entries: value.entries.map((item, itemIndex) =>
+        itemIndex === index ? entry : item,
+      ),
+    })
+  }
+
+  const removeEntry = (index: number) => {
+    onChange({
+      ...value,
+      entries: value.entries.filter((_, itemIndex) => itemIndex !== index),
+    })
   }
 
   const requestImport = () => {
@@ -101,6 +130,10 @@ export function LorebookEditor({
           <UploadIcon />
           {t("characters.lorebookImport")}
         </Button>
+        <Button type="button" variant="outline" onClick={onExport}>
+          <DownloadIcon />
+          {t("characters.lorebookExport")}
+        </Button>
         <input
           ref={inputRef}
           type="file"
@@ -119,31 +152,16 @@ export function LorebookEditor({
           {t("characters.lorebookEmpty")}
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {value.entries.map((entry, index) => {
-            const label =
-              entry.name.trim() ||
-              entry.comment?.trim() ||
-              t("characters.lorebookEntryFallback")
-
-            return (
-              <li
-                key={entry.id ?? `${label}-${index}`}
-                className="flex flex-col gap-1.5 rounded-lg border p-3"
-              >
-                <span className="text-sm font-medium">{label}</span>
-                {entry.keys.length > 0 ? (
-                  <ul className="flex flex-wrap gap-1.5">
-                    {entry.keys.map((key) => (
-                      <li key={key}>
-                        <Badge variant="secondary">{key}</Badge>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </li>
-            )
-          })}
+        <ul className="flex flex-col gap-3">
+          {value.entries.map((entry, index) => (
+            <li key={entry.id ?? `${entry.name}-${index}`}>
+              <LorebookEntryForm
+                entry={entry}
+                onChange={(next) => updateEntry(index, next)}
+                onRemove={() => removeEntry(index)}
+              />
+            </li>
+          ))}
         </ul>
       )}
     </div>

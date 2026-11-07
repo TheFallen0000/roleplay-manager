@@ -109,53 +109,10 @@ export function CharacterCardFields({
       </Field>
 
       <Field>
-        <FieldLabel htmlFor="card-version">
-          {t("characters.fieldCardVersion")}
-        </FieldLabel>
-        <Input
-          id="card-version"
-          value={values.cardCharacterVersion}
-          onChange={(event) =>
-            onChange("cardCharacterVersion", event.target.value)
-          }
-          maxLength={200}
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="card-gender">
-          {t("characters.fieldGender")}
-        </FieldLabel>
-        <Input
-          id="card-gender"
-          value={values.gender}
-          onChange={(event) => onChange("gender", event.target.value)}
-          maxLength={200}
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="card-pronouns">
-          {t("characters.fieldPronouns")}
-        </FieldLabel>
-        <Input
-          id="card-pronouns"
-          value={values.pronouns}
-          onChange={(event) => onChange("pronouns", event.target.value)}
-          maxLength={200}
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="card-tagline">
-          {t("characters.fieldTagline")}
-        </FieldLabel>
-        <Input
-          id="card-tagline"
-          value={values.tagline}
-          onChange={(event) => onChange("tagline", event.target.value)}
-          maxLength={500}
-        />
+        <FieldLabel>{t("characters.fieldCardVersion")}</FieldLabel>
+        <p className="text-sm text-muted-foreground">
+          {values.cardCharacterVersion.trim() || "—"}
+        </p>
       </Field>
 
       <GenderPronounsChips

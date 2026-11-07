@@ -79,6 +79,8 @@ function CharacterFormContent({ character, onCreated }: Props) {
     cards,
     cardFields, setCardField,
     lorebook, setLorebook,
+    handleLorebookImportFile,
+    handleLorebookExport,
     versionNumber,
     activeTab, setActiveTab,
     saving,
@@ -333,7 +335,12 @@ function CharacterFormContent({ character, onCreated }: Props) {
         </TabsContent>
 
         <TabsContent value="lorebook" className="flex flex-col gap-4 pt-4">
-          <LorebookEditor value={lorebook} onChange={setLorebook} />
+          <LorebookEditor
+            value={lorebook}
+            onChange={setLorebook}
+            onImportFile={(file) => void handleLorebookImportFile(file)}
+            onExport={() => void handleLorebookExport()}
+          />
         </TabsContent>
       </Tabs>
     </form>

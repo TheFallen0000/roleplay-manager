@@ -60,6 +60,10 @@ export interface ContextManifestDTO {
     included: number
     excluded: number
   }
+  lorebook?: {
+    /** Activated entries dropped because the token budget was exceeded. */
+    overBudget: number
+  }
   messages: {
     afterSummary: number
     pending: number
