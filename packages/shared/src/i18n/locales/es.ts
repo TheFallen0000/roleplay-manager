@@ -220,14 +220,12 @@ export const es: Dictionary = {
       "La versión {installed} está instalada. Sigues ejecutando la {running}.",
     restartLaterHint:
       "Si cierras y vuelves a abrir la app, también se iniciará la versión nueva.",
-    restartManual:
-      "Cierra y vuelve a abrir la app para usar la versión nueva.",
+    restartManual: "Cierra y vuelve a abrir la app para usar la versión nueva.",
     updatedTitle: "Actualizado a la versión {version}",
     updatedDescription: "Ya estás ejecutando la versión nueva.",
     updatedDismiss: "Cerrar",
     rollbackDoneNow: "Has vuelto a la versión {version}.",
-    rollbackUpdatedDescription:
-      "Vuelves a ejecutar la versión anterior.",
+    rollbackUpdatedDescription: "Vuelves a ejecutar la versión anterior.",
     securityNote:
       "Actualizar descarga y ejecuta código del repositorio; hazlo solo si confías en él.",
     notesTitle: "Notas de la versión",
@@ -386,7 +384,8 @@ export const es: Dictionary = {
     menuCustomization: "Personalización",
     menuPersona: "Persona",
     historyTitle: "Historia del chat",
-    historyDescription: "Memorias, propuestas, resúmenes, compactación y auto-degradación.",
+    historyDescription:
+      "Memorias, propuestas, resúmenes, compactación y auto-degradación.",
     memoryMode: "Modo de gestión de memorias",
     proposals: "Propuestas pendientes",
     summaries: "Resúmenes",
@@ -675,10 +674,10 @@ export const es: Dictionary = {
     assistantLabel: "Asistente ({name})",
   },
   titlePrompt: {
-    system: "Genera títulos cortos y descriptivos para conversaciones de roleplay.",
+    system:
+      "Genera títulos cortos y descriptivos para conversaciones de roleplay.",
     rules: "## Reglas",
-    only:
-      "- Devuelve SOLO el título, sin explicaciones ni formato adicional.",
+    only: "- Devuelve SOLO el título, sin explicaciones ni formato adicional.",
     language:
       "- Escribe el título en el mismo idioma que la conversación de abajo. No lo traduzcas.",
     names:
@@ -769,6 +768,7 @@ export const es: Dictionary = {
     exportSelectAll: "Marcar todo",
     exportClearAll: "Desmarcar todo",
     exportDefinition: "Definición (versión actual, tarjetas incluidas)",
+    exportLorebook: "Lorebook",
     exportProfileImage: "Imagen de perfil",
     exportVersions: "Historial de versiones (con sus tarjetas)",
     exportConversations: "Conversaciones y ramas",
@@ -1187,8 +1187,7 @@ export const es: Dictionary = {
       "Se aplicarán {count} propuestas. Eliminaciones: {deletes}.",
     proposalAcceptAllWithDeletes: "Se eliminarán las siguientes memorias:",
     proposalInvalidFields: "El actor y el título son obligatorios.",
-    proposalInvalidPriority:
-      "La prioridad debe ser un entero entre 1 y 10.",
+    proposalInvalidPriority: "La prioridad debe ser un entero entre 1 y 10.",
   },
   logs: {
     title: "Registro",

@@ -30,13 +30,17 @@ const CONVERSATION_CHILDREN: ExportSection[] = [
 
 const DEFAULT_SECTIONS: ExportSection[] = [
   "definition",
+  "lorebook",
   "profileImage",
   "versions",
   "conversations",
   ...CONVERSATION_CHILDREN,
 ]
 
-const ALL_SECTIONS: ExportSection[] = [...DEFAULT_SECTIONS, "standaloneSettings"]
+const ALL_SECTIONS: ExportSection[] = [
+  ...DEFAULT_SECTIONS,
+  "standaloneSettings",
+]
 
 const CHILD_LABEL_KEYS: Record<string, TranslationKey> = {
   "conversations.messages": "characters.exportMessages",
@@ -71,11 +75,12 @@ export function ExportDialog({
 }: ExportDialogProps) {
   const { t } = useTranslation()
   const [selected, setSelected] = useState<Set<ExportSection>>(
-    () => new Set(DEFAULT_SECTIONS),
+    () => new Set(DEFAULT_SECTIONS)
   )
   const [exporting, setExporting] = useState(false)
 
   const conversationsSelected = selected.has("conversations")
+  const definitionSelected = selected.has("definition")
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -101,6 +106,13 @@ export function ExportDialog({
           }
         }
       }
+      if (section === "definition") {
+        if (checked) {
+          next.add("lorebook")
+        } else {
+          next.delete("lorebook")
+        }
+      }
       return next
     })
   }
@@ -123,7 +135,7 @@ export function ExportDialog({
       link.href = url
       link.download = `${t("characters.slugFallback")}-${slugify(
         character.name,
-        t("characters.slugFallback"),
+        t("characters.slugFallback")
       )}-${new Date().toISOString().slice(0, 10)}.json`
       document.body.appendChild(link)
       link.click()
@@ -149,7 +161,9 @@ export function ExportDialog({
         </DialogHeader>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">{t("characters.exportSections")}</span>
+          <span className="text-sm font-medium">
+            {t("characters.exportSections")}
+          </span>
           <div className="flex gap-2">
             <Button
               type="button"
@@ -193,12 +207,25 @@ export function ExportDialog({
 
             <label className="flex items-center gap-2">
               <Checkbox
+                checked={selected.has("lorebook")}
+                disabled={!definitionSelected}
+                onCheckedChange={(checked) =>
+                  setSectionChecked("lorebook", checked)
+                }
+              />
+              <span className="text-sm">{t("characters.exportLorebook")}</span>
+            </label>
+
+            <label className="flex items-center gap-2">
+              <Checkbox
                 checked={selected.has("profileImage")}
                 onCheckedChange={(checked) =>
                   setSectionChecked("profileImage", checked)
                 }
               />
-              <span className="text-sm">{t("characters.exportProfileImage")}</span>
+              <span className="text-sm">
+                {t("characters.exportProfileImage")}
+              </span>
             </label>
 
             <label className="flex items-center gap-2">
@@ -208,9 +235,7 @@ export function ExportDialog({
                   setSectionChecked("versions", checked)
                 }
               />
-              <span className="text-sm">
-                {t("characters.exportVersions")}
-              </span>
+              <span className="text-sm">{t("characters.exportVersions")}</span>
             </label>
 
             <label className="flex items-center gap-2">
@@ -246,9 +271,7 @@ export function ExportDialog({
                       setSectionChecked(child, checked)
                     }
                   />
-                  <span className="text-sm">
-                    {t(CHILD_LABEL_KEYS[child])}
-                  </span>
+                  <span className="text-sm">{t(CHILD_LABEL_KEYS[child])}</span>
                 </label>
               ))}
             </div>

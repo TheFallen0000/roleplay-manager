@@ -1,4 +1,10 @@
-import { render as rtlRender, screen, fireEvent, cleanup, waitFor } from "@testing-library/react"
+import {
+  render as rtlRender,
+  screen,
+  fireEvent,
+  cleanup,
+  waitFor,
+} from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import type * as React from "react"
 
@@ -53,7 +59,9 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const renderDialog = (props: Partial<Parameters<typeof ExportDialog>[0]> = {}) =>
+const renderDialog = (
+  props: Partial<Parameters<typeof ExportDialog>[0]> = {}
+) =>
   render(
     <ExportDialog
       character={character}
@@ -61,7 +69,7 @@ const renderDialog = (props: Partial<Parameters<typeof ExportDialog>[0]> = {}) =
       open
       onOpenChange={() => {}}
       {...props}
-    />,
+    />
   )
 
 const checkbox = (name: RegExp) => screen.getByRole("checkbox", { name })
@@ -78,6 +86,7 @@ describe("ExportDialog", () => {
     renderDialog()
 
     expect(checkbox(/^Definición/)).toBeChecked()
+    expect(checkbox(/^Lorebook/)).toBeChecked()
     expect(checkbox(/^Imagen de perfil/)).toBeChecked()
     expect(checkbox(/^Historial de versiones/)).toBeChecked()
     expect(checkbox(/^Conversaciones y ramas/)).toBeChecked()
@@ -98,9 +107,23 @@ describe("ExportDialog", () => {
     expect(checkbox(/^Mensajes/)).not.toBeChecked()
     expect(checkboxRoot(/^Memorias dinámicas/)).toHaveAttribute("data-disabled")
     expect(checkboxRoot(/^Resúmenes/)).toHaveAttribute("data-disabled")
-    expect(checkboxRoot(/^Configuraciones y personalizaciones/)).toHaveAttribute(
-      "data-disabled",
-    )
+    expect(
+      checkboxRoot(/^Configuraciones y personalizaciones/)
+    ).toHaveAttribute("data-disabled")
+  })
+
+  it("marca el lorebook con la definición y lo deshabilita sin ella", () => {
+    renderDialog()
+
+    fireEvent.click(checkbox(/^Definición/))
+
+    expect(checkbox(/^Lorebook/)).not.toBeChecked()
+    expect(checkboxRoot(/^Lorebook/)).toHaveAttribute("data-disabled")
+
+    fireEvent.click(checkbox(/^Definición/))
+
+    expect(checkbox(/^Lorebook/)).toBeChecked()
+    expect(checkboxRoot(/^Lorebook/)).not.toHaveAttribute("data-disabled")
   })
 
   it("permite marcar y desmarcar todo", () => {
@@ -108,11 +131,13 @@ describe("ExportDialog", () => {
 
     fireEvent.click(screen.getByText("Desmarcar todo"))
     expect(checkbox(/^Definición/)).not.toBeChecked()
+    expect(checkbox(/^Lorebook/)).not.toBeChecked()
     expect(checkbox(/^Conversaciones y ramas/)).not.toBeChecked()
     expect(checkboxRoot(/^Mensajes/)).toHaveAttribute("data-disabled")
 
     fireEvent.click(screen.getByText("Marcar todo"))
     expect(checkbox(/^Definición/)).toBeChecked()
+    expect(checkbox(/^Lorebook/)).toBeChecked()
     expect(checkbox(/^Mensajes/)).toBeChecked()
     expect(checkbox(/^Solo configuración/)).toBeChecked()
   })
@@ -138,6 +163,7 @@ describe("ExportDialog", () => {
     expect(sections).toEqual(
       expect.arrayContaining([
         "definition",
+        "lorebook",
         "profileImage",
         "versions",
         "conversations",
@@ -146,7 +172,7 @@ describe("ExportDialog", () => {
         "conversations.summaries",
         "conversations.settings",
         "conversations.images",
-      ]),
+      ])
     )
     expect(sections).not.toContain("standaloneSettings")
     expect(URL.createObjectURL).toHaveBeenCalled()
@@ -160,7 +186,7 @@ describe("ExportDialog", () => {
 
     expect(mocks.exportCharacter).not.toHaveBeenCalled()
     expect(mocks.toastError).toHaveBeenCalledWith(
-      "Selecciona al menos una sección para exportar.",
+      "Selecciona al menos una sección para exportar."
     )
   })
 })

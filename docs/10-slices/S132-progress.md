@@ -246,15 +246,15 @@ también puede venir embebido en un PNG `chara`; se decodifica igual.
 
 **Mapeo V1 (import-only; no se exporta V1):**
 
-| Campo V1 | Campo nuestro | Nota |
-| --- | --- | --- |
-| `name` | `Character.name` / `CharacterVersion.name` | requerido; vacío → `INVALID_CARD_NAME` |
-| `description` | `CharacterVersion.description` | vacío → fallback neutro + warning |
-| `personality` | `CharacterVersion.personality` | vacío → `null` |
-| `scenario` | `CharacterVersion.scenario` | vacío → `null` |
-| `first_mes` | `CharacterVersion.greeting` | ver política de vacíos |
-| `mes_example` | `CharacterVersion.mesExample` | vacío → `null` |
-| resto de keys raíz | `CharacterVersion.unknownRootFields` | verbatim; se re-emiten al exportar V2/V3 en la raíz |
+| Campo V1           | Campo nuestro                              | Nota                                                |
+| ------------------ | ------------------------------------------ | --------------------------------------------------- |
+| `name`             | `Character.name` / `CharacterVersion.name` | requerido; vacío → `INVALID_CARD_NAME`              |
+| `description`      | `CharacterVersion.description`             | vacío → fallback neutro + warning                   |
+| `personality`      | `CharacterVersion.personality`             | vacío → `null`                                      |
+| `scenario`         | `CharacterVersion.scenario`                | vacío → `null`                                      |
+| `first_mes`        | `CharacterVersion.greeting`                | ver política de vacíos                              |
+| `mes_example`      | `CharacterVersion.mesExample`              | vacío → `null`                                      |
+| resto de keys raíz | `CharacterVersion.unknownRootFields`       | verbatim; se re-emiten al exportar V2/V3 en la raíz |
 
 Un V1 no trae `system_prompt`, `post_history_instructions`, tags, creator,
 `character_book` ni `extensions`; esos campos quedan `null`/`[]`.
@@ -310,12 +310,12 @@ raíz tiene `entries` (objeto o array) sin `spec` → ST nativo standalone.
 **Export de lorebook** (desde el lorebook de un personaje) produce exactamente:
 
 - `format: "ccv3"` → `{ spec:"lorebook_v3", data: { entries: [...], name?,
-  description?, recursive_scanning?, scan_depth?, token_budget?, extensions? } }`.
+description?, recursive_scanning?, scan_depth?, token_budget?, extensions? } }`.
   La spec standalone **no define `spec_version`**; no se emite. Si un import lo
   trae, se acepta y se conserva como campo desconocido de la raíz.
 - `format: "st-native"` → `{ entries: { "<source_id|id>": { key, keysecondary,
-  comment, content, constant, selective, selectiveLogic, order, position
-  (numérico), disable, caseSensitive, matchWholeWords, ... }, ... } }` (objeto
+comment, content, constant, selective, selectiveLogic, order, position
+(numérico), disable, caseSensitive, matchWholeWords, ... }, ... } }` (objeto
   keyed-by-uid, forma histórica de ST). Si no hay `source_id`, se usa el `id`.
 
 Ambos re-emiten los campos `unknown_fields`/`extensions` de libro y entrada en su
@@ -421,28 +421,28 @@ un `spec_version` futuro si el `spec` es conocido.
 Columna «Prompt» indica si/usar el campo en el ensamblado; «Export card» indica
 a qué clave de `data` de ST se mapea al exportar (y si es verbatim).
 
-| Campo ST (V2/V3 `data`)                                                      | Campo entidad/DTO                                       | Prompt                                                      | Export card                                      |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------ |
-| `name`                                                                       | `CharacterVersion.name` / `Character.name`              | `character` (intro/name)                                    | `name`                                           |
-| `description`                                                                | `CharacterVersion.description`                          | `character` (intro)                                         | `description`                                    |
-| `personality`                                                                | `CharacterVersion.personality` (nuevo)                  | `character` (tras label personality)                        | `personality`                                    |
-| `scenario`                                                                   | `CharacterVersion.scenario` (nuevo)                     | `character` (línea scenario)                                | `scenario`                                       |
-| `first_mes`                                                                  | `CharacterVersion.greeting`                             | `style` (ejemplo de saludo)                                 | `first_mes`                                      |
-| `mes_example`                                                                | `CharacterVersion.mesExample` (nuevo)                   | `style` (ejemplo, opcional)                                 | `mes_example`                                    |
-| `system_prompt`                                                              | `CharacterVersion.systemPrompt` (nuevo)                 | Override del bloque de persona (dentro de `character`; conserva scaffolding) | `system_prompt`                                  |
-| `post_history_instructions`                                                  | `CharacterVersion.postHistoryInstructions` (nuevo)      | Override de card (final)                                    | `post_history_instructions`                      |
-| `alternate_greetings`                                                        | `CharacterVersion.alternateGreetings` (JSON array)      | No (display-only)                                           | `alternate_greetings`                            |
-| `creator_notes`                                                              | `CharacterVersion.creatorNotes` (nuevo)                 | **Nunca**                                                   | `creator_notes`                                  |
-| `tags`                                                                       | `CharacterVersion.tags` (JSON array)                    | No (display-only)                                           | `tags`                                           |
-| `creator`                                                                    | `CharacterVersion.creator` (nuevo)                      | No (display-only)                                           | `creator`                                        |
-| `character_version`                                                          | `CharacterVersion.cardCharacterVersion` (nuevo, string) | No (display-only)                                           | `character_version`                              |
-| `gender`                                                                     | `CharacterVersion.gender` (nuevo)                       | No (display-only en S132)                                   | `gender`                                         |
-| `pronouns`                                                                   | `CharacterVersion.pronouns` (nuevo)                     | No (display-only en S132)                                   | `pronouns`                                       |
-| `tagline` (nuestro)                                                          | `CharacterVersion.tagline` (nuevo)                      | No (display-only)                                           | `extensions.rm.tagline` (merge, no sobrescribir) |
-| `extensions`                                                                 | `CharacterVersion.extensions` (JSON verbatim)           | No                                                          | `extensions` (verbatim)                          |
-| `character_book`                                                             | `Lorebook` + `LorebookEntry` (vinculado al personaje)   | Entradas activadas (`lorebook.*`)                           | `character_book`                                 |
-| keys `data` no mapeadas (incl. V3 `assets`, `nickname`, `group_only_greetings`, `creator_notes_multilingual`, `source`, fechas) | `CharacterVersion.unknownFields` (JSON verbatim)        | No                                                          | top-level de `data` (verbatim)                   |
-| keys **raíz** no mapeadas (extras del envelope o V1 plano)                  | `CharacterVersion.unknownRootFields` (JSON verbatim)    | No                                                          | raíz del card (verbatim)                         |
+| Campo ST (V2/V3 `data`)                                                                                                         | Campo entidad/DTO                                       | Prompt                                                                       | Export card                                      |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------ |
+| `name`                                                                                                                          | `CharacterVersion.name` / `Character.name`              | `character` (intro/name)                                                     | `name`                                           |
+| `description`                                                                                                                   | `CharacterVersion.description`                          | `character` (intro)                                                          | `description`                                    |
+| `personality`                                                                                                                   | `CharacterVersion.personality` (nuevo)                  | `character` (tras label personality)                                         | `personality`                                    |
+| `scenario`                                                                                                                      | `CharacterVersion.scenario` (nuevo)                     | `character` (línea scenario)                                                 | `scenario`                                       |
+| `first_mes`                                                                                                                     | `CharacterVersion.greeting`                             | `style` (ejemplo de saludo)                                                  | `first_mes`                                      |
+| `mes_example`                                                                                                                   | `CharacterVersion.mesExample` (nuevo)                   | `style` (ejemplo, opcional)                                                  | `mes_example`                                    |
+| `system_prompt`                                                                                                                 | `CharacterVersion.systemPrompt` (nuevo)                 | Override del bloque de persona (dentro de `character`; conserva scaffolding) | `system_prompt`                                  |
+| `post_history_instructions`                                                                                                     | `CharacterVersion.postHistoryInstructions` (nuevo)      | Override de card (final)                                                     | `post_history_instructions`                      |
+| `alternate_greetings`                                                                                                           | `CharacterVersion.alternateGreetings` (JSON array)      | No (display-only)                                                            | `alternate_greetings`                            |
+| `creator_notes`                                                                                                                 | `CharacterVersion.creatorNotes` (nuevo)                 | **Nunca**                                                                    | `creator_notes`                                  |
+| `tags`                                                                                                                          | `CharacterVersion.tags` (JSON array)                    | No (display-only)                                                            | `tags`                                           |
+| `creator`                                                                                                                       | `CharacterVersion.creator` (nuevo)                      | No (display-only)                                                            | `creator`                                        |
+| `character_version`                                                                                                             | `CharacterVersion.cardCharacterVersion` (nuevo, string) | No (display-only)                                                            | `character_version`                              |
+| `gender`                                                                                                                        | `CharacterVersion.gender` (nuevo)                       | No (display-only en S132)                                                    | `gender`                                         |
+| `pronouns`                                                                                                                      | `CharacterVersion.pronouns` (nuevo)                     | No (display-only en S132)                                                    | `pronouns`                                       |
+| `tagline` (nuestro)                                                                                                             | `CharacterVersion.tagline` (nuevo)                      | No (display-only)                                                            | `extensions.rm.tagline` (merge, no sobrescribir) |
+| `extensions`                                                                                                                    | `CharacterVersion.extensions` (JSON verbatim)           | No                                                                           | `extensions` (verbatim)                          |
+| `character_book`                                                                                                                | `Lorebook` + `LorebookEntry` (vinculado al personaje)   | Entradas activadas (`lorebook.*`)                                            | `character_book`                                 |
+| keys `data` no mapeadas (incl. V3 `assets`, `nickname`, `group_only_greetings`, `creator_notes_multilingual`, `source`, fechas) | `CharacterVersion.unknownFields` (JSON verbatim)        | No                                                                           | top-level de `data` (verbatim)                   |
+| keys **raíz** no mapeadas (extras del envelope o V1 plano)                                                                      | `CharacterVersion.unknownRootFields` (JSON verbatim)    | No                                                                           | raíz del card (verbatim)                         |
 
 **Mapeo de entradas/lorebook ST → columnas** (con aliases ST nativos):
 
@@ -673,7 +673,7 @@ string, replace?: boolean }`. Importa un lorebook standalone (CCv3 o ST nativo)
   entradas (borrado + alta en una transacción). Devuelve `LorebookDTO`.
 - **Crear personaje con lorebook:** `POST /api/characters` (y
   `CreateCharacterInput`) acepta `lorebook?: { format: "ccv3"|"st-native",
-  payload: string }`; el use case `CreateCharacter` crea personaje, versión y
+payload: string }`; el use case `CreateCharacter` crea personaje, versión y
   lorebook en la misma transacción. Así la pestaña Lorebook del modal `Crear`
   funciona antes de que exista el personaje.
 - `POST /api/characters/:id/lorebook/export` — body `{ format: "ccv3"|
@@ -749,20 +749,20 @@ límite de entradas por import (`MAX_LOREBOOK_ENTRIES = 1000`).
 
 ### Tabla de seguridad
 
-| Amenaza                                                             | Control                                                                                        | Test                                                           |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| JSON/PNG sobredimensionado                                          | Caps de bytes/tamaño por chunk/nº chunks/JSON decodificado → 413/400                           | Fixture grande → rechazo con código correcto.                  |
-| PNG malformado (CRC, longitud, truncado, chunk crítico desconocido) | `zlib.crc32`, validación de longitud y firma, rechazo de críticos desconocidos                 | Fixtures corruptos → `INVALID_CARD_PNG`.                       |
-| Bomba base64/compresión (IDAT)                                      | Cap de tamaño descomprimido de IDAT                                                            | Fixture inflado → rechazo.                                     |
+| Amenaza                                                             | Control                                                                                                                                                                                                    | Test                                                           |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| JSON/PNG sobredimensionado                                          | Caps de bytes/tamaño por chunk/nº chunks/JSON decodificado → 413/400                                                                                                                                       | Fixture grande → rechazo con código correcto.                  |
+| PNG malformado (CRC, longitud, truncado, chunk crítico desconocido) | `zlib.crc32`, validación de longitud y firma, rechazo de críticos desconocidos                                                                                                                             | Fixtures corruptos → `INVALID_CARD_PNG`.                       |
+| Bomba base64/compresión (IDAT)                                      | Cap de tamaño descomprimido de IDAT                                                                                                                                                                        | Fixture inflado → rechazo.                                     |
 | HTML/script en textos importados                                    | Todos los campos de card se renderizan como texto plano (React escapa); no se usa `dangerouslySetInnerHTML` ni se interpreta Markdown/HTML en S132. Si se añade renderizado rico, sanitizar con allowlist. | `creator_notes`/tags/personality se muestran como texto plano. |
-| ReDoS por regex de usuario                                          | **Sin regex**: matching literal (case + whole-word)                                            | Test de que no hay ruta regex; entrada `use_regex` se ignora.  |
-| Bomba de recursión del lorebook                                     | Cap `MAX_LOREBOOK_RECURSION_DEPTH = 3` + `token_budget`                                        | Fixture recursivo → parada y presupuesto respetado.            |
-| Decoradores `@@` inyectados como texto                              | Se eliminan de la copia del prompt; `content`/export los conserva verbatim                     | `@@depth` no aparece en el prompt y sí en el export.            |
-| Llamadas de red durante import/export                               | Parseo local puro; placeholder generado en memoria                                             | Aserto de que no hay `fetch`; placeholder sin red.             |
-| Fuga de secretos en export                                          | El card exporta solo datos del personaje; nunca settings/providers/API keys                    | Card exportado no contiene claves ni providers.                |
-| `creator_notes` en el prompt                                        | Excluido del builder/compilador por contrato                                                   | Snapshot del prompt sin `creator_notes` (fuga = 0).            |
-| Campo de prompt sobredimensionado                                   | `MAX_PROMPT_FIELD_CHARS` → rechazo en import                                                   | Campo > cap → `INVALID_CARD_FIELD_TOO_LARGE`.                  |
-| Macro crudo en el prompt (solo si M1 se aprueba)                     | `{{char}}`/`{{user}}` expandidos en campos nuevos; resto verbatim (documentado)                | Snapshot con macro expandido, sin `{{char}}` crudo.            |
+| ReDoS por regex de usuario                                          | **Sin regex**: matching literal (case + whole-word)                                                                                                                                                        | Test de que no hay ruta regex; entrada `use_regex` se ignora.  |
+| Bomba de recursión del lorebook                                     | Cap `MAX_LOREBOOK_RECURSION_DEPTH = 3` + `token_budget`                                                                                                                                                    | Fixture recursivo → parada y presupuesto respetado.            |
+| Decoradores `@@` inyectados como texto                              | Se eliminan de la copia del prompt; `content`/export los conserva verbatim                                                                                                                                 | `@@depth` no aparece en el prompt y sí en el export.           |
+| Llamadas de red durante import/export                               | Parseo local puro; placeholder generado en memoria                                                                                                                                                         | Aserto de que no hay `fetch`; placeholder sin red.             |
+| Fuga de secretos en export                                          | El card exporta solo datos del personaje; nunca settings/providers/API keys                                                                                                                                | Card exportado no contiene claves ni providers.                |
+| `creator_notes` en el prompt                                        | Excluido del builder/compilador por contrato                                                                                                                                                               | Snapshot del prompt sin `creator_notes` (fuga = 0).            |
+| Campo de prompt sobredimensionado                                   | `MAX_PROMPT_FIELD_CHARS` → rechazo en import                                                                                                                                                               | Campo > cap → `INVALID_CARD_FIELD_TOO_LARGE`.                  |
+| Macro crudo en el prompt (solo si M1 se aprueba)                    | `{{char}}`/`{{user}}` expandidos en campos nuevos; resto verbatim (documentado)                                                                                                                            | Snapshot con macro expandido, sin `{{char}}` crudo.            |
 
 ### Política de compatibilidad y legal
 
@@ -786,7 +786,7 @@ límite de entradas por import (`MAX_LOREBOOK_ENTRIES = 1000`).
   `post_history_instructions` va al final como sección propia.
 - **D2 — posición del lorebook.** Tras `cards` y antes de `player` para
   `after_char` (default); `before_char` va al inicio. Ver `Contrato de
-  colocación`.
+colocación`.
 - **D3 — `gender`/`pronouns`.** Display-only en S132 (sin inyección en prompt);
   la inyección se deja para otro slice.
 
@@ -998,9 +998,9 @@ y los snapshots de `pnpm --filter @workspace/backend eval`.
   - backend: `20 failed | 129 passed` archivos, `24 failed | 807 passed` tests.
     Fallos representativos: journal `0019` ausente; columnas nuevas y tablas
     `lorebooks`/`lorebook_entries` ausentes; `Cannot find package
-    @workspace/shared/lib/lorebook-activation`; `Cannot find package
-    @workspace/shared/lib/sillytavern-card`; `Cannot find module
-    ./png-card.adapter`; `Cannot find module ./sillytavern-card.mapper`; use
+@workspace/shared/lib/lorebook-activation`; `Cannot find package
+@workspace/shared/lib/sillytavern-card`; `Cannot find module
+./png-card.adapter`; `Cannot find module ./sillytavern-card.mapper`; use
     cases/rutas S132 ausentes; export interno sin sección `lorebook`; prompt sin
     overrides/lorebook; `preview.systemPrompt` sin lorebook.
   - frontend: `9 failed | 70 passed` archivos, `3 failed | 410 passed` tests.
@@ -1013,7 +1013,7 @@ y los snapshots de `pnpm --filter @workspace/backend eval`.
 ## Decisiones
 
 - **Creación transaccional.** `CharacterRepository.createWithFirstVersion(character,
-  version, { book, entries })` acepta un lorebook opcional y crea personaje +
+version, { book, entries })` acepta un lorebook opcional y crea personaje +
   primera versión + libro + entradas en una sola transacción SQLite. El bloque lo
   construye `create-character` con `buildLorebookEntities`; un fallo intermedio no
   deja personaje huérfano ni lorebook parcial. `CreateCharacterInput.lorebook` es
@@ -1041,7 +1041,7 @@ y los snapshots de `pnpm --filter @workspace/backend eval`.
   a `MAX_LOREBOOK_RECURSION_DEPTH = 3`; `scanDepth` por entrada y
   `excludeRecursion`/`preventRecursion` se preservan sin activar.
 - **Manifiesto `lorebook.overBudget`.** `ContextManifestDTO.lorebook?: {
-  overBudget: number }` expone cuántas entradas activadas se descartaron por
+overBudget: number }` expone cuántas entradas activadas se descartaron por
   `token_budget`; lo emite `ContextCompiler` desde el resultado de activación.
 - **D1 — reemplazo del bloque de persona.** Con `system_prompt` no vacío se omiten
   en su sitio `prompt.roleplay`, `prompt.roleplayFiction`,
@@ -1089,6 +1089,10 @@ y los snapshots de `pnpm --filter @workspace/backend eval`.
   B1 (límite de 15 MB anulado por el global de 1 MB), I1 (pérdida de metadatos
   al editar un lorebook), I2 (UI standalone), N1 (`lorebook.overBudget`), N2
   (base64 estricto) y N5 (display-only) quedaron resueltos con tests.
+- **Fix posterior a la review (18):** el diálogo de export interno no ofrecía la
+  sección `lorebook`, así que un export normal no incluía el libro. Se añadió a
+  la selección por defecto y a «Marcar todo», con dependencia de `definition`
+  (se desmarca y deshabilita sin ella). Cubierto por `export-dialog.test.tsx`.
 
 ## Deferred
 
@@ -1141,4 +1145,5 @@ y los snapshots de `pnpm --filter @workspace/backend eval`.
 14. `fix(frontend): preserve lorebook metadata and add standalone import/export` (c11b62a)
 15. `test(s132): cover lorebook edit round-trip` (5089592)
 16. `docs(slice): record S132 independent review` (3913904)
-17. `docs(slice): close S132 documentation and release checks` (este commit)
+17. `docs(slice): close S132 documentation and release checks` (fa771de)
+18. `fix(frontend): include the lorebook in internal character exports` (este commit)
