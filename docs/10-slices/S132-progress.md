@@ -1,6 +1,6 @@
 # S132 — Character cards y lorebooks de SillyTavern (JSON + PNG)
 
-**Estado:** Aprobado
+**Estado:** En progreso
 **Inicio:** 2026-11-06
 **Fin:** —
 
@@ -988,9 +988,27 @@ y los snapshots de `pnpm --filter @workspace/backend eval`.
 
 ## Red tests
 
-- **Comando:** pendiente (etapa de tests).
-- **Fallo esperado:** pendiente.
-- **Salida relevante:** pendiente.
+- **Comando:**
+  - `pnpm --filter @workspace/backend test`
+  - `pnpm --filter @workspace/frontend exec vitest run`
+- **Fallo esperado:** los módulos S132 aún no existen (shared card/lorebook
+  helpers, PNG adapter, mapper, use cases, rutas, entidades, componentes) y la
+  migración `0019`/campos nuevos/overrides/lorebook no están implementados.
+- **Salida relevante (2026-11-07):**
+  - backend: `20 failed | 129 passed` archivos, `24 failed | 807 passed` tests.
+    Fallos representativos: journal `0019` ausente; columnas nuevas y tablas
+    `lorebooks`/`lorebook_entries` ausentes; `Cannot find package
+    @workspace/shared/lib/lorebook-activation`; `Cannot find package
+    @workspace/shared/lib/sillytavern-card`; `Cannot find module
+    ./png-card.adapter`; `Cannot find module ./sillytavern-card.mapper`; use
+    cases/rutas S132 ausentes; export interno sin sección `lorebook`; prompt sin
+    overrides/lorebook; `preview.systemPrompt` sin lorebook.
+  - frontend: `9 failed | 70 passed` archivos, `3 failed | 410 passed` tests.
+    Fallos: componentes S132 ausentes; el formulario no tiene pestañas
+    `Personaje`/`Lorebook`; el botón «Crear personaje» no abre el modal.
+  - Los tests existentes de S129/S130/S131 siguen pasando (807 backend / 410
+    frontend), así que el rojo es de S132 y no una regresión.
+- **Plan:** `docs/10-slices/S132-test-plan.md`.
 
 ## Decisiones
 
