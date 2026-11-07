@@ -10,10 +10,23 @@ import type {
   CharacterSummaryRepository,
   CharacterVersionSummary,
   CharacterWithCurrentVersionSummary,
+  CreateCharacterLorebook,
   CreateCharacterWithVersionResult,
 } from "../../../../../domain/ports/character.repository"
 import type { Database } from "../../../../config/database"
-import { characterCards, characterVersions, characters } from "../schema"
+import {
+  characterCards,
+  characterVersions,
+  characters,
+  lorebookEntries,
+  lorebooks,
+} from "../schema"
+import { bookValues, entryValues } from "./drizzle-lorebook.repository"
+import {
+  parseJsonArray,
+  parseJsonValue,
+  serializeJsonValue,
+} from "./json-column"
 
 type CharacterRow = typeof characters.$inferSelect
 type VersionRow = typeof characterVersions.$inferSelect
@@ -29,7 +42,52 @@ const toVersion = (row: VersionRow, cards: CharacterCard[]): CharacterVersion =>
     instructions: row.instructions ?? null,
     createdAt: new Date(row.createdAt),
     cards,
+    personality: row.personality ?? null,
+    scenario: row.scenario ?? null,
+    mesExample: row.mesExample ?? null,
+    alternateGreetings: parseJsonArray(row.alternateGreetings),
+    creatorNotes: row.creatorNotes ?? null,
+    tags: parseJsonArray(row.tags),
+    creator: row.creator ?? null,
+    cardCharacterVersion: row.cardCharacterVersion ?? null,
+    gender: row.gender ?? null,
+    pronouns: row.pronouns ?? null,
+    tagline: row.tagline ?? null,
+    systemPrompt: row.systemPrompt ?? null,
+    postHistoryInstructions: row.postHistoryInstructions ?? null,
+    extensions: parseJsonValue(row.extensions),
+    unknownFields: parseJsonValue(row.unknownFields),
+    unknownRootFields: parseJsonValue(row.unknownRootFields),
   })
+
+const toVersionValues = (version: CharacterVersion) => ({
+  id: version.id,
+  characterId: version.characterId,
+  name: version.name,
+  subtitle: version.subtitle,
+  profileImageAssetId: version.profileImageAssetId,
+  description: version.description,
+  instructions: version.instructions,
+  greeting: version.greeting,
+  versionNumber: version.versionNumber,
+  personality: version.personality,
+  scenario: version.scenario,
+  mesExample: version.mesExample,
+  alternateGreetings: serializeJsonValue(version.alternateGreetings),
+  creatorNotes: version.creatorNotes,
+  tags: serializeJsonValue(version.tags),
+  creator: version.creator,
+  cardCharacterVersion: version.cardCharacterVersion,
+  gender: version.gender,
+  pronouns: version.pronouns,
+  tagline: version.tagline,
+  systemPrompt: version.systemPrompt,
+  postHistoryInstructions: version.postHistoryInstructions,
+  extensions: serializeJsonValue(version.extensions),
+  unknownFields: serializeJsonValue(version.unknownFields),
+  unknownRootFields: serializeJsonValue(version.unknownRootFields),
+  createdAt: version.createdAt,
+})
 
 const toCard = (row: CardRow): CharacterCard =>
   CharacterCard.create({ ...row, active: row.active ?? true })
@@ -42,6 +100,7 @@ export class DrizzleCharacterRepository
   async createWithFirstVersion(
     character: Character,
     version: CharacterVersion,
+    lorebook?: CreateCharacterLorebook,
   ): Promise<CreateCharacterWithVersionResult> {
     this.db.transaction((tx) => {
       tx.insert(characters).values({
@@ -51,18 +110,7 @@ export class DrizzleCharacterRepository
         updatedAt: character.updatedAt,
       }).run()
 
-      tx.insert(characterVersions).values({
-        id: version.id,
-        characterId: version.characterId,
-        name: version.name,
-        subtitle: version.subtitle,
-        profileImageAssetId: version.profileImageAssetId,
-        description: version.description,
-        instructions: version.instructions,
-        greeting: version.greeting,
-        versionNumber: version.versionNumber,
-        createdAt: version.createdAt,
-      }).run()
+      tx.insert(characterVersions).values(toVersionValues(version)).run()
 
       if (version.cards.length > 0) {
         tx.insert(characterCards).values(
@@ -75,6 +123,15 @@ export class DrizzleCharacterRepository
             active: c.active,
           })),
         ).run()
+      }
+
+      if (lorebook) {
+        tx.insert(lorebooks).values(bookValues(lorebook.book)).run()
+        if (lorebook.entries.length > 0) {
+          tx.insert(lorebookEntries)
+            .values(lorebook.entries.map(entryValues))
+            .run()
+        }
       }
     })
 
@@ -397,18 +454,7 @@ export class DrizzleCharacterRepository
 
   async saveVersion(version: CharacterVersion): Promise<CharacterVersion> {
     this.db.transaction((tx) => {
-      tx.insert(characterVersions).values({
-        id: version.id,
-        characterId: version.characterId,
-        name: version.name,
-        subtitle: version.subtitle,
-        profileImageAssetId: version.profileImageAssetId,
-        description: version.description,
-        instructions: version.instructions,
-        greeting: version.greeting,
-        versionNumber: version.versionNumber,
-        createdAt: version.createdAt,
-      }).run()
+      tx.insert(characterVersions).values(toVersionValues(version)).run()
 
       if (version.cards.length > 0) {
         tx.insert(characterCards).values(

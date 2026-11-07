@@ -1,9 +1,16 @@
 import type { Character } from "../entities/character.entity"
 import type { CharacterVersion } from "../entities/character-version.entity"
+import type { Lorebook } from "../entities/lorebook.entity"
+import type { LorebookEntry } from "../entities/lorebook-entry.entity"
 
 export interface CreateCharacterWithVersionResult {
   character: Character
   version: CharacterVersion
+}
+
+export interface CreateCharacterLorebook {
+  book: Lorebook
+  entries: LorebookEntry[]
 }
 
 export interface CharacterVersionSummary {
@@ -48,7 +55,11 @@ export interface CharacterSummaryRepository {
 }
 
 export interface CharacterRepository {
-  createWithFirstVersion(character: Character, version: CharacterVersion): Promise<CreateCharacterWithVersionResult>
+  createWithFirstVersion(
+    character: Character,
+    version: CharacterVersion,
+    lorebook?: CreateCharacterLorebook,
+  ): Promise<CreateCharacterWithVersionResult>
 
   findById(id: string): Promise<{ character: Character; currentVersion: CharacterVersion } | null>
 
