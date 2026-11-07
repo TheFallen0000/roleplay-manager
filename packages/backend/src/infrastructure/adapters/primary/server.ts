@@ -91,6 +91,16 @@ export const buildServer = ({
   app.use("/api", buildApiOriginGuard(corsOrigin))
 
   app.use("/api/characters/imports", express.json({ limit: "25mb" }))
+
+  // Card and lorebook payloads carry whole card images as base64, so they need
+  // a larger parser. These mounts must run before the global 1 MB parser below;
+  // otherwise it consumes the body first and rejects large PNG payloads.
+  const cardJsonParser = express.json({ limit: "15mb" })
+  app.use("/api/characters/cards", cardJsonParser)
+  app.use("/api/characters/:id/cards", cardJsonParser)
+  app.use("/api/lorebooks", cardJsonParser)
+  app.use("/api/characters/:id/lorebook", cardJsonParser)
+
   app.use(express.json({ limit: "1mb" }))
   app.use(
     cors({
@@ -138,14 +148,8 @@ export const buildServer = ({
   )
   app.use("/api", buildProviderInstanceRouter(container))
 
-  // Card and lorebook payloads carry whole card images as base64, so they get a
-  // larger parser than the global 1 MB one. They are mounted before
-  // `/characters/:id` so `cards`/`lorebook` are never captured as an id.
-  const cardJsonParser = express.json({ limit: "15mb" })
-  app.use("/api/characters/cards", cardJsonParser)
-  app.use("/api/characters/:id/cards", cardJsonParser)
-  app.use("/api/lorebooks", cardJsonParser)
-  app.use("/api/characters/:id/lorebook", cardJsonParser)
+  // Card/lorebook routers are mounted before `/characters/:id` so `cards` and
+  // `lorebook` are never captured as an id.
   app.use("/api", buildSillyTavernCardRouter(container))
   app.use("/api", buildLorebookRouter(container))
   app.use("/api", buildCharacterRouter(container))

@@ -32,4 +32,13 @@ describe("server route wiring for S132", () => {
   it("gives the card and lorebook routers a 15 MB JSON limit", () => {
     expect(serverSource).toContain('express.json({ limit: "15mb" })')
   })
+
+  it("mounts the 15 MB parser before the global 1 MB parser", () => {
+    const largeParser = serverSource.indexOf('express.json({ limit: "15mb" })')
+    const globalParser = serverSource.indexOf('express.json({ limit: "1mb" })')
+
+    expect(largeParser).toBeGreaterThan(-1)
+    expect(globalParser).toBeGreaterThan(-1)
+    expect(largeParser).toBeLessThan(globalParser)
+  })
 })
