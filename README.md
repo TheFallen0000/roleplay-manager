@@ -32,8 +32,9 @@ and nothing is sent to a service we control.
 ## Features
 
 - **Versioned characters** — profile, description, greeting, cards and images;
-  every edit creates a new version. Import/export characters and apply settings
-  templates.
+  every edit creates a new version. Import/export characters, including
+  SillyTavern-compatible V1/V2/V3 cards (JSON and PNG) and lorebooks, and apply
+  settings templates.
 - **Streaming chat** — replies arrive token by token. Edit and regenerate
   responses, rewind the conversation, and branch the story into alternative
   timelines.
@@ -192,6 +193,15 @@ passphrase or encrypt SQLite itself.
 - [docs/packaging-opt.md](docs/packaging-opt.md) and
   [docs/remote-access-opt.md](docs/remote-access-opt.md) — design notes for the
   portable packages/updater and for phone access.
+
+## Third-party compatibility
+
+"SillyTavern-compatible" is used only as a nominative description of the file
+formats. Character-card and lorebook support is a clean-room implementation
+built from the public V2/V3 specifications and documentation; it does not copy
+SillyTavern's source code, UI, prompts, assets or tests. The V3 card
+specification is MIT-licensed, SillyTavern is AGPL-3.0 and this project is
+AGPL-3.0-or-later; no logos are used and no endorsement is implied.
 
 ## License
 

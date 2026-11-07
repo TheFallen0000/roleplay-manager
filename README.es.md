@@ -32,7 +32,8 @@ login, ni nada que se envíe a un servicio nuestro.
 ## Funciones
 
 - **Personajes versionados** — perfil, descripción, saludo, tarjetas e imágenes;
-  cada edición crea una versión nueva. Importa/exporta personajes y aplica
+  cada edición crea una versión nueva. Importa/exporta personajes, incluidas
+  cartas V1/V2/V3 compatibles con SillyTavern (JSON y PNG) y lorebooks, y aplica
   plantillas de ajustes.
 - **Chat en streaming** — las respuestas llegan token a token. Edita y regenera
   respuestas, rebobina la conversación y ramifica la historia en líneas
@@ -196,6 +197,15 @@ una passphrase ni cifra SQLite por sí misma.
 - [docs/packaging-opt.md](docs/packaging-opt.md) y
   [docs/remote-access-opt.md](docs/remote-access-opt.md) — notas de diseño de
   los paquetes portátiles/actualizador y del acceso desde el teléfono.
+
+## Compatibilidad con terceros
+
+«Compatible con SillyTavern» se usa solo como descripción nominativa de los
+formatos de archivo. El soporte de cartas y lorebooks es una implementación
+clean-room basada en las especificaciones y la documentación públicas V2/V3; no
+copia código, interfaz, prompts, assets ni tests de SillyTavern. La
+especificación V3 es MIT, SillyTavern es AGPL-3.0 y este proyecto es
+AGPL-3.0-or-later; no se usan logos ni se insinúa respaldo.
 
 ## Licencia
 

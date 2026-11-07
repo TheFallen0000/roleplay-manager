@@ -25,6 +25,25 @@ ajustes; el diálogo de importación te dice qué se va a crear.
 
 Úsalo para mover un personaje entre máquinas o para tener una copia portátil.
 
+## Cartas y lorebooks compatibles con SillyTavern
+
+También puedes importar cartas de personaje de SillyTavern (V1, V2 y V3) desde
+JSON o PNG. Si un PNG contiene los chunks `chara` y `ccv3`, se usa la carta V3.
+La app conserva los campos que no interpreta para que volver a exportar la
+carta no los pierda en silencio. Puedes importar lorebooks embebidos en una
+carta, archivos standalone `lorebook_v3` y lorebooks de SillyTavern con
+`{ entries }`, y vincularlos a un personaje. La activación soportada cubre
+claves, claves secundarias, lógica selectiva, entradas constantes, orden,
+posición, mayúsculas, palabras completas, profundidad de escaneo y presupuesto
+de tokens. Las funciones avanzadas de lorebook se preservan, pero no se
+activan.
+
+La exportación está disponible en JSON y PNG V2 o V3, escribiendo los chunks
+`chara` y `ccv3`. «Compatible con SillyTavern» es una descripción nominativa de
+los formatos; se trata de una implementación clean-room basada en las
+especificaciones públicas, sin copiar código, interfaz, prompts, assets ni tests
+de SillyTavern y sin insinuar respaldo alguno.
+
 ## Ramas
 
 Una rama empieza en un mensaje y hereda los ajustes de la conversación. Úsala

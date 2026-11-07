@@ -1,8 +1,8 @@
 # S132 — Character cards y lorebooks de SillyTavern (JSON + PNG)
 
-**Estado:** En progreso
+**Estado:** Completado
 **Inicio:** 2026-11-06
-**Fin:** —
+**Fin:** 2026-11-07
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -264,12 +264,12 @@ Un V1 no trae `system_prompt`, `post_history_instructions`, tags, creator,
 - `name` vacío/whitespace → **rechazo** `INVALID_CARD_NAME` (400). El nombre es
   invariante de entidad y no se inventa.
 - `description` vacía → fallback localizado `DEFAULT_CARD_DESCRIPTION` (clave
-  i18n `characters.emptyDescription`) + warning `EMPTY_DESCRIPTION`; la entidad
+  i18n `characters.cardFallbackDescription`) + warning `EMPTY_DESCRIPTION`; la entidad
   sigue exigiendo descripción no vacía.
 - `first_mes` vacío → si `alternate_greetings[0]` existe, se usa como `greeting`
   y se **retira** de `alternate_greetings` (para no duplicar el saludo); si no,
   fallback localizado `DEFAULT_CARD_GREETING` (clave i18n
-  `characters.emptyGreeting`) + warning `EMPTY_GREETING`. El invariante de
+  `characters.cardFallbackGreeting`) + warning `EMPTY_GREETING`. El invariante de
   entidad no se relaja.
 - `personality`, `scenario`, `mes_example`, `system_prompt`,
   `post_history_instructions` vacíos/whitespace → `null` y sin sección en el
@@ -930,61 +930,61 @@ y los snapshots de `pnpm --filter @workspace/backend eval`.
 
 ## Criterios de aceptación
 
-- [ ] Migración `0019_…` añade las 16 columnas de `character_versions` y las
+- [x] Migración `0019_…` añade las 16 columnas de `character_versions` y las
       tablas `lorebooks`/`lorebook_entries` (snapshot + journal; `db:generate`+
       `db:migrate` correctos; `scripts/package.mjs` copia la carpeta completa).
-- [ ] Importa cards V1/V2/V3 desde JSON y PNG (tEXt `chara`/`ccv3`, preferido
+- [x] Importa cards V1/V2/V3 desde JSON y PNG (tEXt `chara`/`ccv3`, preferido
       `ccv3`); payload base64 UTF-8 JSON validado.
-- [ ] Exporta V2/V3 en JSON y PNG escribiendo ambos chunks: `ccv3` = V3,
+- [x] Exporta V2/V3 en JSON y PNG escribiendo ambos chunks: `ccv3` = V3,
       `chara` = V2 (o proyección V2 al exportar V3, sin campos V3-only).
-- [ ] Preserva `extensions`, `unknown_fields` y `unknown_root_fields` por
+- [x] Preserva `extensions`, `unknown_fields` y `unknown_root_fields` por
       separado (round-trip loss = 0).
-- [ ] `name` vacío → `INVALID_CARD_NAME`; `first_mes` vacío → primer saludo
+- [x] `name` vacío → `INVALID_CARD_NAME`; `first_mes` vacío → primer saludo
       alternativo o fallback localizado + warning; `description` vacía →
       fallback localizado + warning; el invariante de entidad no se relaja.
-- [ ] `CharacterVersion` expone los campos nuevos; entidad/DTO/repo/use-cases
+- [x] `CharacterVersion` expone los campos nuevos; entidad/DTO/repo/use-cases
       los propagan; filas existentes quedan `null`/`[]` sin cambio de prompt;
       una edición copia los campos de card salvo cambio explícito.
-- [ ] `system_prompt` sustituye **solo el bloque de persona** dentro de
+- [x] `system_prompt` sustituye **solo el bloque de persona** dentro de
       `character` (mantiene scaffolding de agencia/idioma/longitud,
       `instructions` nativo, seguridad/formato/tools);
       `post_history_instructions` va como sección `card-overrides.post-history`
       al final; `personality`/`scenario`/`mes_example` en su posición;
       vacío/whitespace = sin sección (paridad S129).
-- [ ] **Si M1 se aprueba:** macros `{{char}}`/`{{user}}` expandidos en los campos
-      nuevos al construir el prompt; el valor guardado conserva el macro. Si no,
-      se preservan verbatim y se documenta.
-- [ ] Campo de prompt > `MAX_PROMPT_FIELD_CHARS` → rechazo en import
+- [x] **M1 no aprobado:** `{{char}}`/`{{user}}` se preservan verbatim en los
+      campos nuevos; el valor guardado conserva los macros y la limitación queda
+      documentada.
+- [x] Campo de prompt > `MAX_PROMPT_FIELD_CHARS` → rechazo en import
       (`INVALID_CARD_FIELD_TOO_LARGE`).
-- [ ] `creator_notes` nunca llega al prompt (fuga = 0, snapshot).
-- [ ] Lorebook normalizado vinculado al personaje; tres formas de entrada (card
+- [x] `creator_notes` nunca llega al prompt (fuga = 0, snapshot).
+- [x] Lorebook normalizado vinculado al personaje; tres formas de entrada (card
       embebido, CCv3 standalone, ST nativo `{entries}` objeto/array) detectadas
       y mapeadas; aliases ST nativos mapeados; campos desconocidos preservados.
-- [ ] `selective_logic` (0..3) con tabla de verdad; `secondary_keys` solo filtra
+- [x] `selective_logic` (0..3) con tabla de verdad; `secondary_keys` solo filtra
       con `selective=true`; `constant`/`content` vacío/`use_regex` con las reglas
       definidas.
-- [ ] Posición numérica 0..6 mapeada a before/after con warning; `raw_position`
+- [x] Posición numérica 0..6 mapeada a before/after con warning; `raw_position`
       preservado para export. Decoradores `@@`/`@@@` eliminados de la copia del
       prompt y conservados en `content`/export.
-- [ ] Presupuesto con trim por `priority` desc; orden de inyección por
+- [x] Presupuesto con trim por `priority` desc; orden de inyección por
       `insertion_order`; `scan_depth` a nivel de libro; recursión cap 3.
-- [ ] Paridad send/preview con lorebook + overrides (mismo `systemPrompt`).
-- [ ] Endpoints de card (preview/import/export), lorebook standalone
+- [x] Paridad send/preview con lorebook + overrides (mismo `systemPrompt`).
+- [x] Endpoints de card (preview/import/export), lorebook standalone
       (preview/import/export) y CRUD/link con Zod y límites; `GET .../lorebook`
       404 sin lorebook; rutas montadas antes de `:id`; `POST /api/characters`
       acepta `lorebook` para crearlo en la misma transacción; un lorebook por
       personaje (`UNIQUE(character_id)`) y `409` si se importa sin `replace`.
-- [ ] Export interno: sección `lorebook` (padre `definition`, incluida por
+- [x] Export interno: sección `lorebook` (padre `definition`, incluida por
       defecto con `definition`); exports viejos importan sin lorebook.
-- [ ] UI: import JSON/PNG con preview, export JSON/PNG, import/export de lorebook
+- [x] UI: import JSON/PNG con preview, export JSON/PNG, import/export de lorebook
       standalone, panel de notas del creador, tags, saludos alternativos, chips
       de género/pronombres, tagline display-only, modal `Crear` con pestañas
       Personaje/Lorebook; `/characters/new` se mantiene.
-- [ ] Seguridad: límites, sanitización HTML, sin regex de usuario, cap de
+- [x] Seguridad: límites, sanitización HTML, sin regex de usuario, cap de
       recursión, cap de chunks, sin red, sin secretos, placeholder sin imagen.
-- [ ] Nota de compatibilidad/legal (clean-room, nominativo) en el RFC y en
+- [x] Nota de compatibilidad/legal (clean-room, nominativo) en el RFC y en
       `README`/docs de usuario.
-- [ ] `pnpm check`, `pnpm build` y `pnpm audit --prod` en verde; sin archivos >500 líneas; aislamiento de features respetado.
+- [x] `pnpm check`, `pnpm build` y `pnpm audit --prod` en verde; sin archivos >500 líneas; aislamiento de features respetado.
 
 ## Red tests
 
@@ -1012,27 +1012,133 @@ y los snapshots de `pnpm --filter @workspace/backend eval`.
 
 ## Decisiones
 
-Pendiente de la etapa de implementación. Si cambia el RFC, se explica aquí.
+- **Creación transaccional.** `CharacterRepository.createWithFirstVersion(character,
+  version, { book, entries })` acepta un lorebook opcional y crea personaje +
+  primera versión + libro + entradas en una sola transacción SQLite. El bloque lo
+  construye `create-character` con `buildLorebookEntities`; un fallo intermedio no
+  deja personaje huérfano ni lorebook parcial. `CreateCharacterInput.lorebook` es
+  `{ format: "ccv3"|"st-native", payload: string }` y se parsea en el backend.
+- **PNG: base64 estricto.** `decodeCardText` solo acepta base64 estándar (alfabeto
+  y padding válidos) de JSON UTF-8; cualquier fallo es `INVALID_CARD_PNG`, sin
+  fallback a JSON crudo. Cierra el bypass que permitía meter JSON directo en un
+  `tEXt` (nota N2 de la review).
+- **Buckets de desconocidos separados.** `extensions` se guarda verbatim tal cual
+  llega en la card; `unknownFields` recoge las keys no mapeadas de `data` (incluidos
+  `assets`, `nickname`, `group_only_greetings`, `creator_notes_multilingual`,
+  `source` y fechas de V3); `unknownRootFields` recoge las keys no mapeadas de la
+  raíz del envelope o de un V1 plano. Cada bucket se re-emite en su nivel al
+  exportar. `tagline` vive en `extensions.rm.tagline` con merge (no borra el resto
+  de `extensions`).
+- **`selective_logic` 0–3.** Se implementa la tabla de verdad completa (AND ANY,
+  NOT ALL, NOT ANY, AND ALL) contando cuántas `secondary_keys` matchean. Con
+  `selective=false` las secundarias se ignoran; con `secondary_keys` vacío se cae
+  a la key primaria; `constant` gana salvo `use_regex`; `content` vacío o
+  `enabled=false` nunca se inyectan.
+- **`scan_depth=0` + recursión.** `scan_depth=0` deja el texto de escaneo inicial
+  vacío, así que solo sobreviven las entradas `constant`; si `recursive_scanning`
+  está activo, la recursión sigue operando sobre el contenido de esas constantes.
+  La recursión re-escanea solo el contenido recién incluido, no duplica y se corta
+  a `MAX_LOREBOOK_RECURSION_DEPTH = 3`; `scanDepth` por entrada y
+  `excludeRecursion`/`preventRecursion` se preservan sin activar.
+- **Manifiesto `lorebook.overBudget`.** `ContextManifestDTO.lorebook?: {
+  overBudget: number }` expone cuántas entradas activadas se descartaron por
+  `token_budget`; lo emite `ContextCompiler` desde el resultado de activación.
+- **D1 — reemplazo del bloque de persona.** Con `system_prompt` no vacío se omiten
+  en su sitio `prompt.roleplay`, `prompt.roleplayFiction`,
+  `prompt.roleplayStayInCharacter` y `prompt.roleplayMature` y se inserta el label
+  `prompt.systemPrompt` + el valor en la posición de la primera. El scaffolding
+  (`prompt.roleplayUserAgency`, `prompt.roleplayLanguage`,
+  `prompt.roleplayLength`), el `instructions` nativo, la seguridad, el formato y
+  las tools se mantienen. Sin `system_prompt` la salida es byte a byte igual que
+  antes (snapshots S129 intactos). `post_history_instructions` se emite como
+  sección final `card-overrides.post-history`.
+- **M1 no aprobado — macros verbatim.** No se expanden `{{char}}`/`{{user}}`;
+  `system_prompt`, `post_history_instructions` y `mes_example` se inyectan con los
+  macros crudos y el valor guardado los conserva. La limitación se documenta.
+- **Campos display-only.** `gender`, `pronouns`, `tagline` y `cardCharacterVersion`
+  se muestran (chips/etiqueta) pero no se inyectan en el prompt ni se editan;
+  `tags` y `alternate_greetings` se editan pero no se inyectan; `creator_notes`
+  nunca entra en el prompt.
+- **Presupuesto y decoradores.** El trim del presupuesto ordena por `priority`
+  desc y desempata por `insertionOrder` asc; la inyección final ordena por
+  `insertionOrder` asc y desempata por `order`. Las líneas `@@`/`@@@` se eliminan
+  de la copia inyectada con `stripDecorators` pero se conservan verbatim en
+  `content` y en el export.
 
 ## Verificación
 
-- Tests: pendiente.
-- `pnpm check`: pendiente.
-- `pnpm build`: pendiente.
-- `pnpm audit --prod`: pendiente.
-- Release dry-run: pendiente.
-- Prueba manual: pendiente.
+- **Backend:** `pnpm --filter @workspace/backend test` → 149 archivos / 964
+  tests en verde.
+- **Frontend:** `pnpm --filter @workspace/frontend exec vitest run` → 80
+  archivos / 435 tests en verde.
+- **`pnpm check`:** pasa (`check:arch` 7/7, typecheck 5/5, lint 5/5).
+- **`pnpm build`:** pasa; solo aparecen avisos preexistentes.
+- **`pnpm audit --prod`:** sin vulnerabilidades conocidas.
+- **`git diff --check`:** limpio.
+- **Release dry-run:** no ejecutado; el slice no toca empaquetado, módulos
+  nativos ni lockfile.
+- **Prueba manual:** no ejecutada; recomendada antes del merge (import
+  JSON/PNG, lorebook con claves y presupuesto, overrides de card y modal
+  `Crear`).
 
 ## Review
 
-- **Estado:** pendiente
+- **Estado:** PASS WITH NOTES
 - **Informe:** `docs/10-slices/S132-review.md`
-- **Bloqueantes resueltos:** pendiente.
+- **Bloqueantes resueltos:** ninguno pendiente; sin bloqueantes ni importantes.
+  B1 (límite de 15 MB anulado por el global de 1 MB), I1 (pérdida de metadatos
+  al editar un lorebook), I2 (UI standalone), N1 (`lorebook.overBudget`), N2
+  (base64 estricto) y N5 (display-only) quedaron resueltos con tests.
 
 ## Deferred
 
-Pendiente (nits y no bloqueantes de la etapa de review).
+- **R1 — Entrada de lorebook standalone en el listado.** El import/export solo
+  está en la pestaña Lorebook del formulario; falta el punto de entrada en el
+  menú contextual/barra del listado. Requiere un diálogo de selección de
+  personaje destino y cableado en `character-list`/`character-context-menu`.
+- **R2 — Export ST-native no expuesto en UI.** `handleLorebookExport` solo emite
+  `ccv3`; el endpoint `st-native` existe pero la UI no ofrece el formato.
+  Requiere un selector de formato en el diálogo de export.
+- **R3 — Fallback localizado en inglés.** El mapper usa `translate("en", …)` para
+  `cardFallbackDescription`/`cardFallbackGreeting`, así que el fallback persistido
+  queda en inglés para usuarios en español. Requiere pasar el locale del request
+  al mapper o resolverlo en el caso de uso.
+- **R4 — Modal con tres pestañas.** `character-form` usa
+  Personaje/Tarjetas/Lorebook frente a las dos pestañas del RFC. Requiere decidir
+  si «Tarjetas» es una pestaña propia o se integra en Personaje.
+- **R5 — Borrado de lorebook con nombre vacío.** `hasLorebookContent` exige
+  entradas o nombre no vacío, así que vaciar ambos no persiste el borrado.
+  Requiere un flag explícito de libro vacío o un endpoint de borrado.
+- **R6 — `MAX_CARD_JSON_BYTES` sin uso en producción.** Solo se aserta en tests;
+  el límite real es `maxDecodedCardJsonBytes`. Requiere conectar la constante al
+  parseo o retirarla.
+- **R7 — `spec_version` de lorebook CCv3.** Se captura en `unknownFields` del
+  libro y se re-emite dentro de `data`, no en la raíz. Requiere un campo de raíz
+  específico si se quiere fidelidad exacta.
+- **R8 — `reorderEntries` sin validación de pertenencia.** Reordena por ids
+  arbitrarios sin comprobar que pertenezcan al libro del personaje. Requiere
+  validar contra `lorebook_id` o documentar la confianza en la frontera local.
+- **R9 — Normalización duplicada.** `parseLorebookPayload` del frontend
+  reimplementa `normalizeLorebook`; si derivan, el editor puede mostrar algo
+  distinto de lo que persiste el backend. Requiere extraer un helper compartido
+  o aceptar la deriva (el backend re-normaliza al guardar).
 
 ## Commits
 
-Pendiente.
+1. `docs(slice): add S132 RFC` (aaf0f43)
+2. `docs(slice): revise S132 RFC` (dbd1e5e)
+3. `docs(slice): approve S132 RFC` (8d11acc)
+4. `docs(slice): add S132 test plan` (506ed4b)
+5. `test(s132): add red tests for SillyTavern cards and lorebooks` (ea1cd91)
+6. `test(s132): align fixtures and red tests with approved contracts` (82f9985)
+7. `feat(shared): add SillyTavern card and lorebook contracts` (d36eeba)
+8. `feat(backend): persist card fields and character lorebooks` (6db4506)
+9. `feat(backend): import and export SillyTavern cards and lorebooks` (b4e807e)
+10. `feat(backend): apply card overrides and lorebook context` (3418c84)
+11. `feat(frontend): add SillyTavern card and lorebook UI` (da086a0)
+12. `fix(backend): mount the 15 MB card parser before the global limit` (88332d3)
+13. `fix(backend): require base64 card payloads in PNG chunks` (56b9496)
+14. `fix(frontend): preserve lorebook metadata and add standalone import/export` (c11b62a)
+15. `test(s132): cover lorebook edit round-trip` (5089592)
+16. `docs(slice): record S132 independent review` (3913904)
+17. `docs(slice): close S132 documentation and release checks` (este commit)

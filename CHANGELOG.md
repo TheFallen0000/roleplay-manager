@@ -31,6 +31,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Contexto**: la conversación guarda la ventana de trabajo aplicada en un
   campo propio, separada de la ventana bruta del modelo, que se conserva
   intacta.
+- **Personajes**: importación y exportación de character cards compatibles con
+  SillyTavern en JSON y PNG (V1/V2/V3, chunks `chara`/`ccv3` con precedencia de
+  `ccv3`), conservando los campos desconocidos para no perder datos en el viaje
+  de ida y vuelta.
+- **Personajes**: campos nativos de card (personalidad, escenario, mensajes de
+  ejemplo, saludos alternativos, notas del creador, tags, creador, versión de
+  card, género, pronombres y tagline), con panel de notas del creador, chips de
+  tags/género/pronombres, saludos alternativos y tagline en la interfaz; las
+  notas del creador nunca se envían al modelo.
+- **Lorebooks**: lorebooks embebidos en la card y standalone (CCv3 y formato
+  nativo de SillyTavern) vinculados al personaje, con activación por claves
+  primarias y secundarias, lógica selectiva, entradas constantes, orden de
+  inserción, posición, sensibilidad a mayúsculas, palabras completas,
+  profundidad de escaneo, presupuesto de tokens y recursión acotada.
+- **Contexto**: overrides de card `system_prompt`/`post_history_instructions`;
+  `system_prompt` sustituye solo el bloque de persona y conserva el resto del
+  andamiaje del prompt.
+- **Personajes**: importación y exportación de lorebooks standalone y modal
+  «Crear» con pestañas Personaje/Lorebook.
+- **Compatibilidad**: la compatibilidad con SillyTavern se implementa de forma
+  clean-room desde las especificaciones públicas V2/V3, con límites de tamaño,
+  validación de PNG y sin regex de usuario ni llamadas de red.
 
 ### Changed
 
@@ -46,6 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   aplicada cuando existe y dejan de restar la reserva de respuesta dos veces;
   las conversaciones sin ventana de trabajo mantienen el comportamiento
   anterior.
+- **Contexto**: el ensamblado coloca `personality`, `scenario` y `mes_example`
+  en su sección, las entradas de lorebook antes/después del personaje y
+  `post_history_instructions` al final; sin esos datos el prompt no cambia.
+- **Contexto**: el manifiesto expone cuántas entradas de lorebook se descartaron
+  por presupuesto (`lorebook.overBudget`).
 
 ### Fixed
 
@@ -64,6 +91,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Ajustes**: «Aplicar detectado» ya no reserva la salida dos veces; el límite
   de respuesta solo se envía cuando es un valor positivo; las ventanas de
   trabajo importadas o de plantilla que no encajan se descartan de forma segura.
+- **Personajes**: el límite de 15 MB de las rutas de cards y lorebooks se aplica
+  antes del límite global de 1 MB, así que las cards grandes ya no fallan con
+  413.
+- **Personajes**: los chunks PNG `chara`/`ccv3` exigen base64 estándar de JSON
+  UTF-8; un payload no base64 se rechaza con `INVALID_CARD_PNG` en vez de
+  interpretarse como JSON.
+- **Personajes**: editar un lorebook conserva los ajustes del libro, los campos
+  desconocidos, `sourceId` y la posición numérica, de modo que guardar no
+  degrada el formato importado.
 
 ## [1.57.2] - 2026-11-05
 
