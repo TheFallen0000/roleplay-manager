@@ -13,6 +13,8 @@ import { GetDefaultProviderUseCase } from "../application/use-cases/provider/get
 import { ConfigureDefaultProviderUseCase } from "../application/use-cases/provider/configure-default-provider.use-case"
 import { DrizzleSettingsRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-settings.repository"
 import { DrizzleCharacterRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-character.repository"
+import { DrizzleLorebookRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-lorebook.repository"
+import { pngCardAdapter } from "../infrastructure/adapters/secondary/sillytavern/png-card.adapter"
 import { DrizzlePlayerCharacterRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-player-character.repository"
 import { DrizzleCharacterAssetRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-character-asset.repository"
 import { FilesystemCharacterAssetStorage } from "../infrastructure/adapters/secondary/filesystem/filesystem-character-asset-storage"
@@ -34,6 +36,7 @@ import type {
   CharacterSummaryRepository,
 } from "../domain/ports/character.repository"
 import type { PlayerCharacterRepository } from "../domain/ports/player-character.repository"
+import type { LorebookRepository } from "../domain/ports/lorebook.repository"
 import type {
   CharacterAssetLookupRepository,
   CharacterAssetMaintenanceRepository,
@@ -67,6 +70,18 @@ import { UploadCharacterAssetUseCase } from "../application/use-cases/character/
 import { GetCharacterAssetUseCase } from "../application/use-cases/character/get-character-asset.use-case"
 import { BackfillCharacterAssetVariantsUseCase } from "../application/use-cases/character/backfill-character-asset-variants.use-case"
 import { ApplySettingsTemplateUseCase } from "../application/use-cases/character/apply-settings-template.use-case"
+import { ImportSillyTavernCardUseCase } from "../application/use-cases/character/import-sillytavern-card.use-case"
+import { PreviewSillyTavernCardUseCase } from "../application/use-cases/character/preview-sillytavern-card.use-case"
+import { ExportSillyTavernCardUseCase } from "../application/use-cases/character/export-sillytavern-card.use-case"
+import { ImportLorebookUseCase } from "../application/use-cases/character/lorebook/import-lorebook.use-case"
+import { ExportLorebookUseCase } from "../application/use-cases/character/lorebook/export-lorebook.use-case"
+import { GetLorebookUseCase } from "../application/use-cases/character/lorebook/get-lorebook.use-case"
+import { UpdateLorebookUseCase } from "../application/use-cases/character/lorebook/update-lorebook.use-case"
+import { CreateLorebookEntryUseCase } from "../application/use-cases/character/lorebook/create-lorebook-entry.use-case"
+import { UpdateLorebookEntryUseCase } from "../application/use-cases/character/lorebook/update-lorebook-entry.use-case"
+import { DeleteLorebookEntryUseCase } from "../application/use-cases/character/lorebook/delete-lorebook-entry.use-case"
+import { ReorderLorebookEntriesUseCase } from "../application/use-cases/character/lorebook/reorder-lorebook-entries.use-case"
+import { PreviewLorebookUseCase } from "../application/use-cases/character/lorebook/preview-lorebook.use-case"
 import { StoreCharacterAssetService } from "../application/services/store-character-asset.service"
 import { SharpCharacterAssetImageProcessor } from "../infrastructure/adapters/secondary/images/sharp-character-asset-image-processor"
 import { GetTunnelStatusUseCase } from "../application/use-cases/tunnel/get-tunnel-status.use-case"
@@ -155,6 +170,7 @@ export interface AppContainer {
   providerRegistry: ProviderRegistry
   providerInstanceRepository: ProviderInstanceRepository
   characterRepository: CharacterRepository
+  lorebookRepository: LorebookRepository
   playerCharacterRepository: PlayerCharacterRepository
   characterAssetRepository: CharacterAssetRepository
   characterAssetStorage: CharacterAssetVariantStorage
@@ -174,6 +190,18 @@ export interface AppContainer {
   updateCharacterProfileImage: UpdateCharacterProfileImageUseCase
   exportCharacter: ExportCharacterUseCase
   importCharacter: ImportCharacterUseCase
+  previewSillyTavernCard: PreviewSillyTavernCardUseCase
+  importSillyTavernCard: ImportSillyTavernCardUseCase
+  exportSillyTavernCard: ExportSillyTavernCardUseCase
+  previewLorebook: PreviewLorebookUseCase
+  importLorebook: ImportLorebookUseCase
+  exportLorebook: ExportLorebookUseCase
+  getLorebook: GetLorebookUseCase
+  updateLorebook: UpdateLorebookUseCase
+  createLorebookEntry: CreateLorebookEntryUseCase
+  updateLorebookEntry: UpdateLorebookEntryUseCase
+  deleteLorebookEntry: DeleteLorebookEntryUseCase
+  reorderLorebookEntries: ReorderLorebookEntriesUseCase
   deleteCharacter: DeleteCharacterUseCase
   listCharacterVersions: ListCharacterVersionsUseCase
   uploadCharacterAsset: UploadCharacterAssetUseCase
@@ -315,6 +343,8 @@ export const buildContainer = ({
   })
   const characterRepository: CharacterRepository & CharacterSummaryRepository =
     new DrizzleCharacterRepository(database)
+  const lorebookRepository: LorebookRepository =
+    new DrizzleLorebookRepository(database)
   const playerCharacterRepository: PlayerCharacterRepository = new DrizzlePlayerCharacterRepository(database)
   const characterAssetRepository: CharacterAssetMaintenanceRepository &
     CharacterAssetLookupRepository =
@@ -353,6 +383,7 @@ export const buildContainer = ({
     memoryRepository,
     summaryRepository,
     playerCharacterRepository,
+    lorebookRepository,
   })
   const contextCompiler = new ContextCompiler(promptContextBuilder)
 
@@ -625,6 +656,7 @@ export const buildContainer = ({
     providerRegistry,
     providerInstanceRepository,
     characterRepository,
+    lorebookRepository,
     playerCharacterRepository,
     characterAssetRepository,
     characterAssetStorage,
@@ -641,7 +673,10 @@ export const buildContainer = ({
     chatEngine,
     updateSummary: new UpdateSummaryUseCase(summaryRepository),
     deleteSummary: new DeleteSummaryUseCase(summaryRepository),
-    createCharacter: new CreateCharacterUseCase(characterRepository),
+    createCharacter: new CreateCharacterUseCase(
+      characterRepository,
+      lorebookRepository,
+    ),
     getCharacter: new GetCharacterUseCase(characterRepository),
     listCharacters: new ListCharactersUseCase(
       characterRepository,
@@ -660,6 +695,7 @@ export const buildContainer = ({
       summaryRepository,
       characterAssetRepository,
       characterAssetStorage,
+      lorebookRepository,
     ),
     importCharacter: new ImportCharacterUseCase(
       characterRepository,
@@ -668,7 +704,43 @@ export const buildContainer = ({
       memoryRepository,
       summaryRepository,
       storeCharacterAsset,
+      lorebookRepository,
     ),
+    previewSillyTavernCard: new PreviewSillyTavernCardUseCase({
+      characterRepository,
+      lorebookRepository,
+      cardPng: pngCardAdapter,
+    }),
+    importSillyTavernCard: new ImportSillyTavernCardUseCase({
+      characterRepository,
+      lorebookRepository,
+      storeCharacterAsset,
+      cardPng: pngCardAdapter,
+    }),
+    exportSillyTavernCard: new ExportSillyTavernCardUseCase({
+      characterRepository,
+      lorebookRepository,
+      cardPng: pngCardAdapter,
+      assetRepository: characterAssetRepository,
+      assetStorage: characterAssetStorage,
+    }),
+    previewLorebook: new PreviewLorebookUseCase({ lorebookRepository }),
+    importLorebook: new ImportLorebookUseCase({ lorebookRepository }),
+    exportLorebook: new ExportLorebookUseCase({ lorebookRepository }),
+    getLorebook: new GetLorebookUseCase({ lorebookRepository }),
+    updateLorebook: new UpdateLorebookUseCase({ lorebookRepository }),
+    createLorebookEntry: new CreateLorebookEntryUseCase({
+      lorebookRepository,
+    }),
+    updateLorebookEntry: new UpdateLorebookEntryUseCase({
+      lorebookRepository,
+    }),
+    deleteLorebookEntry: new DeleteLorebookEntryUseCase({
+      lorebookRepository,
+    }),
+    reorderLorebookEntries: new ReorderLorebookEntriesUseCase({
+      lorebookRepository,
+    }),
     createPlayerCharacter: new CreatePlayerCharacterUseCase(playerCharacterRepository),
     listPlayerCharacters: new ListPlayerCharactersUseCase(playerCharacterRepository),
     updatePlayerCharacter: new UpdatePlayerCharacterUseCase(playerCharacterRepository),

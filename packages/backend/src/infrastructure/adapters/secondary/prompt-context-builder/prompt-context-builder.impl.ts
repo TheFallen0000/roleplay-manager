@@ -1,4 +1,5 @@
 import { parseOoc } from "@workspace/shared/lib/ooc-parser"
+import { stripDecorators } from "@workspace/shared/lib/sillytavern-card"
 import {
   DEFAULT_LOCALE,
   translate,
@@ -36,6 +37,7 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
       memories,
       summary,
       playerCharacter,
+      lorebook,
       locale = DEFAULT_LOCALE,
       enableMemoryProposalTool = false,
       filterOocFromHistory = false,
@@ -44,23 +46,47 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
     const tr = (key: string, values?: TranslationParams) =>
       translate(locale, key, values)
 
+    const hasText = (value: string | null | undefined): value is string =>
+      typeof value === "string" && value.trim() !== ""
+
     const characterParts: string[] = [
       tr("prompt.intro", { name: cv.name, description: cv.description }),
       "",
-      tr("prompt.roleplay"),
-      tr("prompt.roleplayFiction"),
-      tr("prompt.roleplayStayInCharacter"),
-      tr("prompt.roleplayUserAgency"),
-      tr("prompt.roleplayMature"),
-      tr("prompt.roleplayLanguage"),
-      tr("prompt.roleplayLength"),
-      "",
-      tr("prompt.personality"),
-      tr("prompt.name", { name: cv.name }),
     ]
+
+    if (hasText(cv.systemPrompt)) {
+      characterParts.push(tr("prompt.systemPrompt"))
+      characterParts.push(cv.systemPrompt)
+      characterParts.push(tr("prompt.roleplayUserAgency"))
+      characterParts.push(tr("prompt.roleplayLanguage"))
+      characterParts.push(tr("prompt.roleplayLength"))
+    } else {
+      characterParts.push(
+        tr("prompt.roleplay"),
+        tr("prompt.roleplayFiction"),
+        tr("prompt.roleplayStayInCharacter"),
+        tr("prompt.roleplayUserAgency"),
+        tr("prompt.roleplayMature"),
+        tr("prompt.roleplayLanguage"),
+        tr("prompt.roleplayLength"),
+      )
+    }
+
+    characterParts.push("")
+    characterParts.push(tr("prompt.personality"))
+    if (hasText(cv.personality)) {
+      characterParts.push(cv.personality)
+    }
+    characterParts.push(tr("prompt.name", { name: cv.name }))
 
     if (cv.subtitle) {
       characterParts.push(tr("prompt.subtitle", { subtitle: cv.subtitle }))
+    }
+
+    if (hasText(cv.scenario)) {
+      characterParts.push("")
+      characterParts.push(tr("prompt.scenario"))
+      characterParts.push(cv.scenario)
     }
 
     if (cv.instructions) {
@@ -69,13 +95,23 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
       characterParts.push(cv.instructions)
     }
 
-    const drafts: SectionDraft[] = [
-      {
-        id: "character",
-        reason: "Character definition, roleplay rules and personality",
-        parts: characterParts,
-      },
-    ]
+    const drafts: SectionDraft[] = []
+
+    const lorebookBefore = renderLorebookEntries(lorebook?.before)
+    if (lorebookBefore) {
+      drafts.push({
+        id: "lorebook.before",
+        reason: "Activated lorebook entries before the character",
+        parts: [lorebookBefore],
+        itemCount: lorebook!.before.length,
+      })
+    }
+
+    drafts.push({
+      id: "character",
+      reason: "Character definition, roleplay rules and personality",
+      parts: characterParts,
+    })
 
     const activeCards = cv.cards
       .filter((c) => c.active)
@@ -95,6 +131,16 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
         reason: "Active character cards",
         parts: cardParts,
         itemCount: activeCards.length,
+      })
+    }
+
+    const lorebookAfter = renderLorebookEntries(lorebook?.after)
+    if (lorebookAfter) {
+      drafts.push({
+        id: "lorebook.after",
+        reason: "Activated lorebook entries after the character",
+        parts: [lorebookAfter],
+        itemCount: lorebook!.after.length,
       })
     }
 
@@ -184,18 +230,23 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
       parts: proposalParts,
     })
 
+    const styleParts = [
+      "",
+      tr("prompt.style"),
+      tr("prompt.styleLine", { name: cv.name }),
+      "",
+      tr("prompt.styleExample", { name: cv.name }),
+      `"${cv.greeting}"`,
+    ]
+    if (hasText(cv.mesExample)) {
+      styleParts.push(cv.mesExample)
+    }
+    styleParts.push("")
+
     drafts.push({
       id: "style",
       reason: "Writing style and greeting example",
-      parts: [
-        "",
-        tr("prompt.style"),
-        tr("prompt.styleLine", { name: cv.name }),
-        "",
-        tr("prompt.styleExample", { name: cv.name }),
-        `"${cv.greeting}"`,
-        "",
-      ],
+      parts: styleParts,
     })
 
     drafts.push({
@@ -222,6 +273,17 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
           tr("prompt.oocBullet1"),
           tr("prompt.oocBullet2"),
           tr("prompt.oocBullet3"),
+        ],
+      })
+    }
+
+    if (hasText(cv.postHistoryInstructions)) {
+      drafts.push({
+        id: "card-overrides.post-history",
+        reason: "Character card post-history instructions",
+        parts: [
+          tr("prompt.postHistoryInstructions"),
+          cv.postHistoryInstructions,
         ],
       })
     }
@@ -262,4 +324,14 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
       sections,
     }
   }
+}
+
+const renderLorebookEntries = (
+  entries: { content: string }[] | undefined,
+): string | null => {
+  if (!entries || entries.length === 0) return null
+  const content = entries
+    .map((entry) => stripDecorators(entry.content))
+    .join("\n")
+  return content.trim() === "" ? null : content
 }

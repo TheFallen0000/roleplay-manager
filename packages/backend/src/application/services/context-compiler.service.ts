@@ -11,7 +11,10 @@ import type { Conversation } from "../../domain/entities/conversation.entity"
 import type { Memory } from "../../domain/entities/memory.entity"
 import type { Message } from "../../domain/entities/message.entity"
 import type { Summary } from "../../domain/entities/summary.entity"
-import type { PromptContextBuilder } from "../../domain/ports/prompt-context-builder"
+import type {
+  PromptContextBuilder,
+  PromptContextLorebook,
+} from "../../domain/ports/prompt-context-builder"
 import type { PromptContext } from "../../domain/value-objects/prompt-context"
 
 export interface ContextCompileInput {
@@ -29,6 +32,7 @@ export interface ContextCompileInput {
   promptMemories: Memory[]
   summary: Summary | null
   playerCharacter?: { name: string; description: string }
+  lorebook?: PromptContextLorebook
   locale?: Locale
   outputReserve: number
   compaction: { needed: boolean; applied: boolean }
@@ -58,6 +62,7 @@ export class ContextCompiler {
         memories: input.promptMemories,
         summary: input.summary ?? undefined,
         playerCharacter: input.playerCharacter,
+        lorebook: input.lorebook,
         locale: input.locale,
         enableMemoryProposalTool: true,
         filterOocFromHistory: true,

@@ -11,6 +11,17 @@ export interface PromptContextPlayerCharacter {
   description: string
 }
 
+export interface PromptContextLorebookEntry {
+  id?: string
+  content: string
+}
+
+export interface PromptContextLorebook {
+  before: PromptContextLorebookEntry[]
+  after: PromptContextLorebookEntry[]
+  overBudgetCount?: number
+}
+
 export interface PromptContextBuildParams {
   characterVersion: CharacterVersion
   messages: Message[]
@@ -18,6 +29,8 @@ export interface PromptContextBuildParams {
   memories?: Memory[]
   summary?: Summary
   playerCharacter?: PromptContextPlayerCharacter
+  /** Activated lorebook entries, already split by their injection position. */
+  lorebook?: PromptContextLorebook
   /** Language of the system prompt (follows the UI language). */
   locale?: Locale
   enableMemoryProposalTool?: boolean

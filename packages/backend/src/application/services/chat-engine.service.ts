@@ -234,6 +234,7 @@ export class ChatEngine {
       promptMemories: loaded.promptMemories,
       summary: contextSummary,
       playerCharacter: loaded.playerCharacter,
+      lorebook: loaded.lorebook,
       locale,
       outputReserve: outputTokens,
       compaction: {
