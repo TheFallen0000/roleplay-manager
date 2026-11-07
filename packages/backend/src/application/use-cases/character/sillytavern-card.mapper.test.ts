@@ -238,7 +238,7 @@ describe("cardDataToVersionFields — empty fields policy", () => {
     )
 
     expect(fields.description).toBe(
-      translate("en", "characters.emptyDescription")
+      translate("en", "characters.cardFallbackDescription")
     )
     expect(fields.warnings).toContain("EMPTY_DESCRIPTION")
   })
@@ -265,7 +265,9 @@ describe("cardDataToVersionFields — empty fields policy", () => {
       )
     )
 
-    expect(fields.greeting).toBe(translate("en", "characters.emptyGreeting"))
+    expect(fields.greeting).toBe(
+      translate("en", "characters.cardFallbackGreeting")
+    )
     expect(fields.alternateGreetings).toEqual([])
     expect(fields.warnings).toContain("EMPTY_GREETING")
   })

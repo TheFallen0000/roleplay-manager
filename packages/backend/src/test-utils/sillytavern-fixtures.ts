@@ -42,7 +42,12 @@ export const buildV2Card = (
 export const buildV3Card = (
   data: FixtureRecord = {},
   root: FixtureRecord = {}
-): FixtureRecord => buildCard("chara_card_v3", data, root)
+): FixtureRecord =>
+  buildCard(
+    "chara_card_v3",
+    { character_book: buildLorebookCCv3().data, ...data },
+    root
+  )
 
 export const buildV1Card = (overrides: FixtureRecord = {}): FixtureRecord => ({
   name: "Lyra",

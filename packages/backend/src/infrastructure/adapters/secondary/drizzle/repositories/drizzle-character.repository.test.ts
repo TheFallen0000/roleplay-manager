@@ -137,6 +137,8 @@ describe("DrizzleCharacterRepository — S132 card fields", () => {
 
     await repository.saveVersion(second)
     const found = await repository.findVersionById("ver-s132-2")
+    expect(found).not.toBeNull()
+    if (!found) return
 
     expect(field(found, "personality")).toBe("Changed personality.")
     expect(field(found, "unknownFields")).toEqual({ changed: true })

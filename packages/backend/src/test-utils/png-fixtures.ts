@@ -83,7 +83,11 @@ export const buildIdatPayload = (
   height = 1,
   rgba: [number, number, number, number] = [137, 24, 64, 255]
 ): Buffer => {
-  const scanline = Buffer.from([0, ...rgba])
+  const pixel = Buffer.from(rgba)
+  const scanline = Buffer.concat([
+    Buffer.from([0]),
+    Buffer.concat(Array.from({ length: width }, () => pixel)),
+  ])
   const rows = Buffer.concat(Array.from({ length: height }, () => scanline))
   return deflateSync(rows)
 }
@@ -188,9 +192,18 @@ export const readTextChunks = (png: Buffer): TextChunk[] => {
     const data = png.subarray(offset + 8, offset + 8 + length)
     if (type === "tEXt") {
       const separator = data.indexOf(0)
+      const raw = data.subarray(separator + 1).toString("utf8")
+      let payload = raw
+      try {
+        const decoded = Buffer.from(raw, "base64").toString("utf8")
+        JSON.parse(decoded)
+        payload = decoded
+      } catch {
+        // Plain JSON fallback for hand-authored fixtures.
+      }
       chunks.push({
         keyword: data.subarray(0, separator).toString("latin1"),
-        payload: data.subarray(separator + 1).toString("utf8"),
+        payload,
       })
     }
     offset += 12 + length

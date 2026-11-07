@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 
 import { PreviewSillyTavernCardUseCase } from "./preview-sillytavern-card.use-case"
+import { pngCardAdapter } from "../../../infrastructure/adapters/secondary/sillytavern/png-card.adapter"
 import {
   buildCardPngFixture,
 } from "../../../test-utils/png-fixtures"
@@ -33,6 +34,7 @@ const buildRepos = () => ({
     reorderEntries: vi.fn(),
     replaceBook: vi.fn(),
   },
+  cardPng: pngCardAdapter,
 })
 
 const buildUseCase = (repos = buildRepos()) =>

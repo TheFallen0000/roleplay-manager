@@ -16,7 +16,6 @@ import type {
   MessageRepository,
 } from "../../../domain/ports/message.repository"
 import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
-import type { PromptContextBuilder } from "../../../domain/ports/prompt-context-builder"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import { PromptContextBuilderImpl } from "../../../infrastructure/adapters/secondary/prompt-context-builder/prompt-context-builder.impl"

@@ -48,37 +48,39 @@ const buildPayload = (overrides: Partial<CharacterExport> = {}): CharacterExport
 
 const buildRepos = () => ({
   characterRepository: {
-    createWithFirstVersion: vi.fn(async (character, version) => ({
-      character,
-      version,
-    })),
+    createWithFirstVersion: vi.fn(
+      async (character: unknown, version: unknown) => ({
+        character,
+        version,
+      })
+    ),
     findById: async () => null,
     list: async () => [],
-    update: async (character) => character,
+    update: async (character: unknown) => character,
     delete: async () => {},
     findVersionById: async () => null,
     findVersionsByCharacterId: async () => [],
     findMaxVersionNumber: async () => 0,
-    saveVersion: vi.fn(async (value) => value),
+    saveVersion: vi.fn(async (value: unknown) => value),
     updateProfileImageAssetId: vi.fn(async () => {}),
   },
   conversationRepository: {
-    create: vi.fn(async (value) => value),
+    create: vi.fn(async (value: unknown) => value),
     findById: async () => null,
     listByCharacterId: async () => [],
     listByCharacterIds: async () => [],
     existsByAssetId: async () => false,
     list: async () => [],
-    update: async (value) => value,
+    update: async (value: unknown) => value,
     updateSettings: async () => ({}) as never,
     clearProviderInstanceId: async () => {},
   },
   messageRepository: {
-    create: vi.fn(async (value) => value),
+    create: vi.fn(async (value: unknown) => value),
     findByConversationId: async () => [],
     findById: async () => null,
     findLastByConversationId: async () => null,
-    update: async (value) => value,
+    update: async (value: unknown) => value,
     deleteById: async () => {},
     deleteAfterPosition: async () => {},
     clearAlternatives: async () => {},
@@ -86,16 +88,16 @@ const buildRepos = () => ({
   memoryRepository: {
     findById: async () => null,
     findByConversationId: async () => [],
-    create: vi.fn(async (value) => value),
-    update: async (value) => value,
+    create: vi.fn(async (value: unknown) => value),
+    update: async (value: unknown) => value,
     deleteById: async () => {},
   },
   summaryRepository: {
     findById: async () => null,
     findByConversationId: async () => [],
     findLatestByConversationId: async () => null,
-    create: vi.fn(async (value) => value),
-    update: async (value) => value,
+    create: vi.fn(async (value: unknown) => value),
+    update: async (value: unknown) => value,
     deleteById: async () => {},
     deleteByIds: async () => {},
   },
@@ -132,11 +134,10 @@ describe("internal import — lorebook round-trip", () => {
       payload: buildPayload({ lorebook } as never),
     })
 
-    expect(repos.lorebookRepository.replaceBook).toHaveBeenCalledTimes(1)
-    expect(
-      (repos.lorebookRepository.replaceBook as ReturnType<typeof vi.fn>).mock
-        .calls[0][0]
-    ).toMatchObject({
+    const lorebookArg = (
+      repos.characterRepository.createWithFirstVersion as ReturnType<typeof vi.fn>
+    ).mock.calls[0][2]
+    expect(lorebookArg.book).toMatchObject({
       name: "Forest lore",
       scanDepth: 4,
       tokenBudget: 400,

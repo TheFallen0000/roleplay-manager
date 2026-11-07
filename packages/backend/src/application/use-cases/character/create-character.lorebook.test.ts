@@ -55,17 +55,15 @@ describe("CreateCharacterUseCase — standalone lorebook", () => {
       1
     )
 
-    const [character] = (
+    const [character, , lorebookArg] = (
       repos.characterRepository.createWithFirstVersion as ReturnType<typeof vi.fn>
     ).mock.calls[0]
-    expect(repos.lorebookRepository.replaceBook).toHaveBeenCalledTimes(1)
-    expect(
-      (repos.lorebookRepository.replaceBook as ReturnType<typeof vi.fn>).mock
-        .calls[0][0]
-    ).toMatchObject({
+    expect(lorebookArg.book).toMatchObject({
       characterId: character.id,
       name: "Forest lore",
     })
+    expect(lorebookArg.entries).toHaveLength(1)
+    expect(repos.lorebookRepository.replaceBook).not.toHaveBeenCalled()
   })
 
   it("does not create a lorebook when the input has none", async () => {

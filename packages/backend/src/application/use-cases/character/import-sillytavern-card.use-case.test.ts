@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 
 import { ImportSillyTavernCardUseCase } from "./import-sillytavern-card.use-case"
+import { pngCardAdapter } from "../../../infrastructure/adapters/secondary/sillytavern/png-card.adapter"
 import { buildCardPngFixture } from "../../../test-utils/png-fixtures"
 import {
   buildCardWithUnknownFields,
@@ -50,7 +51,12 @@ const buildRepos = () => {
     })),
   }
 
-  return { characterRepository, lorebookRepository, storeCharacterAsset }
+  return {
+    characterRepository,
+    lorebookRepository,
+    storeCharacterAsset,
+    cardPng: pngCardAdapter,
+  }
 }
 
 const buildUseCase = (repos = buildRepos()) =>
@@ -97,14 +103,16 @@ describe("ImportSillyTavernCardUseCase", () => {
       cardCharacterVersion: "1.2.0",
     })
 
-    const writeBook = repos.lorebookRepository.replaceBook.mock.calls[0] ?? []
-    expect(writeBook[0]).toMatchObject({
+    const writeBook = (
+      repos.characterRepository.createWithFirstVersion as ReturnType<typeof vi.fn>
+    ).mock.calls[0][2]
+    expect(writeBook.book).toMatchObject({
       characterId: character.id,
       name: "Forest lore",
       scanDepth: 4,
       tokenBudget: 400,
     })
-    expect(writeBook[1]).toHaveLength(1)
+    expect(writeBook.entries).toHaveLength(1)
   })
 
   it("imports a V1 JSON card (import-only) with unknown root fields", async () => {
@@ -186,14 +194,15 @@ describe("ImportSillyTavernCardUseCase", () => {
     const [, version] = (
       repos.characterRepository.createWithFirstVersion as ReturnType<typeof vi.fn>
     ).mock.calls[0]
+    const cardData = card.data as Record<string, unknown>
     expect(version.unknownFields).toMatchObject({
-      assets: card.data.assets,
+      assets: cardData.assets,
       nickname: "The Guardian",
       group_only_greetings: ["Group hello"],
     })
     expect(version.unknownRootFields).toEqual({
       custom_root_key: { nested: true },
     })
-    expect(version.extensions).toEqual(card.data.extensions)
+    expect(version.extensions).toEqual(cardData.extensions)
   })
 })
