@@ -154,6 +154,14 @@ describe("PNG card adapter — malformed input", () => {
 
     expect(capture(() => parseCardPng(png))?.code).toBe("INVALID_CARD_PNG")
   })
+
+  it("rejects plain JSON in a tEXt chunk (strict base64)", () => {
+    const png = buildCardPngFixture({
+      extraText: [{ keyword: "ccv3", payload: '{"spec":"chara_card_v3"}' }],
+    })
+
+    expect(capture(() => parseCardPng(png))?.code).toBe("INVALID_CARD_PNG")
+  })
 })
 
 describe("PNG card adapter — injectable limits", () => {

@@ -117,25 +117,15 @@ const decodeCardText = (
   payload: string,
   limits: PngCardLimits,
 ): string => {
-  if (payload.length % 4 === 0 && STRICT_BASE64.test(payload)) {
-    const decoded = Buffer.from(payload, "base64")
-    if (decoded.length > limits.maxDecodedCardJsonBytes) {
-      invalidPng("The decoded card JSON exceeds the size limit.")
-    }
-    return decoded.toString("utf8")
+  if (payload.length % 4 !== 0 || !STRICT_BASE64.test(payload)) {
+    invalidPng("The card tEXt payload is not valid base64.")
   }
 
-  // Plain JSON is accepted as a compatibility superset for hand-authored
-  // fixtures; SillyTavern writes base64 of the UTF-8 JSON.
-  if (Buffer.byteLength(payload, "utf8") > limits.maxDecodedCardJsonBytes) {
+  const decoded = Buffer.from(payload, "base64")
+  if (decoded.length > limits.maxDecodedCardJsonBytes) {
     invalidPng("The decoded card JSON exceeds the size limit.")
   }
-  try {
-    JSON.parse(payload)
-  } catch {
-    invalidPng("The card tEXt payload is not valid base64 or JSON.")
-  }
-  return payload
+  return decoded.toString("utf8")
 }
 
 const textChunkPayload = (data: Buffer): { keyword: string; payload: string } => {
