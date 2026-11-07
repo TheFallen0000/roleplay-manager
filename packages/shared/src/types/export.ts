@@ -2,6 +2,7 @@ import type { CharacterVersionDTO } from "./character"
 import type { BackgroundFit, MessageStyle } from "./conversation"
 import type { MemoryDTO } from "./memory"
 import type { MessageDTO } from "./message"
+import type { LorebookDTO } from "./sillytavern-card"
 import type { SummaryDTO } from "./summary"
 
 export const EXPORT_SCHEMA_VERSION = 1
@@ -9,6 +10,7 @@ export const EXPORT_KIND = "character-export"
 
 export type ExportSection =
   | "definition"
+  | "lorebook"
   | "profileImage"
   | "versions"
   | "conversations"
@@ -21,6 +23,7 @@ export type ExportSection =
 
 export const ALL_EXPORT_SECTIONS: ExportSection[] = [
   "definition",
+  "lorebook",
   "profileImage",
   "versions",
   "conversations",
@@ -38,6 +41,7 @@ export const ALL_EXPORT_SECTIONS: ExportSection[] = [
  * which cannot exist without the character itself.
  */
 export const EXPORT_SECTION_PARENTS: Partial<Record<ExportSection, ExportSection>> = {
+  lorebook: "definition",
   "conversations.messages": "conversations",
   "conversations.memories": "conversations",
   "conversations.summaries": "conversations",
@@ -136,6 +140,7 @@ export interface CharacterExport {
     updatedAt: string
   }
   definition?: CharacterVersionDTO
+  lorebook?: LorebookDTO
   profileImage?: {
     assetId: string
     mimeType: string
