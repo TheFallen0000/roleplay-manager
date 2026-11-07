@@ -1,6 +1,6 @@
 # S132 — Character cards y lorebooks de SillyTavern (JSON + PNG)
 
-**Estado:** Draft
+**Estado:** Aprobado
 **Inicio:** 2026-11-06
 **Fin:** —
 
