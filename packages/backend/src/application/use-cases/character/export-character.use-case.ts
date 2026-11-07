@@ -11,10 +11,6 @@ import {
   EXPORT_SCHEMA_VERSION,
   EXPORT_SECTION_PARENTS,
 } from "@workspace/shared/types/export"
-import type {
-  CharacterVersionDTO,
-  CharacterCardDTO,
-} from "@workspace/shared/types/character"
 import type { MessageDTO } from "@workspace/shared/types/message"
 import type { MemoryDTO } from "@workspace/shared/types/memory"
 import type { SummaryDTO } from "@workspace/shared/types/summary"
@@ -28,14 +24,16 @@ import type {
   CharacterAssetRepository,
   CharacterAssetStorage,
 } from "../../../domain/ports/character-asset.repository"
+import type { LorebookRepository } from "../../../domain/ports/lorebook.repository"
 import type { CharacterVersion } from "../../../domain/entities/character-version.entity"
-import type { CharacterCard } from "../../../domain/entities/character-card.entity"
 import type { Conversation } from "../../../domain/entities/conversation.entity"
 import type { Message } from "../../../domain/entities/message.entity"
 import type { Memory } from "../../../domain/entities/memory.entity"
 import type { Summary } from "../../../domain/entities/summary.entity"
 import { CharacterNotFoundError, DomainError } from "../../../domain/errors"
 import { findCharacterConversations } from "../conversation/find-character-conversations"
+import { toLorebookDTO } from "./lorebook/lorebook.mapper"
+import { toCharacterVersionDTO } from "./character-version.mapper"
 
 export interface ExportCharacterInput {
   characterId: string
@@ -52,6 +50,7 @@ export class ExportCharacterUseCase {
     private readonly summaryRepository: SummaryRepository,
     private readonly assetRepository: CharacterAssetRepository,
     private readonly assetStorage: CharacterAssetStorage,
+    private readonly lorebookRepository?: LorebookRepository,
   ) {}
 
   async execute(input: ExportCharacterInput): Promise<CharacterExport> {
@@ -77,14 +76,23 @@ export class ExportCharacterUseCase {
     }
 
     if (selected.has("definition")) {
-      exportData.definition = toVersionDTO(currentVersion)
+      exportData.definition = toCharacterVersionDTO(currentVersion)
+    }
+
+    if (selected.has("lorebook") && this.lorebookRepository) {
+      const found = await this.lorebookRepository.findByCharacterId(
+        input.characterId,
+      )
+      if (found) {
+        exportData.lorebook = toLorebookDTO(found.book, found.entries)
+      }
     }
 
     if (selected.has("versions")) {
       const versions = await this.characterRepository.findVersionsByCharacterId(
         input.characterId,
       )
-      exportData.versions = versions.map(toVersionDTO)
+      exportData.versions = versions.map(toCharacterVersionDTO)
     }
 
     if (selected.has("profileImage")) {
@@ -298,33 +306,6 @@ function toSettings(conversation: Conversation): ExportSettings {
     characterDialogueColor: conversation.characterDialogueColor,
     userDialogueColor: conversation.userDialogueColor,
     customProfileImageAssetId: conversation.customProfileImageAssetId,
-  }
-}
-
-function toVersionDTO(v: CharacterVersion): CharacterVersionDTO {
-  return {
-    id: v.id,
-    characterId: v.characterId,
-    name: v.name,
-    subtitle: v.subtitle,
-    profileImageAssetId: v.profileImageAssetId,
-    description: v.description,
-    instructions: v.instructions,
-    greeting: v.greeting,
-    versionNumber: v.versionNumber,
-    createdAt: v.createdAt.toISOString(),
-    cards: v.cards.map(toCardDTO),
-  }
-}
-
-function toCardDTO(c: CharacterCard): CharacterCardDTO {
-  return {
-    id: c.id,
-    versionId: c.versionId,
-    title: c.title,
-    content: c.content,
-    position: c.position,
-    active: c.active,
   }
 }
 

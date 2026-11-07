@@ -2,6 +2,7 @@ import type { CharacterVersionDTO } from "@workspace/shared/types/character"
 
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import { CharacterNotFoundError } from "../../../domain/errors"
+import { toCharacterVersionDTO } from "./character-version.mapper"
 
 export class ListCharacterVersionsUseCase {
   constructor(private readonly characterRepository: CharacterRepository) {}
@@ -14,25 +15,6 @@ export class ListCharacterVersionsUseCase {
 
     const versions = await this.characterRepository.findVersionsByCharacterId(characterId)
 
-    return versions.map((v) => ({
-      id: v.id,
-      characterId: v.characterId,
-      name: v.name,
-      subtitle: v.subtitle,
-      profileImageAssetId: v.profileImageAssetId,
-      description: v.description,
-      instructions: v.instructions,
-      greeting: v.greeting,
-      versionNumber: v.versionNumber,
-      createdAt: v.createdAt.toISOString(),
-      cards: v.cards.map((c) => ({
-        id: c.id,
-        versionId: c.versionId,
-        title: c.title,
-        content: c.content,
-        position: c.position,
-        active: c.active,
-      })),
-    }))
+    return versions.map(toCharacterVersionDTO)
   }
 }

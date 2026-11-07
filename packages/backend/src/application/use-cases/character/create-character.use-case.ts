@@ -3,18 +3,30 @@ import { v7 as randomUUIDv7 } from "uuid"
 import type {
   CreateCharacterInput,
   CharacterDetail,
-  CharacterVersionDTO,
-  CharacterCardDTO,
 } from "@workspace/shared/types/character"
+import { MAX_LOREBOOK_ENTRIES } from "@workspace/shared/lib/sillytavern-card"
 
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import { CharacterCard } from "../../../domain/entities/character-card.entity"
-import type { CharacterRepository } from "../../../domain/ports/character.repository"
-import { CharacterValidationError } from "../../../domain/errors"
+import type {
+  CharacterRepository,
+  CreateCharacterLorebook,
+} from "../../../domain/ports/character.repository"
+import type { LorebookRepository } from "../../../domain/ports/lorebook.repository"
+import {
+  CharacterValidationError,
+  DomainError,
+  LorebookValidationError,
+} from "../../../domain/errors"
+import { buildLorebookEntities } from "./lorebook/lorebook.mapper"
+import { toCharacterVersionDTO } from "./character-version.mapper"
 
 export class CreateCharacterUseCase {
-  constructor(private readonly characterRepository: CharacterRepository) {}
+  constructor(
+    private readonly characterRepository: CharacterRepository,
+    _lorebookRepository?: LorebookRepository,
+  ) {}
 
   async execute(input: CreateCharacterInput): Promise<CharacterDetail> {
     if (input.cards?.some((c) => !c.title.trim() || !c.content.trim())) {
@@ -55,11 +67,67 @@ export class CreateCharacterUseCase {
       versionNumber: 1,
       createdAt: now,
       cards,
+      personality: input.personality ?? null,
+      scenario: input.scenario ?? null,
+      mesExample: input.mesExample ?? null,
+      alternateGreetings: input.alternateGreetings ?? [],
+      creatorNotes: input.creatorNotes ?? null,
+      tags: input.tags ?? [],
+      creator: input.creator ?? null,
+      cardCharacterVersion: input.cardCharacterVersion ?? null,
+      gender: input.gender ?? null,
+      pronouns: input.pronouns ?? null,
+      tagline: input.tagline ?? null,
+      systemPrompt: input.systemPrompt ?? null,
+      postHistoryInstructions: input.postHistoryInstructions ?? null,
+      extensions: input.extensions ?? null,
+      unknownFields: input.unknownFields ?? null,
+      unknownRootFields: input.unknownRootFields ?? null,
     })
 
-    const result = await this.characterRepository.createWithFirstVersion(character, version)
+    const lorebook = this.buildLorebook(input, characterId)
+
+    const result = await this.characterRepository.createWithFirstVersion(
+      character,
+      version,
+      lorebook ?? undefined,
+    )
 
     return toCharacterDetail(result.character, result.version, [result.version])
+  }
+
+  private buildLorebook(
+    input: CreateCharacterInput,
+    characterId: string,
+  ): CreateCharacterLorebook | null {
+    if (!input.lorebook) return null
+
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(input.lorebook.payload)
+    } catch {
+      throw new DomainError(
+        "INVALID_CARD_JSON",
+        "The lorebook payload is not valid JSON.",
+        400,
+      )
+    }
+
+    const entities = buildLorebookEntities(parsed, characterId)
+    if (!entities) {
+      throw new DomainError(
+        "INVALID_CARD_JSON",
+        "The payload is not a SillyTavern lorebook.",
+        400,
+      )
+    }
+    if (entities.entries.length > MAX_LOREBOOK_ENTRIES) {
+      throw new LorebookValidationError(
+        `A lorebook can have at most ${MAX_LOREBOOK_ENTRIES} entries.`,
+      )
+    }
+
+    return entities
   }
 }
 
@@ -73,34 +141,7 @@ function toCharacterDetail(
     name: character.name,
     createdAt: character.createdAt.toISOString(),
     updatedAt: character.updatedAt.toISOString(),
-    currentVersion: toVersionDTO(currentVersion),
-    versions: allVersions.map(toVersionDTO),
-  }
-}
-
-function toVersionDTO(v: CharacterVersion): CharacterVersionDTO {
-  return {
-    id: v.id,
-    characterId: v.characterId,
-    name: v.name,
-    subtitle: v.subtitle,
-    profileImageAssetId: v.profileImageAssetId,
-    description: v.description,
-    instructions: v.instructions,
-    greeting: v.greeting,
-    versionNumber: v.versionNumber,
-    createdAt: v.createdAt.toISOString(),
-    cards: v.cards.map(toCardDTO),
-  }
-}
-
-function toCardDTO(c: CharacterCard): CharacterCardDTO {
-  return {
-    id: c.id,
-    versionId: c.versionId,
-    title: c.title,
-    content: c.content,
-    position: c.position,
-    active: c.active,
+    currentVersion: toCharacterVersionDTO(currentVersion),
+    versions: allVersions.map(toCharacterVersionDTO),
   }
 }

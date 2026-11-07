@@ -13,6 +13,8 @@ import type { AppContainer } from "../../../containers/app-container"
 import { buildApiOriginGuard } from "./middlewares/api-origin-guard"
 import { buildErrorHandler } from "./middlewares/error-handler"
 import { buildCharacterRouter } from "./routes/character.routes"
+import { buildSillyTavernCardRouter } from "./routes/sillytavern-card.routes"
+import { buildLorebookRouter } from "./routes/lorebook.routes"
 import { buildPlayerCharacterRouter } from "./routes/player-character.routes"
 import { buildConversationRouter } from "./routes/conversation.routes"
 import { buildHealthRouter } from "./routes/health.routes"
@@ -135,6 +137,17 @@ export const buildServer = ({
     }),
   )
   app.use("/api", buildProviderInstanceRouter(container))
+
+  // Card and lorebook payloads carry whole card images as base64, so they get a
+  // larger parser than the global 1 MB one. They are mounted before
+  // `/characters/:id` so `cards`/`lorebook` are never captured as an id.
+  const cardJsonParser = express.json({ limit: "15mb" })
+  app.use("/api/characters/cards", cardJsonParser)
+  app.use("/api/characters/:id/cards", cardJsonParser)
+  app.use("/api/lorebooks", cardJsonParser)
+  app.use("/api/characters/:id/lorebook", cardJsonParser)
+  app.use("/api", buildSillyTavernCardRouter(container))
+  app.use("/api", buildLorebookRouter(container))
   app.use("/api", buildCharacterRouter(container))
   app.use("/api", buildPlayerCharacterRouter(container))
   app.use(

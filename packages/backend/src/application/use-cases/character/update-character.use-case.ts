@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from "node:util"
+
 import { v7 as randomUUIDv7 } from "uuid"
 
 import type {
@@ -13,6 +15,7 @@ import {
   CharacterValidationError,
   NoChangesDetectedError,
 } from "../../../domain/errors"
+import { toCharacterVersionDTO } from "./character-version.mapper"
 
 export class UpdateCharacterUseCase {
   constructor(private readonly characterRepository: CharacterRepository) {}
@@ -35,6 +38,46 @@ export class UpdateCharacterUseCase {
     const newDescription = input.description ?? prevVersion.description
     const newInstructions = input.instructions !== undefined ? input.instructions : prevVersion.instructions
     const newGreeting = input.greeting ?? prevVersion.greeting
+    const newPersonality =
+      input.personality !== undefined ? input.personality : prevVersion.personality
+    const newScenario =
+      input.scenario !== undefined ? input.scenario : prevVersion.scenario
+    const newMesExample =
+      input.mesExample !== undefined ? input.mesExample : prevVersion.mesExample
+    const newAlternateGreetings =
+      input.alternateGreetings !== undefined
+        ? input.alternateGreetings
+        : prevVersion.alternateGreetings
+    const newCreatorNotes =
+      input.creatorNotes !== undefined ? input.creatorNotes : prevVersion.creatorNotes
+    const newTags = input.tags !== undefined ? input.tags : prevVersion.tags
+    const newCreator =
+      input.creator !== undefined ? input.creator : prevVersion.creator
+    const newCardCharacterVersion =
+      input.cardCharacterVersion !== undefined
+        ? input.cardCharacterVersion
+        : prevVersion.cardCharacterVersion
+    const newGender = input.gender !== undefined ? input.gender : prevVersion.gender
+    const newPronouns =
+      input.pronouns !== undefined ? input.pronouns : prevVersion.pronouns
+    const newTagline =
+      input.tagline !== undefined ? input.tagline : prevVersion.tagline
+    const newSystemPrompt =
+      input.systemPrompt !== undefined ? input.systemPrompt : prevVersion.systemPrompt
+    const newPostHistoryInstructions =
+      input.postHistoryInstructions !== undefined
+        ? input.postHistoryInstructions
+        : prevVersion.postHistoryInstructions
+    const newExtensions =
+      input.extensions !== undefined ? input.extensions : prevVersion.extensions
+    const newUnknownFields =
+      input.unknownFields !== undefined
+        ? input.unknownFields
+        : prevVersion.unknownFields
+    const newUnknownRootFields =
+      input.unknownRootFields !== undefined
+        ? input.unknownRootFields
+        : prevVersion.unknownRootFields
 
     if (
       newName === existing.character.name &&
@@ -43,7 +86,23 @@ export class UpdateCharacterUseCase {
       newDescription === prevVersion.description &&
       newInstructions === prevVersion.instructions &&
       newGreeting === prevVersion.greeting &&
-      input.cards === undefined
+      input.cards === undefined &&
+      newPersonality === prevVersion.personality &&
+      newScenario === prevVersion.scenario &&
+      newMesExample === prevVersion.mesExample &&
+      arraysEqual(newAlternateGreetings, prevVersion.alternateGreetings) &&
+      newCreatorNotes === prevVersion.creatorNotes &&
+      arraysEqual(newTags, prevVersion.tags) &&
+      newCreator === prevVersion.creator &&
+      newCardCharacterVersion === prevVersion.cardCharacterVersion &&
+      newGender === prevVersion.gender &&
+      newPronouns === prevVersion.pronouns &&
+      newTagline === prevVersion.tagline &&
+      newSystemPrompt === prevVersion.systemPrompt &&
+      newPostHistoryInstructions === prevVersion.postHistoryInstructions &&
+      isDeepStrictEqual(newExtensions, prevVersion.extensions) &&
+      isDeepStrictEqual(newUnknownFields, prevVersion.unknownFields) &&
+      isDeepStrictEqual(newUnknownRootFields, prevVersion.unknownRootFields)
     ) {
       throw new NoChangesDetectedError()
     }
@@ -89,6 +148,22 @@ export class UpdateCharacterUseCase {
       versionNumber: newVersionNumber,
       createdAt: now,
       cards,
+      personality: newPersonality,
+      scenario: newScenario,
+      mesExample: newMesExample,
+      alternateGreetings: newAlternateGreetings,
+      creatorNotes: newCreatorNotes,
+      tags: newTags,
+      creator: newCreator,
+      cardCharacterVersion: newCardCharacterVersion,
+      gender: newGender,
+      pronouns: newPronouns,
+      tagline: newTagline,
+      systemPrompt: newSystemPrompt,
+      postHistoryInstructions: newPostHistoryInstructions,
+      extensions: newExtensions,
+      unknownFields: newUnknownFields,
+      unknownRootFields: newUnknownRootFields,
     })
 
     await this.characterRepository.saveVersion(newVersion)
@@ -100,46 +175,11 @@ export class UpdateCharacterUseCase {
       name: updated.name,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
-      currentVersion: {
-        id: newVersion.id,
-        characterId: newVersion.characterId,
-        name: newVersion.name,
-        subtitle: newVersion.subtitle,
-        profileImageAssetId: newVersion.profileImageAssetId,
-        description: newVersion.description,
-        instructions: newVersion.instructions,
-        greeting: newVersion.greeting,
-        versionNumber: newVersion.versionNumber,
-        createdAt: newVersion.createdAt.toISOString(),
-        cards: newVersion.cards.map((c) => ({
-          id: c.id,
-          versionId: c.versionId,
-          title: c.title,
-          content: c.content,
-          position: c.position,
-          active: c.active,
-        })),
-      },
-      versions: allVersions.map((v) => ({
-        id: v.id,
-        characterId: v.characterId,
-        name: v.name,
-        subtitle: v.subtitle,
-        profileImageAssetId: v.profileImageAssetId,
-        description: v.description,
-        instructions: v.instructions,
-        greeting: v.greeting,
-        versionNumber: v.versionNumber,
-        createdAt: v.createdAt.toISOString(),
-        cards: v.cards.map((c) => ({
-          id: c.id,
-          versionId: c.versionId,
-          title: c.title,
-          content: c.content,
-          position: c.position,
-          active: c.active,
-        })),
-      })),
+      currentVersion: toCharacterVersionDTO(newVersion),
+      versions: allVersions.map(toCharacterVersionDTO),
     }
   }
 }
+
+const arraysEqual = (a: readonly string[], b: readonly string[]): boolean =>
+  a.length === b.length && a.every((value, index) => value === b[index])

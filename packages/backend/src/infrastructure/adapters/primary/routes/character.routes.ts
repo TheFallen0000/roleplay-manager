@@ -30,6 +30,43 @@ const CardSchema = z.object({
   active: z.boolean().optional(),
 })
 
+const MAX_PROMPT_FIELD_LENGTH = 20_000
+const MAX_METADATA_LENGTH = 500
+const MAX_SHORT_METADATA_LENGTH = 200
+const MAX_TAGS = 64
+const MAX_ALTERNATE_GREETINGS = 32
+const MAX_LIST_ITEM_LENGTH = 2_000
+
+const CharacterCardFieldsSchema = {
+  personality: z.string().max(MAX_PROMPT_FIELD_LENGTH).nullable().optional(),
+  scenario: z.string().max(MAX_PROMPT_FIELD_LENGTH).nullable().optional(),
+  mesExample: z.string().max(MAX_PROMPT_FIELD_LENGTH).nullable().optional(),
+  alternateGreetings: z
+    .array(z.string().max(MAX_LIST_ITEM_LENGTH))
+    .max(MAX_ALTERNATE_GREETINGS)
+    .optional(),
+  creatorNotes: z.string().max(MAX_METADATA_LENGTH).nullable().optional(),
+  tags: z.array(z.string().max(MAX_LIST_ITEM_LENGTH)).max(MAX_TAGS).optional(),
+  creator: z.string().max(MAX_SHORT_METADATA_LENGTH).nullable().optional(),
+  cardCharacterVersion: z
+    .string()
+    .max(MAX_SHORT_METADATA_LENGTH)
+    .nullable()
+    .optional(),
+  gender: z.string().max(MAX_SHORT_METADATA_LENGTH).nullable().optional(),
+  pronouns: z.string().max(MAX_SHORT_METADATA_LENGTH).nullable().optional(),
+  tagline: z.string().max(MAX_METADATA_LENGTH).nullable().optional(),
+  systemPrompt: z.string().max(MAX_PROMPT_FIELD_LENGTH).nullable().optional(),
+  postHistoryInstructions: z
+    .string()
+    .max(MAX_PROMPT_FIELD_LENGTH)
+    .nullable()
+    .optional(),
+  extensions: z.unknown().optional(),
+  unknownFields: z.unknown().optional(),
+  unknownRootFields: z.unknown().optional(),
+}
+
 const ListCharactersQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),
@@ -43,6 +80,13 @@ const CreateCharacterSchema = z.object({
   instructions: z.string().nullable().optional(),
   greeting: z.string().min(1, "Greeting is required"),
   cards: z.array(CardSchema).optional(),
+  ...CharacterCardFieldsSchema,
+  lorebook: z
+    .object({
+      format: z.enum(["ccv3", "st-native"]),
+      payload: z.string(),
+    })
+    .optional(),
 })
 
 const UpdateCardSchema = z.object({
@@ -61,6 +105,7 @@ const UpdateCharacterSchema = z.object({
   instructions: z.string().nullable().optional(),
   greeting: z.string().min(1).optional(),
   cards: z.array(UpdateCardSchema).optional(),
+  ...CharacterCardFieldsSchema,
 })
 
 const UpdateCharacterProfileImageSchema = z.object({

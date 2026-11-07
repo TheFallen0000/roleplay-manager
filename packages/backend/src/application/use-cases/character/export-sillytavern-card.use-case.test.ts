@@ -2,6 +2,7 @@ import { Readable } from "node:stream"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { ExportSillyTavernCardUseCase } from "./export-sillytavern-card.use-case"
+import { pngCardAdapter } from "../../../infrastructure/adapters/secondary/sillytavern/png-card.adapter"
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import { readTextChunks } from "../../../test-utils/png-fixtures"
@@ -114,6 +115,7 @@ const buildRepos = () => ({
     read: vi.fn(async () => Readable.from([Buffer.from("image")])),
     delete: vi.fn(),
   },
+  cardPng: pngCardAdapter,
 })
 
 const buildUseCase = (repos = buildRepos()) =>
