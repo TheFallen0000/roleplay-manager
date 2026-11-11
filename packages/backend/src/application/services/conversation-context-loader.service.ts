@@ -11,6 +11,8 @@ import type {
   MessageHistoryRepository,
   MessageRepository,
 } from "../../domain/ports/message.repository"
+import type { LorebookRepository } from "../../domain/ports/lorebook.repository"
+import type { PromptContextLorebook } from "../../domain/ports/prompt-context-builder"
 import type { PlayerCharacterRepository } from "../../domain/ports/player-character.repository"
 import type { SummaryRepository } from "../../domain/ports/summary.repository"
 import {
@@ -24,6 +26,7 @@ import {
   resolvePlayerCharacterPrompt,
   type PlayerCharacterPrompt,
 } from "../use-cases/conversation/resolve-player-character"
+import { LorebookActivationService } from "./lorebook-activation.service"
 
 export interface ConversationContextLoaderDeps {
   conversationRepository: ConversationRepository
@@ -33,6 +36,7 @@ export interface ConversationContextLoaderDeps {
   memoryRepository: MemoryRepository
   summaryRepository: SummaryRepository
   playerCharacterRepository: PlayerCharacterRepository
+  lorebookRepository?: LorebookRepository
 }
 
 export interface ConversationContextLoadInput {
@@ -57,6 +61,7 @@ export interface ConversationContextLoadResult {
   memories: Memory[]
   promptMemories: Memory[]
   playerCharacter: PlayerCharacterPrompt | undefined
+  lorebook?: PromptContextLorebook
 }
 
 /**
@@ -64,6 +69,8 @@ export interface ConversationContextLoadResult {
  * preview and the real send go through it so their selection cannot drift.
  */
 export class ConversationContextLoader {
+  private readonly lorebookActivation = new LorebookActivationService()
+
   constructor(private readonly deps: ConversationContextLoaderDeps) {}
 
   async load(
@@ -138,6 +145,8 @@ export class ConversationContextLoader {
       conversation,
     )
 
+    const lorebook = await this.loadLorebook(characterVersion.characterId, messages)
+
     return {
       conversation,
       characterVersion,
@@ -150,6 +159,36 @@ export class ConversationContextLoader {
       memories,
       promptMemories,
       playerCharacter,
+      ...(lorebook ? { lorebook } : {}),
+    }
+  }
+
+  private async loadLorebook(
+    characterId: string,
+    messages: Message[],
+  ): Promise<PromptContextLorebook | null> {
+    const repository = this.deps.lorebookRepository
+    if (!repository) return null
+
+    const lorebook = await repository.findByCharacterId(characterId)
+    if (!lorebook) return null
+
+    const activated = await this.lorebookActivation.activate({
+      book: lorebook.book,
+      entries: lorebook.entries,
+      messages,
+    })
+
+    return {
+      before: activated.before.map((entry) => ({
+        id: entry.id,
+        content: entry.content,
+      })),
+      after: activated.after.map((entry) => ({
+        id: entry.id,
+        content: entry.content,
+      })),
+      overBudgetCount: activated.overBudgetCount,
     }
   }
 }

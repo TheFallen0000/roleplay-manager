@@ -27,6 +27,7 @@ import {
 import {
   ClockFading,
   DownloadIcon,
+  FileDownIcon,
   MessageSquarePlusIcon,
   MessageSquareTextIcon,
   PencilIcon,
@@ -35,6 +36,7 @@ import {
 } from "lucide-react"
 import { ExportDialog } from "./export-dialog"
 import { ApplySettingsDialog } from "./apply-settings-dialog"
+import { SillyTavernExportDialog } from "./sillytavern-export-dialog"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 interface CharacterContextMenuProps {
@@ -63,6 +65,7 @@ export function CharacterContextMenu({
   const [versionsLoading, setVersionsLoading] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
+  const [cardExportOpen, setCardExportOpen] = useState(false)
   const [applySettingsOpen, setApplySettingsOpen] = useState(false)
 
   const handleVersionsOpenChange = (open: boolean) => {
@@ -155,6 +158,10 @@ export function CharacterContextMenu({
           <DownloadIcon className="size-4" />
           {t("characters.export")}
         </ContextMenuItem>
+        <ContextMenuItem onClick={() => setCardExportOpen(true)}>
+          <FileDownIcon className="size-4" />
+          {t("characters.sillytavern.exportTitle")}
+        </ContextMenuItem>
         <ContextMenuItem onClick={() => setApplySettingsOpen(true)}>
           <Settings2Icon className="size-4" />
           {t("characters.applySettings")}
@@ -173,6 +180,12 @@ export function CharacterContextMenu({
         conversationCount={conversations.length}
         open={exportOpen}
         onOpenChange={setExportOpen}
+      />
+
+      <SillyTavernExportDialog
+        character={character}
+        open={cardExportOpen}
+        onOpenChange={setCardExportOpen}
       />
 
       <ApplySettingsDialog

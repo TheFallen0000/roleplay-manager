@@ -67,6 +67,7 @@ export class GetPromptContextUseCase {
       promptMemories: loaded.promptMemories,
       summary: latestSummary,
       playerCharacter: loaded.playerCharacter,
+      lorebook: loaded.lorebook,
       locale,
       outputReserve: effective.outputReserve,
       compaction: { needed: needsCompaction, applied: false },

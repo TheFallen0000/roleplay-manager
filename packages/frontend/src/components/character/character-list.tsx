@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { ChevronDownIcon, PlusIcon, UploadIcon } from "lucide-react"
+import { ChevronDownIcon, FileJsonIcon, PlusIcon, UploadIcon } from "lucide-react"
 
 import type { CharacterSummary } from "@workspace/shared/types/character"
 import type { CharacterExport } from "@workspace/shared/types/export"
@@ -23,12 +23,14 @@ import {
 import { MascotPose } from "../layout/brand"
 import { LoadErrorState } from "../shared/states/load-error-state"
 import { CharacterCard } from "./character-card"
+import { CharacterCreateDialog } from "./character-create-dialog"
 import { CharacterDropOverlay } from "./character-drop-overlay"
 import { CharacterListToolbar } from "./character-list-toolbar"
 import {
   ImportCharacterDialog,
   type ImportCharacterResult,
 } from "./import-character-dialog"
+import { SillyTavernImportDialog } from "./sillytavern-import-dialog"
 import { useCharacterList } from "./use-character-list"
 
 function normalizeText(value: string): string {
@@ -66,6 +68,8 @@ function CharacterListContent() {
   const { t, tRaw, locale } = useTranslation()
 
   const [importOpen, setImportOpen] = useState(false)
+  const [cardImportOpen, setCardImportOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<CharacterSortKey>(DEFAULT_CHARACTER_SORT)
 
@@ -209,7 +213,11 @@ function CharacterListContent() {
             <UploadIcon />
             {t("characters.import")}
           </Button>
-          <Button render={<a href="/characters/new" />} nativeButton={false}>
+          <Button variant="outline" onClick={() => setCardImportOpen(true)}>
+            <FileJsonIcon />
+            {t("characters.sillytavern.importTitle")}
+          </Button>
+          <Button onClick={() => setCreateOpen(true)}>
             <PlusIcon />
             {t("characters.create")}
           </Button>
@@ -310,6 +318,21 @@ function CharacterListContent() {
         open={importOpen}
         onOpenChange={setImportOpen}
         onImport={handleImportPayload}
+      />
+      <SillyTavernImportDialog
+        open={cardImportOpen}
+        onOpenChange={setCardImportOpen}
+        onImported={() => {
+          void refresh()
+        }}
+      />
+      <CharacterCreateDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        locale={locale}
+        onCreated={() => {
+          void refresh()
+        }}
       />
     </>
   )

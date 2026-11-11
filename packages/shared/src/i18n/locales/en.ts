@@ -92,7 +92,8 @@ export const en = {
     options: "Options",
     editTitle: "Edit persona",
     createTitle: "New persona",
-    formDescription: "Name and description of your played character. No versions.",
+    formDescription:
+      "Name and description of your played character. No versions.",
     namePlaceholder: "Name",
     descriptionPlaceholder: "Description",
     required: "Name and description are required",
@@ -225,15 +226,13 @@ export const en = {
     updatedDescription: "You are now running the new version.",
     updatedDismiss: "Dismiss",
     rollbackDoneNow: "You are back on version {version}.",
-    rollbackUpdatedDescription:
-      "You are running the previous version again.",
+    rollbackUpdatedDescription: "You are running the previous version again.",
     securityNote:
       "Updating downloads and runs code from the repository; do it only if you trust it.",
     notesTitle: "Release notes",
     notARepo:
       "The app is not running from a git checkout, so automatic updates are not available.",
-    noAsset:
-      "The latest version does not include a package for this platform.",
+    noAsset: "The latest version does not include a package for this platform.",
     noChecksum:
       "The latest version does not include a checksum file, so the update cannot be verified.",
     noSignature:
@@ -305,8 +304,7 @@ export const en = {
       "All messages after this point will be deleted. This action cannot be undone.",
     confirmRewindSummaries: {
       one: "1 summary whose range is affected will also be deleted.",
-      other:
-        "{count} summaries whose range is affected will also be deleted.",
+      other: "{count} summaries whose range is affected will also be deleted.",
     },
     confirmRewind: "Rewind",
     previewWithSummary: "With summary",
@@ -385,7 +383,8 @@ export const en = {
     menuCustomization: "Customization",
     menuPersona: "Persona",
     historyTitle: "Chat history",
-    historyDescription: "Memories, proposals, summaries, compaction and auto-degradation.",
+    historyDescription:
+      "Memories, proposals, summaries, compaction and auto-degradation.",
     memoryMode: "Memory management mode",
     proposals: "Pending proposals",
     summaries: "Summaries",
@@ -495,8 +494,7 @@ export const en = {
     customImageSaving: "Saving image…",
     imageDeleted: "Custom image removed",
     backgroundTitle: "Chat background",
-    backgroundDescription:
-      "Only applies to this chat. Branches inherit it.",
+    backgroundDescription: "Only applies to this chat. Branches inherit it.",
     backgroundAdd: "Add background",
     backgroundFit: "Fit",
     backgroundFitCover: "Cover",
@@ -525,7 +523,7 @@ export const en = {
       "Every voice with its name plate and colour, over the chat background.",
     dialogueColors: "Dialogue colours",
     dialogueColorsHint:
-      "The colour each voice speaks in. \"Theme\" uses the active world's colour.",
+      'The colour each voice speaks in. "Theme" uses the active world\'s colour.',
     dialogueCharacter: "Character",
     dialogueUser: "You",
     dialogueColorDefault: "Theme",
@@ -565,6 +563,9 @@ export const en = {
     continueInstruction:
       "Continue the scene from the last message. Write only the next part of the character's response; do not repeat what is already written, do not write or act for the user, and keep the established style.",
     personality: "## Personality",
+    scenario: "## Scenario",
+    systemPrompt: "## Character system prompt",
+    postHistoryInstructions: "## Post-history instructions",
     name: "Name: {name}",
     subtitle: "Subtitle: {subtitle}",
     userCharacter: "## User character",
@@ -598,8 +599,7 @@ export const en = {
       "- For DELETE, include only the operation and targetMemoryId; do not invent the memory's content.",
     proposalsActor:
       "- The actor is the character, entity or place the memory is about, using the exact name from the story. Use the player character's name for facts about them.",
-    proposalsShape:
-      "- Title: 3 to 8 words. Description: one or two sentences.",
+    proposalsShape: "- Title: 3 to 8 words. Description: one or two sentences.",
     proposalsPriority:
       "- Priority: 1-3 minor detail, 4-6 relevant fact, 7-9 important story or relationship change, 10 defining fact. Do not use 5 by default.",
     proposalsLanguage:
@@ -610,8 +610,7 @@ export const en = {
       "Include this block once, at the very end of your message, and do not write anything after it:",
     proposalsFallback:
       "If the tool is unavailable or the call fails, use this block instead, once at the very end of your message:",
-    proposalsNoBoth:
-      "Never use the tool and the block in the same reply.",
+    proposalsNoBoth: "Never use the tool and the block in the same reply.",
     proposalsExampleHint:
       "The 5 in the example is a placeholder: choose the priority with the scale above.",
     style: "## Reply style",
@@ -623,7 +622,8 @@ export const en = {
       "Use asterisks only for the character's actions: *like this*. Never for titles or emphasis; write those as prose or in quotes.",
     formatNoMarkdown:
       "Do not use Markdown: no # headings, no **bold**, no lists, no tables, no code blocks (except the `memory_proposals` block when asked for it).",
-    formatNoEmoji: "Do not use emojis. Only if your Instructions say otherwise.",
+    formatNoEmoji:
+      "Do not use emojis. Only if your Instructions say otherwise.",
     formatEdges:
       "Start and end the message directly: no blank lines at the beginning or the end. Separate paragraphs with a single blank line.",
     formatInCharacter:
@@ -648,8 +648,7 @@ export const en = {
     integrate:
       "- Integrate everything into a single coherent summary, updating what already existed.",
     length: "- Keep it concise but complete (2-4 paragraphs).",
-    noMeta:
-      "- Do not include meta-instructions, OOC notes or special formats.",
+    noMeta: "- Do not include meta-instructions, OOC notes or special formats.",
     language:
       "- Write in the language of the conversation transcript. Do not translate it.",
     memory: "## Dynamic memory",
@@ -706,6 +705,8 @@ export const en = {
     emptyTitle: "Your shelf is empty",
     emptyDescription:
       "Create your first character and start a story you won't forget.",
+    cardFallbackDescription: "No description provided.",
+    cardFallbackGreeting: "*[The character remains silent.]*",
     deleteFailed: "The character could not be deleted.",
     conversationExists:
       "A conversation already exists for this character and version.",
@@ -759,6 +760,7 @@ export const en = {
     exportSelectAll: "Select all",
     exportClearAll: "Clear all",
     exportDefinition: "Definition (current version, cards included)",
+    exportLorebook: "Lorebook",
     exportProfileImage: "Profile image",
     exportVersions: "Version history (with their cards)",
     exportConversations: "Conversations and branches",
@@ -803,8 +805,7 @@ export const en = {
       other: "Settings applied to {count} conversations.",
     },
     settingsFailed: "The settings could not be applied",
-    settingsMissingTemplate:
-      "The file does not contain a settings template.",
+    settingsMissingTemplate: "The file does not contain a settings template.",
     settingsNoConversations: "This character has no conversations yet.",
     settingsProviderSkipped:
       "The template's provider instance does not exist in this installation; provider and model were kept.",
@@ -813,6 +814,7 @@ export const en = {
     settingsImageIncluded: "Custom chat image included",
     settingsImageSkipped:
       "The custom chat image is not available and was skipped.",
+    emptyGreeting: "Hello!",
     validationName: "Name is required",
     validationImage: "The profile image is required",
     validationDescription: "The description is required",
@@ -837,7 +839,9 @@ export const en = {
       'Are you sure you want to delete "{name}"? This action cannot be undone.',
     saveChanges: "Save changes",
     tabGeneral: "General",
+    tabCharacter: "Character",
     tabCards: "Cards",
+    tabLorebook: "Lorebook",
     fieldName: "Name *",
     namePlaceholder: "e.g. Milka Moori",
     fieldSubtitle: "Subtitle",
@@ -858,6 +862,107 @@ export const en = {
     cardTitlePlaceholder: "Card title",
     cardContentPlaceholder: "Card content",
     cardActive: "Active",
+    creatorNotesTitle: "Creator notes",
+    creatorNotesWarning:
+      "Creator notes are for you only: they are never sent to the model.",
+    creatorNotesEmpty: "No creator notes yet.",
+    tagsLabel: "Tags",
+    tagsPlaceholder: "Add a tag and press Enter",
+    tagsEmpty: "No tags yet.",
+    tagsRemove: "Remove tag {tag}",
+    alternateGreetingsLabel: "Alternate greetings",
+    alternateGreetingsPlaceholder: "Add an alternate greeting and press Enter",
+    alternateGreetingsEmpty: "No alternate greetings yet.",
+    alternateGreetingsRemove: "Remove greeting {index}",
+    genderLabel: "Gender",
+    pronounsLabel: "Pronouns",
+    taglineLabel: "Tagline",
+    fieldPersonality: "Personality",
+    fieldScenario: "Scenario",
+    fieldMesExample: "Dialogue example",
+    fieldCreator: "Creator",
+    fieldCardVersion: "Card version",
+    fieldSystemPrompt: "System prompt",
+    fieldPostHistoryInstructions: "Post-history instructions",
+    fieldGender: "Gender",
+    fieldPronouns: "Pronouns",
+    fieldTagline: "Tagline",
+    lorebookEmpty: "No lorebook entries yet",
+    lorebookAddEntry: "Add entry",
+    lorebookImport: "Import lorebook",
+    lorebookEntryFallback: "Entry",
+    lorebookName: "Lorebook name",
+    lorebookNamePlaceholder: "e.g. Forest of Eldoria",
+    lorebookEntryName: "Entry name",
+    lorebookEntryComment: "Comment",
+    lorebookKeysLabel: "Keys",
+    lorebookEntryContent: "Content",
+    lorebookImportFailed: "The lorebook could not be imported",
+    lorebookImportDone: "Lorebook imported",
+    lorebookExport: "Export lorebook",
+    lorebookExportDone: "Lorebook exported",
+    lorebookExportFailed: "The lorebook could not be exported",
+    lorebookSlugFallback: "lorebook",
+    lorebookRemoveEntry: "Remove entry",
+    lorebookEntrySecondaryKeys: "Secondary keys",
+    lorebookInsertionOrder: "Insertion order",
+    lorebookPosition: "Position",
+    lorebookPositionBefore: "Before character",
+    lorebookPositionAfter: "After character",
+    lorebookPriority: "Priority",
+    lorebookEnabled: "Enabled",
+    lorebookConstant: "Constant",
+    lorebookSelective: "Selective",
+    lorebookSelectiveLogic: "Selective logic",
+    lorebookSelectiveLogicAndAny: "AND ANY",
+    lorebookSelectiveLogicNotAll: "NOT ALL",
+    lorebookSelectiveLogicNotAny: "NOT ANY",
+    lorebookSelectiveLogicAndAll: "AND ALL",
+    lorebookCaseSensitive: "Case sensitive",
+    lorebookWholeWords: "Whole words",
+    sillytavern: {
+      importTitle: "Import SillyTavern card",
+      importDescription:
+        "Import a SillyTavern-compatible character card from a JSON or PNG file.",
+      importChooseFile: "Choose file",
+      importDropHint: "Drag a .json or .png file here or click to choose it",
+      importAction: "Import",
+      importFailed: "The card could not be imported.",
+      previewName: "Name",
+      previewDescription: "Description",
+      previewTags: "Tags",
+      previewCreator: "Creator",
+      previewLorebook: "Lorebook entries",
+      previewCardVersion: "Card version",
+      previewWarnings: "Warnings",
+      exportTitle: "Export SillyTavern card",
+      exportDescription:
+        'Download "{name}" as a SillyTavern-compatible character card.',
+      exportFormat: "Format",
+      exportSpec: "Card version",
+      formatPng: "PNG",
+      formatJson: "JSON",
+      specV2: "V2",
+      specV3: "V3",
+      exportAction: "Export",
+      exportDone: "Card exported",
+      exportFailed: "The card could not be exported.",
+      warnings: {
+        REGEX_IGNORED: "Regex keys are preserved but not activated.",
+        TIMED_EFFECTS_PRESERVED:
+          "Timed effects are preserved but not activated.",
+        IMAGE_ABSENT: "The card does not include an image.",
+        V1_CARD: "This is a V1 card; it was mapped to the current format.",
+        EMPTY_DESCRIPTION:
+          "The description was empty; a default text was used.",
+        EMPTY_GREETING:
+          "The opening greeting was empty; a default text was used.",
+        UNSUPPORTED_FIELDS_PRESERVED:
+          "Unsupported fields were preserved verbatim.",
+        SCAN_DEPTH_PER_ENTRY_IGNORED:
+          "Per-entry scan depth is preserved but not activated.",
+      },
+    },
   },
   providers: {
     heading: "Providers",
@@ -877,8 +982,7 @@ export const en = {
     instanceUpdateFailed: "The instance could not be updated",
     instanceDeleted: "Instance deleted",
     instanceDeleteFailed: "The instance could not be deleted",
-    selectInstanceForDefault:
-      "Select an instance before setting it as default",
+    selectInstanceForDefault: "Select an instance before setting it as default",
     defaultUpdated: "Default provider updated",
     defaultFailed: "It could not be set as default",
     selectInstanceForModel: "Select an instance before saving the model",
@@ -890,15 +994,15 @@ export const en = {
     statusUnknown: "Not verified",
     statusLoading: "Verifying…",
     ollamaDescription: "Run models locally with Ollama.",
-    openaiDescription: "Connect to any provider compatible with the OpenAI API.",
+    openaiDescription:
+      "Connect to any provider compatible with the OpenAI API.",
     modelLabel: "Model",
     modelsLoading: "Loading models…",
     modelPlaceholderEmpty: "Press Test to list models",
     modelPlaceholder: "Select or type a model",
     modelsAvailable: {
       one: "1 model available. You can type an identifier manually.",
-      other:
-        "{count} models available. You can type an identifier manually.",
+      other: "{count} models available. You can type an identifier manually.",
     },
     modelsHint: "Press Test to discover the available models.",
     testConnection: "Test connection",
@@ -909,8 +1013,7 @@ export const en = {
     instancesTitle: "Instances",
     instancesDescription: "Connections to OpenAI-compatible providers.",
     instancesEmptyTitle: "No instances",
-    instancesEmptyDescription:
-      "Create an instance to connect to a provider.",
+    instancesEmptyDescription: "Create an instance to connect to a provider.",
     selected: "Selected",
     noUrl: "No URL",
     editInstanceAria: "Edit {name}",
@@ -1070,8 +1173,7 @@ export const en = {
       "This will apply {count} proposals. Deletions: {deletes}.",
     proposalAcceptAllWithDeletes: "The following memories will be deleted:",
     proposalInvalidFields: "Actor and title are required.",
-    proposalInvalidPriority:
-      "Priority must be an integer between 1 and 10.",
+    proposalInvalidPriority: "Priority must be an integer between 1 and 10.",
   },
   logs: {
     title: "Logs",

@@ -22,11 +22,17 @@ import {
 import { Character } from "../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import { CharacterCard } from "../../../domain/entities/character-card.entity"
+import { Lorebook } from "../../../domain/entities/lorebook.entity"
+import { LorebookEntry } from "../../../domain/entities/lorebook-entry.entity"
 import { Conversation } from "../../../domain/entities/conversation.entity"
 import { Message } from "../../../domain/entities/message.entity"
 import { Memory } from "../../../domain/entities/memory.entity"
 import { Summary } from "../../../domain/entities/summary.entity"
-import type { CharacterRepository } from "../../../domain/ports/character.repository"
+import type {
+  CharacterRepository,
+  CreateCharacterLorebook,
+} from "../../../domain/ports/character.repository"
+import type { LorebookRepository } from "../../../domain/ports/lorebook.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
@@ -46,6 +52,7 @@ export class ImportCharacterUseCase {
     private readonly memoryRepository: MemoryRepository,
     private readonly summaryRepository: SummaryRepository,
     private readonly storeCharacterAsset: CharacterAssetWriter,
+    _lorebookRepository?: LorebookRepository,
   ) {}
 
   async execute(input: ImportCharacterInput): Promise<CharacterSummary> {
@@ -91,13 +98,34 @@ export class ImportCharacterUseCase {
               active: card.active ?? true,
             }),
           ),
+          personality: exported.personality ?? null,
+          scenario: exported.scenario ?? null,
+          mesExample: exported.mesExample ?? null,
+          alternateGreetings: exported.alternateGreetings ?? [],
+          creatorNotes: exported.creatorNotes ?? null,
+          tags: exported.tags ?? [],
+          creator: exported.creator ?? null,
+          cardCharacterVersion: exported.cardCharacterVersion ?? null,
+          gender: exported.gender ?? null,
+          pronouns: exported.pronouns ?? null,
+          tagline: exported.tagline ?? null,
+          systemPrompt: exported.systemPrompt ?? null,
+          postHistoryInstructions: exported.postHistoryInstructions ?? null,
+          extensions: exported.extensions ?? null,
+          unknownFields: exported.unknownFields ?? null,
+          unknownRootFields: exported.unknownRootFields ?? null,
         }),
       )
     })
 
     const currentVersion = createdVersions[createdVersions.length - 1]
+    const lorebook = this.buildLorebook(payload, characterId, now)
 
-    await this.characterRepository.createWithFirstVersion(character, createdVersions[0])
+    await this.characterRepository.createWithFirstVersion(
+      character,
+      createdVersions[0],
+      lorebook ?? undefined,
+    )
     for (const version of createdVersions.slice(1)) {
       await this.characterRepository.saveVersion(version)
     }
@@ -134,6 +162,60 @@ export class ImportCharacterUseCase {
       createdAt: character.createdAt.toISOString(),
       updatedAt: character.updatedAt.toISOString(),
     }
+  }
+
+  private buildLorebook(
+    payload: CharacterExport,
+    characterId: string,
+    now: Date,
+  ): CreateCharacterLorebook | null {
+    const dto = payload.lorebook
+    if (!payload.definition || !dto) return null
+
+    const bookId = randomUUIDv7()
+    const book = Lorebook.create({
+      id: bookId,
+      characterId,
+      name: dto.name,
+      description: dto.description,
+      scanDepth: dto.scanDepth,
+      tokenBudget: dto.tokenBudget,
+      recursiveScanning: dto.recursiveScanning,
+      extensions: dto.extensions,
+      unknownFields: dto.unknownFields,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    const entries = (dto.entries ?? []).map((entry, index) =>
+      LorebookEntry.create({
+        id: randomUUIDv7(),
+        lorebookId: bookId,
+        name: entry.name,
+        sourceId: entry.sourceId,
+        keys: entry.keys ?? [],
+        secondaryKeys: entry.secondaryKeys ?? [],
+        comment: entry.comment,
+        content: entry.content ?? "",
+        constant: entry.constant ?? false,
+        selective: entry.selective ?? false,
+        selectiveLogic: entry.selectiveLogic ?? 0,
+        insertionOrder: entry.insertionOrder ?? 100,
+        position: entry.position ?? "after_char",
+        rawPosition: entry.rawPosition ?? null,
+        priority: entry.priority ?? 0,
+        enabled: entry.enabled ?? true,
+        caseSensitive: entry.caseSensitive ?? false,
+        wholeWords: entry.wholeWords ?? false,
+        order: entry.order ?? index,
+        extensions: entry.extensions,
+        unknownFields: entry.unknownFields,
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+
+    return { book, entries }
   }
 
   private validatePayload(payload: CharacterExport): void {

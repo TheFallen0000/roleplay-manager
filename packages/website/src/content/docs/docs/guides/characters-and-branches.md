@@ -25,6 +25,23 @@ import dialog tells you what will be created.
 
 Use this to move a character between machines or to keep a portable backup.
 
+## SillyTavern-compatible cards and lorebooks
+
+You can also import SillyTavern character cards (V1, V2 and V3) from JSON or
+PNG. When a PNG contains both `chara` and `ccv3` chunks, the V3 card is used.
+The app keeps fields it does not interpret so exporting the card again does not
+silently drop them. Lorebooks embedded in a card, standalone `lorebook_v3`
+files and SillyTavern `{ entries }` lorebooks can be imported and linked to a
+character; supported activation covers keys, secondary keys, selective logic,
+constant entries, order, position, case, whole words, scan depth and token
+budget. Advanced lorebook features are preserved but not activated.
+
+Exports are available as V2 or V3 JSON and PNG, writing both `chara` and `ccv3`
+chunks. “SillyTavern-compatible” is a nominative description of the formats;
+this is a clean-room implementation built from the public specs, without
+copying SillyTavern's code, UI, prompts, assets or tests and without any implied
+endorsement.
+
 ## Branches
 
 A branch starts from a message and inherits the conversation settings. Use it

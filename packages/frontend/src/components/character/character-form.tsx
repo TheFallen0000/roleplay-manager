@@ -44,6 +44,8 @@ import { Sortable, SortableItem, SortableItemHandle } from "@workspace/ui/compon
 
 import type { CharacterDetail } from "@workspace/shared/types/character"
 import { useCharacterForm } from "./use-character-form"
+import { CharacterCardFields } from "./character-card-fields"
+import { LorebookEditor } from "./lorebook-editor"
 import { ProfileImageInput } from "@/components/shared/images/profile-image-input"
 import { useTranslation } from "@/lib/hooks/use-translation"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
@@ -51,17 +53,18 @@ import type { Locale } from "@workspace/shared/i18n"
 
 interface Props {
   character?: CharacterDetail
+  onCreated?: (character: CharacterDetail) => void
 }
 
-export function CharacterForm({ character, locale }: Props & { locale: Locale }) {
+export function CharacterForm({ character, locale, onCreated }: Props & { locale: Locale }) {
   return (
     <I18nProvider initialLocale={locale}>
-      <CharacterFormContent character={character} />
+      <CharacterFormContent character={character} onCreated={onCreated} />
     </I18nProvider>
   )
 }
 
-function CharacterFormContent({ character }: Props) {
+function CharacterFormContent({ character, onCreated }: Props) {
   const {
     isEditing,
     name, setName,
@@ -74,6 +77,10 @@ function CharacterFormContent({ character }: Props) {
     instructions, setInstructions,
     greeting, setGreeting,
     cards,
+    cardFields, setCardField,
+    lorebook, setLorebook,
+    handleLorebookImportFile,
+    handleLorebookExport,
     versionNumber,
     activeTab, setActiveTab,
     saving,
@@ -89,7 +96,7 @@ function CharacterFormContent({ character }: Props) {
     handleSubmit,
     handleDelete,
     handleStartConversation,
-  } = useCharacterForm(character)
+  } = useCharacterForm(character, { onCreated })
   const { t } = useTranslation()
 
   return (
@@ -158,14 +165,15 @@ function CharacterFormContent({ character }: Props) {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="general">{t("characters.tabGeneral")}</TabsTrigger>
+          <TabsTrigger value="character">{t("characters.tabCharacter")}</TabsTrigger>
           <TabsTrigger value="cards">
             {t("characters.tabCards")}
             {cards.length > 0 ? <Badge variant="secondary" className="ml-2">{cards.length}</Badge> : null}
           </TabsTrigger>
+          <TabsTrigger value="lorebook">{t("characters.tabLorebook")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="flex flex-col gap-4 pt-4">
+        <TabsContent value="character" className="flex flex-col gap-4 pt-4">
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="name">{t("characters.fieldName")}</FieldLabel>
@@ -251,6 +259,8 @@ function CharacterFormContent({ character }: Props) {
               <CharCounter current={instructions.length} max={1500} />
             </Field>
           </FieldGroup>
+
+          <CharacterCardFields values={cardFields} onChange={setCardField} />
         </TabsContent>
 
         <TabsContent value="cards" className="flex flex-col gap-4 pt-4">
@@ -322,6 +332,15 @@ function CharacterFormContent({ character }: Props) {
               ))}
             </Sortable>
           </div>
+        </TabsContent>
+
+        <TabsContent value="lorebook" className="flex flex-col gap-4 pt-4">
+          <LorebookEditor
+            value={lorebook}
+            onChange={setLorebook}
+            onImportFile={(file) => void handleLorebookImportFile(file)}
+            onExport={() => void handleLorebookExport()}
+          />
         </TabsContent>
       </Tabs>
     </form>

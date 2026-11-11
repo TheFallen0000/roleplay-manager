@@ -1,17 +1,12 @@
-import type {
-  CharacterDetail,
-  CharacterVersionDTO,
-  CharacterCardDTO,
-} from "@workspace/shared/types/character"
+import type { CharacterDetail } from "@workspace/shared/types/character"
 
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { CharacterAssetRepository } from "../../../domain/ports/character-asset.repository"
-import type { CharacterVersion } from "../../../domain/entities/character-version.entity"
-import type { CharacterCard } from "../../../domain/entities/character-card.entity"
 import {
   CharacterAssetNotFoundError,
   CharacterNotFoundError,
 } from "../../../domain/errors"
+import { toCharacterVersionDTO } from "./character-version.mapper"
 
 export class UpdateCharacterProfileImageUseCase {
   constructor(
@@ -50,35 +45,8 @@ export class UpdateCharacterProfileImageUseCase {
       name: existing.character.name,
       createdAt: existing.character.createdAt.toISOString(),
       updatedAt: existing.character.updatedAt.toISOString(),
-      currentVersion: toVersionDTO(currentVersion),
-      versions: allVersions.map(toVersionDTO),
+      currentVersion: toCharacterVersionDTO(currentVersion),
+      versions: allVersions.map(toCharacterVersionDTO),
     }
-  }
-}
-
-function toVersionDTO(v: CharacterVersion): CharacterVersionDTO {
-  return {
-    id: v.id,
-    characterId: v.characterId,
-    name: v.name,
-    subtitle: v.subtitle,
-    profileImageAssetId: v.profileImageAssetId,
-    description: v.description,
-    instructions: v.instructions,
-    greeting: v.greeting,
-    versionNumber: v.versionNumber,
-    createdAt: v.createdAt.toISOString(),
-    cards: v.cards.map(toCardDTO),
-  }
-}
-
-function toCardDTO(c: CharacterCard): CharacterCardDTO {
-  return {
-    id: c.id,
-    versionId: c.versionId,
-    title: c.title,
-    content: c.content,
-    position: c.position,
-    active: c.active,
   }
 }

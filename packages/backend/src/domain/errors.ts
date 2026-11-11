@@ -51,6 +51,13 @@ export class CharacterValidationError extends DomainError {
   }
 }
 
+export class LorebookValidationError extends DomainError {
+  constructor(message: string) {
+    super("LOREBOOK_VALIDATION_ERROR", message, 400)
+    this.name = "LorebookValidationError"
+  }
+}
+
 export class ConversationNotFoundError extends NotFoundError {
   constructor(id: string) {
     super("CONVERSATION_NOT_FOUND", `Conversation with id '${id}' not found.`)

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "@workspace/ui/components/sonner"
 import type {
   CharacterDetail,
@@ -14,8 +14,33 @@ import {
 } from "@/lib/api/characters"
 import { uploadCharacterAsset } from "@/lib/api/client"
 import { createConversation } from "@/lib/api/conversations"
+import {
+  exportLorebook,
+  getLorebook,
+  importLorebook,
+  previewLorebook,
+} from "@/lib/api/lorebook"
 import { useTranslation } from "@/lib/hooks/use-translation"
-import { buildSnapshot, hasChanges } from "./character-form-utils"
+import {
+  buildCardSnapshot,
+  buildLorebookSnapshot,
+  buildSnapshot,
+  hasChanges,
+} from "./character-form-utils"
+import type {
+  CharacterCardFieldKey,
+  CharacterCardFieldValues,
+} from "./character-card-fields"
+import type { LorebookEditorValue } from "./lorebook-editor"
+import {
+  cardFieldsFromVersion,
+  cardFieldsToInput,
+  emptyLorebook,
+  lorebookToEditorValue,
+  parseLorebookPayload,
+  serializeLorebook,
+} from "./character-form-fields"
+import { downloadLorebook } from "./lorebook-file"
 
 export interface CardEntry {
   id: string
@@ -24,11 +49,18 @@ export interface CardEntry {
   active: boolean
 }
 
+interface UseCharacterFormOptions {
+  onCreated?: (character: CharacterDetail) => void
+}
+
 function emptyCard(): CardEntry {
   return { id: crypto.randomUUID(), title: "", content: "", active: true }
 }
 
-export function useCharacterForm(character?: CharacterDetail) {
+export function useCharacterForm(
+  character?: CharacterDetail,
+  options: UseCharacterFormOptions = {},
+) {
   const { t } = useTranslation()
   const isEditing = !!character
   const version: CharacterVersionDTO | undefined = character?.currentVersion
@@ -40,6 +72,10 @@ export function useCharacterForm(character?: CharacterDetail) {
   const [description, setDescription] = useState(version?.description ?? "")
   const [instructions, setInstructions] = useState(version?.instructions ?? "")
   const [greeting, setGreeting] = useState(version?.greeting ?? "")
+  const [cardFields, setCardFields] = useState<CharacterCardFieldValues>(
+    () => cardFieldsFromVersion(version),
+  )
+  const [lorebook, setLorebook] = useState<LorebookEditorValue>(emptyLorebook)
   const [cards, setCards] = useState<CardEntry[]>(
     () =>
       version?.cards.map((c) => ({
@@ -51,7 +87,7 @@ export function useCharacterForm(character?: CharacterDetail) {
   )
   const [versionNumber, setVersionNumber] = useState(version?.versionNumber ?? 1)
   const [selectedVersionId, setSelectedVersionId] = useState(character?.currentVersion.id ?? "")
-  const [activeTab, setActiveTab] = useState("general")
+  const [activeTab, setActiveTab] = useState("character")
   const [saving, setSaving] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -96,15 +132,46 @@ export function useCharacterForm(character?: CharacterDetail) {
       version?.instructions,
       version?.greeting ?? "",
       (version?.cards ?? []).map(c => ({ title: c.title, content: c.content, active: c.active })),
+      buildCardSnapshot(cardFieldsFromVersion(version)),
+      buildLorebookSnapshot(emptyLorebook()),
     ),
   )
+
+  useEffect(() => {
+    if (!character) return
+    let active = true
+    getLorebook(character.id)
+      .then((book) => {
+        if (!active) return
+        const next = lorebookToEditorValue(book)
+        setLorebook(next)
+        setLastSnapshot((prev) => ({
+          ...prev,
+          lorebook: buildLorebookSnapshot(next),
+        }))
+      })
+      .catch(() => {
+        // A character without a lorebook answers 404: keep the empty state.
+      })
+    return () => {
+      active = false
+    }
+  }, [character])
+
+  const setCardField = <K extends CharacterCardFieldKey>(
+    field: K,
+    value: CharacterCardFieldValues[K],
+  ) => {
+    setCardFields((prev) => ({ ...prev, [field]: value }))
+  }
 
   const handleVersionChange = useCallback((versionId: string) => {
     setSelectedVersionId(versionId)
     setTouched({})
     setAttemptedSubmit(false)
-    const v = character?.versions.find((v) => v.id === versionId)
+    const v = character?.versions.find((item) => item.id === versionId)
     if (!v) return
+    const nextCardFields = cardFieldsFromVersion(v)
     setName(v.name)
     setSubtitle(v.subtitle ?? "")
     setProfileImageAssetId(v.profileImageAssetId ?? null)
@@ -112,6 +179,7 @@ export function useCharacterForm(character?: CharacterDetail) {
     setDescription(v.description)
     setInstructions(v.instructions ?? "")
     setGreeting(v.greeting)
+    setCardFields(nextCardFields)
     setCards(v.cards.map((c) => ({
       id: c.id,
       title: c.title,
@@ -119,7 +187,7 @@ export function useCharacterForm(character?: CharacterDetail) {
       active: c.active,
     })))
     setVersionNumber(v.versionNumber)
-    setLastSnapshot(buildSnapshot(
+    setLastSnapshot((prev) => buildSnapshot(
       v.name,
       v.subtitle,
       v.profileImageAssetId ?? null,
@@ -127,6 +195,8 @@ export function useCharacterForm(character?: CharacterDetail) {
       v.instructions,
       v.greeting,
       v.cards.map((c) => ({ title: c.title, content: c.content, active: c.active })),
+      buildCardSnapshot(nextCardFields),
+      prev.lorebook,
     ))
   }, [character])
 
@@ -155,6 +225,8 @@ export function useCharacterForm(character?: CharacterDetail) {
   const currentSnapshot = buildSnapshot(
     name, subtitle, profileImageAssetId, description, instructions, greeting,
     cards.map(c => ({ title: c.title, content: c.content, active: c.active })),
+    buildCardSnapshot(cardFields),
+    buildLorebookSnapshot(lorebook),
   )
   const dirty = isEditing && hasChanges(currentSnapshot, lastSnapshot)
   const canSubmit = !saving && !hasValidationErrors && (!isEditing || dirty)
@@ -179,6 +251,39 @@ export function useCharacterForm(character?: CharacterDetail) {
     setProfileImageAssetId(null)
   }, [])
 
+  const handleLorebookImportFile = useCallback(
+    async (file: File) => {
+      try {
+        const payload = await file.text()
+        if (character?.id) {
+          await previewLorebook({ format: "json", payload })
+        }
+        setLorebook(parseLorebookPayload(payload))
+        toast.success(t("characters.lorebookImportDone"))
+      } catch {
+        toast.error(t("characters.lorebookImportFailed"))
+      }
+    },
+    [character, t],
+  )
+
+  const handleLorebookExport = useCallback(async () => {
+    try {
+      const payload = character?.id
+        ? await exportLorebook(character.id, "ccv3").catch(() =>
+            JSON.parse(serializeLorebook(lorebook)),
+          )
+        : JSON.parse(serializeLorebook(lorebook))
+      downloadLorebook(
+        payload,
+        lorebook.name || character?.name || t("characters.lorebookSlugFallback"),
+      )
+      toast.success(t("characters.lorebookExportDone"))
+    } catch {
+      toast.error(t("characters.lorebookExportFailed"))
+    }
+  }, [character, lorebook, t])
+
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     setAttemptedSubmit(true)
@@ -193,6 +298,8 @@ export function useCharacterForm(character?: CharacterDetail) {
     setSaving(true)
     try {
       if (isEditing && character) {
+        const previousLorebook = lastSnapshot.lorebook
+        const nextLorebookSnapshot = buildLorebookSnapshot(lorebook)
         const input: UpdateCharacterInput = {
           name: name.trim() !== character.name ? name.trim() : undefined,
           subtitle: subtitle.trim() || null,
@@ -206,14 +313,17 @@ export function useCharacterForm(character?: CharacterDetail) {
             position: i,
             active: c.active,
           })),
+          ...cardFieldsToInput(cardFields),
         }
         const result = await updateCharacter(character.id, input)
+        const nextCardFields = cardFieldsFromVersion(result.currentVersion)
         setName(result.name)
         setSubtitle(result.currentVersion.subtitle ?? "")
         setProfileImageAssetId(result.currentVersion.profileImageAssetId ?? null)
         setDescription(result.currentVersion.description)
         setInstructions(result.currentVersion.instructions ?? "")
         setGreeting(result.currentVersion.greeting)
+        setCardFields(nextCardFields)
         setCards(result.currentVersion.cards.map(c => ({
           id: c.id,
           title: c.title,
@@ -230,7 +340,29 @@ export function useCharacterForm(character?: CharacterDetail) {
           result.currentVersion.instructions,
           result.currentVersion.greeting,
           result.currentVersion.cards.map(c => ({ title: c.title, content: c.content, active: c.active })),
+          buildCardSnapshot(nextCardFields),
+          nextLorebookSnapshot,
         ))
+
+        const hasLorebookContent =
+          lorebook.entries.length > 0 || lorebook.name.trim() !== ""
+        if (hasLorebookContent && nextLorebookSnapshot !== previousLorebook) {
+          try {
+            const imported = await importLorebook(character.id, {
+              format: "ccv3",
+              payload: serializeLorebook(lorebook),
+              replace: true,
+            })
+            const next = lorebookToEditorValue(imported)
+            setLorebook(next)
+            setLastSnapshot((prev) => ({
+              ...prev,
+              lorebook: buildLorebookSnapshot(next),
+            }))
+          } catch {
+            toast.warning(t("characters.lorebookImportFailed"))
+          }
+        }
         toast.success(t("characters.updated"))
       } else {
         const input: CreateCharacterInput = {
@@ -243,8 +375,18 @@ export function useCharacterForm(character?: CharacterDetail) {
           cards: cards
             .filter((c) => c.title.trim() && c.content.trim())
             .map((c) => ({ title: c.title, content: c.content, active: c.active })),
+          ...cardFieldsToInput(cardFields),
+          ...(lorebook.entries.length > 0 || lorebook.name.trim() !== ""
+            ? {
+                lorebook: {
+                  format: "ccv3" as const,
+                  payload: serializeLorebook(lorebook),
+                },
+              }
+            : {}),
         }
         const result = await createCharacter(input)
+        options.onCreated?.(result)
         if (pendingFile) {
           const upload = await uploadCharacterAsset(result.id, pendingFile)
           await updateCharacterProfileImage(result.id, upload.assetId)
@@ -326,6 +468,12 @@ export function useCharacterForm(character?: CharacterDetail) {
     instructions, setInstructions,
     greeting, setGreeting,
     cards,
+    cardFields,
+    setCardField,
+    lorebook,
+    setLorebook,
+    handleLorebookImportFile,
+    handleLorebookExport,
     versionNumber,
     activeTab, setActiveTab,
     saving,

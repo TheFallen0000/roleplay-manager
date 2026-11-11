@@ -1,4 +1,5 @@
 import type { ImageDimensions } from "./image"
+import type { LorebookExportFormat } from "./sillytavern-card"
 
 export interface CharacterAssetDTO {
   id: string
@@ -47,6 +48,22 @@ export interface CharacterVersionDTO {
   versionNumber: number
   createdAt: string
   cards: CharacterCardDTO[]
+  personality?: string | null
+  scenario?: string | null
+  mesExample?: string | null
+  alternateGreetings?: string[]
+  creatorNotes?: string | null
+  tags?: string[]
+  creator?: string | null
+  cardCharacterVersion?: string | null
+  gender?: string | null
+  pronouns?: string | null
+  tagline?: string | null
+  systemPrompt?: string | null
+  postHistoryInstructions?: string | null
+  extensions?: unknown
+  unknownFields?: unknown
+  unknownRootFields?: unknown
 }
 
 export interface CharacterCardDTO {
@@ -66,6 +83,26 @@ export interface CreateCharacterInput {
   instructions?: string | null
   greeting: string
   cards?: CreateCardInput[]
+  personality?: string | null
+  scenario?: string | null
+  mesExample?: string | null
+  alternateGreetings?: string[]
+  creatorNotes?: string | null
+  tags?: string[]
+  creator?: string | null
+  cardCharacterVersion?: string | null
+  gender?: string | null
+  pronouns?: string | null
+  tagline?: string | null
+  systemPrompt?: string | null
+  postHistoryInstructions?: string | null
+  extensions?: unknown
+  unknownFields?: unknown
+  unknownRootFields?: unknown
+  lorebook?: {
+    format: LorebookExportFormat
+    payload: string
+  }
 }
 
 export interface CreateCardInput {
@@ -82,6 +119,22 @@ export interface UpdateCharacterInput {
   instructions?: string | null
   greeting?: string
   cards?: UpdateCardInput[]
+  personality?: string | null
+  scenario?: string | null
+  mesExample?: string | null
+  alternateGreetings?: string[]
+  creatorNotes?: string | null
+  tags?: string[]
+  creator?: string | null
+  cardCharacterVersion?: string | null
+  gender?: string | null
+  pronouns?: string | null
+  tagline?: string | null
+  systemPrompt?: string | null
+  postHistoryInstructions?: string | null
+  extensions?: unknown
+  unknownFields?: unknown
+  unknownRootFields?: unknown
 }
 
 export interface UpdateCardInput {

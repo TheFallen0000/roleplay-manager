@@ -134,6 +134,13 @@
       "when": 1793998945217,
       "tag": "0018_wet_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1794073028064,
+      "tag": "0019_character_cards",
+      "breakpoints": true
     }
   ]
 }

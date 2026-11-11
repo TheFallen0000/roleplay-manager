@@ -1,3 +1,5 @@
+import type { LorebookEditorValue } from "./lorebook-editor"
+
 export interface FormSnapshot {
   name: string
   subtitle: string | null
@@ -6,6 +8,81 @@ export interface FormSnapshot {
   instructions: string | null
   greeting: string
   cards: { title: string; content: string; active: boolean }[]
+  card?: string
+  lorebook?: string
+}
+
+export interface CardSnapshotFields {
+  personality: string
+  scenario: string
+  mesExample: string
+  alternateGreetings: string[]
+  creatorNotes: string
+  tags: string[]
+  creator: string
+  cardCharacterVersion: string
+  gender: string
+  pronouns: string
+  tagline: string
+  systemPrompt: string
+  postHistoryInstructions: string
+  extensions: unknown
+  unknownFields: unknown
+  unknownRootFields: unknown
+}
+
+export function buildCardSnapshot(fields: CardSnapshotFields): string {
+  return JSON.stringify({
+    personality: fields.personality.trim(),
+    scenario: fields.scenario.trim(),
+    mesExample: fields.mesExample.trim(),
+    alternateGreetings: fields.alternateGreetings,
+    creatorNotes: fields.creatorNotes.trim(),
+    tags: fields.tags,
+    creator: fields.creator.trim(),
+    cardCharacterVersion: fields.cardCharacterVersion.trim(),
+    gender: fields.gender.trim(),
+    pronouns: fields.pronouns.trim(),
+    tagline: fields.tagline.trim(),
+    systemPrompt: fields.systemPrompt.trim(),
+    postHistoryInstructions: fields.postHistoryInstructions.trim(),
+    extensions: fields.extensions ?? null,
+    unknownFields: fields.unknownFields ?? null,
+    unknownRootFields: fields.unknownRootFields ?? null,
+  })
+}
+
+export function buildLorebookSnapshot(lorebook: LorebookEditorValue): string {
+  return JSON.stringify({
+    name: lorebook.name.trim(),
+    description: lorebook.description ?? null,
+    scanDepth: lorebook.scanDepth ?? 4,
+    tokenBudget: lorebook.tokenBudget ?? 400,
+    recursiveScanning: lorebook.recursiveScanning ?? false,
+    extensions: lorebook.extensions ?? null,
+    unknownFields: lorebook.unknownFields ?? null,
+    entries: lorebook.entries.map((entry) => ({
+      sourceId: entry.sourceId ?? null,
+      name: entry.name,
+      keys: entry.keys,
+      content: entry.content,
+      secondaryKeys: entry.secondaryKeys,
+      constant: entry.constant,
+      selective: entry.selective,
+      selectiveLogic: entry.selectiveLogic,
+      insertionOrder: entry.insertionOrder,
+      position: entry.position,
+      priority: entry.priority,
+      enabled: entry.enabled,
+      caseSensitive: entry.caseSensitive,
+      wholeWords: entry.wholeWords,
+      comment: entry.comment,
+      rawPosition: entry.rawPosition ?? null,
+      order: entry.order ?? null,
+      extensions: entry.extensions ?? null,
+      unknownFields: entry.unknownFields ?? null,
+    })),
+  })
 }
 
 export function buildSnapshot(
@@ -16,20 +93,25 @@ export function buildSnapshot(
   instructions: string | null | undefined,
   greeting: string,
   cards: { title: string; content: string; active: boolean }[],
+  card?: string,
+  lorebook?: string,
 ): FormSnapshot {
-  return {
+  const snapshot: FormSnapshot = {
     name: name.trim(),
     subtitle: (subtitle ?? "").trim() || null,
     profileImageAssetId,
     description: description.trim(),
     instructions: (instructions ?? "").trim() || null,
     greeting: greeting.trim(),
-    cards: cards.map(c => ({
+    cards: cards.map((c) => ({
       title: c.title.trim(),
       content: c.content.trim(),
       active: c.active,
     })),
   }
+  if (card !== undefined) snapshot.card = card
+  if (lorebook !== undefined) snapshot.lorebook = lorebook
+  return snapshot
 }
 
 export function hasChanges(
@@ -42,6 +124,8 @@ export function hasChanges(
   if (current.description !== previous.description) return true
   if (current.instructions !== previous.instructions) return true
   if (current.greeting !== previous.greeting) return true
+  if (current.card !== previous.card) return true
+  if (current.lorebook !== previous.lorebook) return true
   if (current.cards.length !== previous.cards.length) return true
   return current.cards.some((c, i) => {
     const orig = previous.cards[i]
