@@ -230,6 +230,7 @@ describe("DrizzleCharacterRepository — S132 card fields", () => {
     const found = await repository.findVersionById("ver-s133")
 
     expect(found).not.toBeNull()
+    if (!found) throw new Error("expected the saved version")
     expect(field(found, "lorebookVersionId")).toBe("lv-s133")
   })
 })

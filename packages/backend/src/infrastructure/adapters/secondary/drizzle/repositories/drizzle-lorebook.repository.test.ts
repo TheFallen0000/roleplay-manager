@@ -252,17 +252,28 @@ describe("DrizzleLorebookRepository — S133 container model", () => {
   })
 
   it("does not delete the book or its entries when the character is deleted", async () => {
+    await db.insert(characters).values({
+      id: "char-cascade",
+      name: "Cascade",
+      createdAt: now,
+      updatedAt: now,
+    })
+
     const repository = new DrizzleLorebookRepository(db)
-    await repository.upsertBook(buildBook())
-    await repository.createEntry(buildEntry())
+    await repository.upsertBook(
+      buildBook({ id: "book-cascade", characterId: "char-cascade" })
+    )
+    await repository.createEntry(
+      buildEntry({ id: "entry-cascade", lorebookId: "book-cascade" })
+    )
 
-    await db.delete(characters).where(eq(characters.id, "char-1"))
+    await db.delete(characters).where(eq(characters.id, "char-cascade"))
 
-    const found = await repository.findById("book-1")
-    expect(found?.book.id).toBe("book-1")
+    const found = await repository.findById("book-cascade")
+    expect(found?.book.id).toBe("book-cascade")
     const remaining = await db.select().from(lorebookEntries)
     expect(
-      remaining.filter((entry) => entry.lorebookId === "book-1")
+      remaining.filter((entry) => entry.lorebookId === "book-cascade")
     ).toHaveLength(1)
   })
 })

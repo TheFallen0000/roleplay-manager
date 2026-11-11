@@ -4,12 +4,12 @@ import { join } from "node:path"
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
-import type { NormalizedLorebook } from "../../../../application/use-cases/character/lorebook/lorebook.mapper"
+import type { NormalizedLorebook } from "../../../application/use-cases/character/lorebook/lorebook.mapper"
 import {
   canonicalizeLorebookContent,
   computeLorebookSourceKey,
-} from "../../../../application/use-cases/character/lorebook/source-key"
-import { buildDatabase, runMigrations } from "../../../config/database"
+} from "../../../application/use-cases/character/lorebook/source-key"
+import { buildDatabase, runMigrations } from "../../config/database"
 import { runLorebookVersionsBackfill } from "./lorebook-versions.backfill"
 
 const root = mkdtempSync(join(tmpdir(), "rm-lorebook-backfill-"))
@@ -277,6 +277,12 @@ describe("lorebook versions backfill", () => {
 
   it("repairs a partial failure by reusing the existing v1", () => {
     // Simulate a crash after inserting v1 but before linking the container.
+    // This book is created only here so the earlier global backfill did not
+    // already process it.
+    insertCharacter("char-partial", "Partial")
+    insertCharacterVersion("ver-partial", "char-partial", 1)
+    insertBook("book-partial", "char-partial")
+
     sqlite
       .prepare(
         `INSERT INTO lorebook_versions
@@ -285,8 +291,8 @@ describe("lorebook versions backfill", () => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
-        "book-2-v1",
-        "book-2",
+        "book-partial-v1",
+        "book-partial",
         1,
         "Forest lore",
         "Facts about the forest",
@@ -300,19 +306,19 @@ describe("lorebook versions backfill", () => {
 
     runLorebookVersionsBackfill(db)
 
-    const versions = versionsFor("book-2")
+    const versions = versionsFor("book-partial")
     expect(versions).toHaveLength(1)
-    expect(versions[0].id).toBe("book-2-v1")
+    expect(versions[0].id).toBe("book-partial-v1")
 
-    const book = bookRow("book-2")
-    expect(book?.current_version_id).toBe("book-2-v1")
+    const book = bookRow("book-partial")
+    expect(book?.current_version_id).toBe("book-partial-v1")
     expect(book?.character_id).toBeNull()
 
     const linked = sqlite
       .prepare(
         "SELECT lorebook_version_id FROM character_versions WHERE character_id = ?",
       )
-      .all("char-2")
-    expect(linked).toEqual([{ lorebook_version_id: "book-2-v1" }])
+      .all("char-partial")
+    expect(linked).toEqual([{ lorebook_version_id: "book-partial-v1" }])
   })
 })
