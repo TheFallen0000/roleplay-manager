@@ -911,9 +911,9 @@ decisiones concretan el plan y deben pasar al RFC de S133/S134:
   las acciones pasan debajo; los placeholders de Tema/Idioma se ocultan para
   no romper el título.
 - **Formularios.** Los avanzados de la card se pliegan; las fichas y las
-  entradas usan el mismo patrón de lista con acciones discretas. La pantalla
+  entradas usan el mismo patrón de lista con acciones discretas. El prototipo
   de creación muestra contenido precargado y, al vaciar un campo, aparece su
-  placeholder.
+  placeholder; la app real empezará vacía con esos placeholders.
 - **Verificación.** El detector de `impeccable` no reporta hallazgos
   primarios; solo advisories de tamaños/radios/colores fuera de DESIGN.md y de
   las etiquetas numeradas de sección, que son intencionales en el prototipo.
@@ -953,6 +953,19 @@ decisiones concretan el plan y deben pasar al RFC de S133/S134:
 12. **¿La creación real empieza vacía o con un ejemplo precargado?**
     Recomendación: vacía con placeholders; el contenido precargado es solo una
     demo del prototipo para enseñar el placeholder al borrar.
+
+### 12.1 Decisiones cerradas (2026-11-11)
+
+- **Versionado del lorebook:** se versiona todo (nombre, descripción, ajustes y
+  entradas). Renombrar crea una versión nueva.
+- **Crear personaje real:** empieza vacío con placeholders. El contenido
+  precargado es solo una demo del prototipo para revisar el estado vacío.
+- **Reconstrucción de historial:** entra en S134, junto al historial de
+  versiones y el soft delete.
+- **Borrado de lorebook:** soft delete del contenedor; las versiones se
+  conservan y las versiones de personaje siguen funcionando.
+- **Vincular al crear lorebook:** no; el libro nace como v1 y se vincula
+  después desde el personaje o el detalle del libro.
 
 ---
 

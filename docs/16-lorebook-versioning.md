@@ -483,9 +483,10 @@ Si el import encuentra un match:
 
 ## 14. Cambios en los prototipos
 
-- **Crear personaje:** contenido precargado + placeholders en todos los campos
-  posibles; sección Lorebook opcional con selector libro+versión; fichas
-  editables con placeholders; placeholder de imagen.
+- **Crear personaje:** demo con contenido precargado + placeholders en todos
+  los campos posibles; la app real empezará vacía con esos placeholders.
+  Sección Lorebook opcional con selector libro+versión; fichas editables con
+  placeholders; placeholder de imagen.
 - **Detalle de personaje:** sección Lorebook con la versión exacta y estado del
   libro vivo; versiones del personaje con el libro/versión usado.
 - **Biblioteca de lorebooks:** versión actual y uso agregado.
@@ -496,18 +497,19 @@ Si el import encuentra un match:
 
 ---
 
-## 15. Decisiones abiertas
+## 15. Decisiones cerradas (2026-11-11)
 
-1. **Nombre versionado o estable.** Recomendación: versionar nombre,
-   descripción, ajustes y entradas; renombrar crea versión. La alternativa es
-   un nombre estable en el contenedor y versionar solo contenido/ajustes.
-2. **Soft delete vs hard delete con versiones conservadas.** Recomendación:
-   soft delete del contenedor; versiones conservadas; restauración al
-   reimportar.
-3. **Vincular al crear lorebook.** Recomendación: no; crear el libro y
-   vincular después desde el personaje o el detalle. Evita crear versiones de
-   personaje como efecto secundario de crear un libro.
-4. **Reconstrucción en S134 o después.** Recomendación: S134 si el alcance
-   cabe; si no, dejar el `source_key` y la UI de restauración para S135.
-5. **Limpieza de versiones huérfanas.** Recomendación: diferir; no borrar
-   versiones automáticamente en S133/S134.
+1. **Nombre versionado o estable.** Se versiona todo: nombre, descripción,
+   ajustes y entradas. Renombrar crea una versión nueva.
+2. **Soft delete vs hard delete con versiones conservadas.** Soft delete del
+   contenedor; las versiones se conservan y las versiones de personaje siguen
+   funcionando. La restauración al reimportar es explícita.
+3. **Vincular al crear lorebook.** No; el libro nace como v1 y se vincula
+   después desde el personaje o el detalle. Evita crear versiones de personaje
+   como efecto secundario de crear un libro.
+4. **Reconstrucción en S134 o después.** Entra en S134, junto al historial de
+   versiones y el soft delete.
+5. **Crear personaje real.** Empieza vacío con placeholders; el ejemplo
+   precargado del prototipo es solo una demo de revisión.
+6. **Limpieza de versiones huérfanas.** Diferida; no se borran versiones
+   automáticamente en S133/S134.
