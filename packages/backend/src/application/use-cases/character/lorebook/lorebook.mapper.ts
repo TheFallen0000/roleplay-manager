@@ -410,6 +410,12 @@ export interface LorebookLike {
   recursiveScanning?: boolean
   extensions?: unknown
   unknownFields?: unknown
+  /** Card fingerprint metadata: filled when exporting a linked lorebook version. */
+  lorebookId?: string
+  lorebookVersionId?: string
+  versionNumber?: number
+  sourceKey?: string
+  originId?: string | null
   entries?: LorebookEntryLike[]
   book?: LorebookLike
 }
