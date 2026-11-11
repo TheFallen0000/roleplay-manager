@@ -797,6 +797,32 @@ Aprobación:
 4. Aprobar el prototipo como referencia de S133/S134.
 5. Recién entonces, `/slice S133` con el flujo de subagentes.
 
+### 11.1 Decisiones tomadas en el prototipo
+
+Los prototipos de `docs/prototypes/card-first/` ya están construidos. Estas
+decisiones concretan el plan y deben pasar al RFC de S133/S134:
+
+- **Barra de guardado.** En escritorio, la acción principal vive en el header
+  (crear/guardar) y la barra de estado queda al final del formulario, sin tapar
+  contenido. En móvil, la barra es sticky al pie; en las páginas de detalle
+  solo aparece cuando hay cambios.
+- **Navegación de prototipo.** La barra de páginas es un pie de página, no
+  chrome fijo. El enlace **Prototipo** del topbar vuelve al hub.
+- **Diálogo Crear.** Dos placas con ilustración abstracta (icono + gradiente),
+  la misma altura y peso; el enlace de importar card queda en el pie.
+- **Biblioteca de lorebooks.** Cards con lomo de color, metadatos a la vista y
+  estado «Sin vincular» en chip discontinuo. La card de crear es discontinua.
+- **Header de detalle.** En móvil, avatar e identidad van en la misma fila y
+  las acciones pasan debajo; los placeholders de Tema/Idioma se ocultan para
+  no romper el título.
+- **Formularios.** Los avanzados de la card se pliegan; las fichas y las
+  entradas usan el mismo patrón de lista con acciones discretas.
+- **Verificación.** El detector de `impeccable` no reporta hallazgos
+  primarios; solo advisories de tamaños/radios/colores fuera de DESIGN.md y de
+  las etiquetas numeradas de sección, que son intencionales en el prototipo.
+- **Pendiente de implementación:** selector de saludo alternativo al iniciar
+  conversación (descrito en el plan, no incluido en el prototipo estático).
+
 ---
 
 ## 12. Open decisions
