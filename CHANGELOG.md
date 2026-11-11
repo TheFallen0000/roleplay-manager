@@ -53,6 +53,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Compatibilidad**: la compatibilidad con SillyTavern se implementa de forma
   clean-room desde las especificaciones públicas V2/V3, con límites de tamaño,
   validación de PNG y sin regex de usuario ni llamadas de red.
+- **Biblioteca**: el panel lateral agrupa Personajes, Lorebooks y Personajes jugados,
+  y el diálogo «Crear» ofrece dos placas del mismo peso (Personaje y Lorebook) sin
+  pestañas.
+- **Personajes**: página seccionada con Identidad, Card, Fichas, Lorebook y Versiones,
+  navegación fija, barra de guardado y un único guardado por versión.
+- **Lorebooks**: versiones inmutables del libro; cada versión de personaje fija una
+  versión concreta y las versiones antiguas quedan en solo lectura.
+- **Personajes**: contrato de card `GET/PUT /api/characters/:id/card` con
+  `extensions.rm`, que conserva subtítulo, instrucciones, fichas, número de versión y
+  la referencia del lorebook en el viaje de ida y vuelta.
+- **Lorebooks**: páginas `/lorebooks`, `/lorebooks/new` y `/lorebooks/:id` con selector
+  de versión, y creación de un libro suelto con su primera versión.
 
 ### Changed
 
@@ -73,6 +85,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `post_history_instructions` al final; sin esos datos el prompt no cambia.
 - **Contexto**: el manifiesto expone cuántas entradas de lorebook se descartaron
   por presupuesto (`lorebook.overBudget`).
+- **Personajes**: «Tarjetas» pasa a llamarse «Fichas» (EN: «Knowledge cards») en toda
+  la interfaz.
+- **Contexto**: el prompt y la previsualización usan la versión de lorebook enlazada a
+  la versión del personaje, no el libro vivo.
+- **Personajes**: importar una card o un lorebook crea su primera versión y la enlaza
+  a la versión del personaje, de modo que el prompt y la card exportada ya ven ese
+  libro.
 
 ### Fixed
 
@@ -100,6 +119,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Personajes**: editar un lorebook conserva los ajustes del libro, los campos
   desconocidos, `sourceId` y la posición numérica, de modo que guardar no
   degrada el formato importado.
+- **Lorebooks**: editar un libro ya no altera las conversaciones existentes, que
+  conservan la versión con la que se crearon.
+- **Personajes**: los imports de card y lorebook existentes ya no pierden el libro
+  en el prompt ni en la card exportada.
 
 ## [1.57.2] - 2026-11-05
 

@@ -1,8 +1,8 @@
 # S133 — Superficie card-first de personaje + fundación de lorebooks versionados
 
-**Estado:** Aprobado
+**Estado:** Completado
 **Inicio:** 2026-11-11
-**Fin:** —
+**Fin:** 2026-11-11
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -811,49 +811,49 @@ Obligatorio (toca prompt/contexto/card). Sin red.
 
 ## Criterios de aceptación
 
-- [ ] Migración `0020` crea `lorebook_versions`, añade `origin_id`/`current_version_id`/`deleted_at`
+- [x] Migración `0020` crea `lorebook_versions`, añade `origin_id`/`current_version_id`/`deleted_at`
       a `lorebooks` y `lorebook_version_id` (FK `RESTRICT`) a `character_versions`;
       suelta el índice único `lorebooks_character_idx` y la FK cascade de `character_id`.
-- [ ] Backfill idempotente y **auto-reparador**: v1 para cada libro existente,
+- [x] Backfill idempotente y **auto-reparador**: v1 para cada libro existente,
       `current_version_id`, `origin_id`, `source_key` (SHA-256 canónico), enlace de
       **todas** las versiones de personaje a la v1, y `character_id` anulado; un
       fallo parcial (v1 insertada sin enlazar) se repara reutilizando la v1 (sin
       duplicar) en la siguiente ejecución.
-- [ ] `ConversationContextLoader` resuelve la versión enlazada (no el libro vivo);
+- [x] `ConversationContextLoader` resuelve la versión enlazada (no el libro vivo);
       preview/send parity exacta; libro eliminado sigue funcionando; sin vínculo →
       sin lorebook.
-- [ ] `GET /api/characters/:id/card?spec=&versionId=` y `PUT /api/characters/:id/card`
+- [x] `GET /api/characters/:id/card?spec=&versionId=` y `PUT /api/characters/:id/card`
       con `character_book` de la versión enlazada y `extensions.rm` completo
       (subtitle, instructions, knowledgeCards, versionNumber, tagline, lorebook).
-- [ ] Card round-trip autocontenido con field loss = 0 y campos desconocidos
+- [x] Card round-trip autocontenido con field loss = 0 y campos desconocidos
       preservados (incluida una clave desconocida dentro de `extensions.rm`);
       `PUT /card` devuelve los **IDs locales nuevos** (no los importados), conserva el
       `originId` importado y recalcula `sourceKey`.
-- [ ] Endpoints de lorebooks: `GET /lorebooks`, `GET /lorebooks/:id`,
+- [x] Endpoints de lorebooks: `GET /lorebooks`, `GET /lorebooks/:id`,
       `GET /lorebooks/:id/versions`, `GET /lorebooks/:id/versions/:versionId`,
       `POST /lorebooks` (**standalone**: crea contenedor + v1 sin personaje), `PUT
       /lorebooks/:id` (versión nueva solo si cambió, **incluido un reordenamiento
       relativo de entradas**; no-op → `createdNewVersion:false`).
-- [ ] Crear/editar personaje acepta `lorebookVersionId` (link/change/remove) y crea
+- [x] Crear/editar personaje acepta `lorebookVersionId` (link/change/remove) y crea
       **una** versión por guardado.
-- [ ] Rutas compat S132 (`/characters/:id/lorebook*`, `/characters/cards/*`,
+- [x] Rutas compat S132 (`/characters/:id/lorebook*`, `/characters/cards/*`,
       `/lorebooks/preview`) siguen funcionando.
-- [ ] Sidebar «Biblioteca» con Personajes, Lorebooks y Personajes jugados; diálogo
+- [x] Sidebar «Biblioteca» con Personajes, Lorebooks y Personajes jugados; diálogo
       «Crear» con dos placas (sin tabs).
-- [ ] `/characters/new` y `/characters/:id` seccionados con nav sticky, save bar y
+- [x] `/characters/new` y `/characters/:id` seccionados con nav sticky, save bar y
       placeholders (creación empieza vacía).
-- [ ] «Tarjetas» → «Fichas» / «Cards» → «Knowledge cards» en todas las ocurrencias
+- [x] «Tarjetas» → «Fichas» / «Cards» → «Knowledge cards» en todas las ocurrencias
       user-facing.
-- [ ] Sección Lorebook del personaje muestra la versión exacta y su estado
+- [x] Sección Lorebook del personaje muestra la versión exacta y su estado
       (current/outdated/deleted) y acciones cambiar/quitar que crean versión nueva.
-- [ ] `CharacterVersionDTO.lorebookVersion` (resumen: lorebookId, versionId,
+- [x] `CharacterVersionDTO.lorebookVersion` (resumen: lorebookId, versionId,
       versionNumber, name, entryCount, sourceKey, originId?, status) con la
       precedencia correcta: `deleted` si `deleted_at`, si no `outdated` si
       `versionId !== current_version_id`, si no `current`; un contenedor eliminado
       sigue legible a través de su versión inmutable.
-- [ ] `/lorebooks`, `/lorebooks/new` (v1, sin vínculo) y `/lorebooks/:id` con
+- [x] `/lorebooks`, `/lorebooks/new` (v1, sin vínculo) y `/lorebooks/:id` con
       selector de versión y versión antigua read-only.
-- [ ] Sin regresiones S129–S132; `pnpm check`, `pnpm build` y `pnpm audit --prod`
+- [x] Sin regresiones S129–S132; `pnpm check`, `pnpm build` y `pnpm audit --prod`
       en verde; sin archivos >500 líneas; aislamiento de features respetado.
 
 ## Red tests
@@ -898,24 +898,34 @@ Obligatorio (toca prompt/contexto/card). Sin red.
     `packages/frontend/src/test-setup.ts` (infraestructura de test, no producción).
 - **Plan:** `docs/10-slices/S133-test-plan.md` (30 casos; matriz, fixtures y
   criterios de rojo válido).
+- **Ajustes de harness/fixtures:** antes de implementar se añadió el polyfill de
+  `matchMedia` y se alinearon los fixtures S132 (schema de lorebooks, `characterId`
+  opcional y componentes movidos) con el contrato S133; no cambian la razón de rojo.
 
 ## Decisiones
 
 - **Contenedor + versiones inmutables** (`docs/16` §3): `lorebooks`+`lorebook_entries`
   siguen siendo la cabeza editable; `lorebook_versions` guarda snapshots inmutables.
-- **`character_id` legacy nullable en 0020** (no drop físico): el backfill necesita
-  leer `character_id` para enlazar las versiones de personaje; el drop se aplaza.
-  Al terminar, `character_id` queda `NULL` (uso eliminado) y sin índice único ni FK
-  cascade.
+- **`character_id` legacy nullable en 0020** (gate aprobado; no drop físico): el
+  backfill necesita leer `character_id` para enlazar las versiones de personaje; el
+  drop se aplaza. Al terminar, `character_id` queda `NULL` (uso eliminado) y sin
+  índice único ni FK cascade.
 - **Backfill TypeScript idempotente** tras `runMigrations` (SQL no calcula SHA-256):
   guard `current_version_id IS NULL` + `INSERT ... NOT EXISTS (v1)` (auto-repara
   fallos parciales sin duplicar); `node:crypto` en backend; `source_key` excluye IDs
   locales (`id`, `source_id`, `lorebook_id`), `order` y timestamps.
-- **Card: crear libro + v1 en `PUT /card`** (sin matching `origin_id`/`source_key`):
-  la reconstrucción/reuse es S134. El contenedor/versión reciben **IDs locales
-  nuevos**; se conserva solo el `originId` importado (como `origin_id`) y se
-  recalcula `sourceKey`; la respuesta devuelve los IDs nuevos. `extensions.rm.lorebook`
-  sin `character_book` se ignora (sin vínculo).
+- **Card: crear libro + v1 en `PUT /card`** (gate aprobado; sin matching
+  `origin_id`/`source_key`): la reconstrucción/reuse es S134. El contenedor/versión
+  reciben **IDs locales nuevos**; se conserva solo el `originId` importado (como
+  `origin_id`) y se recalcula `sourceKey`; la respuesta devuelve los IDs nuevos.
+  `extensions.rm.lorebook` sin `character_book` se ignora (sin vínculo).
+- **Fix B1 (imports con libro pero sin v1):** `createWithFirstVersion` crea, en una
+  sola transacción, el libro standalone, sus entradas vivas y la v1 (`entriesJson` +
+  `source_key` SHA-256), fija `lorebooks.current_version_id` y enlaza
+  `character_versions.lorebook_version_id`; el import aplica esa v1 a todas las
+  versiones posteriores. `create-character` da precedencia al selector
+  `lorebookVersionId` sobre el payload legacy `input.lorebook` (con selector presente
+  no se construye libro del payload).
 - **Guardado de la página = un solo `PUT /characters/:id`** con `lorebookVersionId`
   (sin llamar también a `PUT /card`): evita dos versiones.
 - **Semántica `lorebookVersionId`:** `undefined` copia, `null` desvincula, id enlaza
@@ -940,18 +950,35 @@ Obligatorio (toca prompt/contexto/card). Sin red.
 
 ## Verificación
 
-- Tests: pendiente (etapa RFC).
-- `pnpm check`: pendiente.
-- `pnpm build`: pendiente.
-- `pnpm audit --prod`: pendiente.
-- Release dry-run: pendiente (el slice no toca empaquetado/modulos nativos/lockfile).
-- Prueba manual: pendiente.
+- **Backend:** `pnpm --filter @workspace/backend test` → 158 archivos / 1023 tests
+  en verde.
+- **Frontend:** `pnpm --filter @workspace/frontend exec vitest run` → 84 archivos /
+  451 tests en verde.
+- **Eval (ancla S129):** `pnpm --filter @workspace/backend eval` → 1 archivo / 33
+  tests en verde; los snapshots de ensamblado/contexto de S129 siguen intactos (cero
+  regresiones S129–S132).
+- **`pnpm check`:** pasa (`check:arch` 7/7, typecheck 5/5, lint 5/5).
+- **`pnpm build`:** pasa; solo aparecen avisos preexistentes.
+- **`pnpm audit --prod`:** sin vulnerabilidades conocidas.
+- **`git diff --check`:** limpio.
+- **Release dry-run:** no ejecutado; el slice no toca empaquetado, módulos nativos ni
+  lockfile.
+- **Prueba manual:** no ejecutada; recomendada antes del merge (biblioteca, guardado
+  de una sola versión, selector de lorebook y round-trip de card).
+- **Estado del trabajo:** completado en local, sin bump de versión ni push/PR/merge.
 
 ## Review
 
-- **Estado:** pendiente
+- **Estado:** PASS WITH NOTES
 - **Informe:** `docs/10-slices/S133-review.md`
-- **Bloqueantes resueltos:** —
+- **Historial:** la revisión inicial quedó **BLOCKED** por B1; el fix `0892bf5` y su
+  test `5d804dd` la reabren con **PASS WITH NOTES**.
+- **Bloqueantes resueltos:** B1 — los imports de card/lorebook (S132) creaban el libro
+  sin v1 ni enlace; ahora `createWithFirstVersion` crea la v1 y enlaza la versión de
+  personaje en la misma transacción, y `import-character` propaga esa v1 a todas las
+  versiones. Sin bloqueantes pendientes.
+- **Notas no bloqueantes:** I1/N1–N5 recogidas en `## Deferred`; ninguna impide el
+  cierre del slice.
 
 ## Deferred
 
@@ -965,31 +992,61 @@ Obligatorio (toca prompt/contexto/card). Sin red.
   `unknownFields`).
 - **Limpieza de versiones de lorebook huérfanas** → fuera (S133/S134 no borran
   versiones automáticamente).
+- **Notas de la review (no bloqueantes, ninguna impide el cierre):**
+  - **I1 — N+1 en `GET /characters/:id`:** `get-character` +
+    `lorebook-version-summary` hacen `findVersionById` + `findById` por versión (2N
+    consultas). → limpieza/S134 (batch `IN (...)`).
+  - **N1 — `toLorebookVersionDTO` sin `id` de entrada:** `entries_json` no incluye
+    `id` y el DTO lo declara obligatorio; el frontend lo tolera
+    (`entry.id ?? …`). → limpieza/S134 (sintetizar `id`).
+  - **N2 — i18n muerta `characters.tabCards`:** «Tarjetas»/«Cards» ya no se
+    referencia. → limpieza.
+  - **N3 — `extensions.rm` emite `subtitle`/`instructions` en `null`:** una card sin
+    `extensions` gana el namespace `rm`; cosmético, `field loss = 0`. → limpieza.
+  - **N4 — paginación y `usageCount` en memoria en `listLorebooks`:** trae todo y
+    hace `slice`, con `usageCount: 0` fijo. → limpieza/S134.
+  - **N5 — `canonicalizeLorebookContent` vive en `shared/lib`:** re-exportado desde
+    `source-key.ts`; benigno (paquete puro y hash en backend). → nota, sin acción.
 - Chats/JSONL, CHARX, assets V3, group chats, lorebook avanzado (timed/probability/
   groups/decorators/vectorized), prompt manager de ST → fuera.
 
 ## Commits
 
-Propuesta (conventional commits, sin bump de versión ni release):
+Lista real de la slice (orden cronológico; sin bump de versión ni release). Los
+commits de documentación y tests previos se agrupan para mantener la lista legible:
 
-1. `docs(slice): add S133 RFC`
-2. `docs(slice): add S133 test plan`
-3. `test(s133): add red tests for lorebook versions and card contract`
-4. `feat(shared): add lorebook versioning and card contract types`
-5. `feat(backend): add lorebook_versions schema and 0020 migration`
-6. `feat(backend): backfill lorebook v1 and link character versions`
-7. `feat(backend): version lorebooks on save and expose lorebook endpoints`
-8. `feat(backend): resolve prompt and card from the linked lorebook version`
-9. `feat(backend): add character card contract and rm extensions`
-10. `feat(frontend): sectioned character page and library shell`
-11. `feat(frontend): lorebook directory, create and detail surfaces`
-12. `docs(slice): record S133 review and acceptance`
-13. `docs(changelog): add S133 entries under [Unreleased]`
+**Documentación y tests**
 
-## CHANGELOG (previsto)
+1. RFC de S133 (`542e86b`, `312da5a`, `7471a90`) y plan de tests (`e3f3c65`).
+2. Baseline rojo, harness y fixtures S132 alineados: `a8e0fb6`, `9a5d171`,
+   `4f0a61a`, `509eed0`, `c919b34`.
 
-Entradas bajo `[Unreleased]` (en español; la etapa de docs las escribe en
-`CHANGELOG.md`, sin bump):
+**Implementación**
+
+3. `8efc2ee` — `feat(shared): add lorebook versioning and card contract types`
+4. `8ee7dc0` — `feat(backend): add lorebook versions schema, 0020 migration and
+   backfill`
+5. `5d46b42` — `feat(backend): add lorebook resource use cases and routes`
+6. `1e42791` — `feat(backend): link character versions to lorebook versions`
+7. `0bca253` — `feat(backend): carry RM extensions in character cards`
+8. `1eb1f49` — `feat(backend): add character card GET/PUT contract`
+9. `7d1055c` — `feat(backend): resolve prompt lorebook from linked version`
+10. `3cfe469` — `feat(frontend): add lorebook and character card API clients`
+11. `bfbe3ba` — `feat(frontend): add card-first character and lorebook surfaces`
+
+**Fix B1**
+
+12. `0892bf5` — `fix(backend): link imported lorebooks to a v1`
+13. `5d804dd` — test del fix B1 (v1 + enlace en los imports).
+
+**Cierre**
+
+14. `docs(slice)`: verificación, review, `CHANGELOG` y PR body de S133 (este
+    commit).
+
+## CHANGELOG
+
+Entradas bajo `[Unreleased]` (en español; escrita en `CHANGELOG.md`, sin bump):
 
 - **Added:** Biblioteca de personajes, lorebooks y personajes jugados en el panel
   lateral; diálogo «Crear» con placas de Personaje y Lorebook.
@@ -1010,15 +1067,11 @@ Entradas bajo `[Unreleased]` (en español; la etapa de docs las escribe en
 
 ## Open questions (gate)
 
-No hay decisiones que cambien el alcance sin cobertura en `docs/15`/`docs/16`. Dos
-puntos de control para confirmar en la aprobación (ambos con recomendación ya
-resuelta arriba):
+No hay decisiones que cambien el alcance sin cobertura en `docs/15`/`docs/16`. Los
+dos puntos de control se resolvieron en la aprobación con la recomendación de abajo:
 
-1. **`character_id` legacy-nullable vs drop físico en 0020.** Recomendación:
+1. **`character_id` legacy-nullable vs drop físico en 0020.** Resuelto:
    legacy-nullable ahora, drop físico en una limpieza futura (`docs/16` §8.1 lo
-   permite). Si se prefiere el drop en 0020, el backfill debe reordenarse (leer
-   `character_id` dentro del mismo SQL con una tabla temporal) — más riesgo, mismo
-   resultado.
-2. **`PUT /card` siempre crea libro nuevo + v1 en S133.** La reutilización por
-   `origin_id`/`source_key` es S134. Si se quiere matching ya en S133, crece el
-   slice; recomendación: no.
+   permite).
+2. **`PUT /card` siempre crea libro nuevo + v1 en S133.** Resuelto: la reutilización
+   por `origin_id`/`source_key` es S134; no hay matching en S133.
