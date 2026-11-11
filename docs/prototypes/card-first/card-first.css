@@ -1,0 +1,1927 @@
+/* ==========================================================================
+   Card-first prototypes — S133/S134
+   Se apoya en ../prototype.css (tokens, shell, botones, campos, badges).
+   Datos y nombres sintéticos. Sin build.
+   ========================================================================== */
+
+/* ---------- 1. Layout de trabajo ---------------------------------------- */
+.cf-content {
+  max-width: 80rem;
+  padding-bottom: 4rem;
+}
+
+a.btn,
+.btn {
+  text-decoration: none;
+}
+
+/* La barra de prototipo es un pie de página, no chrome fijo: no tapa el
+   contenido de las páginas largas. El enlace «Prototipo» del topbar vuelve
+   siempre al hub. */
+.proto-bar {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  translate: none;
+  max-width: none;
+  margin: 1.5rem auto 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cf-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+  margin-bottom: 0.55rem;
+}
+
+.cf-breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cf-breadcrumb a:hover {
+  color: var(--primary);
+}
+
+.cf-breadcrumb .sep {
+  opacity: 0.45;
+}
+
+.cf-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.cf-page-head .lede {
+  margin: 0.3rem 0 0;
+}
+
+.cf-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cf-page-grid {
+  display: grid;
+  grid-template-columns: 12.5rem minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.cf-page-grid--rail {
+  grid-template-columns: 12.5rem minmax(0, 1fr) 17rem;
+}
+
+/* ---------- 2. Nav de secciones ----------------------------------------- */
+.cf-section-nav {
+  position: sticky;
+  top: 4.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--card) 72%, transparent);
+}
+
+.cf-section-nav .nav-caption {
+  padding: 0.45rem 0.65rem 0.25rem;
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cf-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.6rem 0.65rem;
+  border-radius: var(--radius);
+  color: var(--muted-fg);
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out);
+}
+
+.cf-nav-link:hover {
+  background: var(--muted);
+  color: var(--fg);
+}
+
+.cf-nav-link[aria-current="true"],
+.cf-nav-link.is-active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: color-mix(in oklch, var(--primary) 22%, transparent);
+}
+
+.cf-nav-link .num {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  flex: none;
+}
+
+.cf-nav-link .dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: currentColor;
+  margin-left: auto;
+  opacity: 0.5;
+}
+
+/* ---------- 3. Paneles y fieldsets -------------------------------------- */
+.cf-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+  overflow: clip;
+}
+
+.cf-panel + .cf-panel {
+  margin-top: 1.15rem;
+}
+
+.cf-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklch, var(--primary-soft) 24%, var(--card));
+}
+
+.cf-panel-head .kicker {
+  display: block;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.cf-panel-head h2 {
+  font-size: 1.12rem;
+}
+
+.cf-panel-head p {
+  margin: 0.2rem 0 0;
+  color: var(--muted-fg);
+  font-size: 0.82rem;
+  max-width: 56ch;
+}
+
+.cf-panel-body {
+  padding: 1.15rem 1.25rem 1.3rem;
+}
+
+.cf-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 1.35rem;
+}
+
+.cf-fieldset:last-child {
+  margin-bottom: 0;
+}
+
+.cf-fieldset-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+
+.cf-fieldset-head h3 {
+  font-size: 0.95rem;
+}
+
+.cf-fieldset-head .hint {
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+}
+
+.cf-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem;
+}
+
+.cf-field-grid .span-2 {
+  grid-column: span 2;
+}
+
+.cf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.cf-field > .label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--fg);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.cf-field .help {
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.cf-field .input,
+.cf-field .textarea,
+.cf-field .select {
+  width: 100%;
+}
+
+.cf-counter {
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cf-example-badge {
+  line-height: 1.35;
+  padding: 0.35rem 0.65rem;
+}
+
+/* ---------- 4. Chips y metadatos ---------------------------------------- */
+.cf-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.cf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.65rem;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--muted);
+  color: var(--fg);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.cf-chip--violet {
+  border-color: color-mix(in oklch, var(--primary) 28%, transparent);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.cf-chip--dashed {
+  border-style: dashed;
+  background: transparent;
+  color: var(--muted-fg);
+  font-weight: 500;
+}
+
+.cf-chip button {
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+  opacity: 0.65;
+}
+
+.cf-chip button:hover {
+  opacity: 1;
+  background: color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.cf-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+}
+
+.cf-meta-row strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+/* ---------- 5. Preview de personaje ------------------------------------- */
+.cf-preview {
+  position: sticky;
+  top: 4.4rem;
+}
+
+.cf-character-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+  overflow: clip;
+}
+
+.cf-character-card .art {
+  position: relative;
+  min-height: 10.5rem;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(
+      circle at 70% 20%,
+      oklch(0.72 0.13 355 / 0.35),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 20% 80%,
+      oklch(0.54 0.24 300 / 0.35),
+      transparent 45%
+    ),
+    linear-gradient(145deg, var(--primary-soft), var(--muted));
+  overflow: hidden;
+}
+
+.cf-character-card .art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.cf-character-card .monogram {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 6.2rem;
+  height: 6.2rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in oklch, var(--primary) 32%, transparent);
+  background: color-mix(in oklch, var(--card) 70%, transparent);
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  box-shadow: 0 10px 30px oklch(0.3 0.05 300 / 0.18);
+}
+
+.cf-character-card .body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem 1.1rem;
+}
+
+.cf-character-card .name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-family: var(--font-head);
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.cf-character-card .sub {
+  color: var(--muted-fg);
+  font-size: 0.8rem;
+}
+
+.cf-character-card .desc {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dark .cf-character-card .desc {
+  color: var(--muted-fg);
+}
+
+.cf-preview-note {
+  margin: 0.65rem 0.2rem 0;
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* ---------- 6. Header de detalle ---------------------------------------- */
+.cf-cover {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: clip;
+  background:
+    radial-gradient(
+      circle at 80% 10%,
+      oklch(0.72 0.13 355 / 0.28),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 10% 90%,
+      oklch(0.54 0.24 300 / 0.3),
+      transparent 46%
+    ),
+    linear-gradient(135deg, var(--primary-soft), var(--card) 62%);
+  margin-bottom: 1.5rem;
+}
+
+.cf-cover-inner {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.1rem;
+  padding: 1.4rem 1.4rem 1.2rem;
+  flex-wrap: wrap;
+}
+
+.cf-cover .avatar {
+  width: 6.4rem;
+  height: 6.4rem;
+  border-width: 2px;
+  border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+  background: var(--card);
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  box-shadow: var(--shadow-2);
+}
+
+.cf-cover .identity {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.cf-cover h1 {
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem);
+}
+
+.cf-cover .sub {
+  color: var(--ink-soft);
+  margin-top: 0.2rem;
+}
+
+.cf-cover .cf-meta-row {
+  margin-top: 0.55rem;
+  color: var(--ink-soft);
+}
+
+.dark .cf-cover .sub,
+.dark .cf-cover .cf-meta-row {
+  color: var(--muted-fg);
+}
+
+.cf-cover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* ---------- 7. Fichas ---------------------------------------------------- */
+.cf-ficha-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cf-ficha {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--card) 78%, var(--muted));
+}
+
+.cf-ficha:hover {
+  border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+}
+
+.cf-ficha .handle {
+  color: var(--muted-fg);
+  cursor: grab;
+  padding-top: 0.1rem;
+}
+
+.cf-ficha .title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.cf-ficha .text {
+  color: var(--muted-fg);
+  font-size: 0.79rem;
+  line-height: 1.5;
+  margin-top: 0.2rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cf-ficha .actions {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.cf-ficha-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 3rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--muted-fg);
+  font: 600 0.82rem/1 var(--font-body);
+  cursor: pointer;
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
+}
+
+.cf-ficha-add:hover {
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--border));
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary-soft) 35%, transparent);
+}
+
+/* ---------- 7.1 Fichas editables y lorebook picker ---------------------- */
+.cf-ficha-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.cf-ficha-fields .input {
+  height: 2rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.cf-ficha-fields .textarea {
+  min-height: 3.2rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  font-size: 0.78rem;
+}
+
+.cf-ficha--new {
+  border-style: dashed;
+  background: transparent;
+}
+
+.cf-ficha--new .handle {
+  color: var(--primary);
+}
+
+.cf-lorebook-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in oklch, var(--primary-soft) 18%, var(--card));
+}
+
+.cf-lorebook-picker .spine {
+  width: 0.4rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--primary), var(--violet-deep));
+  box-shadow: 0 0 0 3px var(--primary-soft);
+  flex: none;
+}
+
+.cf-lorebook-picker .body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.cf-lorebook-picker .body strong {
+  font-size: 0.84rem;
+}
+
+.cf-lorebook-picker .body span {
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+}
+
+.cf-lorebook-picker .select {
+  min-width: 12rem;
+  flex: 0 1 12rem;
+}
+
+.cf-lorebook-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.2rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted-fg);
+  font-size: 0.8rem;
+}
+
+.cf-lorebook-placeholder svg {
+  color: var(--primary);
+  flex: none;
+}
+
+.cf-avatar-slot {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cf-avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 4.8rem;
+  height: 4.8rem;
+  padding: 0.35rem;
+  border: 1px dashed color-mix(in oklch, var(--primary) 35%, var(--border));
+  border-radius: 999px;
+  background: var(--muted);
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  line-height: 1.25;
+  text-align: center;
+  flex: none;
+}
+
+.cf-avatar-placeholder svg {
+  color: var(--primary);
+}
+
+.cf-version-select {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cf-version-select .select {
+  min-width: 10rem;
+}
+
+/* ---------- 8. Resumen y rail ------------------------------------------- */
+.cf-rail {
+  position: sticky;
+  top: 4.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.cf-rail-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+  padding: 0.95rem 1rem;
+}
+
+.cf-rail-card h3 {
+  font-size: 0.88rem;
+  margin-bottom: 0.55rem;
+}
+
+.cf-rail-card p {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 0.77rem;
+  line-height: 1.5;
+}
+
+.cf-kv {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  font-size: 0.78rem;
+}
+
+.cf-kv:last-child {
+  border-bottom: 0;
+}
+
+.cf-kv .k {
+  color: var(--muted-fg);
+}
+
+.cf-kv .v {
+  color: var(--fg);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ---------- 9. Lorebook summary ----------------------------------------- */
+.cf-book-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--primary-soft) 45%, transparent),
+      transparent 55%
+    ),
+    var(--card);
+}
+
+.cf-book-summary .spine {
+  width: 0.55rem;
+  height: 3.4rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--primary), var(--violet-deep));
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.cf-book-summary h3 {
+  font-size: 1rem;
+}
+
+.cf-book-summary .meta {
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+  margin-top: 0.2rem;
+}
+
+.cf-book-summary .actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cf-book-summary--stacked {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.cf-book-summary--stacked .actions {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  margin-top: 0.4rem;
+}
+
+/* ---------- 10. Versiones ----------------------------------------------- */
+.cf-version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cf-version {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.cf-version--current {
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--border));
+  background: color-mix(in oklch, var(--primary-soft) 38%, var(--card));
+}
+
+.cf-version .badge {
+  font-variant-numeric: tabular-nums;
+}
+
+.cf-version .when {
+  color: var(--muted-fg);
+  font-size: 0.76rem;
+}
+
+.cf-version .note {
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+}
+
+/* ---------- 11. Save bar ------------------------------------------------- */
+.cf-save-bar {
+  position: static;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+  padding: 0.7rem 0.8rem 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--card) 90%, transparent);
+  box-shadow: var(--shadow-1);
+}
+
+.cf-save-status {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+}
+
+.cf-save-status .dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--matcha);
+}
+
+.cf-save-status.is-dirty .dot {
+  background: var(--spark);
+}
+
+.cf-save-actions {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.cf-save-note {
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+}
+
+/* ---------- 12. Diálogo Crear ------------------------------------------- */
+.cf-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: oklch(0.2 0.02 300 / 0.42);
+  backdrop-filter: blur(6px);
+  animation: cf-fade var(--t-base) var(--ease-out) both;
+}
+
+.cf-modal {
+  width: min(46rem, 100%);
+  max-height: min(88svh, 46rem);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  box-shadow: var(--shadow-2);
+  animation: cf-rise var(--t-slow) var(--ease-out) both;
+}
+
+.cf-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.35rem 0.75rem;
+}
+
+.cf-modal-head .kicker {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cf-modal-head h2 {
+  font-size: 1.55rem;
+  margin-top: 0.15rem;
+}
+
+.cf-modal-head p {
+  margin: 0.35rem 0 0;
+  color: var(--muted-fg);
+  font-size: 0.84rem;
+}
+
+.cf-modal-body {
+  padding: 0.6rem 1.35rem 1.1rem;
+}
+
+.cf-create-plates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.cf-create-plate {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 15rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--card) 70%, var(--muted));
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform var(--t-base) var(--ease-out),
+    border-color var(--t-base) var(--ease-out),
+    box-shadow var(--t-base) var(--ease-out),
+    background var(--t-base) var(--ease-out);
+}
+
+.cf-create-plate:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--border));
+  background: var(--card);
+  box-shadow: var(--shadow-2);
+}
+
+.cf-create-plate:active {
+  transform: translateY(-1px);
+}
+
+.cf-create-plate .art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 7.2rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 70% 20%,
+      oklch(0.72 0.13 355 / 0.32),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 20% 80%,
+      oklch(0.54 0.24 300 / 0.28),
+      transparent 45%
+    ),
+    var(--muted);
+}
+
+.cf-create-plate .art svg {
+  width: 3.1rem;
+  height: 3.1rem;
+  color: var(--primary);
+  opacity: 0.9;
+}
+
+.cf-create-plate .art .spark {
+  position: absolute;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--spark);
+  opacity: 0.8;
+}
+
+.cf-create-plate .art .spark:nth-child(2) {
+  top: 22%;
+  right: 20%;
+}
+
+.cf-create-plate .art .spark:nth-child(3) {
+  bottom: 24%;
+  left: 18%;
+  width: 0.25rem;
+  height: 0.25rem;
+  background: var(--sakura);
+}
+
+.cf-create-plate .body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.cf-create-plate .kicker {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cf-create-plate h3 {
+  font-size: 1.08rem;
+}
+
+.cf-create-plate p {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.cf-create-plate .go {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.35rem;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.cf-create-plate:hover .go svg {
+  transform: translateX(3px);
+}
+
+.cf-create-plate .go svg {
+  transition: transform var(--t-base) var(--ease-out);
+}
+
+.cf-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1.35rem 1.15rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-fg);
+  font-size: 0.76rem;
+}
+
+.cf-modal-foot a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cf-modal-foot a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- 13. Biblioteca de lorebooks --------------------------------- */
+.cf-filter {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--muted);
+}
+
+.cf-filter button {
+  border: 0;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: var(--muted-fg);
+  font: 600 0.76rem/1 var(--font-body);
+  padding: 0.45rem 0.65rem;
+  cursor: pointer;
+}
+
+.cf-filter button[aria-pressed="true"] {
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: var(--shadow-1);
+}
+
+.cf-book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: 1rem;
+}
+
+.cf-book-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr);
+  gap: 0;
+  min-height: 11.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  overflow: clip;
+  box-shadow: var(--shadow-1);
+  text-decoration: none;
+  transition:
+    transform var(--t-base) var(--ease-out),
+    border-color var(--t-base) var(--ease-out),
+    box-shadow var(--t-base) var(--ease-out);
+}
+
+.cf-book-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--border));
+  box-shadow: var(--shadow-2);
+}
+
+.cf-book-card .spine {
+  background: linear-gradient(180deg, var(--primary), var(--violet-deep));
+  border-right: 1px solid
+    color-mix(in oklch, var(--violet-deep) 40%, transparent);
+}
+
+.cf-book-card .body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem 0.9rem;
+  min-width: 0;
+}
+
+.cf-book-card .top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+.cf-book-card .top .btn {
+  margin-left: auto;
+}
+
+.cf-book-card h2 {
+  font-size: 1rem;
+}
+
+.cf-book-card .desc {
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cf-book-card .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  margin-top: auto;
+}
+
+.cf-book-card .linked {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--fg);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.cf-book-card .linked .avatar {
+  width: 1.35rem;
+  height: 1.35rem;
+  font-size: 0.6rem;
+}
+
+.cf-book-card--add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 11.5rem;
+  padding: 1rem;
+  border-style: dashed;
+  background: transparent;
+  color: var(--muted-fg);
+  text-align: center;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.cf-book-card--add:hover {
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary-soft) 35%, transparent);
+}
+
+.cf-book-card--add .plus {
+  display: grid;
+  place-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ---------- 14. Entradas de lorebook ------------------------------------ */
+.cf-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.cf-entry {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: clip;
+}
+
+.cf-entry[open] {
+  border-color: color-mix(in oklch, var(--primary) 28%, var(--border));
+  box-shadow: var(--shadow-1);
+}
+
+.cf-entry summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cf-entry summary::-webkit-details-marker {
+  display: none;
+}
+
+.cf-entry summary:hover {
+  background: color-mix(in oklch, var(--primary-soft) 22%, transparent);
+}
+
+.cf-entry .drag {
+  color: var(--muted-fg);
+  cursor: grab;
+}
+
+.cf-entry .title {
+  min-width: 0;
+}
+
+.cf-entry .title strong {
+  display: block;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-entry .title .preview {
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.1rem;
+}
+
+.cf-entry .summary-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cf-entry-body {
+  padding: 0.2rem 0.8rem 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.cf-entry-body .cf-field-grid {
+  margin-top: 0.7rem;
+}
+
+.cf-key-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.cf-key-chips .cf-chip {
+  min-height: 1.4rem;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.75rem;
+}
+
+.cf-entry-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 2.8rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted-fg);
+  font: 600 0.8rem/1 var(--font-body);
+  cursor: pointer;
+}
+
+.cf-entry-add:hover {
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--border));
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary-soft) 30%, transparent);
+}
+
+/* ---------- 15. Vínculo -------------------------------------------------- */
+.cf-link-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--primary-soft) 28%, var(--card));
+  flex-wrap: wrap;
+}
+
+.cf-link-card .avatar {
+  width: 2.6rem;
+  height: 2.6rem;
+  font-size: 0.9rem;
+}
+
+.cf-link-card .body {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.cf-link-card .body strong {
+  display: block;
+  font-size: 0.88rem;
+}
+
+.cf-link-card .body span {
+  color: var(--muted-fg);
+  font-size: 0.76rem;
+}
+
+.cf-link-card .actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.cf-switch-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+}
+
+.cf-switch-row:last-child {
+  border-bottom: 0;
+}
+
+.cf-switch-row .label {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.cf-switch-row .help {
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin-top: 0.15rem;
+}
+
+.cf-switch-row .switch {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
+/* ---------- 16. Hub de prototipos --------------------------------------- */
+.cf-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+
+.cf-hub-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 10rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  color: var(--fg);
+  text-decoration: none;
+  box-shadow: var(--shadow-1);
+  transition:
+    transform var(--t-base) var(--ease-out),
+    border-color var(--t-base) var(--ease-out),
+    box-shadow var(--t-base) var(--ease-out);
+}
+
+.cf-hub-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--border));
+  box-shadow: var(--shadow-2);
+}
+
+.cf-hub-card .kicker {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cf-hub-card h2 {
+  font-size: 1.05rem;
+}
+
+.cf-hub-card p {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.cf-hub-card .go {
+  margin-top: auto;
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.cf-hub-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.4rem 0 0;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+}
+
+.cf-hub-flow strong {
+  color: var(--fg);
+}
+
+.cf-hub-flow .sep {
+  opacity: 0.5;
+}
+
+/* ---------- 17. Detalles de formulario ---------------------------------- */
+.cf-image-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cf-avatar-xl {
+  width: 4.8rem;
+  height: 4.8rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--primary);
+  background:
+    radial-gradient(
+      circle at 70% 20%,
+      oklch(0.72 0.13 355 / 0.32),
+      transparent 42%
+    ),
+    linear-gradient(145deg, var(--primary-soft), var(--muted));
+  border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+}
+
+.cf-image-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.cf-image-copy strong {
+  font-size: 0.84rem;
+}
+
+.cf-image-copy .help {
+  color: var(--muted-fg);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.cf-advanced {
+  margin-top: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in oklch, var(--muted) 45%, transparent);
+  padding: 0.7rem 0.85rem;
+}
+
+.cf-advanced summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.cf-advanced summary::-webkit-details-marker {
+  display: none;
+}
+
+.cf-advanced summary::before {
+  content: "+";
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--primary);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.cf-advanced[open] summary::before {
+  content: "−";
+}
+
+.cf-advanced[open] summary {
+  margin-bottom: 0.8rem;
+}
+
+.cf-modal-open {
+  overflow: hidden;
+}
+
+.cf-modal-backdrop[hidden] {
+  display: none;
+}
+
+/* ---------- 18. Utilidades ----------------------------------------------- */
+.cf-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cf-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cf-spacer {
+  flex: 1;
+}
+
+.cf-hidden,
+[hidden] {
+  display: none !important;
+}
+
+.cf-muted {
+  color: var(--muted-fg);
+}
+
+.cf-small {
+  font-size: 0.78rem;
+}
+
+.cf-tiny {
+  font-size: 0.75rem;
+}
+
+.cf-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1rem 0;
+}
+
+/* ---------- 18. Responsive ----------------------------------------------- */
+@media (max-width: 1180px) {
+  .cf-page-grid--rail {
+    grid-template-columns: 11.5rem minmax(0, 1fr);
+  }
+
+  .cf-page-grid--rail > .cf-rail {
+    grid-column: 2;
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .cf-page-grid,
+  .cf-page-grid--rail {
+    grid-template-columns: 1fr;
+  }
+
+  .proto-bar {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    translate: none;
+    max-width: none;
+    margin: 1rem auto 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .cf-save-bar {
+    position: sticky;
+    bottom: 0.5rem;
+    z-index: 5;
+  }
+
+  .cf-save-bar[data-save-visible="dirty"]:not([data-dirty="true"]) {
+    display: none;
+  }
+
+  .cf-section-nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0.3rem;
+    gap: 0.15rem;
+  }
+
+  .cf-section-nav .nav-caption {
+    display: none;
+  }
+
+  .cf-nav-link {
+    white-space: nowrap;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .cf-nav-link .dot {
+    display: none;
+  }
+
+  .cf-preview,
+  .cf-rail {
+    position: static;
+  }
+
+  .cf-page-grid--rail > .cf-rail {
+    grid-column: auto;
+    display: flex;
+  }
+}
+
+@media (max-width: 720px) {
+  .content {
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
+  }
+
+  .cf-page-actions--form,
+  .cf-save-header-action,
+  .cf-save-note,
+  .cf-save-bar .cf-save-status {
+    display: none;
+  }
+
+  .topbar .h3 {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .topbar button.btn--quiet.btn--sm:not(.btn--icon) {
+    display: none;
+  }
+
+  .cf-cover-inner {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .cf-cover .avatar {
+    width: 4rem;
+    height: 4rem;
+    font-size: 1.35rem;
+  }
+
+  .cf-cover .identity {
+    flex: none;
+    min-width: 0;
+  }
+
+  .cf-cover h1 {
+    font-size: 1.45rem;
+  }
+
+  .cf-cover .sub {
+    font-size: 0.78rem;
+  }
+
+  .cf-cover .cf-meta-row {
+    margin-top: 0.4rem;
+    gap: 0.3rem 0.6rem;
+  }
+
+  .cf-cover .cf-chip-list {
+    margin-top: 0.4rem;
+  }
+
+  .cf-cover-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .cf-page-head {
+    align-items: flex-start;
+  }
+
+  .cf-page-actions {
+    width: 100%;
+  }
+
+  .cf-create-plates {
+    grid-template-columns: 1fr;
+  }
+
+  .cf-create-plate {
+    min-height: 0;
+  }
+
+  .cf-create-plate .art {
+    min-height: 5.2rem;
+  }
+
+  .cf-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cf-field-grid .span-2 {
+    grid-column: auto;
+  }
+
+  .cf-cover-inner {
+    align-items: flex-start;
+  }
+
+  .cf-cover .avatar {
+    width: 4.6rem;
+    height: 4.6rem;
+    font-size: 1.5rem;
+  }
+
+  .cf-cover-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .cf-save-bar {
+    bottom: 0.5rem;
+    padding: 0.6rem;
+  }
+
+  .cf-save-status {
+    width: 100%;
+  }
+
+  .cf-save-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .cf-book-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cf-book-summary {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .cf-book-summary .actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .cf-entry summary {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .cf-entry .summary-meta {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .cf-hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cf-modal {
+    max-height: 92svh;
+  }
+}
+
+/* ---------- 19. Movimiento ------------------------------------------------ */
+@keyframes cf-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

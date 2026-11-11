@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="es" data-world="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prototipos card-first — Roleplay Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../prototype.css" />
+    <link rel="stylesheet" href="card-first.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brandline">
+          <img
+            src="../../../packages/frontend/public/brand/face-96.png"
+            alt=""
+          />
+          <span class="brand-name">Roleplay Manager</span>
+        </div>
+
+        <nav class="nav-group" aria-label="Biblioteca">
+          <span class="nav-label">Biblioteca</span>
+          <a class="nav-item" href="create-dialog.html">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Personajes
+          </a>
+          <a class="nav-item" href="lorebooks.html">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path
+                d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"
+              />
+            </svg>
+            Lorebooks
+          </a>
+          <a class="nav-item" href="#">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="5" />
+              <path d="M20 21a8 8 0 0 0-16 0" />
+            </svg>
+            Personajes jugados
+          </a>
+        </nav>
+
+        <nav class="nav-group" aria-label="Sistema">
+          <span class="nav-label">Sistema</span>
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+              /></svg
+            >Proveedores</a
+          >
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <path d="M21 3v6h-6" /></svg
+            >Actualizaciones <span class="badge badge--spark count">1</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 6h13" />
+              <path d="M8 12h13" />
+              <path d="M8 18h13" />
+              <path d="M3 6h.01" />
+              <path d="M3 12h.01" />
+              <path d="M3 18h.01" /></svg
+            >Registro</a
+          >
+        </nav>
+
+        <nav class="nav-group" aria-label="Ayuda">
+          <span class="nav-label">Ayuda</span>
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg
+            >Tutoriales</a
+          >
+        </nav>
+
+        <div
+          style="margin-top: auto; padding: 0 0.55rem; color: var(--muted-fg)"
+          class="tiny"
+        >
+          v1.57.2 · prototipo
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <button
+            class="btn btn--quiet btn--icon btn--sm"
+            type="button"
+            aria-label="Mostrar u ocultar menú"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </button>
+          <span class="h3" style="margin-right: auto">Prototipos</span>
+          <a class="btn btn--quiet btn--sm cf-proto-link" href="index.html"
+            >Prototipo</a
+          >
+          <button class="btn btn--quiet btn--sm" type="button">Tema ▾</button>
+          <button class="btn btn--quiet btn--sm" type="button">Idioma ▾</button>
+        </header>
+
+        <main class="content cf-content">
+          <div class="cf-breadcrumb">
+            <a href="index.html">Prototipos</a>
+            <span class="sep">/</span>
+            <span>Card-first S133–S134</span>
+          </div>
+
+          <div class="cf-page-head">
+            <div>
+              <h1 class="h1">Una biblioteca de autor</h1>
+              <p class="lede">
+                Personajes y lorebooks dejan de compartir un formulario con
+                tabs. El diálogo Crear solo decide; cada objeto tiene su
+                espacio.
+              </p>
+            </div>
+            <span class="badge badge--violet">Datos sintéticos</span>
+          </div>
+
+          <div class="cf-hub-flow">
+            <strong>Crear</strong>
+            <span class="sep">→</span>
+            <span>Personaje (identidad, card, fichas, lorebook)</span>
+            <span class="sep">→</span>
+            <span>Lorebook (ajustes, entradas, versiones, uso)</span>
+            <span class="sep">→</span>
+            <strong>Biblioteca</strong>
+          </div>
+
+          <section
+            class="cf-hub-grid"
+            style="margin-top: 1.25rem"
+            aria-label="Pantallas del prototipo"
+          >
+            <a class="cf-hub-card" href="create-dialog.html">
+              <span class="kicker">Punto de entrada</span>
+              <h2>Diálogo Crear</h2>
+              <p>
+                Dos placas grandes, mismo peso: Personaje o Lorebook. Sin tabs
+                ni campos dentro del modal.
+              </p>
+              <span class="go">Abrir →</span>
+            </a>
+            <a class="cf-hub-card" href="character-create.html">
+              <span class="kicker">S133 · Personaje</span>
+              <h2>Crear personaje</h2>
+              <p>
+                Identidad, card con avanzados plegados, fichas y lorebook
+                opcional con versión. Nav de secciones y preview de la card.
+              </p>
+              <span class="go">Abrir →</span>
+            </a>
+            <a class="cf-hub-card" href="character-detail.html">
+              <span class="kicker">S133 · Personaje</span>
+              <h2>Detalle y edición</h2>
+              <p>
+                Header de card, secciones, versión de lorebook enlazada,
+                historial de personaje y barra de guardado.
+              </p>
+              <span class="go">Abrir →</span>
+            </a>
+            <a class="cf-hub-card" href="lorebooks.html">
+              <span class="kicker">S134 · Lorebooks</span>
+              <h2>Biblioteca de lorebooks</h2>
+              <p>
+                Estantería de libros en uso y sin usar, con versión actual, uso
+                agregado y estado vacío.
+              </p>
+              <span class="go">Abrir →</span>
+            </a>
+            <a class="cf-hub-card" href="lorebook-create.html">
+              <span class="kicker">S134 · Lorebook</span>
+              <h2>Crear lorebook</h2>
+              <p>
+                Identidad, ajustes de activación, entradas y v1. Se vincula a
+                personajes después, sin efectos secundarios.
+              </p>
+              <span class="go">Abrir →</span>
+            </a>
+            <a class="cf-hub-card" href="lorebook-detail.html">
+              <span class="kicker">S134 · Lorebook</span>
+              <h2>Detalle de lorebook</h2>
+              <p>
+                Entradas en acordeón, presupuesto, recursión, historial de
+                versiones y uso por versión de personaje.
+              </p>
+              <span class="go">Abrir →</span>
+            </a>
+          </section>
+
+          <section style="margin-top: 2.5rem" aria-label="Cómo revisar">
+            <h2 class="h2">Qué mirar</h2>
+            <div class="cf-hub-grid" style="margin-top: 0.9rem">
+              <div class="cf-rail-card">
+                <h3>Claridad de entrada</h3>
+                <p>
+                  ¿En menos de un minuto queda claro qué es un personaje, qué es
+                  un lorebook y dónde se crea cada uno?
+                </p>
+              </div>
+              <div class="cf-rail-card">
+                <h3>Peso de la card</h3>
+                <p>
+                  ¿La página de personaje se siente como una card de SillyTavern
+                  y no como un formulario genérico?
+                </p>
+              </div>
+              <div class="cf-rail-card">
+                <h3>Biblioteca, no tabla</h3>
+                <p>
+                  ¿Los lorebooks se sienten como volúmenes con vida propia,
+                  incluso cuando están sin usar?
+                </p>
+              </div>
+              <div class="cf-rail-card">
+                <h3>Versiones, no snapshots</h3>
+                <p>
+                  ¿Se entiende que editar un libro crea una versión nueva y que
+                  cada versión de personaje fija una versión concreta del libro?
+                </p>
+              </div>
+              <div class="cf-rail-card">
+                <h3>Móvil</h3>
+                <p>
+                  Reduce la ventana a 390 px: nav en chips, placas apiladas y
+                  barra de guardado al pie.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <p class="cf-tiny cf-muted" style="margin-top: 2rem">
+            Prototipo sin backend. Las fuentes se cargan de Google Fonts solo
+            para la revisión; en la app van self-hosted. Los nombres, personajes
+            y entradas son ficticios.
+          </p>
+        </main>
+      </div>
+    </div>
+
+    <nav class="proto-bar" aria-label="Páginas del prototipo">
+      <span class="tag">Prototipo</span>
+      <a href="index.html" aria-current="page">Hub</a>
+      <a href="create-dialog.html">Crear</a>
+      <a href="character-detail.html">Personaje</a>
+      <a href="lorebooks.html">Lorebooks</a>
+      <a href="lorebook-detail.html">Lorebook</a>
+      <span
+        style="
+          width: 1px;
+          height: 1.1rem;
+          background: currentColor;
+          opacity: 0.25;
+        "
+      ></span>
+      <button type="button" data-mode-set="light">Claro</button>
+      <button type="button" data-mode-set="dark">Oscuro</button>
+      <button type="button" data-mode-set="system">Auto</button>
+    </nav>
+
+    <script src="../prototype.js"></script>
+    <script src="card-first.js"></script>
+  </body>
+</html>

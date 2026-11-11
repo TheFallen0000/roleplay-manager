@@ -6,14 +6,22 @@ navegador. Los datos, nombres y textos son **sintéticos**.
 
 ## Páginas
 
-| Archivo | Qué muestra |
-|---|---|
-| `style-tile.html` | Color, tipografía, componentes, mensajes, movimiento y superficies del navegador. |
-| `welcome.html` | Onboarding: mascota, idioma, mundo y modo; CTA con destello. |
-| `library.html` | Shell (sidebar + header) y biblioteca de personajes, con estado vacío. |
-| `chat.html` | La misma conversación en **burbuja / documento / novela visual**, color de diálogo y streaming. |
-| `site.html` | Portada de **roleplay-manager.com**: hero, descarga por SO, funciones, datos, móvil, FAQ y cierre. |
-| `site-docs.html` | Página de documentación: sidebar, búsqueda, TOC, callouts, código y feedback. |
+| Archivo           | Qué muestra                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| `style-tile.html` | Color, tipografía, componentes, mensajes, movimiento y superficies del navegador.                  |
+| `welcome.html`    | Onboarding: mascota, idioma, mundo y modo; CTA con destello.                                       |
+| `library.html`    | Shell (sidebar + header) y biblioteca de personajes, con estado vacío.                             |
+| `chat.html`       | La misma conversación en **burbuja / documento / novela visual**, color de diálogo y streaming.    |
+| `site.html`       | Portada de **roleplay-manager.com**: hero, descarga por SO, funciones, datos, móvil, FAQ y cierre. |
+| `site-docs.html`  | Página de documentación: sidebar, búsqueda, TOC, callouts, código y feedback.                      |
+
+### Card-first S133–S134 (2026-11-11)
+
+`card-first/` contiene los prototipos de la nueva arquitectura de personajes y
+lorebooks: diálogo Crear con dos placas, página de personaje con secciones,
+biblioteca de lorebooks y páginas de lorebook. Abrir
+[`card-first/index.html`](card-first/index.html). Son prototipos de revisión,
+sin backend ni persistencia.
 
 ### Sitio web (2026-10-23)
 
