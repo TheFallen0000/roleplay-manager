@@ -249,7 +249,7 @@
                       estantería.
                     </p>
                   </div>
-                  <span class="badge badge--violet">Borrador</span>
+                  <span class="badge badge--violet">Borrador · v1</span>
                 </div>
                 <div class="cf-panel-body">
                   <div class="cf-field-grid">
@@ -578,36 +578,45 @@
                 <div class="cf-panel-head">
                   <div>
                     <span class="kicker">04 · Vínculo</span>
-                    <h2 id="link-title">¿Quién lo usa?</h2>
+                    <h2 id="link-title">Vincular más tarde</h2>
                     <p>
-                      Un personaje puede tener un lorebook vinculado. Puedes
-                      dejarlo sin vincular y hacerlo después.
+                      El libro nace como v1. Podrás vincularlo a personajes
+                      desde el detalle del libro o desde la ficha del personaje.
                     </p>
                   </div>
                   <span class="badge">Opcional</span>
                 </div>
                 <div class="cf-panel-body">
                   <div
-                    class="cf-link-card"
-                    style="background: transparent; border-style: dashed"
+                    class="cf-lorebook-placeholder"
+                    style="border-style: dashed"
                   >
-                    <span class="avatar" aria-hidden="true">+</span>
-                    <div class="body">
-                      <strong>Sin vincular</strong>
-                      <span
-                        >El libro estará disponible en la biblioteca para
-                        vincularlo cuando quieras.</span
-                      >
-                    </div>
-                    <div class="actions">
-                      <button class="btn btn--ghost btn--sm" type="button">
-                        Elegir personaje
-                      </button>
-                    </div>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                      <path
+                        d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"
+                      />
+                    </svg>
+                    <span
+                      >Sin personajes vinculados todavía. Vincular un libro a un
+                      personaje crea una versión nueva del personaje con esta
+                      versión del libro.</span
+                    >
                   </div>
                   <p class="cf-tiny cf-muted" style="margin: 0.7rem 0 0">
-                    Si eliges un personaje que ya tiene un lorebook, se pedirá
-                    confirmación para reemplazarlo.
+                    Así crear un libro no crea versiones de personaje como
+                    efecto secundario. Podrás elegir el personaje y la versión
+                    del libro en el paso de vínculo.
                   </p>
                 </div>
               </section>
@@ -618,7 +627,8 @@
                   <span data-save-label>Borrador sin guardar</span>
                 </div>
                 <span class="cf-save-note"
-                  >Podrás añadir más entradas después.</span
+                  >Se creará la v1 del libro; podrás añadir más entradas
+                  después.</span
                 >
                 <div class="cf-save-actions">
                   <a class="btn btn--ghost" href="lorebooks.html">Cancelar</a>
@@ -630,6 +640,10 @@
             <aside class="cf-rail" aria-label="Resumen del lorebook">
               <div class="cf-rail-card">
                 <h3>Resumen</h3>
+                <div class="cf-kv">
+                  <span class="k">Versión</span
+                  ><span class="v">v1 · se creará</span>
+                </div>
                 <div class="cf-kv">
                   <span class="k">Entradas</span><span class="v">1</span>
                 </div>
@@ -644,8 +658,7 @@
                   <span class="k">Recursión</span><span class="v">Off</span>
                 </div>
                 <div class="cf-kv">
-                  <span class="k">Vínculo</span
-                  ><span class="v">Sin vincular</span>
+                  <span class="k">Uso</span><span class="v">Sin usar</span>
                 </div>
               </div>
               <div class="cf-rail-card">

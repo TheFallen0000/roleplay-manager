@@ -209,6 +209,7 @@
                 <div class="cf-meta-row">
                   <span><span class="badge badge--violet">v3</span></span>
                   <span><strong>Card</strong> V3 · 1.2</span>
+                  <span><strong>Lorebook</strong> Bosque de Lyra v3</span>
                   <span><strong>Creador</strong> Aria</span>
                   <span><strong>Actualizado</strong> hoy</span>
                 </div>
@@ -845,27 +846,27 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
                     <span class="kicker">04 · Lorebook</span>
                     <h2 id="lorebook-title">El mundo que recuerda</h2>
                     <p>
-                      El libro vinculado se resume aquí. La edición vive en la
-                      biblioteca de Lorebooks.
+                      Esta versión del personaje fija una versión concreta del
+                      libro. Cambiarlo crea una versión nueva del personaje.
                     </p>
                   </div>
-                  <span class="badge badge--violet">Vinculado</span>
+                  <span class="badge badge--violet">v3 · actual</span>
                 </div>
                 <div class="cf-panel-body">
-                  <div class="cf-book-summary">
+                  <div class="cf-book-summary cf-book-summary--stacked">
                     <span class="spine" aria-hidden="true"></span>
                     <div>
-                      <h3>Bosque de Lyra</h3>
+                      <h3>Bosque de Lyra · v3</h3>
                       <div class="meta">
-                        12 entradas · scan depth 4 · presupuesto 400 · recursión
-                        activa
+                        Versión actual del libro · 12 entradas · scan depth 4 ·
+                        presupuesto 400 · recursión activa
                       </div>
                       <div class="cf-meta-row" style="margin-top: 0.4rem">
                         <span
                           ><strong>Activación</strong> por claves y
                           constantes</span
                         >
-                        <span><strong>Última edición</strong> hoy</span>
+                        <span><strong>Enlazada</strong> a esta versión v3</span>
                       </div>
                     </div>
                     <div class="actions">
@@ -874,11 +875,18 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
                         href="lorebook-detail.html"
                         >Abrir lorebook</a
                       >
+                      <button class="btn btn--soft btn--sm" type="button">
+                        Cambiar lorebook
+                      </button>
                       <button class="btn btn--quiet btn--sm" type="button">
-                        Desvincular
+                        Quitar
                       </button>
                     </div>
                   </div>
+                  <p class="cf-tiny cf-muted" style="margin: 0.7rem 0 0">
+                    Cambiar o quitar el lorebook crea una versión nueva del
+                    personaje; la versión v3 conserva Bosque de Lyra v3.
+                  </p>
                 </div>
               </section>
 
@@ -907,6 +915,11 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
                         <div class="when">
                           Hoy · cambio de escenario y tagline
                         </div>
+                        <div class="cf-meta-row" style="margin-top: 0.25rem">
+                          <span
+                            ><strong>Lorebook</strong> Bosque de Lyra v3</span
+                          >
+                        </div>
                       </div>
                       <span class="note">En uso</span>
                     </div>
@@ -916,6 +929,11 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
                         <strong>Saludos alternativos</strong>
                         <div class="when">
                           Hace 3 días · se añadieron dos aperturas
+                        </div>
+                        <div class="cf-meta-row" style="margin-top: 0.25rem">
+                          <span
+                            ><strong>Lorebook</strong> Bosque de Lyra v2</span
+                          >
                         </div>
                       </div>
                       <button class="btn btn--quiet btn--sm" type="button">
@@ -928,6 +946,11 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
                         <strong>Primera versión</strong>
                         <div class="when">
                           12 sep · importada desde una card V3
+                        </div>
+                        <div class="cf-meta-row" style="margin-top: 0.25rem">
+                          <span
+                            ><strong>Lorebook</strong> Ciudad Sumergida v1</span
+                          >
                         </div>
                       </div>
                       <button class="btn btn--quiet btn--sm" type="button">
@@ -949,7 +972,8 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
                   <span data-save-label>Sin cambios</span>
                 </div>
                 <span class="cf-save-note"
-                  >Guardar crea una versión nueva.</span
+                  >Guardar crea una versión nueva del personaje; el lorebook no
+                  cambia.</span
                 >
                 <div class="cf-save-actions">
                   <button class="btn btn--ghost" type="button">
@@ -986,7 +1010,7 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
                 </div>
                 <div class="cf-kv">
                   <span class="k">Lorebook</span
-                  ><span class="v">Bosque de Lyra</span>
+                  ><span class="v">Bosque de Lyra v3</span>
                 </div>
                 <button
                   class="btn btn--ghost btn--sm"
@@ -1000,9 +1024,9 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
               <div class="cf-rail-card">
                 <h3>Datos nativos de RM</h3>
                 <p>
-                  Subtítulo, instrucciones, fichas y número de versión viajan en
-                  <code>extensions.rm</code> al exportar la card. ST los ignora;
-                  RM no los pierde.
+                  Subtítulo, instrucciones, fichas, versión y referencia del
+                  lorebook viajan en <code>extensions.rm</code> al exportar la
+                  card. ST los ignora; RM no los pierde.
                 </p>
               </div>
 
@@ -1018,8 +1042,8 @@ Pensada para historias de fantasía lenta. Las notas nunca se envían al modelo.
               >
                 <h3 style="color: var(--danger)">Eliminar personaje</h3>
                 <p>
-                  Se eliminarán sus versiones y conversaciones. El lorebook
-                  vinculado no se borra; queda sin vincular.
+                  Se eliminarán sus versiones y conversaciones. El lorebook no
+                  se borra; su historial conserva las versiones que lo usaron.
                 </p>
                 <button
                   class="btn btn--danger btn--sm"

@@ -204,9 +204,15 @@
             <div>
               <h1 class="h1">Nuevo personaje</h1>
               <p class="lede">
-                Empieza por lo esencial. La card y las fichas se pueden
-                completar ahora o después.
+                Empieza por lo esencial. La card, las fichas y el lorebook se
+                pueden completar ahora o después.
               </p>
+              <span
+                class="badge badge--violet cf-example-badge"
+                style="margin-top: 0.6rem; display: inline-flex"
+                >Ejemplo precargado · borra un campo para ver su
+                placeholder</span
+              >
             </div>
             <div class="cf-page-actions cf-page-actions--form">
               <a class="btn btn--ghost" href="create-dialog.html">Cancelar</a>
@@ -229,6 +235,9 @@
               <a class="cf-nav-link" href="#fichas" data-section-link
                 ><span class="num">03</span>Fichas</a
               >
+              <a class="cf-nav-link" href="#lorebook" data-section-link
+                ><span class="num">04</span>Lorebook</a
+              >
             </nav>
 
             <div>
@@ -246,8 +255,37 @@
                   <span class="badge badge--violet">Borrador</span>
                 </div>
                 <div class="cf-panel-body">
-                  <div class="cf-image-row">
-                    <div class="avatar cf-avatar-xl" aria-hidden="true">L</div>
+                  <div class="cf-image-row cf-avatar-slot" data-avatar-slot>
+                    <div
+                      class="avatar cf-avatar-xl"
+                      aria-hidden="true"
+                      data-avatar-preview
+                    >
+                      L
+                    </div>
+                    <div
+                      class="cf-avatar-placeholder"
+                      data-avatar-placeholder
+                      hidden
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"
+                        />
+                        <circle cx="12" cy="13" r="3" />
+                      </svg>
+                      <span>Sube una imagen</span>
+                    </div>
                     <div class="cf-image-copy">
                       <strong>Imagen de perfil</strong>
                       <span class="help"
@@ -255,10 +293,18 @@
                         exportar una card PNG.</span
                       >
                       <div class="cf-row">
-                        <button class="btn btn--ghost btn--sm" type="button">
+                        <button
+                          class="btn btn--ghost btn--sm"
+                          type="button"
+                          data-upload-image
+                        >
                           Subir imagen
                         </button>
-                        <button class="btn btn--quiet btn--sm" type="button">
+                        <button
+                          class="btn btn--quiet btn--sm"
+                          type="button"
+                          data-clear-image
+                        >
                           Quitar
                         </button>
                       </div>
@@ -277,6 +323,7 @@
                         type="text"
                         placeholder="Lyra"
                         aria-label="Nombre"
+                        value="Lyra"
                       />
                       <span class="help"
                         >El nombre que verá el modelo y la biblioteca.</span
@@ -289,6 +336,7 @@
                         type="text"
                         placeholder="Guardiana del bosque de Vael"
                         aria-label="Subtítulo"
+                        value="Guardiana del bosque de Vael"
                       />
                       <span class="help"
                         >Una línea para la card. No se envía al modelo.</span
@@ -304,7 +352,8 @@
                         rows="5"
                         placeholder="Lyra protege el bosque de Vael desde que recuerda. Habla poco, pero cuando lo hace…"
                         aria-label="Descripción"
-                      ></textarea>
+                      >
+Lyra protege el bosque de Vael desde que recuerda. Habla poco, pero cuando lo hace…</textarea>
                       <span class="help"
                         >El núcleo de la card: apariencia, historia y todo lo
                         que el modelo debe saber siempre.</span
@@ -340,7 +389,8 @@
                           rows="4"
                           placeholder="Reservada, observadora, leal a su bosque…"
                           aria-label="Personalidad"
-                        ></textarea>
+                        >
+Reservada, observadora, leal a su bosque…</textarea>
                       </label>
                       <label class="cf-field">
                         <span class="label">Escenario</span>
@@ -349,7 +399,8 @@
                           rows="4"
                           placeholder="Un bosque antiguo donde los árboles recuerdan…"
                           aria-label="Escenario"
-                        ></textarea>
+                        >
+Un bosque antiguo donde los árboles recuerdan…</textarea>
                       </label>
                     </div>
                   </fieldset>
@@ -372,7 +423,8 @@
                           rows="4"
                           placeholder="La lluvia repica en las hojas cuando Lyra levanta la vista…"
                           aria-label="Primer mensaje"
-                        ></textarea>
+                        >
+La lluvia repica en las hojas cuando Lyra levanta la vista…</textarea>
                       </label>
                       <div class="cf-field span-2">
                         <span class="label"
@@ -397,6 +449,7 @@
                           <input
                             class="input"
                             type="text"
+                            data-no-prefill
                             placeholder="Añadir un saludo alternativo…"
                             aria-label="Nuevo saludo alternativo"
                             style="flex: 1"
@@ -441,7 +494,8 @@
                           rows="3"
                           placeholder="Se aplica como override del bloque de persona…"
                           aria-label="System prompt"
-                        ></textarea>
+                        >
+Se aplica como override del bloque de persona…</textarea>
                         <span class="help"
                           >No sustituye la seguridad, el formato ni las tools de
                           RM.</span
@@ -456,7 +510,8 @@
                           rows="3"
                           placeholder="Recuerda mantener el tono de fantasía…"
                           aria-label="Instrucciones posteriores"
-                        ></textarea>
+                        >
+Recuerda mantener el tono de fantasía…</textarea>
                       </label>
                       <label class="cf-field span-2">
                         <span class="label">Notas del creador</span>
@@ -465,7 +520,8 @@
                           rows="3"
                           placeholder="Notas para quien use la card. Nunca se envían al modelo."
                           aria-label="Notas del creador"
-                        ></textarea>
+                        >
+Notas para quien use la card. Nunca se envían al modelo.</textarea>
                         <span class="help"
                           >Solo visibles en la app. El prompt las excluye por
                           contrato.</span
@@ -496,6 +552,7 @@
                         <input
                           class="input"
                           type="text"
+                          data-no-prefill
                           placeholder="Añadir tag…"
                           aria-label="Nuevo tag"
                         />
@@ -507,6 +564,7 @@
                           type="text"
                           placeholder="Aria"
                           aria-label="Creador"
+                          value="Aria"
                         />
                       </label>
                       <label class="cf-field">
@@ -516,6 +574,7 @@
                           type="text"
                           placeholder="1.2"
                           aria-label="Versión de la card"
+                          value="1.2"
                         />
                       </label>
                       <label class="cf-field">
@@ -525,6 +584,7 @@
                           type="text"
                           placeholder="Femenino"
                           aria-label="Género"
+                          value="Femenino"
                         />
                       </label>
                       <label class="cf-field">
@@ -534,6 +594,7 @@
                           type="text"
                           placeholder="ella / la"
                           aria-label="Pronombres"
+                          value="ella / la"
                         />
                       </label>
                       <label class="cf-field span-2">
@@ -543,6 +604,7 @@
                           type="text"
                           placeholder="El bosque recuerda a quienes lo protegen."
                           aria-label="Tagline"
+                          value="El bosque recuerda a quienes lo protegen."
                         />
                         <span class="help"
                           >Solo display. Viaja en extensions.rm.tagline.</span
@@ -591,14 +653,25 @@
                           <circle cx="15" cy="19" r="1" />
                         </svg>
                       </span>
-                      <div>
-                        <div class="title">
-                          El bosque de Vael <span class="badge">Activa</span>
+                      <div class="cf-ficha-fields">
+                        <div class="cf-row">
+                          <input
+                            class="input"
+                            type="text"
+                            value="El bosque de Vael"
+                            placeholder="Título de la ficha"
+                            aria-label="Título de la ficha"
+                            style="flex: 1"
+                          />
+                          <span class="badge">Activa</span>
                         </div>
-                        <p class="text">
-                          Un bosque antiguo donde los árboles guardan memoria.
-                          Lyra puede escuchar sus susurros si se concentra.
-                        </p>
+                        <textarea
+                          class="textarea"
+                          rows="2"
+                          placeholder="Qué debe recordar el personaje…"
+                          aria-label="Contenido de la ficha"
+                        >
+Un bosque antiguo donde los árboles guardan memoria. Lyra puede escuchar sus susurros si se concentra.</textarea>
                       </div>
                       <div class="actions">
                         <button
@@ -667,15 +740,25 @@
                           <circle cx="15" cy="19" r="1" />
                         </svg>
                       </span>
-                      <div>
-                        <div class="title">
-                          La orden de los guardianes
+                      <div class="cf-ficha-fields">
+                        <div class="cf-row">
+                          <input
+                            class="input"
+                            type="text"
+                            value="La orden de los guardianes"
+                            placeholder="Título de la ficha"
+                            aria-label="Título de la ficha"
+                            style="flex: 1"
+                          />
                           <span class="badge">Activa</span>
                         </div>
-                        <p class="text">
-                          Juramentos antiguos, rangos y rituales de iniciación.
-                          Lyra es la última guardiana en activo.
-                        </p>
+                        <textarea
+                          class="textarea"
+                          rows="2"
+                          placeholder="Qué debe recordar el personaje…"
+                          aria-label="Contenido de la ficha"
+                        >
+Juramentos antiguos, rangos y rituales de iniciación. Lyra es la última guardiana en activo.</textarea>
                       </div>
                       <div class="actions">
                         <button
@@ -724,22 +807,140 @@
                       </div>
                     </article>
 
-                    <button class="cf-ficha-add" type="button">
+                    <article class="cf-ficha cf-ficha--new">
+                      <span class="handle" aria-hidden="true">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M12 5v14" />
+                          <path d="M5 12h14" />
+                        </svg>
+                      </span>
+                      <div class="cf-ficha-fields">
+                        <input
+                          class="input"
+                          type="text"
+                          placeholder="Título de la nueva ficha"
+                          aria-label="Título de la nueva ficha"
+                        />
+                        <textarea
+                          class="textarea"
+                          rows="2"
+                          placeholder="Qué debe recordar el personaje…"
+                          aria-label="Contenido de la nueva ficha"
+                        ></textarea>
+                      </div>
+                      <div class="actions">
+                        <button class="btn btn--ghost btn--sm" type="button">
+                          Añadir
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                id="lorebook"
+                class="cf-panel"
+                aria-labelledby="lorebook-title"
+              >
+                <div class="cf-panel-head">
+                  <div>
+                    <span class="kicker">04 · Lorebook</span>
+                    <h2 id="lorebook-title">El mundo que recuerda</h2>
+                    <p>
+                      Opcional. La primera versión puede fijar una versión
+                      concreta de un lorebook.
+                    </p>
+                  </div>
+                  <span class="badge">Opcional</span>
+                </div>
+                <div class="cf-panel-body">
+                  <div class="cf-field">
+                    <span class="label">Versión de lorebook</span>
+                    <div class="cf-lorebook-picker" data-lorebook-picker>
+                      <span class="spine" aria-hidden="true"></span>
+                      <div class="body">
+                        <strong data-lorebook-name>Bosque de Lyra</strong>
+                        <span data-lorebook-meta
+                          >v3 · 12 entradas · scan 4 · 400 tokens</span
+                        >
+                      </div>
+                      <select
+                        class="select"
+                        aria-label="Versión de lorebook"
+                        data-lorebook-select
+                      >
+                        <option value="bosque-v3">v3 · actual</option>
+                        <option value="bosque-v2">v2</option>
+                        <option value="bosque-v1">v1</option>
+                        <option value="ciudad-v1">Ciudad Sumergida v1</option>
+                        <option value="">Sin lorebook</option>
+                      </select>
+                      <button
+                        class="btn btn--quiet btn--sm"
+                        type="button"
+                        data-clear-lorebook
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                    <div
+                      class="cf-lorebook-placeholder"
+                      data-lorebook-empty
+                      hidden
+                    >
                       <svg
-                        width="15"
-                        height="15"
+                        width="16"
+                        height="16"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        stroke-width="2"
+                        stroke-width="1.75"
                         stroke-linecap="round"
+                        stroke-linejoin="round"
                         aria-hidden="true"
                       >
-                        <path d="M12 5v14" />
-                        <path d="M5 12h14" />
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path
+                          d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"
+                        />
                       </svg>
-                      Añadir ficha
-                    </button>
+                      <span
+                        >Sin lorebook. Elige una versión para que esta versión
+                        del personaje recuerde el mundo.</span
+                      >
+                    </div>
+                    <span class="help"
+                      >La versión guardará una copia congelada del libro. Editar
+                      el libro después no cambiará esta versión.</span
+                    >
+                  </div>
+                  <div
+                    class="cf-rail-card"
+                    style="
+                      margin-top: 0.8rem;
+                      background: color-mix(
+                        in oklch,
+                        var(--primary-soft) 22%,
+                        var(--card)
+                      );
+                    "
+                  >
+                    <p>
+                      <strong>¿Todavía no existe?</strong>
+                      <a href="lorebook-create.html">Crear un lorebook</a> y
+                      vuelve para elegirlo. También puedes crearlo después y
+                      cambiar esta versión.
+                    </p>
                   </div>
                 </div>
               </section>
@@ -750,7 +951,8 @@
                   <span data-save-label>Borrador sin guardar</span>
                 </div>
                 <span class="cf-save-note"
-                  >Podrás completar la card y las fichas después.</span
+                  >Podrás completar la card, las fichas y el lorebook
+                  después.</span
                 >
                 <div class="cf-save-actions">
                   <a class="btn btn--ghost" href="create-dialog.html"
@@ -783,14 +985,15 @@
                   </p>
                   <div class="cf-meta-row">
                     <span><strong>Card</strong> V3</span>
+                    <span><strong>Lorebook</strong> Bosque de Lyra v3</span>
                     <span><strong>Creador</strong> Aria</span>
                     <span><strong>v1.2</strong></span>
                   </div>
                 </div>
               </div>
               <p class="cf-preview-note">
-                Así se verá en la biblioteca. La card se puede inspeccionar como
-                JSON desde el detalle.
+                Así se verá en la biblioteca. La card y la versión del lorebook
+                se pueden inspeccionar desde el detalle.
               </p>
               <div class="cf-rail-card">
                 <h3>La card no es el formulario</h3>

@@ -253,21 +253,21 @@
             />
             <div class="cf-filter" role="group" aria-label="Filtrar lorebooks">
               <button type="button" data-book-filter="all" aria-pressed="true">
-                Todos <span class="cf-tiny">3</span>
+                Todos <span class="cf-tiny">4</span>
               </button>
               <button
                 type="button"
                 data-book-filter="linked"
                 aria-pressed="false"
               >
-                Vinculados <span class="cf-tiny">2</span>
+                En uso <span class="cf-tiny">3</span>
               </button>
               <button
                 type="button"
                 data-book-filter="unlinked"
                 aria-pressed="false"
               >
-                Sin vincular <span class="cf-tiny">1</span>
+                Sin usar <span class="cf-tiny">1</span>
               </button>
             </div>
             <span class="badge muted" style="border-style: dashed"
@@ -281,6 +281,7 @@
               <div class="body">
                 <div class="top">
                   <h2>Bosque de Lyra</h2>
+                  <span class="badge badge--violet">v3</span>
                   <button
                     class="btn btn--quiet btn--icon btn--sm"
                     type="button"
@@ -308,18 +309,19 @@
                 </p>
                 <div class="linked">
                   <span class="avatar" aria-hidden="true">L</span>
-                  Lyra
+                  <span class="avatar" aria-hidden="true">E</span>
+                  Lyra y Capitana Ellis
                 </div>
                 <div class="meta">
                   <span>12 entradas</span>
+                  <span>2 personajes · 3 versiones</span>
                   <span>scan 4</span>
                   <span>400 tokens</span>
-                  <span>recursión</span>
                 </div>
               </div>
             </article>
 
-            <article class="cf-book-card" data-book-card data-linked="false">
+            <article class="cf-book-card" data-book-card data-linked="true">
               <span
                 class="spine"
                 aria-hidden="true"
@@ -334,6 +336,7 @@
               <div class="body">
                 <div class="top">
                   <h2>Ciudad Sumergida</h2>
+                  <span class="badge">v1</span>
                   <button
                     class="btn btn--quiet btn--icon btn--sm"
                     type="button"
@@ -359,9 +362,13 @@
                   Una metrópolis bajo el mar, sus gremios y el protocolo que
                   mantiene el agua fuera.
                 </p>
-                <span class="cf-chip cf-chip--dashed">Sin vincular</span>
+                <div class="linked">
+                  <span class="avatar" aria-hidden="true">L</span>
+                  Lyra · versión histórica
+                </div>
                 <div class="meta">
                   <span>4 entradas</span>
+                  <span>1 personaje · 1 versión</span>
                   <span>scan 2</span>
                   <span>300 tokens</span>
                 </div>
@@ -383,6 +390,7 @@
               <div class="body">
                 <div class="top">
                   <h2>Corte de Ceniza</h2>
+                  <span class="badge">v2</span>
                   <button
                     class="btn btn--quiet btn--icon btn--sm"
                     type="button"
@@ -410,13 +418,62 @@
                 </p>
                 <div class="linked">
                   <span class="avatar" aria-hidden="true">E</span>
-                  Capitana Ellis
+                  Capitana Ellis · histórica
                 </div>
                 <div class="meta">
                   <span>7 entradas</span>
+                  <span>1 personaje · 1 versión</span>
                   <span>scan 6</span>
                   <span>600 tokens</span>
-                  <span>recursión</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="cf-book-card" data-book-card data-linked="false">
+              <span
+                class="spine"
+                aria-hidden="true"
+                style="
+                  background: linear-gradient(
+                    180deg,
+                    var(--ink-faint),
+                    var(--ink-soft)
+                  );
+                "
+              ></span>
+              <div class="body">
+                <div class="top">
+                  <h2>El Vacío</h2>
+                  <span class="badge">v1</span>
+                  <button
+                    class="btn btn--quiet btn--icon btn--sm"
+                    type="button"
+                    aria-label="Acciones de El Vacío"
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="5" r="1" />
+                      <circle cx="12" cy="12" r="1" />
+                      <circle cx="12" cy="19" r="1" />
+                    </svg>
+                  </button>
+                </div>
+                <p class="desc">
+                  Un libro de prueba sin entradas ni personajes vinculados.
+                </p>
+                <span class="cf-chip cf-chip--dashed">Sin usar</span>
+                <div class="meta">
+                  <span>0 entradas</span>
+                  <span>scan 4</span>
+                  <span>400 tokens</span>
                 </div>
               </div>
             </article>

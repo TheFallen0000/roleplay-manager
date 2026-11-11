@@ -275,6 +275,11 @@ a.btn,
   font-variant-numeric: tabular-nums;
 }
 
+.cf-example-badge {
+  line-height: 1.35;
+  padding: 0.35rem 0.65rem;
+}
+
 /* ---------- 4. Chips y metadatos ---------------------------------------- */
 .cf-chip-list {
   display: flex;
@@ -592,6 +597,136 @@ a.btn,
   background: color-mix(in oklch, var(--primary-soft) 35%, transparent);
 }
 
+/* ---------- 7.1 Fichas editables y lorebook picker ---------------------- */
+.cf-ficha-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.cf-ficha-fields .input {
+  height: 2rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.cf-ficha-fields .textarea {
+  min-height: 3.2rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  font-size: 0.78rem;
+}
+
+.cf-ficha--new {
+  border-style: dashed;
+  background: transparent;
+}
+
+.cf-ficha--new .handle {
+  color: var(--primary);
+}
+
+.cf-lorebook-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in oklch, var(--primary-soft) 18%, var(--card));
+}
+
+.cf-lorebook-picker .spine {
+  width: 0.4rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--primary), var(--violet-deep));
+  box-shadow: 0 0 0 3px var(--primary-soft);
+  flex: none;
+}
+
+.cf-lorebook-picker .body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.cf-lorebook-picker .body strong {
+  font-size: 0.84rem;
+}
+
+.cf-lorebook-picker .body span {
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+}
+
+.cf-lorebook-picker .select {
+  min-width: 12rem;
+  flex: 0 1 12rem;
+}
+
+.cf-lorebook-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.2rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted-fg);
+  font-size: 0.8rem;
+}
+
+.cf-lorebook-placeholder svg {
+  color: var(--primary);
+  flex: none;
+}
+
+.cf-avatar-slot {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cf-avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 4.8rem;
+  height: 4.8rem;
+  padding: 0.35rem;
+  border: 1px dashed color-mix(in oklch, var(--primary) 35%, var(--border));
+  border-radius: 999px;
+  background: var(--muted);
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  line-height: 1.25;
+  text-align: center;
+  flex: none;
+}
+
+.cf-avatar-placeholder svg {
+  color: var(--primary);
+}
+
+.cf-version-select {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cf-version-select .select {
+  min-width: 10rem;
+}
+
 /* ---------- 8. Resumen y rail ------------------------------------------- */
 .cf-rail {
   position: sticky;
@@ -686,6 +821,16 @@ a.btn,
   gap: 0.4rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.cf-book-summary--stacked {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.cf-book-summary--stacked .actions {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  margin-top: 0.4rem;
 }
 
 /* ---------- 10. Versiones ----------------------------------------------- */
@@ -1054,8 +1199,12 @@ a.btn,
 .cf-book-card .top {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.5rem;
+}
+
+.cf-book-card .top .btn {
+  margin-left: auto;
 }
 
 .cf-book-card h2 {
@@ -1493,7 +1642,8 @@ a.btn,
   flex: 1;
 }
 
-.cf-hidden {
+.cf-hidden,
+[hidden] {
   display: none !important;
 }
 

@@ -227,14 +227,24 @@
                 </div>
                 <div class="cf-meta-row">
                   <span
-                    ><span class="badge badge--violet">12 entradas</span></span
+                    ><span class="badge badge--violet">v3 · actual</span></span
                   >
-                  <span><strong>Vinculado a</strong> Lyra</span>
+                  <span><strong>12 entradas</strong></span>
+                  <span><strong>2 personajes</strong> · 3 versiones</span>
                   <span><strong>Scan</strong> 4</span>
                   <span><strong>Presupuesto</strong> 400</span>
                 </div>
               </div>
               <div class="cf-cover-actions">
+                <select
+                  class="select"
+                  aria-label="Versión del lorebook"
+                  style="max-width: 9.5rem; height: 2.4rem"
+                >
+                  <option>v3 · actual</option>
+                  <option>v2</option>
+                  <option>v1</option>
+                </select>
                 <button class="btn cf-save-header-action" type="button">
                   Guardar cambios
                 </button>
@@ -295,8 +305,11 @@
               <a class="cf-nav-link" href="#entries" data-section-link
                 ><span class="num">03</span>Entradas</a
               >
+              <a class="cf-nav-link" href="#versions" data-section-link
+                ><span class="num">04</span>Versiones</a
+              >
               <a class="cf-nav-link" href="#link" data-section-link
-                ><span class="num">04</span>Vínculo</a
+                ><span class="num">05</span>Vínculo</a
               >
             </nav>
 
@@ -708,24 +721,113 @@ La hierba luna solo florece con la luna alta. Sus hojas curan la fiebre, pero lo
                 </div>
               </section>
 
+              <section
+                id="versions"
+                class="cf-panel"
+                aria-labelledby="versions-title"
+              >
+                <div class="cf-panel-head">
+                  <div>
+                    <span class="kicker">04 · Versiones</span>
+                    <h2 id="versions-title">Historial del libro</h2>
+                    <p>
+                      Guardar crea una versión nueva. Las versiones antiguas son
+                      de solo lectura y conservan el uso que tuvieron.
+                    </p>
+                  </div>
+                  <span class="badge">3 versiones</span>
+                </div>
+                <div class="cf-panel-body">
+                  <div class="cf-version-list">
+                    <div class="cf-version cf-version--current">
+                      <span class="badge badge--violet">v3</span>
+                      <div>
+                        <strong>Actual</strong>
+                        <div class="when">
+                          Hoy · añadida la entrada «Hierba luna»
+                        </div>
+                        <div class="cf-meta-row" style="margin-top: 0.25rem">
+                          <span
+                            ><strong>Uso</strong> Lyra v3, Capitana Ellis
+                            v2</span
+                          >
+                        </div>
+                      </div>
+                      <span class="note">En uso</span>
+                    </div>
+                    <div class="cf-version">
+                      <span class="badge">v2</span>
+                      <div>
+                        <strong>Ruinas y hierbas</strong>
+                        <div class="when">Hace 4 días · 2 entradas nuevas</div>
+                        <div class="cf-meta-row" style="margin-top: 0.25rem">
+                          <span><strong>Uso</strong> Lyra v2</span>
+                        </div>
+                      </div>
+                      <div class="cf-row">
+                        <button class="btn btn--quiet btn--sm" type="button">
+                          Ver
+                        </button>
+                        <button class="btn btn--quiet btn--sm" type="button">
+                          Restaurar
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cf-version">
+                      <span class="badge">v1</span>
+                      <div>
+                        <strong>Primera versión</strong>
+                        <div class="when">
+                          12 sep · importada desde una card V3
+                        </div>
+                        <div class="cf-meta-row" style="margin-top: 0.25rem">
+                          <span><strong>Uso</strong> Sin uso</span>
+                        </div>
+                      </div>
+                      <div class="cf-row">
+                        <button class="btn btn--quiet btn--sm" type="button">
+                          Ver
+                        </button>
+                        <button class="btn btn--quiet btn--sm" type="button">
+                          Restaurar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="cf-tiny cf-muted" style="margin: 0.7rem 0 0">
+                    Restaurar una versión antigua crea una versión nueva; el
+                    historial no se reescribe.
+                  </p>
+                </div>
+              </section>
+
               <section id="link" class="cf-panel" aria-labelledby="link-title">
                 <div class="cf-panel-head">
                   <div>
-                    <span class="kicker">04 · Vínculo</span>
+                    <span class="kicker">05 · Vínculo</span>
                     <h2 id="link-title">Quién lo usa</h2>
                     <p>
-                      Un personaje puede tener un lorebook vinculado. El libro
-                      no se borra al desvincular.
+                      Esta versión (v3) puede estar enlazada a muchas versiones
+                      de personaje. Vincular crea una versión nueva del
+                      personaje.
                     </p>
                   </div>
-                  <span class="badge badge--violet">1:1</span>
+                  <span class="badge badge--violet"
+                    >2 en uso · 1 histórica</span
+                  >
                 </div>
                 <div class="cf-panel-body">
+                  <h3 class="h3" style="margin-bottom: 0.5rem">
+                    En uso por esta versión (v3)
+                  </h3>
                   <div class="cf-link-card">
                     <span class="avatar" aria-hidden="true">L</span>
                     <div class="body">
-                      <strong>Lyra</strong>
-                      <span>Guardiana del bosque de Vael · v3</span>
+                      <strong>Lyra · v3</strong>
+                      <span
+                        >Versión actual del personaje · usa Bosque de Lyra
+                        v3</span
+                      >
                     </div>
                     <div class="actions">
                       <a
@@ -733,29 +835,75 @@ La hierba luna solo florece con la luna alta. Sus hojas curan la fiebre, pero lo
                         href="character-detail.html"
                         >Abrir personaje</a
                       >
-                      <button class="btn btn--quiet btn--sm" type="button">
-                        Desvincular
-                      </button>
                     </div>
                   </div>
+
+                  <div class="cf-link-card" style="margin-top: 0.5rem">
+                    <span class="avatar" aria-hidden="true">E</span>
+                    <div class="body">
+                      <strong>Capitana Ellis · v2</strong>
+                      <span
+                        >Versión actual del personaje · usa Bosque de Lyra
+                        v3</span
+                      >
+                    </div>
+                    <div class="actions">
+                      <a
+                        class="btn btn--ghost btn--sm"
+                        href="character-detail.html"
+                        >Abrir personaje</a
+                      >
+                    </div>
+                  </div>
+
+                  <h3 class="h3" style="margin: 1rem 0 0.5rem">
+                    Historial de versiones anteriores
+                  </h3>
+                  <div class="cf-stack" style="gap: 0.5rem">
+                    <div class="cf-link-card" style="background: transparent">
+                      <span class="avatar" aria-hidden="true">L</span>
+                      <div class="body">
+                        <strong>Lyra · v2</strong>
+                        <span>Versión histórica · usó Bosque de Lyra v2</span>
+                      </div>
+                      <div class="actions">
+                        <a
+                          class="btn btn--quiet btn--sm"
+                          href="character-detail.html"
+                          >Abrir personaje</a
+                        >
+                      </div>
+                    </div>
+                  </div>
+
                   <div
                     class="cf-field"
-                    style="margin-top: 0.9rem; max-width: 24rem"
+                    style="margin-top: 1rem; max-width: 28rem"
                   >
-                    <span class="label">Cambiar vínculo</span>
+                    <span class="label"
+                      >Vincular esta versión (v3) a un personaje</span
+                    >
                     <select
                       class="select"
-                      aria-label="Cambiar personaje vinculado"
+                      aria-label="Elegir personaje para vincular"
                     >
+                      <option>Elegir personaje…</option>
                       <option>Lyra</option>
                       <option>Capitana Ellis</option>
                       <option>Mika Sol</option>
-                      <option>Sin vincular</option>
                     </select>
-                    <span class="help"
-                      >Si el personaje ya tiene otro libro, se pedirá
-                      confirmación para reemplazarlo.</span
+                    <span class="help">
+                      Se creará una versión nueva del personaje con Bosque de
+                      Lyra v3. La versión actual del personaje conserva su
+                      libro.
+                    </span>
+                    <button
+                      class="btn btn--soft btn--sm"
+                      type="button"
+                      style="align-self: flex-start"
                     >
+                      Vincular a un personaje
+                    </button>
                   </div>
                 </div>
               </section>
@@ -771,7 +919,8 @@ La hierba luna solo florece con la luna alta. Sus hojas curan la fiebre, pero lo
                   <span data-save-label>Sin cambios</span>
                 </div>
                 <span class="cf-save-note"
-                  >Los cambios se aplican en la siguiente respuesta.</span
+                  >Guardar crea una versión nueva del libro; las versiones de
+                  personaje no cambian.</span
                 >
                 <div class="cf-save-actions">
                   <button class="btn btn--ghost" type="button">
@@ -785,6 +934,10 @@ La hierba luna solo florece con la luna alta. Sus hojas curan la fiebre, pero lo
             <aside class="cf-rail" aria-label="Resumen del lorebook">
               <div class="cf-rail-card">
                 <h3>Resumen</h3>
+                <div class="cf-kv">
+                  <span class="k">Versión</span
+                  ><span class="v">v3 · actual</span>
+                </div>
                 <div class="cf-kv">
                   <span class="k">Entradas</span><span class="v">12</span>
                 </div>
@@ -803,25 +956,35 @@ La hierba luna solo florece con la luna alta. Sus hojas curan la fiebre, pero lo
                   ><span class="v">On · 3 niveles</span>
                 </div>
                 <div class="cf-kv">
-                  <span class="k">Vínculo</span><span class="v">Lyra</span>
+                  <span class="k">Uso</span
+                  ><span class="v">2 actuales · 1 histórica</span>
                 </div>
               </div>
 
               <div class="cf-rail-card">
                 <h3>Exportar</h3>
                 <p>
-                  El libro viaja dentro de la card como
-                  <code>character_book</code> o solo, en CCv3 o formato nativo
-                  de ST.
+                  Exporta la versión seleccionada (<strong>v3</strong>) dentro
+                  de la card como <code>character_book</code> o sola, en CCv3 o
+                  formato nativo de ST.
                 </p>
                 <div class="cf-stack" style="margin-top: 0.6rem">
                   <button class="btn btn--ghost btn--sm" type="button">
-                    Exportar CCv3
+                    Exportar CCv3 (v3)
                   </button>
                   <button class="btn btn--ghost btn--sm" type="button">
-                    Exportar ST nativo
+                    Exportar ST nativo (v3)
                   </button>
                 </div>
+              </div>
+
+              <div class="cf-rail-card">
+                <h3>Reimportar</h3>
+                <p>
+                  Si vuelves a importar un libro con el mismo contenido, podrás
+                  reconstruir el historial de las versiones que lo usaron. Si el
+                  contenido cambió, se tratará como un libro nuevo.
+                </p>
               </div>
 
               <div class="cf-rail-card">
@@ -845,8 +1008,10 @@ La hierba luna solo florece con la luna alta. Sus hojas curan la fiebre, pero lo
               >
                 <h3 style="color: var(--danger)">Eliminar lorebook</h3>
                 <p>
-                  Se borrarán el libro y sus entradas. Los personajes vinculados
-                  quedan sin lorebook.
+                  Se eliminará el libro de la biblioteca. Las versiones de
+                  personaje que lo usaron conservarán su copia y seguirán
+                  funcionando, pero no podrás consultar qué personajes lo usaban
+                  ni vincularlo a nuevas versiones.
                 </p>
                 <button
                   class="btn btn--danger btn--sm"

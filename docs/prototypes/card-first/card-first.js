@@ -172,7 +172,58 @@
     })
   })
 
-  /* ---------- 6. Modo claro/oscuro (reutiliza prototype.js) ------------- */
+  /* ---------- 6. Ficha de personaje: lorebook e imagen ------------------ */
+  const lorebookSelect = document.querySelector("[data-lorebook-select]")
+  const lorebookEmpty = document.querySelector("[data-lorebook-empty]")
+  const lorebookPicker = document.querySelector("[data-lorebook-picker]")
+  const lorebookClear = document.querySelector("[data-clear-lorebook]")
+  const lorebookName = document.querySelector("[data-lorebook-name]")
+  const lorebookMeta = document.querySelector("[data-lorebook-meta]")
+  const lorebookData = {
+    "bosque-v3": ["Bosque de Lyra", "v3 · 12 entradas · scan 4 · 400 tokens"],
+    "bosque-v2": ["Bosque de Lyra", "v2 · 10 entradas · scan 4 · 400 tokens"],
+    "bosque-v1": ["Bosque de Lyra", "v1 · 8 entradas · scan 4 · 400 tokens"],
+    "ciudad-v1": ["Ciudad Sumergida", "v1 · 4 entradas · scan 2 · 300 tokens"],
+  }
+  const syncLorebook = () => {
+    if (!lorebookSelect) return
+    const empty = lorebookSelect.value === ""
+    const data = lorebookData[lorebookSelect.value]
+    if (lorebookName && data) lorebookName.textContent = data[0]
+    if (lorebookMeta && data) lorebookMeta.textContent = data[1]
+    if (lorebookEmpty) lorebookEmpty.hidden = !empty
+    if (lorebookClear) lorebookClear.hidden = empty
+    lorebookPicker
+      ?.querySelectorAll(".spine, .body")
+      .forEach((el) => (el.hidden = empty))
+  }
+  lorebookSelect?.addEventListener("change", syncLorebook)
+  document
+    .querySelector("[data-clear-lorebook]")
+    ?.addEventListener("click", () => {
+      if (lorebookSelect) {
+        lorebookSelect.value = ""
+        syncLorebook()
+      }
+    })
+  syncLorebook()
+
+  const avatarPreview = document.querySelector("[data-avatar-preview]")
+  const avatarPlaceholder = document.querySelector("[data-avatar-placeholder]")
+  document
+    .querySelector("[data-clear-image]")
+    ?.addEventListener("click", () => {
+      if (avatarPreview) avatarPreview.hidden = true
+      if (avatarPlaceholder) avatarPlaceholder.hidden = false
+    })
+  document
+    .querySelector("[data-upload-image]")
+    ?.addEventListener("click", () => {
+      if (avatarPreview) avatarPreview.hidden = false
+      if (avatarPlaceholder) avatarPlaceholder.hidden = true
+    })
+
+  /* ---------- 7. Modo claro/oscuro (reutiliza prototype.js) ------------- */
   if (root.dataset.cardFirstReady === "true") {
     // prototype.js ya inicializó el modo; no hacemos nada.
   }
