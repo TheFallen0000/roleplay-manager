@@ -5,22 +5,30 @@
 **Ámbito:** `packages/frontend`, `packages/backend`, `packages/shared` y
 `packages/ui` si aparece una primitiva nueva.
 **Referencias:** `docs/14-card-first-audit.md`,
-`docs/10-slices/S132-progress.md`, `docs/redesign-plan.md`,
-`docs/prototypes/`, `PRODUCT.md`, `DESIGN.md`.
+`docs/16-lorebook-versioning.md`, `docs/10-slices/S132-progress.md`,
+`docs/redesign-plan.md`, `docs/prototypes/`, `PRODUCT.md`, `DESIGN.md`.
+
+> **Actualización 2026-11-11 — lorebooks versionados.** El modelo inicial de
+> «biblioteca + vínculo 1:1» se sustituye por versiones de lorebook: editar un
+> libro crea una versión nueva y cada versión de personaje fija una versión
+> concreta del libro. Un libro puede estar enlazado a muchas versiones de
+> personaje. El detalle está en `docs/16-lorebook-versioning.md`; este plan
+> conserva la IA/UX y adopta ese modelo en las secciones marcadas.
 
 ---
 
 ## 1. Decisiones tomadas
 
-| Tema                              | Decisión                                                                                                                                            |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Relación personaje–lorebook       | **Biblioteca independiente + vínculo 1:1 opcional.** Un lorebook puede existir sin personaje; cada personaje puede tener como máximo uno vinculado. |
-| Destino de los flujos de creación | **Páginas dedicadas.** El diálogo «Crear» solo elige; `/characters/new` y `/lorebooks/new` contienen los formularios.                               |
-| Editor de personaje               | **Página con secciones y nav sticky.** Sin tabs; anclas y barra de guardado.                                                                        |
-| Secuencia                         | **Personaje → Lorebooks → memoria/retrieval.** S133 personaje + shell; S134 biblioteca de lorebooks; S135 vuelve a memoria.                         |
-| Crear personaje                   | **Esenciales + card + fichas** en la misma página, con avanzados plegados.                                                                          |
-| Lorebook dentro del personaje     | **Resumen + enlace.** La edición vive en la sección Lorebooks.                                                                                      |
-| Dirección visual                  | **Ink & Violet existente.** No se crea un mundo nuevo; se extiende el sistema actual.                                                               |
+| Tema                              | Decisión                                                                                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Relación personaje–lorebook       | **Versiones de lorebook + vínculo por versión de personaje.** Un libro puede usarse por muchas versiones de personaje; una versión de personaje fija como máximo una versión de libro. |
+| Versionado de lorebook            | **Editar crea una versión nueva.** Nombre, descripción, ajustes y entradas se versionan; las versiones antiguas son de solo lectura.                                                   |
+| Destino de los flujos de creación | **Páginas dedicadas.** El diálogo «Crear» solo elige; `/characters/new` y `/lorebooks/new` contienen los formularios.                                                                  |
+| Editor de personaje               | **Página con secciones y nav sticky.** Sin tabs; anclas y barra de guardado.                                                                                                           |
+| Secuencia                         | **Personaje → Lorebooks → memoria/retrieval.** S133 personaje + versionado de lorebooks; S134 biblioteca completa; S135 vuelve a memoria.                                              |
+| Crear personaje                   | **Esenciales + card + fichas + lorebook opcional** en la misma página, con avanzados plegados.                                                                                         |
+| Lorebook dentro del personaje     | **Resumen de la versión enlazada + enlace.** La edición vive en la sección Lorebooks.                                                                                                  |
+| Dirección visual                  | **Ink & Violet existente.** No se crea un mundo nuevo; se extiende el sistema actual.                                                                                                  |
 
 ---
 
@@ -210,24 +218,26 @@ Un modal pequeño, sin formulario:
 | **Identidad** | Nombre, subtítulo, imagen, descripción                                                                                                                                             | Siempre visible                         |
 | **Card**      | Personalidad, escenario, primer mensaje, saludos alternativos, ejemplos, system prompt, post-history, notas del creador, tags, creador, versión de card, género/pronombres/tagline | Esenciales visibles; avanzados plegados |
 | **Fichas**    | Tarjetas de conocimiento de RM (título, contenido, activa, orden)                                                                                                                  | Visible                                 |
-| **Lorebook**  | Resumen del libro vinculado + abrir/vincular/crear                                                                                                                                 | Visible                                 |
-| **Versiones** | Historial de versiones y selector                                                                                                                                                  | Visible en edición                      |
+| **Lorebook**  | Versión del libro enlazada a esta versión de personaje + abrir/cambiar/quitar                                                                                                      | Visible                                 |
+| **Versiones** | Historial de versiones del personaje y libro/versión usado por cada una                                                                                                            | Visible en edición                      |
 
 La nav sticky muestra las cinco secciones con un indicador de sección activa.
-En creación, «Versiones» no aparece.
+En creación, «Versiones» no aparece; el lorebook es una sección opcional.
 
 ### 4.5 Lorebook page sections
 
-| Sección       | Contenido                                                 |
-| ------------- | --------------------------------------------------------- |
-| **Identidad** | Nombre, descripción                                       |
-| **Ajustes**   | Scan depth, token budget, recursive scanning, con ayudas  |
-| **Entradas**  | Lista de entradas, añadir/editar/reordenar, import/export |
-| **Vínculo**   | Personaje vinculado (selector), desvincular, aviso 1:1    |
-| **Peligro**   | Eliminar lorebook                                         |
+| Sección       | Contenido                                                    |
+| ------------- | ------------------------------------------------------------ |
+| **Identidad** | Nombre, descripción                                          |
+| **Ajustes**   | Scan depth, token budget, recursive scanning, con ayudas     |
+| **Entradas**  | Lista de entradas, añadir/editar/reordenar, import/export    |
+| **Versiones** | Historial de versiones del libro, versión actual, restaurar  |
+| **Vínculo**   | Versiones de personaje que usan esta versión, vincular/crear |
+| **Peligro**   | Eliminar lorebook (soft delete)                              |
 
-En S133, el libro siempre está vinculado a un personaje; en S134, el vínculo
-es opcional y el libro puede existir sin personaje.
+El libro existe de forma independiente. Cada versión de personaje fija una
+versión concreta del libro; una versión puede estar enlazada a muchas
+versiones de personaje. Ver `docs/16-lorebook-versioning.md`.
 
 ---
 
@@ -238,10 +248,12 @@ es opcional y el libro puede existir sin personaje.
 1. Biblioteca de personajes → «Crear» → modal.
 2. Elige «Personaje» → `/characters/new`.
 3. La página abre en **Identidad** con nombre, subtítulo, imagen y descripción.
-4. Puede completar **Card** (con avanzados plegados) y **Fichas**.
+4. Puede completar **Card** (con avanzados plegados), **Fichas** y, de forma
+   opcional, **Lorebook**: elegir libro + versión o dejarlo sin lorebook.
 5. La barra de guardado muestra «Crear personaje» cuando los campos
    obligatorios están completos.
-6. Al crear, va al detalle del personaje con un toast y la sección Identidad.
+6. Al crear, la primera versión queda enlazada a la versión de lorebook
+   elegida (o a ninguna) y va al detalle con un toast.
 
 **Regla:** el botón de crear no exige completar los campos avanzados; solo
 nombre, descripción y saludo (los invariantes actuales). La card se puede
@@ -258,6 +270,9 @@ completar después.
    claro: «Guardar crea una versión nueva».
 6. El selector de versión del header permite consultar una versión anterior;
    si se edita una versión antigua, se crea una nueva a partir de ella.
+7. Cambiar el lorebook de la versión actual o quitar el libro también crea
+   una versión nueva; la versión anterior conserva su libro y sigue
+   funcionando.
 
 ### 5.3 Iniciar conversación y saludo alternativo
 
@@ -279,20 +294,21 @@ cambiar el diseño.
    defecto y ayudas.
 4. Entradas: añadir la primera entrada; editor inline con claves, secundarias,
    contenido, posición, orden, prioridad, lógica selectiva y flags.
-5. Vínculo: selector opcional de personaje; si el personaje ya tiene un libro,
-   se avisa y se ofrece reemplazar o cancelar.
-6. Crear → detalle del lorebook con toast.
+5. Crear → libro con **v1** y detalle con toast.
+6. No se enlazan personajes desde la creación: se vinculan después desde el
+   personaje o desde el detalle del libro. Así crear un libro no crea versiones
+   de personaje como efecto secundario.
 
-En S133 (interino), el paso 5 es obligatorio porque el modelo sigue siendo
-1:1; en S134 pasa a ser opcional.
+### 5.5 Vincular una versión de lorebook a un personaje
 
-### 5.5 Vincular lorebook a personaje
-
-1. Desde el detalle del lorebook o desde la sección Lorebook del personaje.
-2. Se elige un personaje (o se desvincula).
-3. Si el personaje ya tiene un libro, se muestra un diálogo de confirmación
-   para reemplazar el vínculo.
-4. El resumen del personaje se actualiza sin recargar la página.
+1. Desde el detalle del personaje (sección Lorebook) o desde el detalle del
+   libro (sección Vínculo).
+2. Se elige **libro + versión**; por defecto, la versión actual del libro.
+3. Vincular crea una **versión nueva del personaje** con esa versión de
+   lorebook. No se muta la versión existente.
+4. Si el personaje ya tenía un libro en su versión actual, la versión nueva lo
+   reemplaza; la anterior conserva su copia.
+5. El resumen del personaje y la lista de uso del libro se actualizan.
 
 ### 5.6 Import/export
 
@@ -362,9 +378,12 @@ Wireframe de escritorio:
   y se recuerdan abiertos/cerrados en edición.
 - La sección Fichas reutiliza el editor actual de tarjetas, renombrado a
   «Fichas» y con el contador.
-- La sección Lorebook muestra una card resumen: nombre, entradas, scan depth,
-  budget, recursión, personaje vinculado (si aplica) y botón «Abrir lorebook».
-  Si no hay libro: CTA «Crear lorebook» / «Vincular existente».
+- La sección Lorebook muestra la **versión enlazada**: nombre, número de
+  versión, entradas, scan depth, budget y recursión. Si el libro vivo está
+  eliminado o tiene versiones más nuevas, se avisa. Acciones: «Abrir
+  lorebook», «Cambiar lorebook» (crea versión nueva) y «Quitar lorebook» (crea
+  versión nueva sin libro). Si no hay libro: CTA «Elegir lorebook» / «Crear
+  lorebook».
 
 ### 6.3 Biblioteca de lorebooks
 
@@ -375,35 +394,41 @@ Wireframe de escritorio:
 │                                                              │
 │ ┌──────────────────┐ ┌──────────────────┐ ┌───────────────┐ │
 │ │ Bosque de Lyra   │ │ Ciudad Sumergida │ │ + Crear       │ │
-│ │ 12 entradas      │ │ 4 entradas       │ │   lorebook    │ │
-│ │ [avatar] Lyra    │ │ Sin vincular     │ │               │ │
+│ │ v3 · 12 entradas │ │ v1 · 4 entradas  │ │   lorebook    │ │
+│ │ 2 personajes     │ │ Sin usar         │ │               │ │
 │ └──────────────────┘ └──────────────────┘ └───────────────┘ │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-- Card de lorebook: nombre, descripción corta, número de entradas, personaje
-  vinculado (avatar + nombre) o chip «Sin vincular», ajustes clave.
-- Acciones: abrir, editar, exportar, eliminar, vincular/desvincular.
+- Card de lorebook: nombre, versión actual, número de entradas, uso agregado
+  («Usado por 2 personajes · 3 versiones» o «Sin usar») y ajustes clave.
+- Acciones: abrir, editar (crea versión nueva), exportar, eliminar.
 - Empty state con mascota y CTA.
-- Búsqueda y filtro «Todos / Vinculados / Sin vincular» si el listado crece.
+- Búsqueda y filtro «Todos / En uso / Sin usar» si el listado crece.
 
 ### 6.4 Detalle/edición de lorebook
 
-- Header: nombre, personaje vinculado, acciones (exportar, eliminar).
-- Nav sticky: Identidad, Ajustes, Entradas, Vínculo.
+- Header: nombre, versión actual, acciones (exportar, eliminar).
+- Nav sticky: Identidad, Ajustes, Entradas, Versiones, Vínculo.
 - Identidad: nombre, descripción.
 - Ajustes: scan depth (0–64), token budget (0–100.000), recursive scanning,
   con explicaciones y valores por defecto.
 - Entradas: lista de acordeones; cada entrada muestra nombre/comment, claves,
   posición, prioridad y un preview del contenido. El editor inline conserva
   todos los campos actuales.
-- Vínculo: selector de personaje, estado actual, desvincular, aviso 1:1.
-- La barra de guardado es contextual: guarda ajustes y entradas.
+- Versiones: historial con número, fecha, cambio y uso; versión antigua en
+  modo lectura; «Restaurar como versión nueva».
+- Vínculo: versiones de personaje que usan esta versión, agrupadas por
+  personaje, con «Vincular a un personaje» (crea una versión nueva del
+  personaje).
+- Guardar crea una versión nueva del libro; la UI lo dice.
+- Borrado: soft delete con el aviso de `docs/16-lorebook-versioning.md`.
 
 ### 6.5 Crear lorebook
 
-Misma estructura que el detalle, pero con un botón «Crear lorebook» y el paso
-de vínculo al final. En S133 el vínculo es obligatorio; en S134 es opcional.
+Misma estructura que el detalle, pero con un botón «Crear lorebook» y sin paso
+de vínculo obligatorio. El libro nace como v1; se puede vincular después a
+personajes desde el detalle o desde el personaje.
 
 ---
 
@@ -494,10 +519,12 @@ de vínculo al final. En S133 el vínculo es obligatorio; en S134 es opcional.
 
 ### 8.1 Card contract (S133)
 
-- `GET /api/characters/:id/card?spec=v2|v3` devuelve el envelope de la versión
-  actual (o `versionId` opcional).
+- `GET /api/characters/:id/card?spec=v2|v3&versionId=` devuelve el envelope de
+  la versión de personaje indicada (o la actual). `character_book` son los
+  datos de la **versión de lorebook enlazada** a esa versión de personaje.
 - `PUT /api/characters/:id/card` acepta un envelope, valida y crea una versión
-  nueva; si incluye `character_book`, sincroniza el lorebook vinculado.
+  nueva del personaje. Si incluye `character_book`, crea o reutiliza un libro +
+  versión de lorebook y enlaza la nueva versión de personaje a esa versión.
 - `extensions.rm` transporta los datos nativos de RM:
   ```ts
   interface RmExtensions {
@@ -512,72 +539,103 @@ de vínculo al final. En S133 el vínculo es obligatorio; en S134 es opcional.
     }>
     versionNumber?: number
     tagline?: string | null
+    lorebook?: {
+      lorebookId: string
+      lorebookVersionId: string
+      versionNumber: number
+      sourceKey: string
+      originId?: string | null
+    } | null
   }
   ```
 - Al importar una card, `extensions.rm` se lee y se restauran los campos; al
   exportar, se escribe. ST ignora el namespace.
-- La card export actual deja de ser solo el subconjunto ST: conserva lo nativo
-  de RM dentro de `extensions.rm`.
-- No hay migración de base de datos en S133: los campos ya existen.
+- La card es autocontenida: incluye el `character_book` exacto de la versión y
+  los IDs/huella para reconstruir el historial.
 
-### 8.2 Lorebook library (S134)
+### 8.2 Lorebook versioning (S133–S134)
 
-- Migración `0020`: `lorebooks.character_id` pasa a nullable; el índice único
-  se mantiene (SQLite permite múltiples `NULL` en un índice único).
-- `Lorebook` entity: `characterId: string | null`.
-- Repositorio: `list`, `findById`, `create`, `updateSettings`, `link`,
-  `unlink`, `delete`; el contexto sigue buscando por `character_id`.
-- Regla 1:1: un personaje puede tener como máximo un lorebook; un libro puede
-  estar vinculado a un personaje o a ninguno.
-- La creación transaccional actual (`CreateCharacterInput.lorebook`) se
-  mantiene para import/API, pero la UI de creación de personaje ya no la usa.
+El detalle completo está en `docs/16-lorebook-versioning.md`. Resumen:
+
+- `lorebooks` es el contenedor vivo y editable; `lorebook_versions` guarda
+  versiones inmutables (nombre, descripción, ajustes y `entries_json`).
+- `lorebooks.current_version_id` apunta a la versión actual; editar crea una
+  versión nueva (o no crea nada si el contenido canónico no cambió).
+- `character_versions.lorebook_version_id` (FK nullable, `ON DELETE RESTRICT`)
+  fija la versión exacta que usa esa versión de personaje.
+- Una versión de personaje → cero o una versión de lorebook. Una versión de
+  lorebook → muchas versiones de personaje.
+- Borrar un libro es **soft delete** (`lorebooks.deleted_at`): las versiones
+  se conservan y las versiones de personaje siguen funcionando.
+- Migración `0020`: crear `lorebook_versions`, generar la v1 de cada libro
+  existente y enlazar **todas** las versiones de personaje del personaje a esa
+  v1. Eliminar el uso de `lorebooks.character_id` y su índice único.
+- La creación transaccional actual (`CreateCharacterInput.lorebook`) pasa a
+  crear libro + v1 + enlace de la primera versión.
 
 ### 8.3 API surface
 
-| Método | Ruta                        | Slice                                        |
-| ------ | --------------------------- | -------------------------------------------- |
-| GET    | `/api/characters/:id/card`  | S133                                         |
-| PUT    | `/api/characters/:id/card`  | S133                                         |
-| GET    | `/api/lorebooks`            | S133 (directorio)                            |
-| GET    | `/api/lorebooks/:id`        | S133                                         |
-| PUT    | `/api/lorebooks/:id`        | S133 (ajustes/entradas de libros vinculados) |
-| POST   | `/api/lorebooks`            | S134 (libro sin personaje)                   |
-| POST   | `/api/lorebooks/:id/link`   | S134                                         |
-| DELETE | `/api/lorebooks/:id/link`   | S134                                         |
-| DELETE | `/api/lorebooks/:id`        | S134                                         |
-| POST   | `/api/lorebooks/:id/import` | S134                                         |
-| POST   | `/api/lorebooks/:id/export` | S134                                         |
+| Método | Ruta                                             | Slice |
+| ------ | ------------------------------------------------ | ----- |
+| GET    | `/api/characters/:id/card`                       | S133  |
+| PUT    | `/api/characters/:id/card`                       | S133  |
+| GET    | `/api/lorebooks`                                 | S133  |
+| GET    | `/api/lorebooks/:id`                             | S133  |
+| GET    | `/api/lorebooks/:id/versions`                    | S133  |
+| GET    | `/api/lorebooks/:id/versions/:versionId`         | S133  |
+| POST   | `/api/lorebooks`                                 | S133  |
+| PUT    | `/api/lorebooks/:id`                             | S133  |
+| POST   | `/api/lorebooks/:id/versions/:versionId/restore` | S134  |
+| DELETE | `/api/lorebooks/:id`                             | S134  |
+| GET    | `/api/lorebooks/:id/usage?versionId=`            | S134  |
+| POST   | `/api/lorebooks/:id/link`                        | S134  |
+| POST   | `/api/lorebooks/import`                          | S134  |
+| POST   | `/api/lorebooks/:id/export`                      | S134  |
 
 Las rutas actuales por personaje (`/api/characters/:id/lorebook`) se mantienen
-por compatibilidad; la UI nueva usa las rutas por libro.
+por compatibilidad y se mapean a la versión actual del libro del personaje.
 
 ### 8.4 Shared types
 
-- `LorebookSummaryDTO`: id, name, description, entryCount, linkedCharacter
-  (id, name, profileImageAssetId) | null, scanDepth, tokenBudget,
-  recursiveScanning, updatedAt.
-- `CreateLorebookInput`, `UpdateLorebookInput`, `LinkLorebookInput`.
-- `CharacterCardEnvelope` / `RmExtensions`.
+- `LorebookSummaryDTO`: id, currentVersion (versionNumber, name, entryCount,
+  scanDepth, tokenBudget, recursiveScanning, sourceKey), usageCounts
+  (characters, characterVersions), updatedAt.
+- `LorebookVersionDTO`: id, lorebookId, versionNumber, name, description,
+  settings, entries, sourceKey, createdAt.
+- `CharacterVersionDTO.lorebookVersion`: summary of the linked version
+  (lorebookId, versionId, versionNumber, name, entryCount, status: active |
+  deleted | outdated).
+- `CreateLorebookInput`, `UpdateLorebookInput`, `LinkLorebookInput`,
+  `RestoreLorebookVersionInput`.
+- `CharacterCardEnvelope` / `RmExtensions` with lorebook IDs/version/sourceKey.
 - `CreateConversationInput.greeting` o `greetingIndex` (si S133 incluye el
   selector).
 - i18n: `nav.lorebooks`, `nav.groupLibrary`, `create.*`, `lorebooks.*`,
-  `characters.section*`, `characters.fichas*`, `characters.lorebookSummary*`.
+  `characters.section*`, `characters.fichas*`, `characters.lorebookVersion*`.
 
 ### 8.5 Context and activation
 
-- `ConversationContextLoader` sigue resolviendo el libro por `character_id`.
-- La activación no cambia: el lorebook vinculado entra por el mismo camino.
-- Si el libro se desvincula, las conversaciones existentes dejan de recibir
-  sus entradas en el siguiente envío (comportamiento esperado).
-- Los ajustes de libro (`scan_depth`, `token_budget`, `recursive_scanning`) se
-  editan en la página del lorebook y se reflejan en la siguiente respuesta.
+- `ConversationContextLoader` resuelve la **versión de lorebook enlazada a la
+  versión de personaje** de la conversación, no el libro vivo por personaje.
+- La activación no cambia: el `PromptContextLorebook` sale de la versión y
+  entra por el mismo camino del compilador S129.
+- Editar un libro no cambia conversaciones existentes; cada una sigue con su
+  versión de personaje y su versión de lorebook.
+- Si se quita el lorebook de una versión de personaje, la conversación usa la
+  nueva versión del personaje (sin libro) si se cambia la conversación; las
+  conversaciones antiguas siguen fijadas a su versión.
+- El manifiesto puede incluir `lorebook.versionNumber` y `sourceKey` para
+  depurar.
 
 ### 8.6 Backward compatibility
 
 - Exports antiguos sin `extensions.rm` importan como hasta ahora.
-- Cards V1/V2/V3 sin `extensions.rm` conservan el comportamiento actual.
-- Los libros existentes siguen vinculados a su personaje; la migración no
-  requiere backfill.
+- Cards V1/V2/V3 sin `extensions.rm` conservan el comportamiento actual; su
+  `character_book` se convierte en libro + v1 y se enlaza a la versión de
+  personaje creada.
+- Export interno: `EXPORT_SCHEMA_VERSION` sube a 2 (o se añade lectura aditiva);
+  el import v1 de S132 convierte el `lorebook` de personaje en libro + v1 y lo
+  enlaza a todas las versiones del personaje.
 - Las rutas por personaje siguen funcionando; no se rompe la API actual.
 
 ---
@@ -639,12 +697,17 @@ por compatibilidad; la UI nueva usa las rutas por libro.
 - `application/use-cases/character/lorebook/link-lorebook.use-case.ts`
 - `application/use-cases/character/lorebook/unlink-lorebook.use-case.ts`
 - `application/use-cases/character/lorebook/delete-lorebook.use-case.ts`
+- `application/use-cases/character/lorebook/create-lorebook-version.use-case.ts`
+- `application/use-cases/character/lorebook/list-lorebook-versions.use-case.ts`
+- `application/use-cases/character/lorebook/link-character-version.use-case.ts`
+- `application/use-cases/character/lorebook/get-lorebook-usage.use-case.ts`
 - `infrastructure/adapters/primary/routes/lorebook.routes.ts` (rutas por
-  libro)
+  libro/versión)
 - `infrastructure/adapters/primary/routes/character.routes.ts` (card)
-- `domain/ports/lorebook.repository.ts` (list/link/unlink)
+- `domain/entities/lorebook-version.entity.ts`
+- `domain/ports/lorebook.repository.ts` (containers + versions + usage)
 - `infrastructure/.../drizzle/repositories/drizzle-lorebook.repository.ts`
-- `infrastructure/database/migrations/0020_lorebook_library.sql` (S134)
+- `infrastructure/database/migrations/0020_lorebook_versions.sql` (S133)
 - `containers/app-container.ts`
 
 ### 9.4 Shared and i18n
@@ -658,21 +721,23 @@ por compatibilidad; la UI nueva usa las rutas por libro.
 
 ### 9.5 Tests
 
-- Backend: card contract round-trip, `extensions.rm`, lorebook list/link,
-  migration 0020, API routes, context loader with linked book.
+- Backend: card contract round-trip, `extensions.rm`, lorebook versions,
+  migration 0020 (v1 + links), usage queries, soft delete/restore, import
+  matching, API routes, context loader with linked version.
 - Frontend: create dialog navigation, section nav, create/character pages,
-  fichas, lorebook summary/link, lorebooks list/detail, empty states, greeting
-  picker, responsive states (RTL + maybe Playwright).
+  fichas, lorebook version selector/summary, lorebooks list/detail/versions,
+  usage list, delete warning, re-import dialog, empty states, greeting picker,
+  responsive states (RTL + maybe Playwright).
 - Sin regresiones S129–S132.
 
 ---
 
 ## 10. Slice plan
 
-### 10.1 S133 — Card-first character surface + IA shell
+### 10.1 S133 — Card-first character surface + lorebooks versionados
 
-**Objetivo:** que el personaje se sienta como una card y que la creación deje
-de ser un cajón de sastre.
+**Objetivo:** que el personaje se sienta como una card y que el lorebook quede
+versionado y fijado por versión de personaje.
 
 Incluye:
 
@@ -681,38 +746,50 @@ Incluye:
 - `/characters/new` y `/characters/:id` con secciones + nav sticky + save bar.
 - Sección Card con campos ST y avanzados plegados.
 - Sección Fichas (renombre de «Tarjetas»).
-- Sección Lorebook con resumen + enlace.
-- Sección Versiones.
-- Card contract `GET/PUT /api/characters/:id/card` + `extensions.rm`.
-- Directorio de lorebooks (`/lorebooks`) y detalle/edición por libro existente
-  (`/lorebooks/:id`) con el editor actual movido a `components/lorebook/`.
+- Sección Lorebook opcional en creación y resumen de la versión enlazada en
+  detalle; selector libro + versión.
+- Sección Versiones del personaje, con el libro/versión usado por cada una.
+- Card contract `GET/PUT /api/characters/:id/card` + `extensions.rm` con IDs y
+  huella de lorebook.
+- Migración de datos: `lorebook_versions`, v1 de libros existentes,
+  `character_versions.lorebook_version_id`, enlace de todas las versiones
+  existentes a la v1.
+- Backend de versiones: crear versión al guardar, listar versiones, cargar
+  prompt/card desde la versión enlazada.
+- Directorio de lorebooks (`/lorebooks`) y detalle con selector de versión y
+  editor movido a `components/lorebook/`.
 - Selector de saludo alternativo al iniciar conversación (candidato; si el
   slice crece, se mueve a S134).
 - Import/export de cards en el listado/detalle.
 - Tests y docs.
 
-**Fuera de S133:** crear lorebooks sin personaje, vincular/desvincular,
-import/export de lorebooks por libro, migración nullable.
+**Fuera de S133:** historial de uso completo, soft delete/restauración,
+reimportación con reconstrucción, import/export de lorebooks por libro
+(se pueden dejar para S134).
 
-### 10.2 S134 — Lorebook library
+### 10.2 S134 — Biblioteca de lorebooks y versionado completo
 
-**Objetivo:** que los lorebooks sean ciudadanos de primera, no una pestaña.
+**Objetivo:** que los lorebooks sean ciudadanos de primera, con historial y uso.
 
 Incluye:
 
-- Migración `0020`: `character_id` nullable + índice único.
-- `POST /api/lorebooks` (sin personaje), link/unlink, delete, import/export por
-  libro.
-- `/lorebooks` completo: crear, listar todos, filtrar vinculados/sin vincular.
+- `/lorebooks` completo: crear, listar todos, filtrar en uso/sin usar.
 - `/lorebooks/new` y `/lorebooks/:id` con secciones Identidad, Ajustes,
-  Entradas, Vínculo.
+  Entradas, Versiones y Vínculo.
+- Historial de versiones, versión antigua read-only y «Restaurar como versión
+  nueva».
+- Uso por versión: «En uso por» e «Historial» agrupados por personaje.
+- «Vincular a un personaje»: crea una versión nueva del personaje con la
+  versión del libro.
+- Soft delete + aviso + restauración al reimportar.
+- Import/export por libro/versión; matching `origin_id`/`source_key` y
+  reconstrucción con confirmación.
 - Controles de scan depth, token budget, recursive scanning.
-- Vínculo opcional 1:1 y confirmación de reemplazo.
-- Import/export de lorebooks desde la biblioteca.
 - Tests, docs y release checks.
 
-**Fuera de S134:** múltiples lorebooks por personaje, grupos, timed effects,
-probabilidad, decoradores, assets V3.
+**Fuera de S134:** múltiples lorebooks por versión de personaje, grupos, timed
+effects, probabilidad, decoradores, assets V3, limpieza automática de versiones
+huérfanas.
 
 ### 10.3 Después
 
@@ -728,27 +805,37 @@ plan se apruebe.
 ### 10.4 Criterios de aceptación S133
 
 - El diálogo «Crear» solo contiene dos placas y un enlace de importación.
-- `/characters/new` crea un personaje con identidad, card y fichas.
+- `/characters/new` crea un personaje con identidad, card, fichas y lorebook
+  opcional (libro + versión).
 - `/characters/:id` muestra las cinco secciones sin tabs y guarda con barra
   sticky.
 - «Tarjetas» ya no se usa para las fichas de conocimiento.
-- El lorebook del personaje se muestra como resumen + enlace.
-- La card export/import conserva `extensions.rm` y los campos desconocidos.
+- El lorebook del personaje muestra la versión exacta enlazada y su estado.
+- Cambiar o quitar el lorebook crea una versión nueva del personaje.
+- La card export/import conserva `extensions.rm`, los campos desconocidos y el
+  `character_book` de la versión enlazada.
 - `GET/PUT card` devuelve un envelope válido y crear una versión no rompe
   conversaciones existentes.
-- El saludo alternativo se puede elegir al iniciar una conversación (si entra
-  en S133).
+- Migración de datos probada: libros existentes → v1; todas las versiones de
+  personaje existentes → v1.
+- El prompt y el preview usan la versión enlazada, no el libro vivo.
 - `pnpm check`, tests backend/frontend, build y audit en verde.
 
 ### 10.5 Criterios de aceptación S134
 
-- Se puede crear un lorebook sin personaje.
-- La biblioteca lista libros vinculados y sin vincular.
-- Se puede vincular/desvincular un libro; el 1:1 se respeta.
-- Los ajustes de libro se editan y afectan a la siguiente respuesta.
-- Import/export por libro funciona en CCv3 y ST nativo.
-- Las conversaciones existentes no se rompen al desvincular.
-- Migración 0020 probada con datos existentes.
+- Se puede crear un lorebook sin personaje y nace como v1.
+- Editar un libro crea una versión nueva; las versiones antiguas son de solo
+  lectura.
+- La biblioteca lista libros en uso y sin usar, con versión actual y uso.
+- La página del libro muestra historial, uso por versión y versión antigua
+  read-only.
+- «Vincular a un personaje» crea una versión nueva del personaje con esa
+  versión del libro.
+- Soft delete con aviso; las versiones de personaje siguen funcionando.
+- Reimportar un libro idéntico ofrece reconstruir el historial con
+  confirmación; contenido distinto no reconstruye.
+- Import/export por libro/versión funciona en CCv3 y ST nativo.
+- Las conversaciones existentes no se rompen al editar, borrar o reimportar.
 - `pnpm check`, tests, build y audit en verde.
 
 ### 10.6 Riesgos
@@ -770,24 +857,28 @@ Se crearán prototipos HTML estáticos en `docs/prototypes/card-first/`,
 reutilizando los tokens y fuentes de `docs/prototypes/prototype.css`. No son
 código de producción.
 
-| Archivo                              | Propósito                         | Interacciones                                        |
-| ------------------------------------ | --------------------------------- | ---------------------------------------------------- |
-| `index.html`                         | Hub de prototipos y navegación    | Links a las pantallas                                |
-| `create-dialog.html`                 | Modal «Crear» sobre la biblioteca | Abrir/cerrar, hover/focus, dos placas                |
-| `character-create.html`              | Crear personaje                   | Nav de secciones, plegar avanzados, fichas, save bar |
-| `character-detail.html`              | Detalle/edición                   | Nav sticky, versiones, resumen de lorebook           |
-| `lorebooks.html`                     | Biblioteca de lorebooks           | Grid, empty state, filtros                           |
-| `lorebook-create.html`               | Crear lorebook                    | Identidad, ajustes, entradas, vínculo                |
-| `lorebook-detail.html`               | Detalle/edición                   | Acordeones de entradas, ajustes, vínculo             |
-| `mobile.html` o variantes responsive | Móvil                             | Chips de nav, save bar fija, placas apiladas         |
+| Archivo                              | Propósito                         | Interacciones                                                           |
+| ------------------------------------ | --------------------------------- | ----------------------------------------------------------------------- |
+| `index.html`                         | Hub de prototipos y navegación    | Links a las pantallas                                                   |
+| `create-dialog.html`                 | Modal «Crear» sobre la biblioteca | Abrir/cerrar, hover/focus, dos placas                                   |
+| `character-create.html`              | Crear personaje                   | Nav de secciones, plegar avanzados, fichas, lorebook opcional, save bar |
+| `character-detail.html`              | Detalle/edición                   | Nav sticky, versiones, versión de lorebook enlazada                     |
+| `lorebooks.html`                     | Biblioteca de lorebooks           | Grid, versión actual, uso, filtros, empty state                         |
+| `lorebook-create.html`               | Crear lorebook                    | Identidad, ajustes, entradas, v1, vincular después                      |
+| `lorebook-detail.html`               | Detalle/edición                   | Acordeones, ajustes, historial de versiones, uso                        |
+| `mobile.html` o variantes responsive | Móvil                             | Chips de nav, save bar fija, placas apiladas                            |
 
 Contenido sintético:
 
-- Personaje «Lyra» con tags, creador y card V3.
-- Lorebook «Bosque de Lyra» con 3 entradas (una constante, una con secundarias,
-  una con regex preservado).
+- Personaje «Lyra» con tags, creador y card V3; ejemplo precargado en la
+  pantalla de creación, con placeholders al vaciar los campos.
+- Lorebook «Bosque de Lyra» con v3 y 3 entradas (una constante, una con
+  secundarias, una con regex preservado); v1/v2 en el historial.
+- Uso: Lyra v3 enlazada a Bosque de Lyra v3; Lyra v1 usó v1; Capitana Ellis v1
+  usa v2.
 - Personaje sin lorebook para el estado vacío.
-- Lorebook sin vincular para S134.
+- Lorebook sin usar para S134.
+- Aviso de borrado y nota de reconstrucción por huella.
 
 Aprobación:
 
@@ -810,13 +901,19 @@ decisiones concretan el plan y deben pasar al RFC de S133/S134:
   chrome fijo. El enlace **Prototipo** del topbar vuelve al hub.
 - **Diálogo Crear.** Dos placas con ilustración abstracta (icono + gradiente),
   la misma altura y peso; el enlace de importar card queda en el pie.
-- **Biblioteca de lorebooks.** Cards con lomo de color, metadatos a la vista y
-  estado «Sin vincular» en chip discontinuo. La card de crear es discontinua.
+- **Biblioteca de lorebooks.** Cards con lomo de color, versión actual, uso
+  agregado y estado «Sin usar» en chip discontinuo. La card de crear es
+  discontinua.
+- **Lorebook versionado.** El detalle tiene selector de versión, historial,
+  versión antigua read-only y uso por versión; el personaje muestra la versión
+  exacta enlazada.
 - **Header de detalle.** En móvil, avatar e identidad van en la misma fila y
   las acciones pasan debajo; los placeholders de Tema/Idioma se ocultan para
   no romper el título.
 - **Formularios.** Los avanzados de la card se pliegan; las fichas y las
-  entradas usan el mismo patrón de lista con acciones discretas.
+  entradas usan el mismo patrón de lista con acciones discretas. La pantalla
+  de creación muestra contenido precargado y, al vaciar un campo, aparece su
+  placeholder.
 - **Verificación.** El detector de `impeccable` no reporta hallazgos
   primarios; solo advisories de tamaños/radios/colores fuera de DESIGN.md y de
   las etiquetas numeradas de sección, que son intencionales en el prototipo.
@@ -841,18 +938,31 @@ decisiones concretan el plan y deben pasar al RFC de S133/S134:
    crece; si crece, S134.
 6. **«Fichas» en inglés.** «Knowledge cards» vs «Cards». Recomendación:
    «Knowledge cards» para no colisionar con las cards de ST.
-7. **Crear lorebook: vínculo al inicio o al final.** Recomendación: al final,
-   después de las entradas, con opción «Vincular más tarde» en S134.
+7. **Crear lorebook: ¿vincular al crear?** Recomendación: no; crear el libro
+   como v1 y vincular después desde el personaje o el detalle, para no crear
+   versiones de personaje como efecto secundario.
 8. **Un solo botón de guardado o guardado por sección.** Recomendación: un
    guardado global con barra sticky; menos estados y menos errores.
+9. **¿Qué se versiona en un lorebook?** Recomendación: nombre, descripción,
+   ajustes y entradas; renombrar crea versión. Alternativa: nombre estable en
+   el contenedor.
+10. **¿Cómo se borra un lorebook?** Recomendación: soft delete del contenedor;
+    versiones conservadas; restauración al reimportar.
+11. **¿Reconstrucción en S134 o después?** Recomendación: S134 si cabe; si no,
+    guardar `source_key` y dejar la UI para S135.
+12. **¿La creación real empieza vacía o con un ejemplo precargado?**
+    Recomendación: vacía con placeholders; el contenido precargado es solo una
+    demo del prototipo para enseñar el placeholder al borrar.
 
 ---
 
 ## 13. Next steps
 
-1. Revisar este plan y corregir cualquier decisión.
-2. Construir los prototipos HTML de las siete pantallas.
-3. Aprobar la dirección y el prototipo.
+1. Revisar este plan y `docs/16-lorebook-versioning.md`; corregir cualquier
+   decisión.
+2. Actualizar los prototipos HTML al modelo de versiones de lorebook y a los
+   placeholders solicitados.
+3. Aprobar la dirección y los prototipos.
 4. Crear el RFC de S133 con el flujo `/slice`.
 5. Implementar S133, luego S134, luego volver a memoria/retrieval.
 
