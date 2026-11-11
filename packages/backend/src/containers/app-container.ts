@@ -59,6 +59,8 @@ import { ListPlayerCharactersUseCase } from "../application/use-cases/player-cha
 import { UpdatePlayerCharacterUseCase } from "../application/use-cases/player-character/update-player-character.use-case"
 import { DeletePlayerCharacterUseCase } from "../application/use-cases/player-character/delete-player-character.use-case"
 import { GetCharacterUseCase } from "../application/use-cases/character/get-character.use-case"
+import { GetCharacterCardUseCase } from "../application/use-cases/character/get-character-card.use-case"
+import { UpdateCharacterCardUseCase } from "../application/use-cases/character/update-character-card.use-case"
 import { ListCharactersUseCase } from "../application/use-cases/character/list-characters.use-case"
 import { UpdateCharacterUseCase } from "../application/use-cases/character/update-character.use-case"
 import { UpdateCharacterProfileImageUseCase } from "../application/use-cases/character/update-character-profile-image.use-case"
@@ -191,6 +193,8 @@ export interface AppContainer {
   updatePlayerCharacter: UpdatePlayerCharacterUseCase
   deletePlayerCharacter: DeletePlayerCharacterUseCase
   getCharacter: GetCharacterUseCase
+  getCharacterCard: GetCharacterCardUseCase
+  updateCharacterCard: UpdateCharacterCardUseCase
   listCharacters: ListCharactersUseCase
   updateCharacter: UpdateCharacterUseCase
   updateCharacterProfileImage: UpdateCharacterProfileImageUseCase
@@ -693,6 +697,14 @@ export const buildContainer = ({
       characterRepository,
       lorebookRepository,
     ),
+    getCharacterCard: new GetCharacterCardUseCase({
+      characterRepository,
+      lorebookRepository,
+    }),
+    updateCharacterCard: new UpdateCharacterCardUseCase({
+      characterRepository,
+      lorebookRepository,
+    }),
     listCharacters: new ListCharactersUseCase(
       characterRepository,
       characterAssetRepository,

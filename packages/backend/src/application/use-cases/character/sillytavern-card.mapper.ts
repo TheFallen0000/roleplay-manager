@@ -11,6 +11,7 @@ import {
   buildCharacterBookData,
   isRecord,
   normalizeLorebook,
+  type LorebookEntryLike,
   type LorebookLike,
   type NormalizedLorebook,
 } from "./lorebook/lorebook.mapper"
@@ -407,6 +408,54 @@ const toLorebookFingerprint = (
     versionNumber,
     sourceKey,
     ...(originId !== null ? { originId } : {}),
+  }
+}
+
+/** Minimal shape shared by the entity and the repository row mocks. */
+export interface LorebookVersionLike {
+  id: string
+  lorebookId: string
+  versionNumber: number
+  name?: string | null
+  description?: string | null
+  scanDepth?: number
+  tokenBudget?: number
+  recursiveScanning?: boolean
+  entriesJson: string
+  sourceKey: string
+}
+
+const versionEntries = (entriesJson: string): LorebookEntryLike[] => {
+  try {
+    const parsed: unknown = JSON.parse(entriesJson)
+    return Array.isArray(parsed)
+      ? parsed.filter(isRecord).map((entry) => entry as LorebookEntryLike)
+      : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Adapts an immutable lorebook version to the `LorebookLike` shape used by the
+ * card export, carrying the fingerprint metadata `extensions.rm.lorebook` needs.
+ */
+export function lorebookVersionToCardLorebook(
+  version: LorebookVersionLike,
+  options: { originId?: string | null } = {},
+): LorebookLike {
+  return {
+    lorebookId: version.lorebookId,
+    lorebookVersionId: version.id,
+    versionNumber: version.versionNumber,
+    sourceKey: version.sourceKey,
+    originId: options.originId ?? null,
+    name: version.name ?? null,
+    description: version.description ?? null,
+    scanDepth: version.scanDepth ?? 4,
+    tokenBudget: version.tokenBudget ?? 400,
+    recursiveScanning: version.recursiveScanning ?? false,
+    entries: versionEntries(version.entriesJson),
   }
 }
 
