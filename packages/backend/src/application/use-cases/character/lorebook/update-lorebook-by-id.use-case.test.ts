@@ -142,6 +142,7 @@ describe("UpdateLorebookByIdUseCase", () => {
     const call = repository.saveLiveHeadAndVersion.mock.calls[0] as [
       unknown,
       Array<Record<string, unknown>>,
+      unknown,
     ]
     expect(call[1].map((item) => item.keys)).toEqual([
       ["river"],
