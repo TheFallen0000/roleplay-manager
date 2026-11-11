@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="es" data-world="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prototipo · Crear personaje — Roleplay Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../prototype.css" />
+    <link rel="stylesheet" href="card-first.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brandline">
+          <img
+            src="../../../packages/frontend/public/brand/face-96.png"
+            alt=""
+          />
+          <span class="brand-name">Roleplay Manager</span>
+        </div>
+
+        <nav class="nav-group" aria-label="Biblioteca">
+          <span class="nav-label">Biblioteca</span>
+          <a class="nav-item" href="create-dialog.html" aria-current="page">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Personajes
+          </a>
+          <a class="nav-item" href="lorebooks.html">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path
+                d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"
+              />
+            </svg>
+            Lorebooks
+          </a>
+          <a class="nav-item" href="#">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="5" />
+              <path d="M20 21a8 8 0 0 0-16 0" />
+            </svg>
+            Personajes jugados
+          </a>
+        </nav>
+
+        <nav class="nav-group" aria-label="Sistema">
+          <span class="nav-label">Sistema</span>
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+              /></svg
+            >Proveedores</a
+          >
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <path d="M21 3v6h-6" /></svg
+            >Actualizaciones <span class="badge badge--spark count">1</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 6h13" />
+              <path d="M8 12h13" />
+              <path d="M8 18h13" />
+              <path d="M3 6h.01" />
+              <path d="M3 12h.01" />
+              <path d="M3 18h.01" /></svg
+            >Registro</a
+          >
+        </nav>
+
+        <nav class="nav-group" aria-label="Ayuda">
+          <span class="nav-label">Ayuda</span>
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg
+            >Tutoriales</a
+          >
+        </nav>
+
+        <div
+          style="margin-top: auto; padding: 0 0.55rem; color: var(--muted-fg)"
+          class="tiny"
+        >
+          v1.57.2 · prototipo
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <button
+            class="btn btn--quiet btn--icon btn--sm"
+            type="button"
+            aria-label="Mostrar u ocultar menú"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </button>
+          <span class="h3" style="margin-right: auto">Nuevo personaje</span>
+          <a class="btn btn--quiet btn--sm cf-proto-link" href="index.html"
+            >Prototipo</a
+          >
+          <button class="btn btn--quiet btn--sm" type="button">Tema ▾</button>
+          <button class="btn btn--quiet btn--sm" type="button">Idioma ▾</button>
+        </header>
+
+        <main class="content cf-content" data-dirty-scope>
+          <div class="cf-breadcrumb">
+            <a href="create-dialog.html">Biblioteca</a>
+            <span class="sep">/</span>
+            <a href="create-dialog.html">Personajes</a>
+            <span class="sep">/</span>
+            <span>Nuevo personaje</span>
+          </div>
+
+          <div class="cf-page-head">
+            <div>
+              <h1 class="h1">Nuevo personaje</h1>
+              <p class="lede">
+                Empieza por lo esencial. La card y las fichas se pueden
+                completar ahora o después.
+              </p>
+            </div>
+            <div class="cf-page-actions cf-page-actions--form">
+              <a class="btn btn--ghost" href="create-dialog.html">Cancelar</a>
+              <button class="btn" type="button">Crear personaje</button>
+            </div>
+          </div>
+
+          <div class="cf-page-grid cf-page-grid--rail">
+            <nav class="cf-section-nav" aria-label="Secciones del personaje">
+              <span class="nav-caption">Secciones</span>
+              <a
+                class="cf-nav-link is-active"
+                href="#identity"
+                data-section-link
+                ><span class="num">01</span>Identidad</a
+              >
+              <a class="cf-nav-link" href="#card" data-section-link
+                ><span class="num">02</span>Card</a
+              >
+              <a class="cf-nav-link" href="#fichas" data-section-link
+                ><span class="num">03</span>Fichas</a
+              >
+            </nav>
+
+            <div>
+              <section
+                id="identity"
+                class="cf-panel"
+                aria-labelledby="identity-title"
+              >
+                <div class="cf-panel-head">
+                  <div>
+                    <span class="kicker">01 · Identidad</span>
+                    <h2 id="identity-title">Quién es</h2>
+                    <p>Lo que se ve primero en la biblioteca y en la card.</p>
+                  </div>
+                  <span class="badge badge--violet">Borrador</span>
+                </div>
+                <div class="cf-panel-body">
+                  <div class="cf-image-row">
+                    <div class="avatar cf-avatar-xl" aria-hidden="true">L</div>
+                    <div class="cf-image-copy">
+                      <strong>Imagen de perfil</strong>
+                      <span class="help"
+                        >PNG o JPG. Se usa en la biblioteca y se incrusta al
+                        exportar una card PNG.</span
+                      >
+                      <div class="cf-row">
+                        <button class="btn btn--ghost btn--sm" type="button">
+                          Subir imagen
+                        </button>
+                        <button class="btn btn--quiet btn--sm" type="button">
+                          Quitar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="cf-divider"></div>
+
+                  <div class="cf-field-grid">
+                    <label class="cf-field span-2">
+                      <span class="label"
+                        >Nombre <span class="cf-counter">0 / 80</span></span
+                      >
+                      <input
+                        class="input"
+                        type="text"
+                        placeholder="Lyra"
+                        aria-label="Nombre"
+                      />
+                      <span class="help"
+                        >El nombre que verá el modelo y la biblioteca.</span
+                      >
+                    </label>
+                    <label class="cf-field span-2">
+                      <span class="label">Subtítulo</span>
+                      <input
+                        class="input"
+                        type="text"
+                        placeholder="Guardiana del bosque de Vael"
+                        aria-label="Subtítulo"
+                      />
+                      <span class="help"
+                        >Una línea para la card. No se envía al modelo.</span
+                      >
+                    </label>
+                    <label class="cf-field span-2">
+                      <span class="label"
+                        >Descripción
+                        <span class="cf-counter">0 / 2.000</span></span
+                      >
+                      <textarea
+                        class="textarea"
+                        rows="5"
+                        placeholder="Lyra protege el bosque de Vael desde que recuerda. Habla poco, pero cuando lo hace…"
+                        aria-label="Descripción"
+                      ></textarea>
+                      <span class="help"
+                        >El núcleo de la card: apariencia, historia y todo lo
+                        que el modelo debe saber siempre.</span
+                      >
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <section id="card" class="cf-panel" aria-labelledby="card-title">
+                <div class="cf-panel-head">
+                  <div>
+                    <span class="kicker">02 · Card</span>
+                    <h2 id="card-title">La ficha del personaje</h2>
+                    <p>
+                      Campos de Character Card V2/V3. Los avanzados se pliegan
+                      para no competir con lo esencial.
+                    </p>
+                  </div>
+                  <span class="badge badge--violet">V2 / V3</span>
+                </div>
+                <div class="cf-panel-body">
+                  <fieldset class="cf-fieldset">
+                    <div class="cf-fieldset-head">
+                      <h3>Personaje</h3>
+                      <span class="hint">Se inyecta en el prompt</span>
+                    </div>
+                    <div class="cf-field-grid">
+                      <label class="cf-field">
+                        <span class="label">Personalidad</span>
+                        <textarea
+                          class="textarea"
+                          rows="4"
+                          placeholder="Reservada, observadora, leal a su bosque…"
+                          aria-label="Personalidad"
+                        ></textarea>
+                      </label>
+                      <label class="cf-field">
+                        <span class="label">Escenario</span>
+                        <textarea
+                          class="textarea"
+                          rows="4"
+                          placeholder="Un bosque antiguo donde los árboles recuerdan…"
+                          aria-label="Escenario"
+                        ></textarea>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <fieldset class="cf-fieldset">
+                    <div class="cf-fieldset-head">
+                      <h3>Apertura</h3>
+                      <span class="hint"
+                        >El primer mensaje y sus variantes</span
+                      >
+                    </div>
+                    <div class="cf-field-grid">
+                      <label class="cf-field span-2">
+                        <span class="label"
+                          >Primer mensaje
+                          <span class="cf-counter">0 / 2.000</span></span
+                        >
+                        <textarea
+                          class="textarea"
+                          rows="4"
+                          placeholder="La lluvia repica en las hojas cuando Lyra levanta la vista…"
+                          aria-label="Primer mensaje"
+                        ></textarea>
+                      </label>
+                      <div class="cf-field span-2">
+                        <span class="label"
+                          >Saludos alternativos
+                          <span class="cf-counter">2</span></span
+                        >
+                        <div class="cf-chip-list">
+                          <span class="cf-chip cf-chip--violet"
+                            >Amanecer en el claro
+                            <button type="button" aria-label="Quitar saludo">
+                              ×
+                            </button></span
+                          >
+                          <span class="cf-chip cf-chip--violet"
+                            >Noche de tormenta
+                            <button type="button" aria-label="Quitar saludo">
+                              ×
+                            </button></span
+                          >
+                        </div>
+                        <div class="cf-row">
+                          <input
+                            class="input"
+                            type="text"
+                            placeholder="Añadir un saludo alternativo…"
+                            aria-label="Nuevo saludo alternativo"
+                            style="flex: 1"
+                          />
+                          <button class="btn btn--ghost btn--sm" type="button">
+                            Añadir
+                          </button>
+                        </div>
+                        <span class="help"
+                          >Se podrán elegir al empezar una conversación.</span
+                        >
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset class="cf-fieldset">
+                    <div class="cf-fieldset-head">
+                      <h3>Ejemplos</h3>
+                      <span class="hint">Opcional</span>
+                    </div>
+                    <label class="cf-field">
+                      <span class="label">Mensajes de ejemplo</span>
+                      <textarea
+                        class="textarea"
+                        rows="4"
+                        placeholder="<START>&#10;{{user}}: ¿Siempre has vivido aquí?&#10;{{char}}: *Se encoge de hombros.* El bosque me encontró antes de que yo supiera buscar."
+                        aria-label="Mensajes de ejemplo"
+                      ></textarea>
+                    </label>
+                  </fieldset>
+
+                  <details class="cf-advanced">
+                    <summary>
+                      Prompt y créditos de la card
+                      <span class="cf-tiny cf-muted">opcional</span>
+                    </summary>
+                    <div class="cf-field-grid">
+                      <label class="cf-field span-2">
+                        <span class="label">System prompt de la card</span>
+                        <textarea
+                          class="textarea"
+                          rows="3"
+                          placeholder="Se aplica como override del bloque de persona…"
+                          aria-label="System prompt"
+                        ></textarea>
+                        <span class="help"
+                          >No sustituye la seguridad, el formato ni las tools de
+                          RM.</span
+                        >
+                      </label>
+                      <label class="cf-field span-2">
+                        <span class="label"
+                          >Instrucciones posteriores al historial</span
+                        >
+                        <textarea
+                          class="textarea"
+                          rows="3"
+                          placeholder="Recuerda mantener el tono de fantasía…"
+                          aria-label="Instrucciones posteriores"
+                        ></textarea>
+                      </label>
+                      <label class="cf-field span-2">
+                        <span class="label">Notas del creador</span>
+                        <textarea
+                          class="textarea"
+                          rows="3"
+                          placeholder="Notas para quien use la card. Nunca se envían al modelo."
+                          aria-label="Notas del creador"
+                        ></textarea>
+                        <span class="help"
+                          >Solo visibles en la app. El prompt las excluye por
+                          contrato.</span
+                        >
+                      </label>
+                      <div class="cf-field span-2">
+                        <span class="label">Tags</span>
+                        <div class="cf-chip-list">
+                          <span class="cf-chip"
+                            >fantasy
+                            <button type="button" aria-label="Quitar tag">
+                              ×
+                            </button></span
+                          >
+                          <span class="cf-chip"
+                            >guardian
+                            <button type="button" aria-label="Quitar tag">
+                              ×
+                            </button></span
+                          >
+                          <span class="cf-chip"
+                            >forest
+                            <button type="button" aria-label="Quitar tag">
+                              ×
+                            </button></span
+                          >
+                        </div>
+                        <input
+                          class="input"
+                          type="text"
+                          placeholder="Añadir tag…"
+                          aria-label="Nuevo tag"
+                        />
+                      </div>
+                      <label class="cf-field">
+                        <span class="label">Creador</span>
+                        <input
+                          class="input"
+                          type="text"
+                          placeholder="Aria"
+                          aria-label="Creador"
+                        />
+                      </label>
+                      <label class="cf-field">
+                        <span class="label">Versión de la card</span>
+                        <input
+                          class="input"
+                          type="text"
+                          placeholder="1.2"
+                          aria-label="Versión de la card"
+                        />
+                      </label>
+                      <label class="cf-field">
+                        <span class="label">Género</span>
+                        <input
+                          class="input"
+                          type="text"
+                          placeholder="Femenino"
+                          aria-label="Género"
+                        />
+                      </label>
+                      <label class="cf-field">
+                        <span class="label">Pronombres</span>
+                        <input
+                          class="input"
+                          type="text"
+                          placeholder="ella / la"
+                          aria-label="Pronombres"
+                        />
+                      </label>
+                      <label class="cf-field span-2">
+                        <span class="label">Tagline</span>
+                        <input
+                          class="input"
+                          type="text"
+                          placeholder="El bosque recuerda a quienes lo protegen."
+                          aria-label="Tagline"
+                        />
+                        <span class="help"
+                          >Solo display. Viaja en extensions.rm.tagline.</span
+                        >
+                      </label>
+                    </div>
+                  </details>
+                </div>
+              </section>
+
+              <section
+                id="fichas"
+                class="cf-panel"
+                aria-labelledby="fichas-title"
+              >
+                <div class="cf-panel-head">
+                  <div>
+                    <span class="kicker">03 · Fichas</span>
+                    <h2 id="fichas-title">Conocimiento interno</h2>
+                    <p>
+                      Notas de RM que el personaje recibe como conocimiento. No
+                      son la character card.
+                    </p>
+                  </div>
+                  <span class="badge">2 fichas</span>
+                </div>
+                <div class="cf-panel-body">
+                  <div class="cf-ficha-list">
+                    <article class="cf-ficha">
+                      <span class="handle" aria-hidden="true">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.75"
+                          stroke-linecap="round"
+                          aria-hidden="true"
+                        >
+                          <circle cx="9" cy="5" r="1" />
+                          <circle cx="9" cy="12" r="1" />
+                          <circle cx="9" cy="19" r="1" />
+                          <circle cx="15" cy="5" r="1" />
+                          <circle cx="15" cy="12" r="1" />
+                          <circle cx="15" cy="19" r="1" />
+                        </svg>
+                      </span>
+                      <div>
+                        <div class="title">
+                          El bosque de Vael <span class="badge">Activa</span>
+                        </div>
+                        <p class="text">
+                          Un bosque antiguo donde los árboles guardan memoria.
+                          Lyra puede escuchar sus susurros si se concentra.
+                        </p>
+                      </div>
+                      <div class="actions">
+                        <button
+                          class="btn btn--quiet btn--icon btn--sm"
+                          type="button"
+                          aria-label="Editar ficha"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M12 20h9" />
+                            <path
+                              d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          class="btn btn--quiet btn--icon btn--sm"
+                          type="button"
+                          aria-label="Eliminar ficha"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4h8v2" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </article>
+
+                    <article class="cf-ficha">
+                      <span class="handle" aria-hidden="true">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.75"
+                          stroke-linecap="round"
+                          aria-hidden="true"
+                        >
+                          <circle cx="9" cy="5" r="1" />
+                          <circle cx="9" cy="12" r="1" />
+                          <circle cx="9" cy="19" r="1" />
+                          <circle cx="15" cy="5" r="1" />
+                          <circle cx="15" cy="12" r="1" />
+                          <circle cx="15" cy="19" r="1" />
+                        </svg>
+                      </span>
+                      <div>
+                        <div class="title">
+                          La orden de los guardianes
+                          <span class="badge">Activa</span>
+                        </div>
+                        <p class="text">
+                          Juramentos antiguos, rangos y rituales de iniciación.
+                          Lyra es la última guardiana en activo.
+                        </p>
+                      </div>
+                      <div class="actions">
+                        <button
+                          class="btn btn--quiet btn--icon btn--sm"
+                          type="button"
+                          aria-label="Editar ficha"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M12 20h9" />
+                            <path
+                              d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          class="btn btn--quiet btn--icon btn--sm"
+                          type="button"
+                          aria-label="Eliminar ficha"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4h8v2" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </article>
+
+                    <button class="cf-ficha-add" type="button">
+                      <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 5v14" />
+                        <path d="M5 12h14" />
+                      </svg>
+                      Añadir ficha
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <div class="cf-save-bar" data-save-bar data-save-visible="always">
+                <div class="cf-save-status is-dirty" data-save-status>
+                  <span class="dot"></span>
+                  <span data-save-label>Borrador sin guardar</span>
+                </div>
+                <span class="cf-save-note"
+                  >Podrás completar la card y las fichas después.</span
+                >
+                <div class="cf-save-actions">
+                  <a class="btn btn--ghost" href="create-dialog.html"
+                    >Cancelar</a
+                  >
+                  <button class="btn" type="button">Crear personaje</button>
+                </div>
+              </div>
+            </div>
+
+            <aside class="cf-rail" aria-label="Vista previa">
+              <div class="cf-character-card">
+                <div class="art">
+                  <span class="monogram" aria-hidden="true">L</span>
+                </div>
+                <div class="body">
+                  <div class="name">
+                    <span>Lyra</span>
+                    <span class="badge badge--violet">v1</span>
+                  </div>
+                  <span class="sub">Guardiana del bosque de Vael</span>
+                  <div class="cf-chip-list">
+                    <span class="cf-chip cf-chip--violet">fantasy</span>
+                    <span class="cf-chip">guardian</span>
+                    <span class="cf-chip">forest</span>
+                  </div>
+                  <p class="desc">
+                    Lyra protege el bosque de Vael desde que recuerda. Habla
+                    poco, pero cuando lo hace, los árboles parecen escuchar.
+                  </p>
+                  <div class="cf-meta-row">
+                    <span><strong>Card</strong> V3</span>
+                    <span><strong>Creador</strong> Aria</span>
+                    <span><strong>v1.2</strong></span>
+                  </div>
+                </div>
+              </div>
+              <p class="cf-preview-note">
+                Así se verá en la biblioteca. La card se puede inspeccionar como
+                JSON desde el detalle.
+              </p>
+              <div class="cf-rail-card">
+                <h3>La card no es el formulario</h3>
+                <p>
+                  La página edita los campos; la card es el contrato que se
+                  importa y se exporta. Los datos de RM viajan en
+                  <code>extensions.rm</code>.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <nav class="proto-bar" aria-label="Páginas del prototipo">
+      <span class="tag">Prototipo</span>
+      <a href="index.html">Hub</a>
+      <a href="create-dialog.html">Crear</a>
+      <a href="character-detail.html" aria-current="page">Personaje</a>
+      <a href="lorebooks.html">Lorebooks</a>
+      <a href="lorebook-detail.html">Lorebook</a>
+      <span
+        style="
+          width: 1px;
+          height: 1.1rem;
+          background: currentColor;
+          opacity: 0.25;
+        "
+      ></span>
+      <button type="button" data-mode-set="light">Claro</button>
+      <button type="button" data-mode-set="dark">Oscuro</button>
+      <button type="button" data-mode-set="system">Auto</button>
+    </nav>
+
+    <script src="../prototype.js"></script>
+    <script src="card-first.js"></script>
+  </body>
+</html>

@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="es" data-world="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prototipo · Lorebooks — Roleplay Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../prototype.css" />
+    <link rel="stylesheet" href="card-first.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brandline">
+          <img
+            src="../../../packages/frontend/public/brand/face-96.png"
+            alt=""
+          />
+          <span class="brand-name">Roleplay Manager</span>
+        </div>
+
+        <nav class="nav-group" aria-label="Biblioteca">
+          <span class="nav-label">Biblioteca</span>
+          <a class="nav-item" href="create-dialog.html">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Personajes
+          </a>
+          <a class="nav-item" href="lorebooks.html" aria-current="page">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path
+                d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"
+              />
+            </svg>
+            Lorebooks
+          </a>
+          <a class="nav-item" href="#">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="5" />
+              <path d="M20 21a8 8 0 0 0-16 0" />
+            </svg>
+            Personajes jugados
+          </a>
+        </nav>
+
+        <nav class="nav-group" aria-label="Sistema">
+          <span class="nav-label">Sistema</span>
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+              /></svg
+            >Proveedores</a
+          >
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <path d="M21 3v6h-6" /></svg
+            >Actualizaciones <span class="badge badge--spark count">1</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 6h13" />
+              <path d="M8 12h13" />
+              <path d="M8 18h13" />
+              <path d="M3 6h.01" />
+              <path d="M3 12h.01" />
+              <path d="M3 18h.01" /></svg
+            >Registro</a
+          >
+        </nav>
+
+        <nav class="nav-group" aria-label="Ayuda">
+          <span class="nav-label">Ayuda</span>
+          <a class="nav-item" href="#"
+            ><svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg
+            >Tutoriales</a
+          >
+        </nav>
+
+        <div
+          style="margin-top: auto; padding: 0 0.55rem; color: var(--muted-fg)"
+          class="tiny"
+        >
+          v1.57.2 · prototipo
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <button
+            class="btn btn--quiet btn--icon btn--sm"
+            type="button"
+            aria-label="Mostrar u ocultar menú"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </button>
+          <span class="h3" style="margin-right: auto">Lorebooks</span>
+          <a class="btn btn--quiet btn--sm cf-proto-link" href="index.html"
+            >Prototipo</a
+          >
+          <button class="btn btn--quiet btn--sm" type="button">Tema ▾</button>
+          <button class="btn btn--quiet btn--sm" type="button">Idioma ▾</button>
+        </header>
+
+        <main class="content cf-content">
+          <div class="cf-breadcrumb">
+            <a href="create-dialog.html">Biblioteca</a>
+            <span class="sep">/</span>
+            <span>Lorebooks</span>
+          </div>
+
+          <div class="cf-page-head">
+            <div>
+              <h1 class="h1">Lorebooks</h1>
+              <p class="lede">
+                Libros de conocimiento que tus personajes consultan cuando el
+                mundo los necesita.
+              </p>
+            </div>
+            <div class="cf-page-actions">
+              <button class="btn btn--ghost" type="button">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 15V3" />
+                  <path d="m7 10 5 5 5-5" />
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                </svg>
+                Importar
+              </button>
+              <a class="btn" href="lorebook-create.html">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+                Crear lorebook
+              </a>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <input
+              class="input"
+              type="search"
+              placeholder="Buscar por nombre o descripción…"
+              aria-label="Buscar lorebooks"
+            />
+            <div class="cf-filter" role="group" aria-label="Filtrar lorebooks">
+              <button type="button" data-book-filter="all" aria-pressed="true">
+                Todos <span class="cf-tiny">3</span>
+              </button>
+              <button
+                type="button"
+                data-book-filter="linked"
+                aria-pressed="false"
+              >
+                Vinculados <span class="cf-tiny">2</span>
+              </button>
+              <button
+                type="button"
+                data-book-filter="unlinked"
+                aria-pressed="false"
+              >
+                Sin vincular <span class="cf-tiny">1</span>
+              </button>
+            </div>
+            <span class="badge muted" style="border-style: dashed"
+              >Datos sintéticos</span
+            >
+          </div>
+
+          <section class="cf-book-grid" aria-label="Lorebooks">
+            <article class="cf-book-card" data-book-card data-linked="true">
+              <span class="spine" aria-hidden="true"></span>
+              <div class="body">
+                <div class="top">
+                  <h2>Bosque de Lyra</h2>
+                  <button
+                    class="btn btn--quiet btn--icon btn--sm"
+                    type="button"
+                    aria-label="Acciones de Bosque de Lyra"
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="5" r="1" />
+                      <circle cx="12" cy="12" r="1" />
+                      <circle cx="12" cy="19" r="1" />
+                    </svg>
+                  </button>
+                </div>
+                <p class="desc">
+                  El bosque de Vael, sus ruinas, sus rituales y las criaturas
+                  que lo habitan.
+                </p>
+                <div class="linked">
+                  <span class="avatar" aria-hidden="true">L</span>
+                  Lyra
+                </div>
+                <div class="meta">
+                  <span>12 entradas</span>
+                  <span>scan 4</span>
+                  <span>400 tokens</span>
+                  <span>recursión</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="cf-book-card" data-book-card data-linked="false">
+              <span
+                class="spine"
+                aria-hidden="true"
+                style="
+                  background: linear-gradient(
+                    180deg,
+                    var(--dialogue-user),
+                    oklch(0.4 0.1 165)
+                  );
+                "
+              ></span>
+              <div class="body">
+                <div class="top">
+                  <h2>Ciudad Sumergida</h2>
+                  <button
+                    class="btn btn--quiet btn--icon btn--sm"
+                    type="button"
+                    aria-label="Acciones de Ciudad Sumergida"
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="5" r="1" />
+                      <circle cx="12" cy="12" r="1" />
+                      <circle cx="12" cy="19" r="1" />
+                    </svg>
+                  </button>
+                </div>
+                <p class="desc">
+                  Una metrópolis bajo el mar, sus gremios y el protocolo que
+                  mantiene el agua fuera.
+                </p>
+                <span class="cf-chip cf-chip--dashed">Sin vincular</span>
+                <div class="meta">
+                  <span>4 entradas</span>
+                  <span>scan 2</span>
+                  <span>300 tokens</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="cf-book-card" data-book-card data-linked="true">
+              <span
+                class="spine"
+                aria-hidden="true"
+                style="
+                  background: linear-gradient(
+                    180deg,
+                    var(--sakura),
+                    oklch(0.48 0.16 25)
+                  );
+                "
+              ></span>
+              <div class="body">
+                <div class="top">
+                  <h2>Corte de Ceniza</h2>
+                  <button
+                    class="btn btn--quiet btn--icon btn--sm"
+                    type="button"
+                    aria-label="Acciones de Corte de Ceniza"
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="5" r="1" />
+                      <circle cx="12" cy="12" r="1" />
+                      <circle cx="12" cy="19" r="1" />
+                    </svg>
+                  </button>
+                </div>
+                <p class="desc">
+                  La corte que gobierna la flota Vesta, sus rangos y sus deudas
+                  pendientes.
+                </p>
+                <div class="linked">
+                  <span class="avatar" aria-hidden="true">E</span>
+                  Capitana Ellis
+                </div>
+                <div class="meta">
+                  <span>7 entradas</span>
+                  <span>scan 6</span>
+                  <span>600 tokens</span>
+                  <span>recursión</span>
+                </div>
+              </div>
+            </article>
+
+            <a
+              class="cf-book-card cf-book-card--add"
+              href="lorebook-create.html"
+            >
+              <span class="plus">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+                Crear lorebook
+              </span>
+            </a>
+          </section>
+
+          <section style="margin-top: 2.8rem" aria-label="Estado vacío">
+            <h2 class="h2" style="margin-bottom: 0.9rem">
+              Cuando todavía no hay libros
+            </h2>
+            <div class="empty">
+              <img
+                class="mascot"
+                src="../../../packages/frontend/public/brand/mascot-192.png"
+                alt="Mascota de Roleplay Manager"
+              />
+              <div>
+                <h3 class="h3">La estantería está vacía</h3>
+                <p class="muted" style="margin: 0.35rem 0 0">
+                  Crea un lorebook con las claves del mundo o importa uno que ya
+                  tengas. Puedes vincularlo a un personaje después.
+                </p>
+              </div>
+              <div
+                style="
+                  display: flex;
+                  gap: 0.5rem;
+                  flex-wrap: wrap;
+                  justify-content: center;
+                "
+              >
+                <a class="btn" href="lorebook-create.html">Crear lorebook</a>
+                <button class="btn btn--ghost" type="button">
+                  Importar lorebook
+                </button>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <nav class="proto-bar" aria-label="Páginas del prototipo">
+      <span class="tag">Prototipo</span>
+      <a href="index.html">Hub</a>
+      <a href="create-dialog.html">Crear</a>
+      <a href="character-detail.html">Personaje</a>
+      <a href="lorebooks.html" aria-current="page">Lorebooks</a>
+      <a href="lorebook-detail.html">Lorebook</a>
+      <span
+        style="
+          width: 1px;
+          height: 1.1rem;
+          background: currentColor;
+          opacity: 0.25;
+        "
+      ></span>
+      <button type="button" data-mode-set="light">Claro</button>
+      <button type="button" data-mode-set="dark">Oscuro</button>
+      <button type="button" data-mode-set="system">Auto</button>
+    </nav>
+
+    <script src="../prototype.js"></script>
+    <script src="card-first.js"></script>
+  </body>
+</html>
