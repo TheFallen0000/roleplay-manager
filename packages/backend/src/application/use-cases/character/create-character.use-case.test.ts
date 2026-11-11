@@ -1,22 +1,25 @@
 import { describe, it, expect, vi } from "vitest"
 
+import type { Character } from "../../../domain/entities/character.entity"
+import type { CharacterVersion } from "../../../domain/entities/character-version.entity"
+
 import { CreateCharacterUseCase } from "./create-character.use-case"
 
 let savedVersion: unknown = null
 
 const buildRepo = () => ({
-  createWithFirstVersion: vi.fn(async (c, v) => {
+  createWithFirstVersion: vi.fn(async (c: Character, v: CharacterVersion) => {
     savedVersion = v
     return { character: c, version: v }
   }),
   findById: async () => null,
   list: async () => [],
-  update: async (c) => c,
+  update: async (c: Character) => c,
   delete: async () => {},
   findVersionById: async () => null,
   findVersionsByCharacterId: async () => [],
   findMaxVersionNumber: async () => 0,
-  saveVersion: async (v) => v,
+  saveVersion: async (v: CharacterVersion) => v,
   updateProfileImageAssetId: async () => {},
 })
 
