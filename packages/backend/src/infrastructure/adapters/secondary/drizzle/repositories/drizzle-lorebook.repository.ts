@@ -1,13 +1,22 @@
-import { eq } from "drizzle-orm"
+import { desc, eq, isNull, sql } from "drizzle-orm"
+import { v7 as randomUUIDv7 } from "uuid"
 
 import { LorebookEntry } from "../../../../../domain/entities/lorebook-entry.entity"
 import { Lorebook } from "../../../../../domain/entities/lorebook.entity"
+import { LorebookVersion } from "../../../../../domain/entities/lorebook-version.entity"
 import type {
+  CreateContainerWithVersionResult,
   LorebookRepository,
   LorebookWithEntries,
+  SaveLiveHeadResult,
 } from "../../../../../domain/ports/lorebook.repository"
+import type { LorebookCanonicalContent } from "../../../../../application/use-cases/character/lorebook/source-key"
+import {
+  canonicalizeLorebookContent,
+  computeLorebookSourceKey,
+} from "../../../../../application/use-cases/character/lorebook/source-key"
 import type { Database } from "../../../../config/database"
-import { lorebookEntries, lorebooks } from "../schema"
+import { lorebookEntries, lorebooks, lorebookVersions } from "../schema"
 import {
   parseJsonArray,
   parseJsonValue,
@@ -16,6 +25,7 @@ import {
 
 type BookRow = typeof lorebooks.$inferSelect
 type EntryRow = typeof lorebookEntries.$inferSelect
+type VersionRow = typeof lorebookVersions.$inferSelect
 
 const toBook = (row: BookRow): Lorebook =>
   Lorebook.reconstruct({
@@ -30,6 +40,9 @@ const toBook = (row: BookRow): Lorebook =>
     unknownFields: parseJsonValue(row.unknownFields),
     createdAt: new Date(row.createdAt),
     updatedAt: new Date(row.updatedAt),
+    originId: row.originId ?? null,
+    currentVersionId: row.currentVersionId ?? null,
+    deletedAt: row.deletedAt ? new Date(row.deletedAt) : null,
   })
 
 const toEntry = (row: EntryRow): LorebookEntry =>
@@ -59,6 +72,21 @@ const toEntry = (row: EntryRow): LorebookEntry =>
     updatedAt: new Date(row.updatedAt),
   })
 
+const toVersion = (row: VersionRow): LorebookVersion =>
+  LorebookVersion.reconstruct({
+    id: row.id,
+    lorebookId: row.lorebookId,
+    versionNumber: row.versionNumber,
+    name: row.name ?? null,
+    description: row.description ?? null,
+    scanDepth: row.scanDepth,
+    tokenBudget: row.tokenBudget,
+    recursiveScanning: row.recursiveScanning === 1,
+    entriesJson: row.entriesJson,
+    sourceKey: row.sourceKey,
+    createdAt: new Date(row.createdAt),
+  })
+
 export const bookValues = (book: Lorebook) => ({
   id: book.id,
   characterId: book.characterId,
@@ -71,6 +99,9 @@ export const bookValues = (book: Lorebook) => ({
   unknownFields: serializeJsonValue(book.unknownFields),
   createdAt: book.createdAt,
   updatedAt: book.updatedAt,
+  originId: book.originId,
+  currentVersionId: book.currentVersionId,
+  deletedAt: book.deletedAt,
 })
 
 const bookUpdateValues = (book: Lorebook) => ({
@@ -133,6 +164,76 @@ const entryUpdateValues = (entry: LorebookEntry) => ({
   updatedAt: entry.updatedAt,
 })
 
+const versionValues = (version: LorebookVersion) => ({
+  id: version.id,
+  lorebookId: version.lorebookId,
+  versionNumber: version.versionNumber,
+  name: version.name,
+  description: version.description,
+  scanDepth: version.scanDepth,
+  tokenBudget: version.tokenBudget,
+  recursiveScanning: version.recursiveScanning ? 1 : 0,
+  entriesJson: version.entriesJson,
+  sourceKey: version.sourceKey,
+  createdAt: version.createdAt,
+})
+
+const snapshotEntry = (entry: LorebookEntry) => ({
+  name: entry.name,
+  sourceId: entry.sourceId,
+  keys: entry.keys,
+  secondaryKeys: entry.secondaryKeys,
+  comment: entry.comment,
+  content: entry.content,
+  constant: entry.constant,
+  selective: entry.selective,
+  selectiveLogic: entry.selectiveLogic,
+  insertionOrder: entry.insertionOrder,
+  position: entry.position,
+  rawPosition: entry.rawPosition,
+  priority: entry.priority,
+  enabled: entry.enabled,
+  caseSensitive: entry.caseSensitive,
+  wholeWords: entry.wholeWords,
+  order: entry.order,
+  extensions: entry.extensions,
+  unknownFields: entry.unknownFields,
+})
+
+const presentationOrder = (
+  entries: LorebookEntry[],
+): LorebookEntry[] =>
+  [...entries].sort(
+    (left, right) =>
+      left.order - right.order ||
+      left.insertionOrder - right.insertionOrder,
+  )
+
+const canonicalContent = (
+  book: Lorebook,
+  entries: LorebookEntry[],
+): LorebookCanonicalContent => ({
+  name: book.name,
+  description: book.description,
+  scanDepth: book.scanDepth,
+  tokenBudget: book.tokenBudget,
+  recursiveScanning: book.recursiveScanning,
+  entries: presentationOrder(entries).map(snapshotEntry),
+})
+
+const serializeEntries = (entries: LorebookEntry[]): string =>
+  JSON.stringify(presentationOrder(entries).map(snapshotEntry))
+
+const versionSnapshot = (
+  book: Lorebook,
+  entries: LorebookEntry[],
+): { entriesJson: string; sourceKey: string } => ({
+  entriesJson: serializeEntries(entries),
+  sourceKey: computeLorebookSourceKey(
+    canonicalizeLorebookContent(canonicalContent(book, entries)),
+  ),
+})
+
 export class DrizzleLorebookRepository implements LorebookRepository {
   constructor(private readonly db: Database) {}
 
@@ -157,23 +258,234 @@ export class DrizzleLorebookRepository implements LorebookRepository {
     return { book, entries: entryRows.map(toEntry) }
   }
 
-  async upsertBook(book: Lorebook): Promise<Lorebook> {
-    const existing = await this.db
-      .select({ id: lorebooks.id })
+  async findById(id: string): Promise<LorebookWithEntries | null> {
+    const bookRows = await this.db
+      .select()
       .from(lorebooks)
-      .where(eq(lorebooks.characterId, book.characterId))
+      .where(eq(lorebooks.id, id))
       .limit(1)
 
-    if (existing.length > 0) {
+    if (bookRows.length === 0) return null
+
+    const book = toBook(bookRows[0])
+    const entryRows = await this.db
+      .select()
+      .from(lorebookEntries)
+      .where(eq(lorebookEntries.lorebookId, book.id))
+      .orderBy(lorebookEntries.order)
+
+    return { book, entries: entryRows.map(toEntry) }
+  }
+
+  async list(): Promise<Lorebook[]> {
+    const rows = await this.db
+      .select()
+      .from(lorebooks)
+      .where(isNull(lorebooks.deletedAt))
+      .orderBy(lorebooks.createdAt)
+
+    return rows.map(toBook)
+  }
+
+  async findVersions(lorebookId: string): Promise<LorebookVersion[]> {
+    const rows = await this.db
+      .select()
+      .from(lorebookVersions)
+      .where(eq(lorebookVersions.lorebookId, lorebookId))
+      .orderBy(lorebookVersions.versionNumber)
+
+    return rows.map(toVersion)
+  }
+
+  async findVersionById(versionId: string): Promise<LorebookVersion | null> {
+    const rows = await this.db
+      .select()
+      .from(lorebookVersions)
+      .where(eq(lorebookVersions.id, versionId))
+      .limit(1)
+
+    return rows.length > 0 ? toVersion(rows[0]) : null
+  }
+
+  async upsertBook(book: Lorebook): Promise<Lorebook> {
+    const existing = await this.findExistingContainer(book)
+
+    if (existing) {
       await this.db
         .update(lorebooks)
         .set(bookUpdateValues(book))
-        .where(eq(lorebooks.characterId, book.characterId))
+        .where(eq(lorebooks.id, existing.id))
     } else {
       await this.db.insert(lorebooks).values(bookValues(book))
     }
 
     return book
+  }
+
+  private async findExistingContainer(
+    book: Lorebook,
+  ): Promise<{ id: string } | null> {
+    if (book.characterId !== null) {
+      const byCharacter = await this.db
+        .select({ id: lorebooks.id })
+        .from(lorebooks)
+        .where(eq(lorebooks.characterId, book.characterId))
+        .limit(1)
+      if (byCharacter.length > 0) return byCharacter[0]
+    }
+
+    const byId = await this.db
+      .select({ id: lorebooks.id })
+      .from(lorebooks)
+      .where(eq(lorebooks.id, book.id))
+      .limit(1)
+
+    return byId[0] ?? null
+  }
+
+  async createContainerWithVersion(
+    book: Lorebook,
+    entries: LorebookEntry[],
+    version: LorebookVersion,
+  ): Promise<CreateContainerWithVersionResult> {
+    const snapshot = versionSnapshot(book, entries)
+    const savedVersion = LorebookVersion.create({
+      id: version.id,
+      lorebookId: book.id,
+      versionNumber: version.versionNumber,
+      name: book.name,
+      description: book.description,
+      scanDepth: book.scanDepth,
+      tokenBudget: book.tokenBudget,
+      recursiveScanning: book.recursiveScanning,
+      entriesJson: snapshot.entriesJson,
+      sourceKey: snapshot.sourceKey,
+      createdAt: version.createdAt,
+    })
+
+    this.db.transaction((tx) => {
+      tx.insert(lorebooks)
+        .values({ ...bookValues(book), currentVersionId: null })
+        .run()
+
+      if (entries.length > 0) {
+        tx.insert(lorebookEntries).values(entries.map(entryValues)).run()
+      }
+
+      tx.insert(lorebookVersions).values(versionValues(savedVersion)).run()
+
+      tx.update(lorebooks)
+        .set({ currentVersionId: savedVersion.id, updatedAt: new Date() })
+        .where(eq(lorebooks.id, book.id))
+        .run()
+    })
+
+    return {
+      book: book.withCurrentVersionId(savedVersion.id),
+      entries,
+      version: savedVersion,
+    }
+  }
+
+  async saveLiveHeadAndVersion(
+    book: Lorebook,
+    entries: LorebookEntry[],
+    version?: LorebookVersion,
+  ): Promise<SaveLiveHeadResult> {
+    let result: SaveLiveHeadResult | undefined
+    const snapshot = versionSnapshot(book, entries)
+
+    this.db.transaction((tx) => {
+      const container = tx
+        .select()
+        .from(lorebooks)
+        .where(eq(lorebooks.id, book.id))
+        .limit(1)
+        .all()[0]
+
+      if (!container) {
+        tx.insert(lorebooks)
+          .values({ ...bookValues(book), currentVersionId: null })
+          .run()
+      }
+
+      const currentRows = container?.currentVersionId
+        ? tx
+            .select()
+            .from(lorebookVersions)
+            .where(eq(lorebookVersions.id, container.currentVersionId))
+            .limit(1)
+            .all()
+        : tx
+            .select()
+            .from(lorebookVersions)
+            .where(eq(lorebookVersions.lorebookId, book.id))
+            .orderBy(desc(lorebookVersions.versionNumber))
+            .limit(1)
+            .all()
+
+      const current = currentRows[0]
+      const currentVersionId = current?.id ?? null
+      const changed = !current || current.sourceKey !== snapshot.sourceKey
+      let savedVersion: LorebookVersion | undefined
+
+      if (changed) {
+        const maxRow = tx
+          .select({
+            value: sql<number>`COALESCE(MAX(${lorebookVersions.versionNumber}), 0)`,
+          })
+          .from(lorebookVersions)
+          .where(eq(lorebookVersions.lorebookId, book.id))
+          .all()[0]
+
+        savedVersion = LorebookVersion.create({
+          id: version?.id ?? randomUUIDv7(),
+          lorebookId: book.id,
+          versionNumber: (maxRow?.value ?? 0) + 1,
+          name: book.name,
+          description: book.description,
+          scanDepth: book.scanDepth,
+          tokenBudget: book.tokenBudget,
+          recursiveScanning: book.recursiveScanning,
+          entriesJson: snapshot.entriesJson,
+          sourceKey: snapshot.sourceKey,
+          createdAt: version?.createdAt ?? new Date(),
+        })
+
+        tx.insert(lorebookVersions).values(versionValues(savedVersion)).run()
+      }
+
+      tx.update(lorebooks)
+        .set({
+          ...bookUpdateValues(book),
+          currentVersionId: savedVersion?.id ?? currentVersionId ?? null,
+        })
+        .where(eq(lorebooks.id, book.id))
+        .run()
+
+      tx.delete(lorebookEntries)
+        .where(eq(lorebookEntries.lorebookId, book.id))
+        .run()
+
+      if (entries.length > 0) {
+        tx.insert(lorebookEntries).values(entries.map(entryValues)).run()
+      }
+
+      result = {
+        book: book.withCurrentVersionId(
+          savedVersion?.id ?? currentVersionId ?? null,
+        ),
+        entries,
+        version: savedVersion,
+        createdNewVersion: changed,
+      }
+    })
+
+    if (!result) {
+      throw new Error(`Lorebook '${book.id}' could not be saved`)
+    }
+
+    return result
   }
 
   async createEntry(entry: LorebookEntry): Promise<LorebookEntry> {
@@ -208,12 +520,19 @@ export class DrizzleLorebookRepository implements LorebookRepository {
 
   async replaceBook(book: Lorebook, entries: LorebookEntry[]): Promise<void> {
     this.db.transaction((tx) => {
-      const existing = tx
-        .select({ id: lorebooks.id })
-        .from(lorebooks)
-        .where(eq(lorebooks.characterId, book.characterId))
-        .limit(1)
-        .all()
+      const existing = book.characterId !== null
+        ? tx
+            .select({ id: lorebooks.id })
+            .from(lorebooks)
+            .where(eq(lorebooks.characterId, book.characterId))
+            .limit(1)
+            .all()
+        : tx
+            .select({ id: lorebooks.id })
+            .from(lorebooks)
+            .where(eq(lorebooks.id, book.id))
+            .limit(1)
+            .all()
 
       if (existing.length === 0) {
         tx.insert(lorebooks).values(bookValues(book)).run()

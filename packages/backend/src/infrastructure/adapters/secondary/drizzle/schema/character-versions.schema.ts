@@ -1,6 +1,8 @@
+import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core"
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 import { characters } from "./characters.schema"
+import { lorebookVersions } from "./lorebook-versions.schema"
 
 export const characterVersions = sqliteTable(
   "character_versions",
@@ -33,11 +35,18 @@ export const characterVersions = sqliteTable(
     unknownFields: text("unknown_fields"),
     unknownRootFields: text("unknown_root_fields"),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    lorebookVersionId: text("lorebook_version_id").references(
+      (): AnySQLiteColumn => lorebookVersions.id,
+      { onDelete: "restrict" },
+    ),
   },
   (table) => ({
     characterNumberIdx: index("character_versions_character_number_idx").on(
       table.characterId,
       table.versionNumber,
+    ),
+    lorebookVersionIdx: index("character_versions_lorebook_version_idx").on(
+      table.lorebookVersionId,
     ),
   }),
 )

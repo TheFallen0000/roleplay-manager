@@ -58,6 +58,7 @@ const toVersion = (row: VersionRow, cards: CharacterCard[]): CharacterVersion =>
     extensions: parseJsonValue(row.extensions),
     unknownFields: parseJsonValue(row.unknownFields),
     unknownRootFields: parseJsonValue(row.unknownRootFields),
+    lorebookVersionId: row.lorebookVersionId ?? null,
   })
 
 const toVersionValues = (version: CharacterVersion) => ({
@@ -87,6 +88,7 @@ const toVersionValues = (version: CharacterVersion) => ({
   unknownFields: serializeJsonValue(version.unknownFields),
   unknownRootFields: serializeJsonValue(version.unknownRootFields),
   createdAt: version.createdAt,
+  lorebookVersionId: version.lorebookVersionId,
 })
 
 const toCard = (row: CardRow): CharacterCard =>

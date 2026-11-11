@@ -394,7 +394,7 @@ export interface LorebookEntryLike {
 
 export interface LorebookLike {
   id?: string
-  characterId?: string
+  characterId?: string | null
   name?: string | null
   description?: string | null
   scanDepth?: number

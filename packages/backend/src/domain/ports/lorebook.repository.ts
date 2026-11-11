@@ -1,9 +1,23 @@
 import type { LorebookEntry } from "../entities/lorebook-entry.entity"
 import type { Lorebook } from "../entities/lorebook.entity"
+import type { LorebookVersion } from "../entities/lorebook-version.entity"
 
 export interface LorebookWithEntries {
   book: Lorebook
   entries: LorebookEntry[]
+}
+
+export interface CreateContainerWithVersionResult {
+  book: Lorebook
+  entries: LorebookEntry[]
+  version: LorebookVersion
+}
+
+export interface SaveLiveHeadResult {
+  book: Lorebook
+  entries: LorebookEntry[]
+  version?: LorebookVersion
+  createdNewVersion: boolean
 }
 
 export interface LorebookRepository {
@@ -11,7 +25,27 @@ export interface LorebookRepository {
     characterId: string,
   ): Promise<LorebookWithEntries | null>
 
+  findById(id: string): Promise<LorebookWithEntries | null>
+
+  list(): Promise<Lorebook[]>
+
+  findVersions(lorebookId: string): Promise<LorebookVersion[]>
+
+  findVersionById(versionId: string): Promise<LorebookVersion | null>
+
   upsertBook(book: Lorebook): Promise<Lorebook>
+
+  createContainerWithVersion(
+    book: Lorebook,
+    entries: LorebookEntry[],
+    version: LorebookVersion,
+  ): Promise<CreateContainerWithVersionResult>
+
+  saveLiveHeadAndVersion(
+    book: Lorebook,
+    entries: LorebookEntry[],
+    version?: LorebookVersion,
+  ): Promise<SaveLiveHeadResult>
 
   createEntry(entry: LorebookEntry): Promise<LorebookEntry>
 

@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url"
 import { buildServer, type WebHandler } from "./infrastructure/adapters/primary/server"
 import { buildContainer } from "./containers/app-container"
 import { buildDatabase, runMigrations } from "./infrastructure/config/database"
+import { runLorebookVersionsBackfill } from "./infrastructure/database/backfill/lorebook-versions.backfill"
 import { buildLogger } from "./infrastructure/config/logger.config"
 import { browserUrlToOpen, openBrowser } from "./infrastructure/config/open-browser"
 import { PinoLoggerAdapter } from "./infrastructure/adapters/secondary/logger/pino-logger.adapter"
@@ -64,6 +65,7 @@ const main = async (): Promise<void> => {
   try {
     db = buildDatabase(env.DATABASE_PATH)
     runMigrations(db, env.MIGRATIONS_DIR)
+    runLorebookVersionsBackfill(db)
     logger.info("Database migrations applied", { databasePath: env.DATABASE_PATH })
   } catch (error) {
     logger.error("Failed to initialize database", error as Error, {
