@@ -689,12 +689,17 @@ export const buildContainer = ({
       characterRepository,
       lorebookRepository,
     ),
-    getCharacter: new GetCharacterUseCase(characterRepository),
+    getCharacter: new GetCharacterUseCase(
+      characterRepository,
+      lorebookRepository,
+    ),
     listCharacters: new ListCharactersUseCase(
       characterRepository,
       characterAssetRepository,
     ),
-    updateCharacter: new UpdateCharacterUseCase(characterRepository),
+    updateCharacter: new UpdateCharacterUseCase(characterRepository, {
+      lorebookRepository,
+    }),
     updateCharacterProfileImage: new UpdateCharacterProfileImageUseCase(
       characterRepository,
       characterAssetRepository,

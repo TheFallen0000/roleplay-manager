@@ -15,6 +15,6 @@ export class ListCharacterVersionsUseCase {
 
     const versions = await this.characterRepository.findVersionsByCharacterId(characterId)
 
-    return versions.map(toCharacterVersionDTO)
+    return versions.map((version) => toCharacterVersionDTO(version))
   }
 }
