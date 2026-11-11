@@ -13,6 +13,15 @@ import { DrizzleCharacterRepository } from "./drizzle-character.repository"
 const root = mkdtempSync(join(tmpdir(), "rm-character-repository-s132-"))
 const db = buildDatabase(join(root, "test.db"))
 const client = (db as unknown as { $client: { close: () => void } }).$client
+const sqlite = (
+  db as unknown as {
+    $client: {
+      prepare: (sql: string) => {
+        run: (...params: unknown[]) => unknown
+      }
+    }
+  }
+).$client
 const now = new Date("2026-11-07T12:00:00.000Z")
 
 const field = (version: CharacterVersion, key: string): unknown =>
@@ -167,5 +176,60 @@ describe("DrizzleCharacterRepository — S132 card fields", () => {
     expect(field(found, "extensions")).toBeNull()
     expect(field(found, "unknownFields")).toBeNull()
     expect(field(found, "unknownRootFields")).toBeNull()
+  })
+
+  it("persists and reads the linked lorebook version id (S133)", async () => {
+    const unix = Math.floor(now.getTime() / 1000)
+    sqlite
+      .prepare(
+        "INSERT INTO characters (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)",
+      )
+      .run("char-s133", "Linked", unix, unix)
+    sqlite
+      .prepare(
+        `INSERT INTO lorebooks
+          (id, character_id, name, scan_depth, token_budget, recursive_scanning,
+           created_at, updated_at, origin_id, current_version_id, deleted_at)
+         VALUES (?, NULL, ?, 4, 400, 0, ?, ?, NULL, NULL, NULL)`,
+      )
+      .run("book-s133", "Forest lore", unix, unix)
+    sqlite
+      .prepare(
+        `INSERT INTO lorebook_versions
+          (id, lorebook_id, version_number, name, description, scan_depth,
+           token_budget, recursive_scanning, entries_json, source_key, created_at)
+         VALUES (?, ?, 1, ?, ?, 4, 400, 0, ?, ?, ?)`,
+      )
+      .run(
+        "lv-s133",
+        "book-s133",
+        "Forest lore",
+        "Facts",
+        "[]",
+        "a".repeat(64),
+        unix,
+      )
+
+    const repository = new DrizzleCharacterRepository(db)
+    const linked = CharacterVersion.create({
+      id: "ver-s133",
+      characterId: "char-s133",
+      name: "Linked",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "A linked character.",
+      instructions: null,
+      greeting: "Hello!",
+      versionNumber: 1,
+      createdAt: now,
+      cards: [],
+      lorebookVersionId: "lv-s133",
+    } as never)
+
+    await repository.saveVersion(linked)
+    const found = await repository.findVersionById("ver-s133")
+
+    expect(found).not.toBeNull()
+    expect(field(found, "lorebookVersionId")).toBe("lv-s133")
   })
 })

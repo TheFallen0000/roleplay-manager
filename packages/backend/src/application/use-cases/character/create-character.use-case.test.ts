@@ -1,10 +1,14 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 
 import { CreateCharacterUseCase } from "./create-character.use-case"
-import type { CharacterRepository } from "../../../domain/ports/character.repository"
 
-const buildRepo = (): CharacterRepository => ({
-  createWithFirstVersion: async (c, v) => ({ character: c, version: v }),
+let savedVersion: unknown = null
+
+const buildRepo = () => ({
+  createWithFirstVersion: vi.fn(async (c, v) => {
+    savedVersion = v
+    return { character: c, version: v }
+  }),
   findById: async () => null,
   list: async () => [],
   update: async (c) => c,
@@ -15,6 +19,27 @@ const buildRepo = (): CharacterRepository => ({
   saveVersion: async (v) => v,
   updateProfileImageAssetId: async () => {},
 })
+
+const lorebookVersionRepository = (found = true) => ({
+  findVersionById: vi.fn(async () => (found ? { id: "lv-1" } : null)),
+  findByCharacterId: async () => null,
+  findById: async () => null,
+  findVersions: async () => [],
+  list: async () => [],
+  createContainerWithVersion: async () => ({}),
+  saveLiveHeadAndVersion: async () => ({}),
+  upsertBook: async (book: unknown) => book,
+  createEntry: async (entry: unknown) => entry,
+  updateEntry: async (entry: unknown) => entry,
+  deleteEntry: async () => {},
+  reorderEntries: async () => {},
+  replaceBook: async () => {},
+})
+
+const linkedId = (): unknown =>
+  savedVersion
+    ? (savedVersion as Record<string, unknown>).lorebookVersionId
+    : null
 
 describe("CreateCharacterUseCase", () => {
   it("crea un personaje con version 1 y retorna CharacterDetail", async () => {
@@ -66,5 +91,44 @@ describe("CreateCharacterUseCase", () => {
         cards: [{ title: "", content: "something" }],
       }),
     ).rejects.toThrow("Cards must have non-empty title and content")
+  })
+
+  it("links a lorebook version when provided", async () => {
+    savedVersion = null
+    const repository = buildRepo()
+    const lorebooks = lorebookVersionRepository(true)
+    const useCase = new CreateCharacterUseCase(repository, lorebooks as never)
+
+    const result = await useCase.execute({
+      name: "Linked",
+      profileImageAssetId: null,
+      description: "Desc",
+      greeting: "Hi",
+      lorebookVersionId: "lv-1",
+    })
+
+    expect(lorebooks.findVersionById).toHaveBeenCalledWith("lv-1")
+    expect(linkedId()).toBe("lv-1")
+    expect(result.currentVersion.versionNumber).toBe(1)
+  })
+
+  it("rejects an unknown lorebook version with LOREBOOK_VERSION_NOT_FOUND", async () => {
+    savedVersion = null
+    const repository = buildRepo()
+    const useCase = new CreateCharacterUseCase(
+      repository,
+      lorebookVersionRepository(false) as never,
+    )
+
+    await expect(
+      useCase.execute({
+        name: "Linked",
+        profileImageAssetId: null,
+        description: "Desc",
+        greeting: "Hi",
+        lorebookVersionId: "missing",
+      }),
+    ).rejects.toMatchObject({ code: "LOREBOOK_VERSION_NOT_FOUND" })
+    expect(repository.createWithFirstVersion).not.toHaveBeenCalled()
   })
 })

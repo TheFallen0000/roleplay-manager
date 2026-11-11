@@ -861,8 +861,43 @@ Obligatorio (toca prompt/contexto/card). Sin red.
 - **Comando:**
   - `pnpm --filter @workspace/backend test`
   - `pnpm --filter @workspace/frontend exec vitest run`
-- **Fallo esperado:** (etapa no iniciada)
-- **Salida relevante:** (etapa no iniciada)
+- **Fallo esperado:** S133 aún no está implementado. Los rojos válidos son módulos
+  nuevos ausentes (`Cannot find module`), tabla/columna nueva ausente
+  (`lorebook_versions`, `lorebook_version_id`, `origin_id`, `current_version_id`,
+  `deleted_at`), métodos nuevos del puerto/repositorio ausentes, endpoints/rutas
+  nuevas en 404, componentes/páginas nuevas ausentes y asserts de comportamiento
+  todavía no implementado (p. ej. el loader sigue usando `findByCharacterId` y el
+  prompt no contiene la versión enlazada). No hay fallos de infraestructura.
+- **Salida relevante (2026-11-11):**
+  - backend: `17 failed | 141 passed` archivos, `28 failed | 962 passed` tests.
+    Representativos: `Cannot find module './get-character-card.use-case'`,
+    `'./update-character-card.use-case'`, `'./create-lorebook.use-case'`,
+    `'./get-lorebook-version.use-case'`, `'./source-key'`, `'./lorebooks.routes'`,
+    `'../../../../application/use-cases/character/lorebook/source-key'`;
+    `withRmExtensions is not a function`; `repository.findById is not a function`;
+    `Lorebook.create` sin `characterId` lanza `Cannot read properties of undefined (reading 'trim')`;
+    `NOT NULL constraint failed: lorebooks.character_id`; journal sin `idx: 20`;
+    `columnsOf("lorebook_versions")` vacío; `findVersionById` llamado 0 veces y
+    `findByCharacterId("char-1")` todavía usado; rutas card/lorebooks en 404;
+    `expected 404 to be 200` en la ruta de lorebooks.
+  - frontend: `7 failed | 77 passed` archivos, `4 failed | 430 passed` tests.
+    Representativos: `Failed to resolve import "./create-dialog"`,
+    `"./character-page"`, `"./lorebook-list"`, `"./lorebook-page"`,
+    `"./lorebook-editor"`, `"./character-form-fields"`; `AppShell` no muestra el
+    grupo «Biblioteca» ni el enlace `/lorebooks`.
+  - Se retiraron los tests del formulario con tabs (`character-form.test.tsx`) y se
+    movieron `character-form-fields.test.ts` / `lorebook-editor.test.tsx` a
+    `components/lorebook/`. `migration-0019.test.ts` y
+    `drizzle-lorebook.repository.test.ts` se ajustaron a las invariantes S133
+    (sin índice único por personaje ni cascade personaje→libro).
+  - `migration-0020` conserva intencionadamente el assert del cascade
+    `lorebook_entries → lorebooks`; es un guard de regresión, no un rojo.
+  - Falsos verdes corregidos: el round-trip del mapper se endureció para exigir el
+    namespace `extensions.rm` completo; el test del shell se endureció para exigir
+    «Biblioteca». Se añadió un polyfill mínimo de `matchMedia` en
+    `packages/frontend/src/test-setup.ts` (infraestructura de test, no producción).
+- **Plan:** `docs/10-slices/S133-test-plan.md` (30 casos; matriz, fixtures y
+  criterios de rojo válido).
 
 ## Decisiones
 
