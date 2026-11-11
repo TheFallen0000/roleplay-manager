@@ -2,12 +2,20 @@ import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
+import { eq } from "drizzle-orm"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { buildDatabase, runMigrations } from "../../../../config/database"
 import { Character } from "../../../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../../../domain/entities/character-version.entity"
-import { characterVersions, characters } from "../schema"
+import { Lorebook } from "../../../../../domain/entities/lorebook.entity"
+import { LorebookEntry } from "../../../../../domain/entities/lorebook-entry.entity"
+import {
+  characterVersions,
+  characters,
+  lorebookVersions,
+  lorebooks,
+} from "../schema"
 import { DrizzleCharacterRepository } from "./drizzle-character.repository"
 
 const root = mkdtempSync(join(tmpdir(), "rm-character-repository-s132-"))
@@ -232,5 +240,79 @@ describe("DrizzleCharacterRepository — S132 card fields", () => {
     expect(found).not.toBeNull()
     if (!found) throw new Error("expected the saved version")
     expect(field(found, "lorebookVersionId")).toBe("lv-s133")
+  })
+
+  it("creates a v1 and links the first version when a lorebook is imported", async () => {
+    const importCharacter = Character.create({
+      id: "char-import",
+      name: "Imported",
+      createdAt: now,
+      updatedAt: now,
+    })
+    const importVersion = CharacterVersion.create({
+      id: "ver-import",
+      characterId: "char-import",
+      name: "Imported",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "An imported character.",
+      instructions: null,
+      greeting: "Hello!",
+      versionNumber: 1,
+      createdAt: now,
+      cards: [],
+    })
+    const book = Lorebook.create({
+      id: "book-import",
+      characterId: "char-import",
+      name: "Imported lore",
+      description: "Imported facts.",
+      scanDepth: 4,
+      tokenBudget: 400,
+      recursiveScanning: false,
+      createdAt: now,
+      updatedAt: now,
+    })
+    const entry = LorebookEntry.create({
+      id: "entry-import",
+      lorebookId: "book-import",
+      keys: ["dragon"],
+      content: "Imported dragon lore.",
+      createdAt: now,
+      updatedAt: now,
+    })
+    const repository = new DrizzleCharacterRepository(db)
+
+    const result = await repository.createWithFirstVersion(
+      importCharacter,
+      importVersion,
+      { book, entries: [entry] },
+    )
+
+    expect(result.lorebookVersion).toBeDefined()
+    expect(result.version.lorebookVersionId).toBe(result.lorebookVersion?.id)
+
+    const [storedBook] = await db
+      .select()
+      .from(lorebooks)
+      .where(eq(lorebooks.id, "book-import"))
+    expect(storedBook.characterId).toBeNull()
+    expect(storedBook.currentVersionId).toBe(result.lorebookVersion?.id)
+
+    const [storedVersion] = await db
+      .select()
+      .from(lorebookVersions)
+      .where(eq(lorebookVersions.lorebookId, "book-import"))
+    expect(storedVersion.versionNumber).toBe(1)
+    expect(storedVersion.sourceKey).toMatch(/^[0-9a-f]{64}$/)
+    expect(storedVersion.entriesJson).toContain("Imported dragon lore.")
+
+    const [storedCharacterVersion] = await db
+      .select()
+      .from(characterVersions)
+      .where(eq(characterVersions.id, "ver-import"))
+    expect(storedCharacterVersion.lorebookVersionId).toBe(
+      result.lorebookVersion?.id,
+    )
   })
 })
