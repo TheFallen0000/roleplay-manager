@@ -1,6 +1,6 @@
 # S133 — Superficie card-first de personaje + fundación de lorebooks versionados
 
-**Estado:** Draft
+**Estado:** Aprobado
 **Inicio:** 2026-11-11
 **Fin:** —
 
