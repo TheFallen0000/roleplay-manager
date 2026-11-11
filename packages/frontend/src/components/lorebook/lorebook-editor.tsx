@@ -49,6 +49,8 @@ interface LorebookEditorProps {
   onImportRequest?: () => void
   onImportFile?: (file: File) => void
   onExport?: () => void
+  showName?: boolean
+  readOnly?: boolean
 }
 
 const emptyEntry = (): LorebookEditorEntry => ({
@@ -75,6 +77,8 @@ export function LorebookEditor({
   onImportRequest,
   onImportFile,
   onExport,
+  showName = true,
+  readOnly = false,
 }: LorebookEditorProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -109,28 +113,46 @@ export function LorebookEditor({
 
   return (
     <div className="flex flex-col gap-4">
-      <Field>
-        <FieldLabel htmlFor="lorebook-name">
-          {t("characters.lorebookName")}
-        </FieldLabel>
-        <Input
-          id="lorebook-name"
-          value={value.name}
-          placeholder={t("characters.lorebookNamePlaceholder")}
-          onChange={(event) => onChange({ ...value, name: event.target.value })}
-        />
-      </Field>
+      {showName ? (
+        <Field>
+          <FieldLabel htmlFor="lorebook-name">
+            {t("characters.lorebookName")}
+          </FieldLabel>
+          <Input
+            id="lorebook-name"
+            value={value.name}
+            placeholder={t("characters.lorebookNamePlaceholder")}
+            disabled={readOnly}
+            onChange={(event) => onChange({ ...value, name: event.target.value })}
+          />
+        </Field>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" variant="outline" onClick={addEntry}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addEntry}
+          disabled={readOnly}
+        >
           <PlusIcon />
           {t("characters.lorebookAddEntry")}
         </Button>
-        <Button type="button" variant="outline" onClick={requestImport}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={requestImport}
+          disabled={readOnly}
+        >
           <UploadIcon />
           {t("characters.lorebookImport")}
         </Button>
-        <Button type="button" variant="outline" onClick={onExport}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onExport}
+          disabled={readOnly}
+        >
           <DownloadIcon />
           {t("characters.lorebookExport")}
         </Button>
@@ -157,6 +179,7 @@ export function LorebookEditor({
             <li key={entry.id ?? `${entry.name}-${index}`}>
               <LorebookEntryForm
                 entry={entry}
+                readOnly={readOnly}
                 onChange={(next) => updateEntry(index, next)}
                 onRemove={() => removeEntry(index)}
               />

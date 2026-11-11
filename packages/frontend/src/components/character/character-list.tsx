@@ -21,9 +21,9 @@ import {
   type CharacterSortKey,
 } from "@/lib/sort-characters"
 import { MascotPose } from "../layout/brand"
+import { CreateDialog } from "../shared/create-dialog"
 import { LoadErrorState } from "../shared/states/load-error-state"
 import { CharacterCard } from "./character-card"
-import { CharacterCreateDialog } from "./character-create-dialog"
 import { CharacterDropOverlay } from "./character-drop-overlay"
 import { CharacterListToolbar } from "./character-list-toolbar"
 import {
@@ -326,12 +326,13 @@ function CharacterListContent() {
           void refresh()
         }}
       />
-      <CharacterCreateDialog
+      <CreateDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         locale={locale}
-        onCreated={() => {
-          void refresh()
+        onImportCard={() => {
+          setCreateOpen(false)
+          setCardImportOpen(true)
         }}
       />
     </>

@@ -1,5 +1,3 @@
-import type { LorebookEditorValue } from "./lorebook-editor"
-
 export interface FormSnapshot {
   name: string
   subtitle: string | null
@@ -49,39 +47,6 @@ export function buildCardSnapshot(fields: CardSnapshotFields): string {
     extensions: fields.extensions ?? null,
     unknownFields: fields.unknownFields ?? null,
     unknownRootFields: fields.unknownRootFields ?? null,
-  })
-}
-
-export function buildLorebookSnapshot(lorebook: LorebookEditorValue): string {
-  return JSON.stringify({
-    name: lorebook.name.trim(),
-    description: lorebook.description ?? null,
-    scanDepth: lorebook.scanDepth ?? 4,
-    tokenBudget: lorebook.tokenBudget ?? 400,
-    recursiveScanning: lorebook.recursiveScanning ?? false,
-    extensions: lorebook.extensions ?? null,
-    unknownFields: lorebook.unknownFields ?? null,
-    entries: lorebook.entries.map((entry) => ({
-      sourceId: entry.sourceId ?? null,
-      name: entry.name,
-      keys: entry.keys,
-      content: entry.content,
-      secondaryKeys: entry.secondaryKeys,
-      constant: entry.constant,
-      selective: entry.selective,
-      selectiveLogic: entry.selectiveLogic,
-      insertionOrder: entry.insertionOrder,
-      position: entry.position,
-      priority: entry.priority,
-      enabled: entry.enabled,
-      caseSensitive: entry.caseSensitive,
-      wholeWords: entry.wholeWords,
-      comment: entry.comment,
-      rawPosition: entry.rawPosition ?? null,
-      order: entry.order ?? null,
-      extensions: entry.extensions ?? null,
-      unknownFields: entry.unknownFields ?? null,
-    })),
   })
 }
 

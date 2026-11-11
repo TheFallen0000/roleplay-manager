@@ -83,7 +83,9 @@ function AppShellContent({
   const checkUpdates = useUpdatesStore((state) => state.check)
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href)
+    href === "/"
+      ? pathname === "/"
+      : pathname === href || pathname.startsWith(`${href}/`)
 
   useEffect(() => {
     hydrateUpdates()
@@ -102,7 +104,7 @@ function AppShellContent({
         <SidebarLogo />
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>{t("nav.groupCharacters")}</SidebarGroupLabel>
+            <SidebarGroupLabel>{t("nav.groupLibrary")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -114,6 +116,17 @@ function AppShellContent({
                   >
                       <UsersIcon />
                       <span>{t("nav.characters")}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    render={<a href="/lorebooks" />}
+                    tooltip={t("nav.lorebooks")}
+                    isActive={isActive("/lorebooks")}
+                    aria-current={isActive("/lorebooks") ? "page" : undefined}
+                  >
+                      <BookOpenIcon />
+                      <span>{t("nav.lorebooks")}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
