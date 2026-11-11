@@ -1,4 +1,5 @@
 import type { ImageDimensions } from "./image"
+import type { LorebookVersionSummary } from "./lorebook"
 import type { LorebookExportFormat } from "./sillytavern-card"
 
 export interface CharacterAssetDTO {
@@ -64,6 +65,7 @@ export interface CharacterVersionDTO {
   extensions?: unknown
   unknownFields?: unknown
   unknownRootFields?: unknown
+  lorebookVersion?: LorebookVersionSummary | null
 }
 
 export interface CharacterCardDTO {
@@ -99,6 +101,7 @@ export interface CreateCharacterInput {
   extensions?: unknown
   unknownFields?: unknown
   unknownRootFields?: unknown
+  lorebookVersionId?: string | null
   lorebook?: {
     format: LorebookExportFormat
     payload: string
@@ -135,6 +138,7 @@ export interface UpdateCharacterInput {
   extensions?: unknown
   unknownFields?: unknown
   unknownRootFields?: unknown
+  lorebookVersionId?: string | null
 }
 
 export interface UpdateCardInput {
