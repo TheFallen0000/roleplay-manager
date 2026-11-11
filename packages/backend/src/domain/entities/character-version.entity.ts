@@ -100,4 +100,11 @@ export class CharacterVersion {
   get unknownFields(): unknown { return this.props.unknownFields ?? null }
   get unknownRootFields(): unknown { return this.props.unknownRootFields ?? null }
   get lorebookVersionId(): string | null { return this.props.lorebookVersionId ?? null }
+
+  withLorebookVersionId(lorebookVersionId: string | null): CharacterVersion {
+    return CharacterVersion.reconstruct({
+      ...this.props,
+      lorebookVersionId,
+    })
+  }
 }

@@ -121,13 +121,16 @@ export class ImportCharacterUseCase {
     const currentVersion = createdVersions[createdVersions.length - 1]
     const lorebook = this.buildLorebook(payload, characterId, now)
 
-    await this.characterRepository.createWithFirstVersion(
+    const created = await this.characterRepository.createWithFirstVersion(
       character,
       createdVersions[0],
       lorebook ?? undefined,
     )
+    const lorebookVersionId = created.lorebookVersion?.id ?? null
     for (const version of createdVersions.slice(1)) {
-      await this.characterRepository.saveVersion(version)
+      await this.characterRepository.saveVersion(
+        version.withLorebookVersionId(lorebookVersionId),
+      )
     }
 
     const profileImageAssetId = await this.importProfileImage(

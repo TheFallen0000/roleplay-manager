@@ -101,6 +101,16 @@ export class Lorebook {
     return new Lorebook(next)
   }
 
+  withCharacterId(characterId: string | null): Lorebook {
+    const next = withDefaults({
+      ...this.props,
+      characterId,
+      updatedAt: new Date(),
+    })
+    assertValid(next)
+    return new Lorebook(next)
+  }
+
   withOriginId(originId: string | null): Lorebook {
     return new Lorebook({ ...this.props, originId, updatedAt: new Date() })
   }

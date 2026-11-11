@@ -170,7 +170,7 @@ const entryUpdateValues = (entry: LorebookEntry) => ({
   updatedAt: entry.updatedAt,
 })
 
-const versionValues = (version: LorebookVersion) => ({
+export const versionValues = (version: LorebookVersion) => ({
   id: version.id,
   lorebookId: version.lorebookId,
   versionNumber: version.versionNumber,

@@ -2,10 +2,12 @@ import type { Character } from "../entities/character.entity"
 import type { CharacterVersion } from "../entities/character-version.entity"
 import type { Lorebook } from "../entities/lorebook.entity"
 import type { LorebookEntry } from "../entities/lorebook-entry.entity"
+import type { LorebookVersion } from "../entities/lorebook-version.entity"
 
 export interface CreateCharacterWithVersionResult {
   character: Character
   version: CharacterVersion
+  lorebookVersion?: LorebookVersion
 }
 
 export interface CreateCharacterLorebook {

@@ -34,6 +34,10 @@ export class CreateCharacterUseCase {
       throw new CharacterValidationError("Cards must have non-empty title and content")
     }
 
+    const hasLorebookSelector = Object.prototype.hasOwnProperty.call(
+      input,
+      "lorebookVersionId",
+    )
     const lorebookVersionId = await resolveLorebookVersionId(
       this.lorebookRepository,
       input.lorebookVersionId,
@@ -92,7 +96,9 @@ export class CreateCharacterUseCase {
       unknownRootFields: input.unknownRootFields ?? null,
     })
 
-    const lorebook = this.buildLorebook(input, characterId)
+    const lorebook = hasLorebookSelector
+      ? null
+      : this.buildLorebook(input, characterId)
 
     const result = await this.characterRepository.createWithFirstVersion(
       character,
