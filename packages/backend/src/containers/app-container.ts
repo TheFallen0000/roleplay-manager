@@ -82,6 +82,12 @@ import { UpdateLorebookEntryUseCase } from "../application/use-cases/character/l
 import { DeleteLorebookEntryUseCase } from "../application/use-cases/character/lorebook/delete-lorebook-entry.use-case"
 import { ReorderLorebookEntriesUseCase } from "../application/use-cases/character/lorebook/reorder-lorebook-entries.use-case"
 import { PreviewLorebookUseCase } from "../application/use-cases/character/lorebook/preview-lorebook.use-case"
+import { ListLorebooksUseCase } from "../application/use-cases/character/lorebook/list-lorebooks.use-case"
+import { GetLorebookByIdUseCase } from "../application/use-cases/character/lorebook/get-lorebook-by-id.use-case"
+import { ListLorebookVersionsUseCase } from "../application/use-cases/character/lorebook/list-lorebook-versions.use-case"
+import { GetLorebookVersionUseCase } from "../application/use-cases/character/lorebook/get-lorebook-version.use-case"
+import { CreateLorebookUseCase } from "../application/use-cases/character/lorebook/create-lorebook.use-case"
+import { UpdateLorebookByIdUseCase } from "../application/use-cases/character/lorebook/update-lorebook-by-id.use-case"
 import { StoreCharacterAssetService } from "../application/services/store-character-asset.service"
 import { SharpCharacterAssetImageProcessor } from "../infrastructure/adapters/secondary/images/sharp-character-asset-image-processor"
 import { GetTunnelStatusUseCase } from "../application/use-cases/tunnel/get-tunnel-status.use-case"
@@ -202,6 +208,12 @@ export interface AppContainer {
   updateLorebookEntry: UpdateLorebookEntryUseCase
   deleteLorebookEntry: DeleteLorebookEntryUseCase
   reorderLorebookEntries: ReorderLorebookEntriesUseCase
+  listLorebooks: ListLorebooksUseCase
+  getLorebookById: GetLorebookByIdUseCase
+  listLorebookVersions: ListLorebookVersionsUseCase
+  getLorebookVersion: GetLorebookVersionUseCase
+  createLorebook: CreateLorebookUseCase
+  updateLorebookById: UpdateLorebookByIdUseCase
   deleteCharacter: DeleteCharacterUseCase
   listCharacterVersions: ListCharacterVersionsUseCase
   uploadCharacterAsset: UploadCharacterAssetUseCase
@@ -741,6 +753,14 @@ export const buildContainer = ({
     reorderLorebookEntries: new ReorderLorebookEntriesUseCase({
       lorebookRepository,
     }),
+    listLorebooks: new ListLorebooksUseCase({ lorebookRepository }),
+    getLorebookById: new GetLorebookByIdUseCase({ lorebookRepository }),
+    listLorebookVersions: new ListLorebookVersionsUseCase({
+      lorebookRepository,
+    }),
+    getLorebookVersion: new GetLorebookVersionUseCase({ lorebookRepository }),
+    createLorebook: new CreateLorebookUseCase({ lorebookRepository }),
+    updateLorebookById: new UpdateLorebookByIdUseCase({ lorebookRepository }),
     createPlayerCharacter: new CreatePlayerCharacterUseCase(playerCharacterRepository),
     listPlayerCharacters: new ListPlayerCharactersUseCase(playerCharacterRepository),
     updatePlayerCharacter: new UpdatePlayerCharacterUseCase(playerCharacterRepository),

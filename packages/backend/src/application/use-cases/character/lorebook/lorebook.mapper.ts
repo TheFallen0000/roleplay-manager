@@ -1,5 +1,12 @@
 import { v7 as randomUUIDv7 } from "uuid"
 
+import type { LorebookCanonicalContent } from "@workspace/shared/lib/lorebook-versioning"
+import type { LorebookVersionDTO } from "@workspace/shared/types/lorebook"
+import type {
+  LorebookDTO,
+  LorebookEntryDTO,
+} from "@workspace/shared/types/sillytavern-card"
+
 import {
   Lorebook,
   type Lorebook as LorebookEntity,
@@ -9,6 +16,7 @@ import {
   type LorebookEntry as LorebookEntryEntity,
   type LorebookSelectiveLogic,
 } from "../../../../domain/entities/lorebook-entry.entity"
+import type { LorebookVersion } from "../../../../domain/entities/lorebook-version.entity"
 import { LorebookValidationError } from "../../../../domain/errors"
 
 /**
@@ -417,7 +425,7 @@ const entriesOf = (lorebook: LorebookLike): LorebookEntryLike[] => {
 
 export const toLorebookEntryDTO = (
   entry: LorebookEntryEntity,
-): import("@workspace/shared/types/sillytavern-card").LorebookEntryDTO => ({
+): LorebookEntryDTO => ({
   id: entry.id,
   name: entry.name,
   sourceId: entry.sourceId,
@@ -443,7 +451,8 @@ export const toLorebookEntryDTO = (
 export const toLorebookDTO = (
   book: LorebookEntity,
   entries: LorebookEntryEntity[],
-): import("@workspace/shared/types/sillytavern-card").LorebookDTO => ({
+  currentVersionNumber?: number | null,
+): LorebookDTO => ({
   id: book.id,
   characterId: book.characterId,
   name: book.name,
@@ -453,7 +462,84 @@ export const toLorebookDTO = (
   recursiveScanning: book.recursiveScanning,
   extensions: book.extensions,
   unknownFields: book.unknownFields,
+  originId: book.originId,
+  currentVersionId: book.currentVersionId,
+  currentVersionNumber: currentVersionNumber ?? null,
+  deletedAt: book.deletedAt ? book.deletedAt.toISOString() : null,
   entries: entries.map(toLorebookEntryDTO),
+})
+
+/**
+ * Normalized entry snapshot stored in `lorebook_versions.entries_json`. Keeps
+ * the same shape as the repository/backfill so a version round-trips without
+ * depending on the live-entry table.
+ */
+export const lorebookEntrySnapshot = (entry: LorebookEntryEntity) => ({
+  name: entry.name,
+  sourceId: entry.sourceId,
+  keys: entry.keys,
+  secondaryKeys: entry.secondaryKeys,
+  comment: entry.comment,
+  content: entry.content,
+  constant: entry.constant,
+  selective: entry.selective,
+  selectiveLogic: entry.selectiveLogic,
+  insertionOrder: entry.insertionOrder,
+  position: entry.position,
+  rawPosition: entry.rawPosition,
+  priority: entry.priority,
+  enabled: entry.enabled,
+  caseSensitive: entry.caseSensitive,
+  wholeWords: entry.wholeWords,
+  order: entry.order,
+  extensions: entry.extensions,
+  unknownFields: entry.unknownFields,
+})
+
+const presentationOrder = (
+  entries: LorebookEntryEntity[],
+): LorebookEntryEntity[] =>
+  [...entries].sort(
+    (left, right) =>
+      left.order - right.order ||
+      left.insertionOrder - right.insertionOrder,
+  )
+
+export const serializeLorebookEntries = (
+  entries: LorebookEntryEntity[],
+): string =>
+  JSON.stringify(
+    presentationOrder(entries).map((entry) => lorebookEntrySnapshot(entry)),
+  )
+
+export const toLorebookCanonicalContent = (
+  book: LorebookEntity,
+  entries: LorebookEntryEntity[],
+): LorebookCanonicalContent => ({
+  name: book.name,
+  description: book.description,
+  scanDepth: book.scanDepth,
+  tokenBudget: book.tokenBudget,
+  recursiveScanning: book.recursiveScanning,
+  entries: presentationOrder(entries).map((entry) =>
+    lorebookEntrySnapshot(entry),
+  ),
+})
+
+export const toLorebookVersionDTO = (
+  version: LorebookVersion,
+): LorebookVersionDTO => ({
+  id: version.id,
+  lorebookId: version.lorebookId,
+  versionNumber: version.versionNumber,
+  name: version.name,
+  description: version.description,
+  scanDepth: version.scanDepth,
+  tokenBudget: version.tokenBudget,
+  recursiveScanning: version.recursiveScanning,
+  sourceKey: version.sourceKey,
+  entries: JSON.parse(version.entriesJson) as LorebookEntryDTO[],
+  createdAt: version.createdAt.toISOString(),
 })
 
 const entryToCardData = (entry: LorebookEntryLike): JsonRecord => {

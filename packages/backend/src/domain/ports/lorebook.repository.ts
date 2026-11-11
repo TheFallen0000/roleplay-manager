@@ -7,6 +7,12 @@ export interface LorebookWithEntries {
   entries: LorebookEntry[]
 }
 
+export interface LorebookSummary {
+  book: Lorebook
+  currentVersionNumber: number | null
+  entryCount: number
+}
+
 export interface CreateContainerWithVersionResult {
   book: Lorebook
   entries: LorebookEntry[]
@@ -28,6 +34,8 @@ export interface LorebookRepository {
   findById(id: string): Promise<LorebookWithEntries | null>
 
   list(): Promise<Lorebook[]>
+
+  listSummaries(): Promise<LorebookSummary[]>
 
   findVersions(lorebookId: string): Promise<LorebookVersion[]>
 

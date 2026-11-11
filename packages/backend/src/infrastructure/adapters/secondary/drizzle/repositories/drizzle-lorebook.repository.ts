@@ -7,6 +7,7 @@ import { LorebookVersion } from "../../../../../domain/entities/lorebook-version
 import type {
   CreateContainerWithVersionResult,
   LorebookRepository,
+  LorebookSummary,
   LorebookWithEntries,
   SaveLiveHeadResult,
 } from "../../../../../domain/ports/lorebook.repository"
@@ -16,7 +17,12 @@ import {
   computeLorebookSourceKey,
 } from "../../../../../application/use-cases/character/lorebook/source-key"
 import type { Database } from "../../../../config/database"
-import { lorebookEntries, lorebooks, lorebookVersions } from "../schema"
+import {
+  characterVersions,
+  lorebookEntries,
+  lorebooks,
+  lorebookVersions,
+} from "../schema"
 import {
   parseJsonArray,
   parseJsonValue,
@@ -240,15 +246,12 @@ export class DrizzleLorebookRepository implements LorebookRepository {
   async findByCharacterId(
     characterId: string,
   ): Promise<LorebookWithEntries | null> {
-    const bookRows = await this.db
-      .select()
-      .from(lorebooks)
-      .where(eq(lorebooks.characterId, characterId))
-      .limit(1)
+    const book =
+      (await this.findBookByLegacyCharacterId(characterId)) ??
+      (await this.findBookByCurrentCharacterVersion(characterId))
 
-    if (bookRows.length === 0) return null
+    if (!book) return null
 
-    const book = toBook(bookRows[0])
     const entryRows = await this.db
       .select()
       .from(lorebookEntries)
@@ -256,6 +259,53 @@ export class DrizzleLorebookRepository implements LorebookRepository {
       .orderBy(lorebookEntries.order)
 
     return { book, entries: entryRows.map(toEntry) }
+  }
+
+  private async findBookByLegacyCharacterId(
+    characterId: string,
+  ): Promise<Lorebook | null> {
+    const rows = await this.db
+      .select()
+      .from(lorebooks)
+      .where(eq(lorebooks.characterId, characterId))
+      .limit(1)
+
+    return rows.length > 0 ? toBook(rows[0]) : null
+  }
+
+  /**
+   * S132 compatibility after the backfill clears `character_id`: resolve the
+   * live head through the current character version's linked lorebook version.
+   */
+  private async findBookByCurrentCharacterVersion(
+    characterId: string,
+  ): Promise<Lorebook | null> {
+    const currentVersion = await this.db
+      .select({ lorebookVersionId: characterVersions.lorebookVersionId })
+      .from(characterVersions)
+      .where(eq(characterVersions.characterId, characterId))
+      .orderBy(desc(characterVersions.versionNumber))
+      .limit(1)
+
+    const lorebookVersionId = currentVersion[0]?.lorebookVersionId
+    if (!lorebookVersionId) return null
+
+    const version = await this.db
+      .select({ lorebookId: lorebookVersions.lorebookId })
+      .from(lorebookVersions)
+      .where(eq(lorebookVersions.id, lorebookVersionId))
+      .limit(1)
+
+    const lorebookId = version[0]?.lorebookId
+    if (!lorebookId) return null
+
+    const rows = await this.db
+      .select()
+      .from(lorebooks)
+      .where(eq(lorebooks.id, lorebookId))
+      .limit(1)
+
+    return rows.length > 0 ? toBook(rows[0]) : null
   }
 
   async findById(id: string): Promise<LorebookWithEntries | null> {
@@ -285,6 +335,31 @@ export class DrizzleLorebookRepository implements LorebookRepository {
       .orderBy(lorebooks.createdAt)
 
     return rows.map(toBook)
+  }
+
+  async listSummaries(): Promise<LorebookSummary[]> {
+    const rows = await this.db
+      .select({
+        book: lorebooks,
+        currentVersionNumber: lorebookVersions.versionNumber,
+        entryCount: sql<number>`(
+          SELECT COUNT(*) FROM ${lorebookEntries}
+          WHERE ${lorebookEntries.lorebookId} = ${lorebooks.id}
+        )`,
+      })
+      .from(lorebooks)
+      .leftJoin(
+        lorebookVersions,
+        eq(lorebooks.currentVersionId, lorebookVersions.id),
+      )
+      .where(isNull(lorebooks.deletedAt))
+      .orderBy(lorebooks.createdAt)
+
+    return rows.map((row) => ({
+      book: toBook(row.book),
+      currentVersionNumber: row.currentVersionNumber ?? null,
+      entryCount: Number(row.entryCount ?? 0),
+    }))
   }
 
   async findVersions(lorebookId: string): Promise<LorebookVersion[]> {

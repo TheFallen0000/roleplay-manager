@@ -24,6 +24,11 @@ export class GetLorebookUseCase {
       )
     }
 
-    return toLorebookDTO(found.book, found.entries)
+    // S132 clients expect the character they asked for, even when the live head
+    // is now standalone and its legacy `characterId` was cleared by the backfill.
+    return {
+      ...toLorebookDTO(found.book, found.entries),
+      characterId: input.characterId,
+    }
   }
 }
