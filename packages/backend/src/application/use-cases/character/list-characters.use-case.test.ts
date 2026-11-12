@@ -111,6 +111,45 @@ describe("ListCharactersUseCase", () => {
     expect(assetRepo.findByIds).toHaveBeenCalledWith(["asset-1"])
   })
 
+  it("includes tags, creator and the linked lorebook summary", async () => {
+    const characterRepo = buildRepo([
+      {
+        character: char1,
+        currentVersion: version({
+          tags: ["fantasy", "forest"],
+          creator: "Aria",
+          lorebook: {
+            lorebookId: "book-1",
+            versionId: "lv-1",
+            versionNumber: 2,
+            name: "Forest lore",
+            sourceKey: "a".repeat(64),
+            entryCount: 3,
+            originId: null,
+            currentVersionId: "lv-1",
+            deletedAt: null,
+          },
+        }),
+      },
+    ])
+
+    const result = await new ListCharactersUseCase(
+      characterRepo,
+      buildAssetRepo(),
+    ).execute()
+
+    expect(result[0].tags).toEqual(["fantasy", "forest"])
+    expect(result[0].creator).toBe("Aria")
+    expect(result[0].lorebook).toMatchObject({
+      lorebookId: "book-1",
+      versionId: "lv-1",
+      versionNumber: 2,
+      name: "Forest lore",
+      entryCount: 3,
+      status: "current",
+    })
+  })
+
   it("returns a page with the next offset", async () => {
     const useCase = new ListCharactersUseCase(
       buildRepo(),

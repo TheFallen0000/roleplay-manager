@@ -4,6 +4,7 @@ import { z } from "zod"
 import { MAX_LOREBOOK_ENTRIES } from "@workspace/shared/lib/sillytavern-card"
 
 import type { CreateLorebookUseCase } from "../../../../application/use-cases/character/lorebook/create-lorebook.use-case"
+import type { ExportLorebookUseCase } from "../../../../application/use-cases/character/lorebook/export-lorebook.use-case"
 import type { GetLorebookByIdUseCase } from "../../../../application/use-cases/character/lorebook/get-lorebook-by-id.use-case"
 import type { GetLorebookVersionUseCase } from "../../../../application/use-cases/character/lorebook/get-lorebook-version.use-case"
 import type { ListLorebookVersionsUseCase } from "../../../../application/use-cases/character/lorebook/list-lorebook-versions.use-case"
@@ -61,6 +62,10 @@ const ListLorebooksQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).optional(),
 })
 
+const ExportLorebookSchema = z.object({
+  format: z.enum(["ccv3", "st-native"]),
+})
+
 export const buildLorebooksRouter = (deps: {
   listLorebooks: ListLorebooksUseCase
   getLorebookById: GetLorebookByIdUseCase
@@ -68,6 +73,7 @@ export const buildLorebooksRouter = (deps: {
   getLorebookVersion: GetLorebookVersionUseCase
   createLorebook: CreateLorebookUseCase
   updateLorebook: UpdateLorebookByIdUseCase
+  exportLorebook: ExportLorebookUseCase
 }): Router => {
   const router = Router()
   router.use(express.json({ limit: "15mb" }))
@@ -99,6 +105,20 @@ export const buildLorebooksRouter = (deps: {
       res.json(
         await deps.listLorebookVersions.execute({
           lorebookId: req.params.id,
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.post("/lorebooks/:id/export", async (req, res, next) => {
+    try {
+      const body = ExportLorebookSchema.parse(req.body)
+      res.json(
+        await deps.exportLorebook.executeById({
+          lorebookId: req.params.id,
+          format: body.format,
         }),
       )
     } catch (error) {

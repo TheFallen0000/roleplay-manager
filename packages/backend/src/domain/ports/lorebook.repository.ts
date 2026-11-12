@@ -11,6 +11,8 @@ export interface LorebookSummary {
   book: Lorebook
   currentVersionNumber: number | null
   entryCount: number
+  description: string | null
+  usageCount: number
 }
 
 export interface CreateContainerWithVersionResult {

@@ -342,9 +342,17 @@ export class DrizzleLorebookRepository implements LorebookRepository {
       .select({
         book: lorebooks,
         currentVersionNumber: lorebookVersions.versionNumber,
+        description: lorebookVersions.description,
         entryCount: sql<number>`(
           SELECT COUNT(*) FROM ${lorebookEntries}
           WHERE ${lorebookEntries.lorebookId} = ${lorebooks.id}
+        )`,
+        usageCount: sql<number>`(
+          SELECT COUNT(DISTINCT cv.character_id)
+          FROM character_versions cv
+          INNER JOIN lorebook_versions lv
+            ON lv.id = cv.lorebook_version_id
+          WHERE lv.lorebook_id = ${lorebooks.id}
         )`,
       })
       .from(lorebooks)
@@ -359,6 +367,8 @@ export class DrizzleLorebookRepository implements LorebookRepository {
       book: toBook(row.book),
       currentVersionNumber: row.currentVersionNumber ?? null,
       entryCount: Number(row.entryCount ?? 0),
+      description: row.description ?? null,
+      usageCount: Number(row.usageCount ?? 0),
     }))
   }
 

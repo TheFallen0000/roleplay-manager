@@ -15,6 +15,18 @@ export interface CreateCharacterLorebook {
   entries: LorebookEntry[]
 }
 
+export interface CharacterVersionLorebookSummary {
+  lorebookId: string
+  versionId: string
+  versionNumber: number
+  name: string | null
+  sourceKey: string
+  entryCount: number
+  originId: string | null
+  currentVersionId: string | null
+  deletedAt: Date | null
+}
+
 export interface CharacterVersionSummary {
   id: string
   characterId: string
@@ -22,6 +34,9 @@ export interface CharacterVersionSummary {
   subtitle: string | null
   profileImageAssetId: string | null
   versionNumber: number
+  tags?: string[]
+  creator?: string | null
+  lorebook?: CharacterVersionLorebookSummary | null
 }
 
 export interface CharacterWithCurrentVersionSummary {

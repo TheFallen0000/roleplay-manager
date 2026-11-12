@@ -1,7 +1,10 @@
 import type { LorebookExportFormat } from "@workspace/shared/types/sillytavern-card"
 
 import { DomainError } from "../../../../domain/errors"
-import type { LorebookRepository } from "../../../../domain/ports/lorebook.repository"
+import type {
+  LorebookRepository,
+  LorebookWithEntries,
+} from "../../../../domain/ports/lorebook.repository"
 
 import { toCCv3Lorebook, toStNativeLorebook } from "./lorebook.mapper"
 
@@ -48,8 +51,31 @@ export class ExportLorebookUseCase {
       )
     }
 
+    return this.toExport(found, input.format)
+  }
+
+  async executeById(input: {
+    lorebookId: string
+    format: LorebookExportFormat
+  }): Promise<CCv3LorebookExport | StNativeLorebookExport> {
+    const found = await this.deps.lorebookRepository.findById(input.lorebookId)
+    if (!found) {
+      throw new DomainError(
+        "LOREBOOK_NOT_FOUND",
+        "The lorebook does not exist.",
+        404,
+      )
+    }
+
+    return this.toExport(found, input.format)
+  }
+
+  private toExport(
+    found: LorebookWithEntries,
+    format: LorebookExportFormat,
+  ): CCv3LorebookExport | StNativeLorebookExport {
     const source = { book: found.book, entries: found.entries }
-    return input.format === "ccv3"
+    return format === "ccv3"
       ? toCCv3Lorebook(source)
       : toStNativeLorebook(source)
   }

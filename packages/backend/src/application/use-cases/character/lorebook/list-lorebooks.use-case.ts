@@ -24,10 +24,12 @@ export class ListLorebooksUseCase {
     return summaries.slice(offset, end).map((summary) => ({
       id: summary.book.id,
       name: summary.book.name,
+      description: summary.description,
       currentVersionNumber: summary.currentVersionNumber,
       entryCount: summary.entryCount,
       originId: summary.book.originId,
-      usageCount: 0,
+      usageCount: summary.usageCount,
+      updatedAt: summary.book.updatedAt.toISOString(),
     }))
   }
 }

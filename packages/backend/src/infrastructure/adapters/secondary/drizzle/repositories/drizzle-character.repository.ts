@@ -285,6 +285,20 @@ export class DrizzleCharacterRepository
         subtitle: characterVersions.subtitle,
         profileImageAssetId: characterVersions.profileImageAssetId,
         versionNumber: characterVersions.versionNumber,
+        tags: characterVersions.tags,
+        creator: characterVersions.creator,
+        lorebookId: lorebookVersions.lorebookId,
+        lorebookVersionId: lorebookVersions.id,
+        lorebookVersionNumber: lorebookVersions.versionNumber,
+        lorebookName: lorebookVersions.name,
+        lorebookSourceKey: lorebookVersions.sourceKey,
+        lorebookCurrentVersionId: lorebooks.currentVersionId,
+        lorebookOriginId: lorebooks.originId,
+        lorebookDeletedAt: lorebooks.deletedAt,
+        lorebookEntryCount: sql<number>`(
+          SELECT COUNT(*) FROM ${lorebookEntries}
+          WHERE ${lorebookEntries.lorebookId} = ${lorebooks.id}
+        )`,
       })
       .from(characterVersions)
       .innerJoin(
@@ -294,6 +308,11 @@ export class DrizzleCharacterRepository
           eq(characterVersions.versionNumber, latestVersions.versionNumber),
         ),
       )
+      .leftJoin(
+        lorebookVersions,
+        eq(characterVersions.lorebookVersionId, lorebookVersions.id),
+      )
+      .leftJoin(lorebooks, eq(lorebookVersions.lorebookId, lorebooks.id))
 
     const versionsByCharacter = new Map<string, CharacterVersionSummary>()
     for (const row of versionRows) {
@@ -304,6 +323,26 @@ export class DrizzleCharacterRepository
         subtitle: row.subtitle,
         profileImageAssetId: row.profileImageAssetId,
         versionNumber: row.versionNumber,
+        tags: parseJsonArray(row.tags),
+        creator: row.creator ?? null,
+        lorebook:
+          row.lorebookId &&
+          row.lorebookVersionId &&
+          row.lorebookVersionNumber !== null
+            ? {
+                lorebookId: row.lorebookId,
+                versionId: row.lorebookVersionId,
+                versionNumber: row.lorebookVersionNumber,
+                name: row.lorebookName ?? null,
+                sourceKey: row.lorebookSourceKey ?? "",
+                entryCount: Number(row.lorebookEntryCount ?? 0),
+                originId: row.lorebookOriginId ?? null,
+                currentVersionId: row.lorebookCurrentVersionId ?? null,
+                deletedAt: row.lorebookDeletedAt
+                  ? new Date(row.lorebookDeletedAt)
+                  : null,
+              }
+            : null,
       })
     }
 
@@ -357,6 +396,20 @@ export class DrizzleCharacterRepository
         subtitle: characterVersions.subtitle,
         profileImageAssetId: characterVersions.profileImageAssetId,
         versionNumber: characterVersions.versionNumber,
+        tags: characterVersions.tags,
+        creator: characterVersions.creator,
+        lorebookId: lorebookVersions.lorebookId,
+        lorebookVersionId: lorebookVersions.id,
+        lorebookVersionNumber: lorebookVersions.versionNumber,
+        lorebookName: lorebookVersions.name,
+        lorebookSourceKey: lorebookVersions.sourceKey,
+        lorebookCurrentVersionId: lorebooks.currentVersionId,
+        lorebookOriginId: lorebooks.originId,
+        lorebookDeletedAt: lorebooks.deletedAt,
+        lorebookEntryCount: sql<number>`(
+          SELECT COUNT(*) FROM ${lorebookEntries}
+          WHERE ${lorebookEntries.lorebookId} = ${lorebooks.id}
+        )`,
       })
       .from(characterVersions)
       .innerJoin(
@@ -366,6 +419,11 @@ export class DrizzleCharacterRepository
           eq(characterVersions.versionNumber, latestVersions.versionNumber),
         ),
       )
+      .leftJoin(
+        lorebookVersions,
+        eq(characterVersions.lorebookVersionId, lorebookVersions.id),
+      )
+      .leftJoin(lorebooks, eq(lorebookVersions.lorebookId, lorebooks.id))
 
     const versionsByCharacter = new Map<string, CharacterVersionSummary>()
     for (const row of versionRows) {
@@ -376,6 +434,26 @@ export class DrizzleCharacterRepository
         subtitle: row.subtitle,
         profileImageAssetId: row.profileImageAssetId,
         versionNumber: row.versionNumber,
+        tags: parseJsonArray(row.tags),
+        creator: row.creator ?? null,
+        lorebook:
+          row.lorebookId &&
+          row.lorebookVersionId &&
+          row.lorebookVersionNumber !== null
+            ? {
+                lorebookId: row.lorebookId,
+                versionId: row.lorebookVersionId,
+                versionNumber: row.lorebookVersionNumber,
+                name: row.lorebookName ?? null,
+                sourceKey: row.lorebookSourceKey ?? "",
+                entryCount: Number(row.lorebookEntryCount ?? 0),
+                originId: row.lorebookOriginId ?? null,
+                currentVersionId: row.lorebookCurrentVersionId ?? null,
+                deletedAt: row.lorebookDeletedAt
+                  ? new Date(row.lorebookDeletedAt)
+                  : null,
+              }
+            : null,
       })
     }
 
