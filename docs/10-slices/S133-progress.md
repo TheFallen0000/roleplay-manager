@@ -1127,7 +1127,8 @@ commits de documentación y tests previos se agrupan para mantener la lista legi
 18. `5843a0c` — `docs(slice): record the S133 UI fidelity refactor`
 19. `9b60e45` — `fix(backend): count linked lorebook entries and cover export route`
 20. `a4a6d67` — `fix(frontend): close S133 UI review findings`
-21. `docs(slice)`: review del refactor UI y actualización de este informe.
+21. `f8c7702` — `fix(frontend): hide the desktop save action on mobile`
+22. `docs(slice)`: review del refactor UI y actualización de este informe.
 
 ## CHANGELOG
 

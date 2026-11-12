@@ -4,7 +4,7 @@
 **Fecha:** 2026-11-11
 **Rama:** `feat/S133-card-first-character`
 **Base:** `master` (`a309d03 docs(product): add card-first audit, UX plan and prototypes (#139)`)
-**HEAD de rama:** `a4a6d67 fix(frontend): close S133 UI review findings`
+**HEAD de rama:** `f8c7702 fix(frontend): hide the desktop save action on mobile`
 **Slice:** superficie card-first de personaje + fundación de lorebooks versionados
 (migración `0020` + backfill, versiones inmutables de lorebook, contrato de card
 `GET/PUT /api/characters/:id/card` con `extensions.rm`, prompt desde la versión
