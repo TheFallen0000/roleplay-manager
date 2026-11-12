@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, type Mock } from "vitest"
 
 import type { Logger } from "../../../domain/ports/logger.port"
 import { Character } from "../../../domain/entities/character.entity"
@@ -111,11 +111,20 @@ interface Repos {
   memoryRepository: MemoryRepository
   summaryRepository: SummaryRepository
   playerCharacterRepository: PlayerCharacterRepository
+  lorebookRepository: {
+    findVersionById: Mock
+    findByCharacterId: Mock
+  }
 }
 
 const buildRepos = (
   messages: Message[],
   conversation: Conversation = buildConversation(),
+  options: {
+    characterVersion?: CharacterVersion
+    lorebookVersion?: unknown
+    liveLorebook?: unknown
+  } = {},
 ): Repos => {
   const byId = new Map(messages.map((m) => [m.id, m]))
   const findPositionById = async (id: string) => {
@@ -141,7 +150,7 @@ const buildRepos = (
       list: async () => [],
       update: async (c) => c,
       delete: async () => {},
-      findVersionById: async () => version,
+      findVersionById: async () => options.characterVersion ?? version,
       findVersionsByCharacterId: async () => [],
       findMaxVersionNumber: async () => 0,
       saveVersion: async (v) => v,
@@ -184,6 +193,10 @@ const buildRepos = (
       update: async (pc) => pc,
       delete: async () => {},
     },
+    lorebookRepository: {
+      findVersionById: vi.fn(async () => options.lorebookVersion ?? null),
+      findByCharacterId: vi.fn(async () => options.liveLorebook ?? null),
+    },
   }
 }
 
@@ -215,9 +228,14 @@ const collect = async <T, R>(generator: AsyncGenerator<T, R>) => {
 
 const buildEngineDeps = (
   messages: Message[],
-  overrides: Partial<ChatEngineDeps> = {}
+  overrides: Partial<ChatEngineDeps> = {},
+  reposOptions: {
+    characterVersion?: CharacterVersion
+    lorebookVersion?: unknown
+    liveLorebook?: unknown
+  } = {},
 ): ChatEngineDeps => {
-  const repos = buildRepos(messages)
+  const repos = buildRepos(messages, buildConversation(), reposOptions)
   const builder = new PromptContextBuilderImpl()
   const loader = new ConversationContextLoader(repos as never)
   const compiler = new ContextCompiler(builder)
@@ -363,6 +381,103 @@ describe("preview/send context parity", () => {
       needed: true,
       applied: false,
       threshold: 50,
+    })
+  })
+})
+
+describe("preview/manifest parity with a versioned lorebook", () => {
+  it("uses the linked lorebook version in both paths and exposes its metadata", async () => {
+    const linkedVersion = CharacterVersion.create({
+      id: "ver-lb",
+      characterId: "char-1",
+      name: "Test Character",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "A test character.",
+      instructions: null,
+      greeting: "Hello!",
+      versionNumber: 1,
+      createdAt: now,
+      cards: [],
+      lorebookVersionId: "lv-1",
+    } as never)
+    const conversation = buildConversation({ versionId: "ver-lb" })
+    const messages = [
+      buildMessage("msg-1", "user", "Tell me about the dragon", 1),
+    ]
+    const lorebookVersion = {
+      id: "lv-1",
+      lorebookId: "book-1",
+      versionNumber: 2,
+      name: "Forest lore",
+      description: "Facts about the forest",
+      scanDepth: 4,
+      tokenBudget: 400,
+      recursiveScanning: false,
+      entriesJson: JSON.stringify([
+        { id: "entry-1", keys: ["dragon"], content: "Linked v1 lore." },
+      ]),
+      sourceKey: "a".repeat(64),
+      createdAt: now,
+    }
+    const liveLorebook = {
+      book: {
+        id: "book-1",
+        name: "Forest lore",
+        scanDepth: 4,
+        tokenBudget: 400,
+        recursiveScanning: false,
+      },
+      entries: [
+        { id: "entry-live", keys: ["dragon"], content: "Live v2 lore." },
+      ],
+    }
+    const repos = buildRepos(messages, conversation, {
+      characterVersion: linkedVersion,
+      lorebookVersion,
+      liveLorebook,
+    })
+    const builder = new PromptContextBuilderImpl()
+    const loader = new ConversationContextLoader(repos as never)
+    const compiler = new ContextCompiler(builder)
+    const contextCompaction = new ContextCompactionService(
+      builder,
+      { execute: vi.fn() } as never,
+      logger,
+    )
+    const useCase = new GetPromptContextUseCase(
+      loader,
+      compiler,
+      contextCompaction,
+    )
+
+    const preview = await useCase.execute("conv-1", undefined, "en")
+
+    const engine = new ChatEngine(
+      buildEngineDeps(messages, {}, {
+        characterVersion: linkedVersion,
+        lorebookVersion,
+        liveLorebook,
+      }),
+    )
+    const send = await collect(
+      engine.prepareContext({ conversation, locale: "en" }),
+    )
+
+    expect(send.ok).toBe(true)
+    if (!send.ok) return
+
+    expect(repos.lorebookRepository.findVersionById).toHaveBeenCalledWith(
+      "lv-1",
+    )
+    expect(repos.lorebookRepository.findByCharacterId).not.toHaveBeenCalled()
+    expect(preview.systemPrompt).toBe(send.context.systemPrompt)
+    expect(preview.manifest).toEqual(send.manifest)
+    expect(preview.systemPrompt).toContain("Linked v1 lore.")
+    expect(preview.systemPrompt).not.toContain("Live v2 lore.")
+    expect(preview.manifest?.lorebook).toMatchObject({
+      versionNumber: 2,
+      sourceKey: "a".repeat(64),
     })
   })
 })

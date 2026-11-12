@@ -63,6 +63,9 @@ export interface ContextManifestDTO {
   lorebook?: {
     /** Activated entries dropped because the token budget was exceeded. */
     overBudget: number
+    /** Linked lorebook version that fed the prompt (S133). */
+    versionNumber?: number
+    sourceKey?: string
   }
   messages: {
     afterSummary: number

@@ -20,6 +20,9 @@ export interface PromptContextLorebook {
   before: PromptContextLorebookEntry[]
   after: PromptContextLorebookEntry[]
   overBudgetCount?: number
+  /** Version metadata for debugging the manifest (S133). */
+  versionNumber?: number
+  sourceKey?: string
 }
 
 export interface PromptContextBuildParams {

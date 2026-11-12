@@ -15,6 +15,7 @@ import { buildErrorHandler } from "./middlewares/error-handler"
 import { buildCharacterRouter } from "./routes/character.routes"
 import { buildSillyTavernCardRouter } from "./routes/sillytavern-card.routes"
 import { buildLorebookRouter } from "./routes/lorebook.routes"
+import { buildLorebooksRouter } from "./routes/lorebooks.routes"
 import { buildPlayerCharacterRouter } from "./routes/player-character.routes"
 import { buildConversationRouter } from "./routes/conversation.routes"
 import { buildHealthRouter } from "./routes/health.routes"
@@ -152,6 +153,18 @@ export const buildServer = ({
   // `lorebook` are never captured as an id.
   app.use("/api", buildSillyTavernCardRouter(container))
   app.use("/api", buildLorebookRouter(container))
+  app.use(
+    "/api",
+    buildLorebooksRouter({
+      listLorebooks: container.listLorebooks,
+      getLorebookById: container.getLorebookById,
+      listLorebookVersions: container.listLorebookVersions,
+      getLorebookVersion: container.getLorebookVersion,
+      createLorebook: container.createLorebook,
+      updateLorebook: container.updateLorebookById,
+      exportLorebook: container.exportLorebook,
+    }),
+  )
   app.use("/api", buildCharacterRouter(container))
   app.use("/api", buildPlayerCharacterRouter(container))
   app.use(

@@ -92,7 +92,9 @@ export class ExportCharacterUseCase {
       const versions = await this.characterRepository.findVersionsByCharacterId(
         input.characterId,
       )
-      exportData.versions = versions.map(toCharacterVersionDTO)
+      exportData.versions = versions.map((version) =>
+        toCharacterVersionDTO(version),
+      )
     }
 
     if (selected.has("profileImage")) {

@@ -20,7 +20,9 @@ import {
 } from "../../../test-utils/sillytavern-fixtures"
 import {
   cardDataToVersionFields,
+  readRmExtensions,
   versionFieldsToCardData,
+  withRmExtensions,
 } from "./sillytavern-card.mapper"
 
 const asRecord = (value: unknown): Record<string, unknown> =>
@@ -466,5 +468,156 @@ describe("versionFieldsToCardData", () => {
     expect(String(entry.position)).toBe("0")
     expect(asRecord(entry.extensions)).toEqual({ probability: 100 })
     expect(entry.useRegex).toBe(true)
+  })
+})
+
+describe("RmExtensions merge", () => {
+  const rm = {
+    version: 1,
+    subtitle: "Guardian of the grove",
+    instructions: "Speak in riddles.",
+    knowledgeCards: [
+      { title: "Oath", content: "Protect the forest.", position: 0, active: true },
+    ],
+    versionNumber: 3,
+    tagline: "The forest's guardian",
+    lorebook: {
+      lorebookId: "book-1",
+      lorebookVersionId: "version-1",
+      versionNumber: 2,
+      sourceKey: "a".repeat(64),
+      originId: "origin-1",
+    },
+  }
+
+  it("sets known RM keys while preserving other namespaces and unknown RM keys", () => {
+    const merged = asRecord(
+      withRmExtensions(
+        { rm: { tagline: "Old", futureRmKey: { keep: true } }, other: { x: 1 } },
+        rm,
+      ),
+    )
+
+    expect(merged.other).toEqual({ x: 1 })
+    expect(asRecord(merged.rm)).toMatchObject({
+      ...rm,
+      futureRmKey: { keep: true },
+    })
+    expect(asRecord(merged.rm).version).toBe(1)
+  })
+
+  it("reads only the known RM keys", () => {
+    const read = readRmExtensions({
+      rm: { ...rm, futureRmKey: { keep: true } },
+      other: { x: 1 },
+    })
+
+    expect(read).toEqual(rm)
+    expect(read).not.toHaveProperty("futureRmKey")
+  })
+})
+
+describe("card round-trip with extensions.rm (field loss = 0)", () => {
+  const version = {
+    name: "Lyra",
+    description: "A guardian of the forest.",
+    personality: "Brave and kind.",
+    scenario: "An ancient forest.",
+    greeting: "Hello, traveler.",
+    mesExample: "<START>\n{{char}}: Welcome.",
+    systemPrompt: "You are Lyra.",
+    postHistoryInstructions: "Stay in character.",
+    alternateGreetings: ["Greetings, traveler."],
+    creatorNotes: "Never sent to the model.",
+    tags: ["fantasy", "guardian"],
+    creator: "Card Author",
+    cardCharacterVersion: "1.2.0",
+    gender: "female",
+    pronouns: "she/her",
+    subtitle: "Guardian of the grove",
+    instructions: "Speak in riddles.",
+    cards: [
+      { title: "Oath", content: "Protect the forest.", position: 0, active: true },
+    ],
+    versionNumber: 3,
+    tagline: "The forest's guardian",
+    // Only the unknown RM key lives in the stored extensions; the known RM
+    // fields come from the version columns.
+    extensions: { other: { keep: true }, rm: { futureRmKey: { keep: true } } },
+    unknownFields: {
+      assets: [{ type: "icon", uri: "ccdefault:", name: "main", ext: "png" }],
+      nickname: "The Guardian",
+    },
+  }
+
+  const lorebook = {
+    name: "Forest lore",
+    description: "Facts about the forest",
+    scanDepth: 4,
+    tokenBudget: 400,
+    recursiveScanning: false,
+    extensions: {},
+    unknownFields: null,
+    entries: [
+      {
+        id: "entry-1",
+        name: "Dragon lore",
+        sourceId: "1",
+        keys: ["dragon"],
+        secondaryKeys: [],
+        comment: "Dragon lore",
+        content: "@@depth 4\nDragons dwell in the northern mountains.",
+        constant: false,
+        selective: false,
+        selectiveLogic: 0 as const,
+        insertionOrder: 100,
+        position: "after_char" as const,
+        rawPosition: "1",
+        priority: 0,
+        enabled: true,
+        caseSensitive: false,
+        wholeWords: false,
+        order: 0,
+        extensions: {},
+        unknownFields: null,
+      },
+    ],
+  }
+
+  it("re-emits every RM field from the version and preserves unknown keys", () => {
+    const exported = versionFieldsToCardData(version as never, lorebook as never)
+
+    expect(exported).toMatchObject({
+      name: "Lyra",
+      description: "A guardian of the forest.",
+      first_mes: "Hello, traveler.",
+      assets: version.unknownFields.assets,
+      nickname: version.unknownFields.nickname,
+    })
+    const extensions = asRecord(exported.extensions)
+    expect(extensions.other).toEqual({ keep: true })
+    expect(asRecord(extensions.rm)).toMatchObject({
+      version: 1,
+      subtitle: "Guardian of the grove",
+      instructions: "Speak in riddles.",
+      knowledgeCards: [
+        { title: "Oath", content: "Protect the forest.", position: 0, active: true },
+      ],
+      versionNumber: 3,
+      tagline: "The forest's guardian",
+      futureRmKey: { keep: true },
+    })
+
+    const book = asRecord(exported.character_book)
+    const entry = (book.entries as Array<Record<string, unknown>>)[0]
+    expect(book).toMatchObject({
+      name: "Forest lore",
+      scan_depth: 4,
+      token_budget: 400,
+    })
+    expect(entry).toMatchObject({
+      keys: ["dragon"],
+      content: "@@depth 4\nDragons dwell in the northern mountains.",
+    })
   })
 })

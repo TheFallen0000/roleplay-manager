@@ -1,8 +1,10 @@
 import { and, desc, eq, inArray, max, sql } from "drizzle-orm"
+import { v7 as randomUUIDv7 } from "uuid"
 
 import { Character } from "../../../../../domain/entities/character.entity"
 import { CharacterVersion } from "../../../../../domain/entities/character-version.entity"
 import { CharacterCard } from "../../../../../domain/entities/character-card.entity"
+import { LorebookVersion } from "../../../../../domain/entities/lorebook-version.entity"
 import type {
   CharacterRepository,
   CharacterSummaryPage,
@@ -13,6 +15,14 @@ import type {
   CreateCharacterLorebook,
   CreateCharacterWithVersionResult,
 } from "../../../../../domain/ports/character.repository"
+import {
+  serializeLorebookEntries,
+  toLorebookCanonicalContent,
+} from "../../../../../application/use-cases/character/lorebook/lorebook.mapper"
+import {
+  canonicalizeLorebookContent,
+  computeLorebookSourceKey,
+} from "../../../../../application/use-cases/character/lorebook/source-key"
 import type { Database } from "../../../../config/database"
 import {
   characterCards,
@@ -20,8 +30,13 @@ import {
   characters,
   lorebookEntries,
   lorebooks,
+  lorebookVersions,
 } from "../schema"
-import { bookValues, entryValues } from "./drizzle-lorebook.repository"
+import {
+  bookValues,
+  entryValues,
+  versionValues,
+} from "./drizzle-lorebook.repository"
 import {
   parseJsonArray,
   parseJsonValue,
@@ -58,6 +73,7 @@ const toVersion = (row: VersionRow, cards: CharacterCard[]): CharacterVersion =>
     extensions: parseJsonValue(row.extensions),
     unknownFields: parseJsonValue(row.unknownFields),
     unknownRootFields: parseJsonValue(row.unknownRootFields),
+    lorebookVersionId: row.lorebookVersionId ?? null,
   })
 
 const toVersionValues = (version: CharacterVersion) => ({
@@ -87,6 +103,7 @@ const toVersionValues = (version: CharacterVersion) => ({
   unknownFields: serializeJsonValue(version.unknownFields),
   unknownRootFields: serializeJsonValue(version.unknownRootFields),
   createdAt: version.createdAt,
+  lorebookVersionId: version.lorebookVersionId,
 })
 
 const toCard = (row: CardRow): CharacterCard =>
@@ -102,6 +119,8 @@ export class DrizzleCharacterRepository
     version: CharacterVersion,
     lorebook?: CreateCharacterLorebook,
   ): Promise<CreateCharacterWithVersionResult> {
+    let result: CreateCharacterWithVersionResult = { character, version }
+
     this.db.transaction((tx) => {
       tx.insert(characters).values({
         id: character.id,
@@ -126,16 +145,55 @@ export class DrizzleCharacterRepository
       }
 
       if (lorebook) {
-        tx.insert(lorebooks).values(bookValues(lorebook.book)).run()
+        const book = lorebook.book.withCharacterId(null)
+        tx.insert(lorebooks)
+          .values({ ...bookValues(book), currentVersionId: null })
+          .run()
+
         if (lorebook.entries.length > 0) {
           tx.insert(lorebookEntries)
             .values(lorebook.entries.map(entryValues))
             .run()
         }
+
+        const lorebookVersion = LorebookVersion.create({
+          id: randomUUIDv7(),
+          lorebookId: book.id,
+          versionNumber: 1,
+          name: book.name,
+          description: book.description,
+          scanDepth: book.scanDepth,
+          tokenBudget: book.tokenBudget,
+          recursiveScanning: book.recursiveScanning,
+          entriesJson: serializeLorebookEntries(lorebook.entries),
+          sourceKey: computeLorebookSourceKey(
+            canonicalizeLorebookContent(
+              toLorebookCanonicalContent(book, lorebook.entries),
+            ),
+          ),
+        })
+
+        tx.insert(lorebookVersions).values(versionValues(lorebookVersion)).run()
+
+        tx.update(lorebooks)
+          .set({ currentVersionId: lorebookVersion.id })
+          .where(eq(lorebooks.id, book.id))
+          .run()
+
+        tx.update(characterVersions)
+          .set({ lorebookVersionId: lorebookVersion.id })
+          .where(eq(characterVersions.id, version.id))
+          .run()
+
+        result = {
+          character,
+          version: version.withLorebookVersionId(lorebookVersion.id),
+          lorebookVersion,
+        }
       }
     })
 
-    return { character, version }
+    return result
   }
 
   async findById(
@@ -227,6 +285,17 @@ export class DrizzleCharacterRepository
         subtitle: characterVersions.subtitle,
         profileImageAssetId: characterVersions.profileImageAssetId,
         versionNumber: characterVersions.versionNumber,
+        tags: characterVersions.tags,
+        creator: characterVersions.creator,
+        lorebookId: lorebookVersions.lorebookId,
+        lorebookVersionId: lorebookVersions.id,
+        lorebookVersionNumber: lorebookVersions.versionNumber,
+        lorebookName: lorebookVersions.name,
+        lorebookSourceKey: lorebookVersions.sourceKey,
+        lorebookCurrentVersionId: lorebooks.currentVersionId,
+        lorebookOriginId: lorebooks.originId,
+        lorebookDeletedAt: lorebooks.deletedAt,
+        lorebookEntryCount: sql<number>`COALESCE(json_array_length(${lorebookVersions.entriesJson}), 0)`,
       })
       .from(characterVersions)
       .innerJoin(
@@ -236,6 +305,11 @@ export class DrizzleCharacterRepository
           eq(characterVersions.versionNumber, latestVersions.versionNumber),
         ),
       )
+      .leftJoin(
+        lorebookVersions,
+        eq(characterVersions.lorebookVersionId, lorebookVersions.id),
+      )
+      .leftJoin(lorebooks, eq(lorebookVersions.lorebookId, lorebooks.id))
 
     const versionsByCharacter = new Map<string, CharacterVersionSummary>()
     for (const row of versionRows) {
@@ -246,6 +320,26 @@ export class DrizzleCharacterRepository
         subtitle: row.subtitle,
         profileImageAssetId: row.profileImageAssetId,
         versionNumber: row.versionNumber,
+        tags: parseJsonArray(row.tags),
+        creator: row.creator ?? null,
+        lorebook:
+          row.lorebookId &&
+          row.lorebookVersionId &&
+          row.lorebookVersionNumber !== null
+            ? {
+                lorebookId: row.lorebookId,
+                versionId: row.lorebookVersionId,
+                versionNumber: row.lorebookVersionNumber,
+                name: row.lorebookName ?? null,
+                sourceKey: row.lorebookSourceKey ?? "",
+                entryCount: Number(row.lorebookEntryCount ?? 0),
+                originId: row.lorebookOriginId ?? null,
+                currentVersionId: row.lorebookCurrentVersionId ?? null,
+                deletedAt: row.lorebookDeletedAt
+                  ? new Date(row.lorebookDeletedAt)
+                  : null,
+              }
+            : null,
       })
     }
 
@@ -299,6 +393,17 @@ export class DrizzleCharacterRepository
         subtitle: characterVersions.subtitle,
         profileImageAssetId: characterVersions.profileImageAssetId,
         versionNumber: characterVersions.versionNumber,
+        tags: characterVersions.tags,
+        creator: characterVersions.creator,
+        lorebookId: lorebookVersions.lorebookId,
+        lorebookVersionId: lorebookVersions.id,
+        lorebookVersionNumber: lorebookVersions.versionNumber,
+        lorebookName: lorebookVersions.name,
+        lorebookSourceKey: lorebookVersions.sourceKey,
+        lorebookCurrentVersionId: lorebooks.currentVersionId,
+        lorebookOriginId: lorebooks.originId,
+        lorebookDeletedAt: lorebooks.deletedAt,
+        lorebookEntryCount: sql<number>`COALESCE(json_array_length(${lorebookVersions.entriesJson}), 0)`,
       })
       .from(characterVersions)
       .innerJoin(
@@ -308,6 +413,11 @@ export class DrizzleCharacterRepository
           eq(characterVersions.versionNumber, latestVersions.versionNumber),
         ),
       )
+      .leftJoin(
+        lorebookVersions,
+        eq(characterVersions.lorebookVersionId, lorebookVersions.id),
+      )
+      .leftJoin(lorebooks, eq(lorebookVersions.lorebookId, lorebooks.id))
 
     const versionsByCharacter = new Map<string, CharacterVersionSummary>()
     for (const row of versionRows) {
@@ -318,6 +428,26 @@ export class DrizzleCharacterRepository
         subtitle: row.subtitle,
         profileImageAssetId: row.profileImageAssetId,
         versionNumber: row.versionNumber,
+        tags: parseJsonArray(row.tags),
+        creator: row.creator ?? null,
+        lorebook:
+          row.lorebookId &&
+          row.lorebookVersionId &&
+          row.lorebookVersionNumber !== null
+            ? {
+                lorebookId: row.lorebookId,
+                versionId: row.lorebookVersionId,
+                versionNumber: row.lorebookVersionNumber,
+                name: row.lorebookName ?? null,
+                sourceKey: row.lorebookSourceKey ?? "",
+                entryCount: Number(row.lorebookEntryCount ?? 0),
+                originId: row.lorebookOriginId ?? null,
+                currentVersionId: row.lorebookCurrentVersionId ?? null,
+                deletedAt: row.lorebookDeletedAt
+                  ? new Date(row.lorebookDeletedAt)
+                  : null,
+              }
+            : null,
       })
     }
 

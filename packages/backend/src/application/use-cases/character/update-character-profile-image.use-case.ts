@@ -46,7 +46,7 @@ export class UpdateCharacterProfileImageUseCase {
       createdAt: existing.character.createdAt.toISOString(),
       updatedAt: existing.character.updatedAt.toISOString(),
       currentVersion: toCharacterVersionDTO(currentVersion),
-      versions: allVersions.map(toCharacterVersionDTO),
+      versions: allVersions.map((version) => toCharacterVersionDTO(version)),
     }
   }
 }

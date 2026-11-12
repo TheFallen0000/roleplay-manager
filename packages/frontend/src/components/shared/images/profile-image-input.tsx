@@ -31,6 +31,7 @@ interface ProfileImageInputProps {
   aspect?: number
   showClearButton?: boolean
   clearLabel?: string
+  variant?: "dropzone" | "row"
   onFileSelected: (file: File) => void
   onClear: () => void
 }
@@ -58,6 +59,7 @@ export function ProfileImageInput({
   aspect = 1,
   showClearButton = true,
   clearLabel,
+  variant = "dropzone",
   onFileSelected,
   onClear,
 }: ProfileImageInputProps) {
@@ -126,6 +128,120 @@ export function ProfileImageInput({
       : null)
   const canRecrop = Boolean(recropAssetId && !pendingFile && imageSrc)
 
+  const fileInput = (
+    <input
+      ref={fileInputRef}
+      type="file"
+      accept={ALLOWED_IMAGE_MIMES.join(",")}
+      onChange={(e) => {
+        const file = e.target.files?.[0]
+        if (file) handleFile(file)
+        e.target.value = ""
+      }}
+      className="hidden"
+    />
+  )
+
+  const cropperDialog = (
+    <ImageCropperDialog
+      open={!!cropperFile}
+      onOpenChange={(open) => {
+        if (!open) setCropperFile(null)
+      }}
+      file={cropperFile}
+      aspect={aspect}
+      onCropComplete={(croppedFile) => {
+        onFileSelected(croppedFile)
+        setCropperFile(null)
+      }}
+    />
+  )
+
+  if (variant === "row") {
+    return (
+      <div>
+        <div className="rm-image-row">
+          <div
+            role="button"
+            tabIndex={0}
+            className={`rm-image-avatar ${dragging ? "is-dragging" : ""}`}
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                fileInputRef.current?.click()
+              }
+            }}
+            onDragOver={(event) => {
+              event.preventDefault()
+              setDragging(true)
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            aria-label={t("characters.fieldProfileImage")}
+          >
+            {imageSrc ? (
+              <img src={imageSrc} alt={name} />
+            ) : (
+              <ImagePlusIcon className="size-6" />
+            )}
+          </div>
+          <div className="rm-image-copy">
+            <p className="font-medium">
+              {imageSrc
+                ? t("characters.imageCurrent")
+                : t("characters.imageDropHint")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t("characters.imageFormats", {
+                max: formatMegabytes(MAX_SIZE_BYTES),
+              })}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1">
+              <button
+                type="button"
+                className="rm-btn rm-btn--ghost rm-btn--sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImagePlusIcon className="size-3.5" />
+                {imageSrc
+                  ? t("characters.changeImage")
+                  : t("characters.uploadImage")}
+              </button>
+              {canRecrop ? (
+                <button
+                  type="button"
+                  className="rm-btn rm-btn--quiet rm-btn--sm"
+                  onClick={() => void handleRecrop()}
+                  disabled={recropLoading}
+                >
+                  {recropLoading ? <Spinner /> : <CropIcon className="size-3.5" />}
+                  {t("characters.recropImage")}
+                </button>
+              ) : null}
+              {showClearButton && imageSrc ? (
+                <button
+                  type="button"
+                  className="rm-btn rm-btn--quiet rm-btn--sm"
+                  onClick={handleClear}
+                >
+                  <XIcon className="size-3.5" />
+                  {clearLabelText}
+                </button>
+              ) : null}
+            </div>
+            {pendingFile ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t("characters.imagePending")}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        {fileInput}
+        {cropperDialog}
+      </div>
+    )
+  }
+
   return (
     <div>
       <div
@@ -162,17 +278,7 @@ export function ProfileImageInput({
           </p>
         </div>
       </div>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={ALLOWED_IMAGE_MIMES.join(",")}
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) handleFile(file)
-          e.target.value = ""
-        }}
-        className="hidden"
-      />
+      {fileInput}
       {pendingFile ? (
         <p className="mt-2 text-xs text-muted-foreground">
           {t("characters.imagePending")}
@@ -206,18 +312,7 @@ export function ProfileImageInput({
         </div>
       ) : null}
 
-      <ImageCropperDialog
-        open={!!cropperFile}
-        onOpenChange={(open) => {
-          if (!open) setCropperFile(null)
-        }}
-        file={cropperFile}
-        aspect={aspect}
-        onCropComplete={(croppedFile) => {
-          onFileSelected(croppedFile)
-          setCropperFile(null)
-        }}
-      />
+      {cropperDialog}
     </div>
   )
 }
