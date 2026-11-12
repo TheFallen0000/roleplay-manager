@@ -950,7 +950,7 @@ Obligatorio (toca prompt/contexto/card). Sin red.
 
 ## Verificación
 
-- **Backend:** `pnpm --filter @workspace/backend test` → 158 archivos / 1025 tests
+- **Backend:** `pnpm --filter @workspace/backend test` → 158 archivos / 1027 tests
   en verde.
 - **Frontend:** `pnpm --filter @workspace/frontend exec vitest run` → 84 archivos /
   452 tests en verde.
@@ -1035,21 +1035,25 @@ el slice antes del merge; no abre una slice nueva ni cambia el alcance de datos.
 - **Tests:** caso nuevo de metadatos de lista, export por id y acciones del
   detalle de personaje; los tests existentes se ajustaron al nuevo DOM.
 - **Verificación:** `pnpm check` 7/7 + typecheck 5/5 + lint 5/5; backend 158
-  archivos / 1025 tests; frontend 84 archivos / 452 tests; `pnpm build` 4/4;
+  archivos / 1027 tests; frontend 84 archivos / 452 tests; `pnpm build` 4/4;
   `pnpm audit --prod` limpio; `git diff --check` limpio.
+- **Review:** PASS WITH NOTES (`docs/10-slices/S133-review.md`, sección
+  «Revisión del refactor de fidelidad UI»). M1/M2, L1–L4 y N2/N3 corregidos;
+  N1/N4/N5/N6 quedan como notas no bloqueantes.
 
 ## Review
 
 - **Estado:** PASS WITH NOTES
 - **Informe:** `docs/10-slices/S133-review.md`
 - **Historial:** la revisión inicial quedó **BLOCKED** por B1; el fix `0892bf5` y su
-  test `5d804dd` la reabren con **PASS WITH NOTES**.
+  test `5d804dd` la reabren con **PASS WITH NOTES**. El refactor UI posterior también
+  quedó **PASS WITH NOTES**; M1/M2, L1–L4 y N2/N3 se corrigieron antes del cierre.
 - **Bloqueantes resueltos:** B1 — los imports de card/lorebook (S132) creaban el libro
   sin v1 ni enlace; ahora `createWithFirstVersion` crea la v1 y enlaza la versión de
   personaje en la misma transacción, y `import-character` propaga esa v1 a todas las
   versiones. Sin bloqueantes pendientes.
-- **Notas no bloqueantes:** I1/N1–N5 recogidas en `## Deferred`; ninguna impide el
-  cierre del slice.
+- **Notas no bloqueantes:** I1/N1–N5 del backend y N1/N4/N5/N6 del refactor UI,
+  recogidas en `## Deferred` o en el informe de review; ninguna impide el cierre.
 
 ## Deferred
 
@@ -1114,6 +1118,16 @@ commits de documentación y tests previos se agrupan para mantener la lista legi
 
 14. `docs(slice)`: verificación, review, `CHANGELOG` y PR body de S133 (este
     commit).
+
+**Refactor de fidelidad UI (pre-merge)**
+
+15. `44d6873` — `feat(shared): add card-first library metadata and copy`
+16. `c6b3e96` — `feat(backend): expose library metadata and standalone lorebook export`
+17. `ea2b995` — `feat(frontend): rebuild card-first character and lorebook surfaces`
+18. `5843a0c` — `docs(slice): record the S133 UI fidelity refactor`
+19. `9b60e45` — `fix(backend): count linked lorebook entries and cover export route`
+20. `a4a6d67` — `fix(frontend): close S133 UI review findings`
+21. `docs(slice)`: review del refactor UI y actualización de este informe.
 
 ## CHANGELOG
 

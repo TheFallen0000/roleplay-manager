@@ -4,7 +4,7 @@
 **Fecha:** 2026-11-11
 **Rama:** `feat/S133-card-first-character`
 **Base:** `master` (`a309d03 docs(product): add card-first audit, UX plan and prototypes (#139)`)
-**HEAD de rama:** `0892bf5 fix(backend): link imported lorebooks to a v1`
+**HEAD de rama:** `a4a6d67 fix(frontend): close S133 UI review findings`
 **Slice:** superficie card-first de personaje + fundación de lorebooks versionados
 (migración `0020` + backfill, versiones inmutables de lorebook, contrato de card
 `GET/PUT /api/characters/:id/card` con `extensions.rm`, prompt desde la versión
@@ -21,9 +21,9 @@ publish.
 
 - [x] `pnpm check` en verde (`check:arch` 7/7, typecheck 5/5, lint 5/5),
       repetido con `TURBO_FORCE=1` sin caché.
-- [x] `pnpm --filter @workspace/backend test` en verde (158 archivos / 1023 tests).
+- [x] `pnpm --filter @workspace/backend test` en verde (158 archivos / 1027 tests).
 - [x] `pnpm --filter @workspace/frontend exec vitest run` en verde (84 archivos /
-      451 tests).
+      452 tests).
 - [x] `pnpm --filter @workspace/backend eval` en verde (1 archivo / 33 tests;
       snapshots S129 intactos).
 - [x] `pnpm build` en verde (4/4 tareas); backend y frontend reconstruidos sin
@@ -40,17 +40,19 @@ publish.
       release **no requerido**.
 - [x] Sin secretos, claves, tokens, `.env`, `.pem`, `.key`, `.crt` añadidos.
 - [x] Review independiente: **PASS WITH NOTES** (`docs/10-slices/S133-review.md`);
-      B1 (bloqueante) cerrado con `0892bf5` + `5d804dd`; I1/N1–N5 son notas no
-      bloqueantes.
+      B1 (bloqueante) cerrado con `0892bf5` + `5d804dd`; refactor UI revisado en
+      `44d6873..5843a0c` y hallazgos M1/M2, L1–L4 y N2/N3 corregidos en
+      `9b60e45` + `a4a6d67`; I1/N1–N5 y N1/N4/N5/N6 son notas no bloqueantes.
 - [x] `docs/10-slices/S133-pr-body.md` existe, está en inglés, con título
       conventional-commit y declara alcance, tests, review, diferidos y límites.
 - [x] Slice doc con `Estado: Completado`, `Fin: 2026-11-11`, verificación,
       review, diferidos y commits reales.
-- [ ] Prueba manual de la app (biblioteca, un guardado = una versión, selector de
-      lorebook, round-trip de card); no ejecutada en esta auditoría.
-- [ ] Commitear/pushear el cierre documental pendiente en el árbol de trabajo
-      (`CHANGELOG.md`, `S133-progress.md`, `S133-review.md`, `S133-pr-body.md`,
-      este informe). Lo hace el orquestador.
+- [x] Prueba manual asistida con Playwright sobre escritorio (1440 px) y móvil
+      (390 px): lista, crear/detalle de personaje, diálogo Crear, estantería y
+      detalle de lorebook, exportación de card/lorebook, inspector JSON, vista de
+      versiones y diálogo de borrado.
+- [ ] Push/PR/merge y actualización del body del PR; lo hace el orquestador
+      después de la aprobación humana.
 
 ---
 
@@ -96,7 +98,7 @@ Frontend: 183 archivos, 0 errores / 0 warnings / 1 hint.
 ```text
 RUN  v5.0.5 .../packages/backend
 Test Files  158 passed (158)
-     Tests  1023 passed (1023)
+     Tests  1027 passed (1027)
   Duration  4.93s
 ```
 
@@ -110,7 +112,7 @@ Incluye `migration-0020.test.ts`, `lorebook-versions.backfill.test.ts`,
 ```text
 RUN  v5.0.5 .../packages/frontend
 Test Files  84 passed (84)
-     Tests  451 passed (451)
+     Tests  452 passed (452)
   Duration  16.19s
 ```
 
@@ -267,8 +269,8 @@ lorebook, no credenciales.
 - `**Estado:** Completado`, `**Inicio:** 2026-11-11`, `**Fin:** 2026-11-11`.
 - RFC completo con `Estado: Aprobado` (aprobación del usuario) y secciones de
   problema, restricciones, opciones, decisión, migración, tests y eval.
-- `## Verificación` con los mismos números que esta auditoría (158/1023,
-  84/451, 1/33, check 7/7 + 5/5 + 5/5, build y audit verdes, diff limpio).
+- `## Verificación` con los mismos números que esta auditoría (158/1027,
+  84/452, 1/33, check 7/7 + 5/5 + 5/5, build y audit verdes, diff limpio).
 - `## Review`: **PASS WITH NOTES**, B1 resuelto, notas no bloqueantes.
 - `## Deferred`: S134 y limpieza, con I1/N1–N5 y la recomendación de prueba
   manual.
