@@ -6,6 +6,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 
+import { SectionPanel } from "@/components/shared/card-first/section-panel"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 import type { LorebookPageState } from "./use-lorebook-page"
@@ -19,19 +20,14 @@ export function LorebookIdentitySection({
   const { name, setName, description, setDescription, readOnly } = state
 
   return (
-    <section
+    <SectionPanel
       id="lorebook-identity"
-      aria-labelledby="lorebook-identity-heading"
-      className="flex scroll-mt-24 flex-col gap-4"
+      kicker={`01 · ${t("lorebooks.identity")}`}
+      title={t("lorebooks.identity")}
+      description={t("lorebooks.identityHint")}
     >
-      <h2
-        id="lorebook-identity-heading"
-        className="font-heading text-lg font-semibold"
-      >
-        {t("lorebooks.identity")}
-      </h2>
-      <FieldGroup>
-        <Field>
+      <FieldGroup className="rm-field-grid">
+        <Field className="rm-field rm-span-2">
           <FieldLabel htmlFor="lorebook-name-field">
             {t("lorebooks.name")}
           </FieldLabel>
@@ -44,7 +40,7 @@ export function LorebookIdentitySection({
             maxLength={200}
           />
         </Field>
-        <Field>
+        <Field className="rm-field rm-span-2">
           <FieldLabel htmlFor="lorebook-description-field">
             {t("lorebooks.description")}
           </FieldLabel>
@@ -58,6 +54,6 @@ export function LorebookIdentitySection({
           />
         </Field>
       </FieldGroup>
-    </section>
+    </SectionPanel>
   )
 }

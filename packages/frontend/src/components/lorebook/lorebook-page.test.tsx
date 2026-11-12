@@ -72,6 +72,7 @@ const versions = [
     recursiveScanning: false,
     sourceKey: "a".repeat(64),
     entries: lorebook.entries,
+    createdAt: "2026-11-10T12:00:00.000Z",
   },
   {
     id: "version-2",
@@ -84,6 +85,7 @@ const versions = [
     recursiveScanning: true,
     sourceKey: "b".repeat(64),
     entries: lorebook.entries,
+    createdAt: "2026-11-11T12:00:00.000Z",
   },
 ]
 
@@ -139,10 +141,10 @@ describe("LorebookPage — detail and version selector", () => {
   it("shows the version selector and marks an old version read-only", async () => {
     renderPage("book-1")
 
-    expect(await screen.findByText("Forest lore")).toBeInTheDocument()
+    expect((await screen.findAllByText("Forest lore")).length).toBeGreaterThan(0)
     expect(mocks.listLorebookVersions).toHaveBeenCalledWith("book-1")
 
-    const selector = screen.getByRole("combobox")
+    const selector = screen.getByLabelText("Versión")
     if (selector.tagName === "SELECT") {
       await userEvent.selectOptions(selector, "version-1")
     } else {
@@ -150,7 +152,9 @@ describe("LorebookPage — detail and version selector", () => {
       await userEvent.click(await screen.findByRole("option", { name: /v1/i }))
     }
 
-    expect(await screen.findByText(/solo lectura/i)).toBeInTheDocument()
+    expect(
+      (await screen.findAllByText(/solo lectura/i)).length,
+    ).toBeGreaterThan(0)
     const saves = screen.getAllByRole("button", { name: /Guardar/i })
     expect(saves.length).toBeGreaterThan(0)
     expect(saves.every((button) => button.hasAttribute("disabled"))).toBe(true)

@@ -1,5 +1,6 @@
 import { useTranslation } from "@/lib/hooks/use-translation"
 
+import { SectionPanel } from "@/components/shared/card-first/section-panel"
 import { CharacterCardFields } from "../character-card-fields"
 import type { CharacterPageState } from "../use-character-page"
 
@@ -8,18 +9,15 @@ export function CardSection({ state }: { state: CharacterPageState }) {
   const { cardFields, setCardField } = state
 
   return (
-    <section
+    <SectionPanel
       id="section-card"
-      aria-labelledby="section-card-heading"
-      className="flex scroll-mt-24 flex-col gap-4"
+      kicker={`02 · ${t("characters.sectionCard")}`}
+      title={t("characters.sectionCard")}
+      description={t("characters.cardHint")}
     >
-      <h2
-        id="section-card-heading"
-        className="font-heading text-lg font-semibold"
-      >
-        {t("characters.sectionCard")}
-      </h2>
-      <CharacterCardFields values={cardFields} onChange={setCardField} />
-    </section>
+      <div className="rm-card-fields">
+        <CharacterCardFields values={cardFields} onChange={setCardField} />
+      </div>
+    </SectionPanel>
   )
 }

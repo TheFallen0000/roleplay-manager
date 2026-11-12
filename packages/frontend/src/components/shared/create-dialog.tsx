@@ -55,69 +55,70 @@ function CreateDialogContent({
         onOpenChange(next)
       }}
     >
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="rm-create-dialog sm:max-w-2xl">
+        <DialogHeader className="sr-only">
           <DialogTitle>{t("createDialog.title")}</DialogTitle>
           <DialogDescription>{t("createDialog.description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <a
-            href="/characters/new"
-            className="group flex flex-col gap-3 rounded-xl border bg-card p-5 transition-colors hover:border-primary/50 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-          >
-            <span className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <UserRoundIcon className="size-5" />
-            </span>
-            <span className="flex flex-col gap-1">
-              <span className="font-heading text-base font-semibold">
-                {t("createDialog.character")}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {t("createDialog.characterDescription")}
-              </span>
-            </span>
-            <span className="mt-auto flex items-center gap-1 text-sm font-medium text-primary">
-              {t("createDialog.character")}
-              <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </a>
-
-          <a
-            href="/lorebooks/new"
-            className="group flex flex-col gap-3 rounded-xl border bg-card p-5 transition-colors hover:border-primary/50 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-          >
-            <span className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <BookOpenIcon className="size-5" />
-            </span>
-            <span className="flex flex-col gap-1">
-              <span className="font-heading text-base font-semibold">
-                {t("createDialog.lorebook")}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {t("createDialog.lorebookDescription")}
-              </span>
-            </span>
-            <span className="mt-auto flex items-center gap-1 text-sm font-medium text-primary">
-              {t("createDialog.lorebook")}
-              <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </a>
+        <div className="rm-create-dialog-head">
+          <h2>{t("createDialog.title")}</h2>
+          <p>{t("createDialog.description")}</p>
         </div>
 
-        <div className="flex justify-center border-t pt-3">
-          <a
-            href="#import-card"
-            onClick={(event) => {
-              if (!onImportCard) return
-              event.preventDefault()
-              onImportCard()
-            }}
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            <FileJsonIcon className="size-4" />
-            {t("createDialog.importCard")}
-          </a>
+        <div className="rm-create-dialog-body">
+          <div className="rm-create-plates">
+            <a href="/characters/new" className="rm-create-plate">
+              <span className="art">
+                <UserRoundIcon aria-hidden="true" />
+              </span>
+              <span className="body">
+                <span className="kicker">{t("createDialog.characterKicker")}</span>
+                <h3>{t("createDialog.character")}</h3>
+                <p>{t("createDialog.characterDescription")}</p>
+              </span>
+              <span className="go">
+                {t("createDialog.characterAction")}
+                <ArrowRightIcon className="size-4" aria-hidden="true" />
+              </span>
+            </a>
+
+            <a href="/lorebooks/new" className="rm-create-plate">
+              <span className="art">
+                <BookOpenIcon aria-hidden="true" />
+              </span>
+              <span className="body">
+                <span className="kicker">{t("createDialog.lorebookKicker")}</span>
+                <h3>{t("createDialog.lorebook")}</h3>
+                <p>{t("createDialog.lorebookDescription")}</p>
+              </span>
+              <span className="go">
+                {t("createDialog.lorebookAction")}
+                <ArrowRightIcon className="size-4" aria-hidden="true" />
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <div className="rm-create-dialog-foot">
+          <span>{t("createDialog.footHint")}</span>
+          {onImportCard ? (
+            <a
+              href="#import-card"
+              onClick={(event) => {
+                event.preventDefault()
+                onImportCard()
+              }}
+            >
+              <FileJsonIcon className="mr-1 inline size-4" aria-hidden="true" />
+              {t("createDialog.importCard")}
+            </a>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-muted-foreground">
+              <FileJsonIcon className="size-4" aria-hidden="true" />
+              {t("createDialog.importCard")}
+            </span>
+          )}
         </div>
       </DialogContent>
     </Dialog>

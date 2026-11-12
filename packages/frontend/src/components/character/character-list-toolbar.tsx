@@ -1,15 +1,5 @@
 import { SearchIcon } from "lucide-react"
 
-import { Badge } from "@workspace/ui/components/badge"
-import { Input } from "@workspace/ui/components/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-
 import { useTranslation } from "@/lib/hooks/use-translation"
 import type { CharacterSortKey } from "@/lib/sort-characters"
 
@@ -45,53 +35,41 @@ export function CharacterListToolbar({
   totalCount,
 }: CharacterListToolbarProps) {
   const { t } = useTranslation()
-
-  const selectedOption =
-    SORT_OPTIONS.find((option) => option.value === sort) ?? SORT_OPTIONS[0]
   const searching = search.trim().length > 0
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-      <div className="relative flex-1">
-        <SearchIcon className="text-muted-foreground absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-        <Input
+    <div className="rm-toolbar">
+      <label className="rm-search">
+        <SearchIcon className="size-4" aria-hidden="true" />
+        <input
           type="search"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder={t("characters.searchPlaceholder")}
           aria-label={t("characters.searchLabel")}
-          className="pl-8"
         />
-      </div>
-      <div className="flex items-center justify-between gap-2 sm:justify-end">
-        <Badge variant="secondary" className="whitespace-nowrap">
-          {searching
-            ? t("characters.results", { count: resultCount })
-            : t("characters.count", { count: totalCount })}
-        </Badge>
-        <Select
+      </label>
+      <span className="rm-chip">
+        {searching
+          ? t("characters.results", { count: resultCount })
+          : t("characters.count", { count: totalCount })}
+      </span>
+      <label className="rm-field" style={{ marginLeft: "auto" }}>
+        <span className="rm-sr-only">{t("characters.sortLabel")}</span>
+        <select
           value={sort}
-          onValueChange={(value) => {
-            if (value) {
-              onSortChange(value as CharacterSortKey)
-            }
-          }}
+          aria-label={t("characters.sortLabel")}
+          onChange={(event) =>
+            onSortChange(event.target.value as CharacterSortKey)
+          }
         >
-          <SelectTrigger
-            className="w-full sm:w-64"
-            aria-label={t("characters.sortLabel")}
-          >
-            <SelectValue>{t(selectedOption.labelKey)}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {t(option.labelKey)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {t(option.labelKey)}
+            </option>
+          ))}
+        </select>
+      </label>
     </div>
   )
 }

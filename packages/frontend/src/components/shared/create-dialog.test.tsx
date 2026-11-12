@@ -32,9 +32,7 @@ describe("CreateDialog — two plates, no tabs", () => {
   it("keeps the card import as a tertiary action", () => {
     renderDialog()
 
-    expect(
-      screen.getByRole("link", { name: /Importar|Import/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Importar card|Import card/i)).toBeInTheDocument()
   })
 
   it("closes with Escape", async () => {

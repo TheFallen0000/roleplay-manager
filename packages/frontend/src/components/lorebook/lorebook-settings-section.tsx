@@ -1,6 +1,7 @@
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
+import { SectionPanel } from "@/components/shared/card-first/section-panel"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 import type { LorebookPageState } from "./use-lorebook-page"
@@ -27,19 +28,14 @@ export function LorebookSettingsSection({
   } = state
 
   return (
-    <section
+    <SectionPanel
       id="lorebook-settings"
-      aria-labelledby="lorebook-settings-heading"
-      className="flex scroll-mt-24 flex-col gap-4"
+      kicker={`02 · ${t("lorebooks.settings")}`}
+      title={t("lorebooks.settings")}
+      description={t("lorebooks.settingsHint")}
     >
-      <h2
-        id="lorebook-settings-heading"
-        className="font-heading text-lg font-semibold"
-      >
-        {t("lorebooks.settings")}
-      </h2>
-      <FieldGroup>
-        <Field>
+      <FieldGroup className="rm-field-grid">
+        <Field className="rm-field">
           <FieldLabel htmlFor="lorebook-scan-depth">
             {t("lorebooks.scanDepth")}
           </FieldLabel>
@@ -55,7 +51,7 @@ export function LorebookSettingsSection({
             }
           />
         </Field>
-        <Field>
+        <Field className="rm-field">
           <FieldLabel htmlFor="lorebook-token-budget">
             {t("lorebooks.tokenBudget")}
           </FieldLabel>
@@ -71,7 +67,7 @@ export function LorebookSettingsSection({
             }
           />
         </Field>
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+        <label className="rm-span-2 flex items-center gap-2 text-sm text-muted-foreground">
           <input
             type="checkbox"
             checked={recursiveScanning}
@@ -81,6 +77,6 @@ export function LorebookSettingsSection({
           {t("lorebooks.recursiveScanning")}
         </label>
       </FieldGroup>
-    </section>
+    </SectionPanel>
   )
 }

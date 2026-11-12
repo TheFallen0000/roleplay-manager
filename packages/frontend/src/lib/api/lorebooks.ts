@@ -53,3 +53,12 @@ export const updateLorebook = (
     method: "PUT",
     body: JSON.stringify(input),
   })
+
+export const exportLorebook = (
+  id: string,
+  format: "ccv3" | "st-native",
+): Promise<unknown> =>
+  apiRequest(`/api/lorebooks/${id}/export`, {
+    method: "POST",
+    body: JSON.stringify({ format }),
+  })

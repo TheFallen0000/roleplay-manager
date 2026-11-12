@@ -3,8 +3,11 @@ import type { Locale } from "@workspace/shared/i18n"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
+import { SectionNav } from "@/components/shared/card-first/section-nav"
+import { CharacterCover } from "./character-cover"
+import { CharacterPageActions } from "./character-page-actions"
+import { CharacterRail } from "./character-rail"
 import { CharacterSaveBar } from "./character-save-bar"
-import { CharacterSectionNav } from "./character-section-nav"
 import { CardSection } from "./sections/card-section"
 import { FichasSection } from "./sections/fichas-section"
 import { IdentitySection } from "./sections/identity-section"
@@ -32,7 +35,7 @@ function CharacterPageContent({ characterId }: { characterId?: string }) {
 
   if (loading) {
     return (
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
+      <div className="rm-content">
         <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       </div>
     )
@@ -40,43 +43,88 @@ function CharacterPageContent({ characterId }: { characterId?: string }) {
 
   if (loadError) {
     return (
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-2 rounded-2xl border border-dashed p-6">
-        <h1 className="font-heading text-xl font-bold">
-          {t("characters.notFoundTitle")}
-        </h1>
-        <p role="alert" className="text-sm text-muted-foreground">
-          {loadError}
-        </p>
+      <div className="rm-content">
+        <div className="rm-empty">
+          <h1>{t("characters.notFoundTitle")}</h1>
+          <p role="alert">{loadError}</p>
+        </div>
       </div>
     )
   }
 
+  const sections = [
+    { id: "section-identity", label: t("characters.sectionIdentity"), number: "01" },
+    { id: "section-card", label: t("characters.sectionCard"), number: "02" },
+    { id: "section-fichas", label: t("characters.sectionFichas"), number: "03" },
+    { id: "section-lorebook", label: t("characters.sectionLorebook"), number: "04" },
+    { id: "section-versions", label: t("characters.sectionVersions"), number: "05" },
+  ]
+
+  const scrollToIdentity = () => {
+    document.getElementById("section-identity")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    })
+  }
+
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-black tracking-tight">
-          {isEditing && character
-            ? character.name
-            : t("characters.createTitle")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {isEditing && character
-            ? character.currentVersion.subtitle
-            : t("characters.newTitle")}
-        </p>
-      </header>
-
-      <CharacterSectionNav />
-
-      <div className="flex flex-col gap-8">
-        <IdentitySection state={state} />
-        <CardSection state={state} />
-        <FichasSection state={state} />
-        <LorebookSection state={state} />
-        <VersionsSection state={state} />
+    <div className="rm-content">
+      <div className="rm-breadcrumb">
+        <a href="/">{t("nav.groupLibrary")}</a>
+        <span className="sep">/</span>
+        <a href="/">{t("nav.characters")}</a>
+        <span className="sep">/</span>
+        <span>
+          {isEditing && character ? character.name : t("characters.createTitle")}
+        </span>
       </div>
 
-      <CharacterSaveBar state={state} />
+      <CharacterCover
+        characterId={character?.id}
+        name={state.name}
+        subtitle={state.subtitle}
+        profileImageAssetId={state.profileImageAssetId}
+        pendingFile={state.pendingFile}
+        versionNumber={character?.currentVersion.versionNumber}
+        cardSpec={character?.currentVersion.cardCharacterVersion}
+        creator={character?.currentVersion.creator}
+        tags={character?.currentVersion.tags}
+        lorebook={state.lorebookSummary}
+        updatedAt={character?.updatedAt}
+        onImageClick={scrollToIdentity}
+      >
+        {isEditing ? (
+          <CharacterPageActions state={state} />
+        ) : (
+          <button
+            type="button"
+            className="rm-btn"
+            onClick={() => void state.save()}
+            disabled={state.saving}
+          >
+            {state.saving ? t("common.loading") : t("characters.save")}
+          </button>
+        )}
+      </CharacterCover>
+
+      <div className="rm-page-grid rm-page-grid--rail">
+        <SectionNav
+          ariaLabel={t("characters.sectionNavLabel")}
+          caption={t("characters.sectionNavCaption")}
+          sections={sections}
+        />
+
+        <div>
+          <IdentitySection state={state} />
+          <CardSection state={state} />
+          <FichasSection state={state} />
+          <LorebookSection state={state} />
+          <VersionsSection state={state} />
+          <CharacterSaveBar state={state} />
+        </div>
+
+        <CharacterRail state={state} />
+      </div>
     </div>
   )
 }

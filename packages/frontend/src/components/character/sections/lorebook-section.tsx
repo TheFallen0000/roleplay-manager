@@ -2,8 +2,8 @@ import { useState } from "react"
 import { BookOpenIcon, PencilIcon, UnlinkIcon } from "lucide-react"
 
 import type { TranslationKey } from "@workspace/shared/i18n"
-import { Button } from "@workspace/ui/components/button"
 
+import { SectionPanel } from "@/components/shared/card-first/section-panel"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 import type { CharacterPageState } from "../use-character-page"
@@ -34,131 +34,78 @@ export function LorebookSection({ state }: { state: CharacterPageState }) {
   }
 
   return (
-    <section
+    <SectionPanel
       id="section-lorebook"
-      aria-labelledby="section-lorebook-heading"
-      className="flex scroll-mt-24 flex-col gap-4"
+      kicker={`04 · ${t("characters.sectionLorebook")}`}
+      title={t("characters.sectionLorebook")}
+      description={t("characters.lorebookSectionHint")}
     >
-      <h2
-        id="section-lorebook-heading"
-        className="font-heading text-lg font-semibold"
-      >
-        {t("characters.sectionLorebook")}
-      </h2>
-
       {lorebookSummary ? (
-        <div className="flex flex-col gap-3 rounded-xl border p-4">
-          <p className="text-sm">
-            <span className="font-medium">
-              {t(STATUS_KEYS[lorebookSummary.status])}
-            </span>
-            {" · "}
-            {lorebookSummary.name ?? t("common.untitled")}
-            {` v${lorebookSummary.versionNumber}`}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={openBook}>
-              <BookOpenIcon />
+        <div className="rm-book-summary">
+          <span className="spine" aria-hidden="true" />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3>{lorebookSummary.name ?? t("common.untitled")}</h3>
+              <span className="rm-chip rm-chip--violet">
+                v{lorebookSummary.versionNumber}
+              </span>
+              <span className="rm-chip">{t(STATUS_KEYS[lorebookSummary.status])}</span>
+            </div>
+            <p className="meta">
+              {t("lorebooks.entryCount", { count: lorebookSummary.entryCount })}
+              {" · "}
+              {t("characters.lorebookVersionPin")}
+            </p>
+          </div>
+          <div className="actions">
+            <button type="button" className="rm-btn rm-btn--ghost rm-btn--sm" onClick={openBook}>
+              <BookOpenIcon className="size-4" />
               {t("characters.lorebookOpen")}
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="outline"
+              className="rm-btn rm-btn--ghost rm-btn--sm"
               onClick={() => setPickerOpen((open) => !open)}
             >
-              <PencilIcon />
+              <PencilIcon className="size-4" />
               {t("characters.lorebookChange")}
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="outline"
+              className="rm-btn rm-btn--ghost rm-btn--sm"
               onClick={() => void removeLorebook()}
             >
-              <UnlinkIcon />
+              <UnlinkIcon className="size-4" />
               {t("characters.lorebookRemove")}
-            </Button>
+            </button>
           </div>
-          {pickerOpen ? (
-            <>
-              <label className="flex flex-col gap-1 text-xs">
-                <span className="text-muted-foreground">
-                  {t("characters.lorebookPick")}
-                </span>
-                <select
-                  value={lorebookSummary.lorebookId}
-                  onChange={(event) => {
-                    if (event.target.value) {
-                      void changeLorebook(event.target.value)
-                    }
-                  }}
-                  className="h-9 rounded-md border bg-transparent px-2 text-sm"
-                >
-                  <option value="">{t("characters.lorebookNoSelection")}</option>
-                  {lorebooks.map((book) => (
-                    <option key={book.id} value={book.id}>
-                      {book.name ?? t("common.untitled")}
-                      {book.currentVersionNumber
-                        ? ` · v${book.currentVersionNumber}`
-                        : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {lorebookVersions.length > 0 ? (
-                <label className="flex flex-col gap-1 text-xs">
-                  <span className="text-muted-foreground">
-                    {t("characters.lorebookVersionPick")}
-                  </span>
-                  <select
-                    aria-label={t("characters.lorebookVersionPick")}
-                    value={lorebookSummary.versionId}
-                    onChange={(event) => {
-                      if (event.target.value) {
-                        void changeLorebook(
-                          lorebookSummary.lorebookId,
-                          event.target.value,
-                        )
-                      }
-                    }}
-                    className="h-9 rounded-md border bg-transparent px-2 text-sm"
-                  >
-                    {lorebookVersions.map((version) => (
-                      <option key={version.id} value={version.id}>
-                        {`v${version.versionNumber}`}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-            </>
-          ) : null}
         </div>
       ) : (
-        <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed p-4">
-          <p className="text-sm text-muted-foreground">
-            {t("characters.lorebookNone")}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {t("characters.lorebookLinkHint")}
-          </p>
-          <Button
+        <div className="rm-empty">
+          <h2>{t("characters.lorebookNone")}</h2>
+          <p>{t("characters.lorebookLinkHint")}</p>
+          <button
             type="button"
-            variant="outline"
+            className="rm-btn rm-btn--ghost"
             onClick={() => setPickerOpen((open) => !open)}
           >
-            <BookOpenIcon />
+            <BookOpenIcon className="size-4" />
             {t("characters.lorebookPick")}
-          </Button>
-          {pickerOpen ? (
+          </button>
+        </div>
+      )}
+
+      {pickerOpen ? (
+        <div className="rm-field-grid" style={{ marginTop: "0.85rem" }}>
+          <label className="rm-field">
+            <span className="label">{t("characters.lorebookPick")}</span>
             <select
-              value=""
+              value={lorebookSummary?.lorebookId ?? ""}
               onChange={(event) => {
                 if (event.target.value) {
                   void changeLorebook(event.target.value)
                 }
               }}
-              aria-label={t("characters.lorebookPick")}
-              className="h-9 rounded-md border bg-transparent px-2 text-sm"
             >
               <option value="">{t("characters.lorebookNoSelection")}</option>
               {lorebooks.map((book) => (
@@ -170,9 +117,32 @@ export function LorebookSection({ state }: { state: CharacterPageState }) {
                 </option>
               ))}
             </select>
+          </label>
+          {lorebookSummary && lorebookVersions.length > 0 ? (
+            <label className="rm-field">
+              <span className="label">{t("characters.lorebookVersionPick")}</span>
+              <select
+                aria-label={t("characters.lorebookVersionPick")}
+                value={lorebookSummary.versionId}
+                onChange={(event) => {
+                  if (event.target.value) {
+                    void changeLorebook(
+                      lorebookSummary.lorebookId,
+                      event.target.value,
+                    )
+                  }
+                }}
+              >
+                {lorebookVersions.map((version) => (
+                  <option key={version.id} value={version.id}>
+                    {`v${version.versionNumber}`}
+                  </option>
+                ))}
+              </select>
+            </label>
           ) : null}
         </div>
-      )}
-    </section>
+      ) : null}
+    </SectionPanel>
   )
 }

@@ -234,8 +234,12 @@ describe("CharacterPage — sectioned card-first surface", () => {
     mocks.getCharacter.mockResolvedValue(characterDetail("outdated"))
     renderPage("char-1")
 
-    expect(await screen.findByText("Lyra")).toBeInTheDocument()
-    expect(screen.getByText(/antigua|editado|outdated/i)).toBeInTheDocument()
+    expect(
+      await screen.findByRole("heading", { name: "Lyra" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getAllByText(/antigua|editado|outdated/i).length,
+    ).toBeGreaterThan(0)
     expect(screen.getByRole("button", { name: /Abrir/i })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /Cambiar/i })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /Quitar/i })).toBeInTheDocument()
@@ -245,7 +249,9 @@ describe("CharacterPage — sectioned card-first surface", () => {
     mocks.getCharacter.mockResolvedValue(characterDetail("deleted"))
     renderPage("char-1")
 
-    expect(await screen.findByText(/Lorebook eliminado/i)).toBeInTheDocument()
+    expect(
+      (await screen.findAllByText(/Lorebook eliminado/i)).length,
+    ).toBeGreaterThan(0)
     expect(screen.getAllByText(/Forest lore/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/v1/i).length).toBeGreaterThan(0)
   })
@@ -253,17 +259,43 @@ describe("CharacterPage — sectioned card-first surface", () => {
   it("lists versions with their lorebook summary", async () => {
     renderPage("char-1")
 
-    expect(await screen.findByText("Lyra")).toBeInTheDocument()
+    expect(
+      await screen.findByRole("heading", { name: "Lyra" }),
+    ).toBeInTheDocument()
     expect(screen.getAllByText(/v1/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/v2/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/Forest lore/i).length).toBeGreaterThan(0)
+  })
+
+  it("exposes the S133 detail actions and the card inspector", async () => {
+    mocks.getCharacterCard.mockResolvedValue({
+      spec: "chara_card_v3",
+      data: { name: "Lyra", description: "A guardian" },
+    })
+    renderPage("char-1")
+
+    expect(
+      (await screen.findAllByRole("button", { name: /Nueva conversación/i }))
+        .length,
+    ).toBeGreaterThan(0)
+    expect(screen.getByRole("button", { name: /Exportar/i })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Card JSON/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: /Eliminar personaje/i }),
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole("button", { name: /Card JSON/i }))
+
+    const dialog = await screen.findByRole("dialog")
+    expect(dialog).toHaveTextContent("Lyra")
+    expect(dialog).toHaveTextContent("description")
   })
 
   it("removing the lorebook saves with one PUT /characters/:id and no card PUT", async () => {
     mocks.getCharacter.mockResolvedValue(characterDetail("outdated"))
     renderPage("char-1")
 
-    await screen.findByText("Lyra")
+    await screen.findByRole("heading", { name: "Lyra" })
     await userEvent.click(screen.getByRole("button", { name: /Quitar/i }))
     if (mocks.updateCharacter.mock.calls.length === 0) {
       await userEvent.click(

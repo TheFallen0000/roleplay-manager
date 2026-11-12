@@ -1,9 +1,9 @@
 import { PlusIcon, Trash2Icon } from "lucide-react"
 
-import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 
+import { SectionPanel } from "@/components/shared/card-first/section-panel"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 import type { CharacterPageState } from "../use-character-page"
@@ -14,50 +14,36 @@ export function FichasSection({ state }: { state: CharacterPageState }) {
   const hasCards = cards.length > 0
 
   return (
-    <section
+    <SectionPanel
       id="section-fichas"
-      aria-labelledby="section-fichas-heading"
-      className="flex scroll-mt-24 flex-col gap-4"
+      kicker={`03 · ${t("characters.sectionFichas")}`}
+      title={t("characters.sectionFichas")}
+      description={t("characters.fichasHint")}
     >
-      <h2
-        id="section-fichas-heading"
-        className="font-heading text-lg font-semibold"
-      >
-        {t("characters.sectionFichas")}
-      </h2>
-      <p className="text-sm text-muted-foreground">
-        {t("characters.fichasHint")}
-      </p>
-
-      {hasCards ? null : (
-        <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed p-4">
-          <p className="text-sm text-muted-foreground">
-            {t("characters.fichasEmpty")}
-          </p>
-          <Button type="button" variant="outline" onClick={addCard}>
-            <PlusIcon />
-            {t("characters.fichasAdd")}
-          </Button>
-        </div>
-      )}
-
       {hasCards ? (
-        <ul className="flex flex-col gap-3">
+        <ul className="rm-ficha-list">
           {cards.map((card, index) => (
-            <li key={card.id} className="flex flex-col gap-2 rounded-xl border p-3">
-              <Input
-                value={card.title}
-                onChange={(event) => updateCard(index, "title", event.target.value)}
-                placeholder={t("characters.cardTitlePlaceholder")}
-                maxLength={50}
-              />
-              <Textarea
-                value={card.content}
-                onChange={(event) => updateCard(index, "content", event.target.value)}
-                placeholder={t("characters.cardContentPlaceholder")}
-                maxLength={2500}
-              />
-              <div className="flex items-center gap-2">
+            <li key={card.id} className="rm-ficha">
+              <span className="handle rm-mono" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <div className="flex min-w-0 flex-col gap-2">
+                <Input
+                  value={card.title}
+                  onChange={(event) =>
+                    updateCard(index, "title", event.target.value)
+                  }
+                  placeholder={t("characters.cardTitlePlaceholder")}
+                  maxLength={50}
+                />
+                <Textarea
+                  value={card.content}
+                  onChange={(event) =>
+                    updateCard(index, "content", event.target.value)
+                  }
+                  placeholder={t("characters.cardContentPlaceholder")}
+                  maxLength={2500}
+                />
                 <label className="flex items-center gap-2 text-xs text-muted-foreground">
                   <input
                     type="checkbox"
@@ -68,26 +54,37 @@ export function FichasSection({ state }: { state: CharacterPageState }) {
                   />
                   {t("characters.cardActive")}
                 </label>
-                <button
-                  type="button"
-                  onClick={() => removeCard(index)}
-                  className="ml-auto flex items-center gap-1 text-xs text-destructive hover:underline"
-                >
-                  <Trash2Icon className="size-3" />
-                  {t("common.delete")}
-                </button>
               </div>
+              <button
+                type="button"
+                onClick={() => removeCard(index)}
+                className="rm-btn rm-btn--quiet rm-btn--icon rm-btn--sm"
+                aria-label={t("common.delete")}
+                title={t("common.delete")}
+              >
+                <Trash2Icon className="size-4" />
+              </button>
             </li>
           ))}
         </ul>
-      ) : null}
+      ) : (
+        <div className="rm-empty">
+          <h2>{t("characters.fichasEmpty")}</h2>
+          <p>{t("characters.fichasEmptyHint")}</p>
+        </div>
+      )}
 
-      {hasCards ? (
-        <Button type="button" variant="outline" onClick={addCard}>
-          <PlusIcon />
+      <button
+        type="button"
+        className="rm-ficha-add"
+        style={{ width: "100%", marginTop: "0.65rem" }}
+        onClick={addCard}
+      >
+        <span className="flex items-center gap-2">
+          <PlusIcon className="size-4" />
           {t("characters.fichasAdd")}
-        </Button>
-      ) : null}
-    </section>
+        </span>
+      </button>
+    </SectionPanel>
   )
 }

@@ -52,6 +52,7 @@ export function useLorebookPage(lorebookId?: string) {
   const [loading, setLoading] = useState(isEditing)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -139,7 +140,7 @@ export function useLorebookPage(lorebookId?: string) {
         setReadOnly(true)
         hydrateFromVersion(version)
       } catch (caught: unknown) {
-        setError(
+        setSaveError(
           caught instanceof ApiClientError
             ? caught.message
             : t("lorebooks.loadFailed"),
@@ -152,7 +153,7 @@ export function useLorebookPage(lorebookId?: string) {
   const save = useCallback(async () => {
     if (saving || readOnly) return
     setSaving(true)
-    setError(null)
+    setSaveError(null)
     try {
       if (!lorebookId) {
         const created = await createLorebook({
@@ -179,8 +180,11 @@ export function useLorebookPage(lorebookId?: string) {
       const result = await updateLorebook(lorebookId, input)
       setLorebook(result.lorebook)
       setSelectedVersionId(result.lorebook.currentVersionId ?? selectedVersionId)
+      setReadOnly(false)
+      hydrateFromBook(result.lorebook)
+      setVersions(await listLorebookVersions(lorebookId))
     } catch (caught: unknown) {
-      setError(
+      setSaveError(
         caught instanceof ApiClientError
           ? caught.message
           : t("lorebooks.saveFailed"),
@@ -191,6 +195,7 @@ export function useLorebookPage(lorebookId?: string) {
   }, [
     description,
     entries,
+    hydrateFromBook,
     lorebookId,
     name,
     readOnly,
@@ -211,6 +216,7 @@ export function useLorebookPage(lorebookId?: string) {
     loading,
     saving,
     error,
+    saveError,
     name,
     setName,
     description,

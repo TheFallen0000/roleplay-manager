@@ -10,6 +10,7 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 import { ProfileImageInput } from "@/components/shared/images/profile-image-input"
+import { SectionPanel } from "@/components/shared/card-first/section-panel"
 import type { CharacterPageState } from "../use-character-page"
 
 export function IdentitySection({ state }: { state: CharacterPageState }) {
@@ -21,20 +22,14 @@ export function IdentitySection({ state }: { state: CharacterPageState }) {
   const { greeting, setGreeting } = state
 
   return (
-    <section
+    <SectionPanel
       id="section-identity"
-      aria-labelledby="section-identity-heading"
-      className="flex scroll-mt-24 flex-col gap-4"
+      kicker={`01 · ${t("characters.sectionIdentity")}`}
+      title={t("characters.sectionIdentity")}
+      description={t("characters.identityHint")}
     >
-      <h2
-        id="section-identity-heading"
-        className="font-heading text-lg font-semibold"
-      >
-        {t("characters.sectionIdentity")}
-      </h2>
-
-      <FieldGroup>
-        <Field>
+      <FieldGroup className="rm-field-grid">
+        <Field className="rm-field">
           <FieldLabel htmlFor="character-name">
             {t("characters.fieldName")}
           </FieldLabel>
@@ -47,7 +42,7 @@ export function IdentitySection({ state }: { state: CharacterPageState }) {
           />
         </Field>
 
-        <Field>
+        <Field className="rm-field">
           <FieldLabel htmlFor="character-subtitle">
             {t("characters.fieldSubtitle")}
           </FieldLabel>
@@ -61,7 +56,7 @@ export function IdentitySection({ state }: { state: CharacterPageState }) {
           <FieldDescription>{t("characters.subtitleHint")}</FieldDescription>
         </Field>
 
-        <Field>
+        <Field className="rm-field rm-span-2">
           <FieldLabel htmlFor="character-profile-image">
             {t("characters.fieldProfileImage")}
           </FieldLabel>
@@ -71,12 +66,13 @@ export function IdentitySection({ state }: { state: CharacterPageState }) {
             profileImageAssetId={profileImageAssetId}
             pendingFile={pendingFile}
             recropAssetId={profileImageAssetId}
+            variant={state.isEditing ? "row" : "dropzone"}
             onFileSelected={handleImageSelected}
             onClear={handleImageClear}
           />
         </Field>
 
-        <Field>
+        <Field className="rm-field rm-span-2">
           <FieldLabel htmlFor="character-greeting">
             {t("characters.fieldGreeting")}
           </FieldLabel>
@@ -89,7 +85,7 @@ export function IdentitySection({ state }: { state: CharacterPageState }) {
           />
         </Field>
 
-        <Field>
+        <Field className="rm-field rm-span-2">
           <FieldLabel htmlFor="character-description">
             {t("characters.fieldDescription")}
           </FieldLabel>
@@ -102,7 +98,7 @@ export function IdentitySection({ state }: { state: CharacterPageState }) {
           />
         </Field>
 
-        <Field>
+        <Field className="rm-field rm-span-2">
           <FieldLabel htmlFor="character-instructions">
             {t("characters.fieldInstructions")}
           </FieldLabel>
@@ -116,6 +112,6 @@ export function IdentitySection({ state }: { state: CharacterPageState }) {
           <FieldDescription>{t("characters.instructionsHint")}</FieldDescription>
         </Field>
       </FieldGroup>
-    </section>
+    </SectionPanel>
   )
 }

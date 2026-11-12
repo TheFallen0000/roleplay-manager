@@ -33,18 +33,22 @@ describe("LorebookList", () => {
       {
         id: "book-1",
         name: "Forest lore",
+        description: "Facts about the forest",
         currentVersionNumber: 2,
         entryCount: 4,
         originId: "origin-1",
         usageCount: 0,
+        updatedAt: "2026-11-11T12:00:00.000Z",
       },
       {
         id: "book-2",
         name: "Desert lore",
+        description: null,
         currentVersionNumber: 1,
         entryCount: 0,
         originId: null,
         usageCount: 0,
+        updatedAt: "2026-11-11T12:00:00.000Z",
       },
     ])
     renderList()
@@ -52,9 +56,11 @@ describe("LorebookList", () => {
     expect(await screen.findByText("Forest lore")).toBeInTheDocument()
     expect(screen.getByText("Desert lore")).toBeInTheDocument()
     expect(screen.getAllByText(/v2/i).length).toBeGreaterThan(0)
-    const createLink = screen.queryByRole("link", { name: /Crear|Nuevo/i })
-    if (createLink) {
-      expect(createLink).toHaveAttribute("href", "/lorebooks/new")
+    const createLinks = screen.queryAllByRole("link", { name: /Crear|Nuevo/i })
+    if (createLinks.length > 0) {
+      for (const link of createLinks) {
+        expect(link).toHaveAttribute("href", "/lorebooks/new")
+      }
     } else {
       expect(
         screen.getByRole("button", { name: /Crear|Nuevo/i }),

@@ -22,6 +22,7 @@ interface LorebookEntryFormProps {
   onChange: (entry: LorebookEditorEntry) => void
   onRemove: () => void
   readOnly?: boolean
+  hideHeader?: boolean
 }
 
 const SELECTIVE_LOGIC_KEYS = [
@@ -47,6 +48,7 @@ export function LorebookEntryForm({
   onChange,
   onRemove,
   readOnly = false,
+  hideHeader = false,
 }: LorebookEntryFormProps) {
   const { t } = useTranslation()
   const label =
@@ -60,31 +62,33 @@ export function LorebookEntryForm({
   ) => onChange({ ...entry, [field]: value })
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border p-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <span className="truncate text-sm font-medium">{label}</span>
-          {entry.keys.length > 0 ? (
-            <ul className="flex flex-wrap gap-1.5">
-              {entry.keys.map((key) => (
-                <li key={key}>
-                  <Badge variant="secondary">{key}</Badge>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+    <div className="rm-entry-form flex flex-col gap-3 rounded-lg border p-3">
+      {hideHeader ? null : (
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span className="truncate text-sm font-medium">{label}</span>
+            {entry.keys.length > 0 ? (
+              <ul className="flex flex-wrap gap-1.5">
+                {entry.keys.map((key) => (
+                  <li key={key}>
+                    <Badge variant="secondary">{key}</Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onRemove}
+            disabled={readOnly}
+            aria-label={t("characters.lorebookRemoveEntry")}
+          >
+            <Trash2Icon className="size-4" />
+          </Button>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onRemove}
-          disabled={readOnly}
-          aria-label={t("characters.lorebookRemoveEntry")}
-        >
-          <Trash2Icon className="size-4" />
-        </Button>
-      </div>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-xs">

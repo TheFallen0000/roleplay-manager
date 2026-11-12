@@ -1,7 +1,12 @@
 import { useRef } from "react"
-import { DownloadIcon, PlusIcon, UploadIcon } from "lucide-react"
+import {
+  ChevronDownIcon,
+  DownloadIcon,
+  PlusIcon,
+  Trash2Icon,
+  UploadIcon,
+} from "lucide-react"
 
-import { Button } from "@workspace/ui/components/button"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
@@ -129,33 +134,35 @@ export function LorebookEditor({
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button
+        <button
           type="button"
-          variant="outline"
+          className="rm-btn rm-btn--ghost rm-btn--sm"
           onClick={addEntry}
           disabled={readOnly}
         >
-          <PlusIcon />
+          <PlusIcon className="size-4" />
           {t("characters.lorebookAddEntry")}
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
-          variant="outline"
+          className="rm-btn rm-btn--ghost rm-btn--sm"
           onClick={requestImport}
           disabled={readOnly}
         >
-          <UploadIcon />
+          <UploadIcon className="size-4" />
           {t("characters.lorebookImport")}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onExport}
-          disabled={readOnly}
-        >
-          <DownloadIcon />
-          {t("characters.lorebookExport")}
-        </Button>
+        </button>
+        {onExport ? (
+          <button
+            type="button"
+            className="rm-btn rm-btn--ghost rm-btn--sm"
+            onClick={onExport}
+            disabled={readOnly}
+          >
+            <DownloadIcon className="size-4" />
+            {t("characters.lorebookExport")}
+          </button>
+        ) : null}
         <input
           ref={inputRef}
           type="file"
@@ -170,21 +177,68 @@ export function LorebookEditor({
       </div>
 
       {value.entries.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {t("characters.lorebookEmpty")}
-        </p>
+        <div className="rm-empty">
+          <h2>{t("characters.lorebookEmpty")}</h2>
+          <p>{t("lorebooks.entriesEmptyHint")}</p>
+        </div>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {value.entries.map((entry, index) => (
-            <li key={entry.id ?? `${entry.name}-${index}`}>
-              <LorebookEntryForm
-                entry={entry}
-                readOnly={readOnly}
-                onChange={(next) => updateEntry(index, next)}
-                onRemove={() => removeEntry(index)}
-              />
-            </li>
-          ))}
+        <ul className="rm-entry-list">
+          {value.entries.map((entry, index) => {
+            const label =
+              entry.name.trim() ||
+              entry.comment?.trim() ||
+              t("characters.lorebookEntryFallback")
+            return (
+              <li key={entry.id ?? `${entry.name}-${index}`}>
+                <details className="rm-entry" open={index === 0}>
+                  <summary className="rm-entry-summary">
+                    <span className="rm-entry-title">{label}</span>
+                    {entry.keys.length > 0 ? (
+                      <span className="rm-chip-list">
+                        {entry.keys.slice(0, 5).map((key) => (
+                          <span key={key} className="rm-chip">
+                            {key}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                    {entry.constant ? (
+                      <span className="rm-chip rm-chip--violet">
+                        {t("characters.lorebookConstant")}
+                      </span>
+                    ) : null}
+                    <ChevronDownIcon
+                      className="rm-entry-chevron size-4"
+                      aria-hidden="true"
+                    />
+                    {readOnly ? null : (
+                      <button
+                        type="button"
+                        className="rm-btn rm-btn--quiet rm-btn--icon rm-btn--sm"
+                        aria-label={t("characters.lorebookRemoveEntry")}
+                        onClick={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          removeEntry(index)
+                        }}
+                      >
+                        <Trash2Icon className="size-4" />
+                      </button>
+                    )}
+                  </summary>
+                  <div className="rm-entry-body">
+                    <LorebookEntryForm
+                      entry={entry}
+                      readOnly={readOnly}
+                      hideHeader
+                      onChange={(next) => updateEntry(index, next)}
+                      onRemove={() => removeEntry(index)}
+                    />
+                  </div>
+                </details>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
