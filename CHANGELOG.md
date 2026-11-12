@@ -65,9 +65,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   la referencia del lorebook en el viaje de ida y vuelta.
 - **Lorebooks**: páginas `/lorebooks`, `/lorebooks/new` y `/lorebooks/:id` con selector
   de versión, y creación de un libro suelto con su primera versión.
+- **Biblioteca**: capa visual card-first propia (papel frío, tinta violeta, tipografía
+  de portada y grano sutil) para el shell, la lista de personajes, el diálogo Crear,
+  las páginas de personaje y la estantería de lorebooks.
+- **Personajes**: las cards de la lista muestran tags, creador y lorebook actual; el
+  detalle expone nueva conversación, exportación RM/card, eliminación, inspector de
+  card JSON y vista de versiones.
+- **Lorebooks**: exportación de un libro suelto desde su detalle, filtros
+  Todos/En uso/Sin usar en la estantería y entradas plegables con todos sus campos.
 
 ### Changed
 
+- **Biblioteca**: los listados de personajes y lorebooks usan cards de estantería,
+  navegación vertical por secciones, rail de resumen y barra de guardado; el
+  formulario de imagen de perfil pasa a una fila compacta al editar.
+- **Lorebooks**: la edición de entradas usa el editor completo (claves, posición,
+  prioridad, lógica selectiva y flags) en lugar del formulario reducido.
+- **S134**: las acciones diferidas (vincular desde el libro, uso por versión,
+  historial/restore y borrado suave) se muestran como «S134» y no como botones
+  muertos.
 - **Modelos**: `GET /api/providers/:id/model-context` conserva su contrato y
   ahora solo devuelve lo que detecta el sondeo en vivo: no usa tabla curada,
   heurística, valores por defecto ni caché expirada.
@@ -95,6 +111,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Lorebooks**: el botón «Exportar lorebook» ya descarga el libro desde su
+  detalle; antes se renderizaba sin acción asociada.
+- **Personajes**: el detalle recupera iniciar conversación, exportar, eliminar,
+  ver versiones e inspeccionar la card JSON, que solo eran accesibles desde el
+  menú contextual de la lista.
+- **Lorebooks**: editar un libro vuelve a mostrar todos los campos de cada
+  entrada (claves, posición, prioridad, lógica selectiva y flags), y un error de
+  guardado ya no sustituye la página por el estado «no encontrado».
 - **Ajustes**: «Aplicar detectado» sobrescribe explícitamente una ventana
   manual y guarda la ventana bruta del modelo junto con la ventana de trabajo
   segura; «Detectar» también actualiza cuando hay un valor manual.

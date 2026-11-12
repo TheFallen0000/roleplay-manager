@@ -1,6 +1,6 @@
 # S133 — Superficie card-first de personaje + fundación de lorebooks versionados
 
-**Estado:** Completado
+**Estado:** En progreso (refactor de fidelidad UI pre-merge)
 **Inicio:** 2026-11-11
 **Fin:** 2026-11-11
 
@@ -950,10 +950,10 @@ Obligatorio (toca prompt/contexto/card). Sin red.
 
 ## Verificación
 
-- **Backend:** `pnpm --filter @workspace/backend test` → 158 archivos / 1023 tests
+- **Backend:** `pnpm --filter @workspace/backend test` → 158 archivos / 1025 tests
   en verde.
 - **Frontend:** `pnpm --filter @workspace/frontend exec vitest run` → 84 archivos /
-  451 tests en verde.
+  452 tests en verde.
 - **Eval (ancla S129):** `pnpm --filter @workspace/backend eval` → 1 archivo / 33
   tests en verde; los snapshots de ensamblado/contexto de S129 siguen intactos (cero
   regresiones S129–S132).
@@ -963,9 +963,80 @@ Obligatorio (toca prompt/contexto/card). Sin red.
 - **`git diff --check`:** limpio.
 - **Release dry-run:** no ejecutado; el slice no toca empaquetado, módulos nativos ni
   lockfile.
-- **Prueba manual:** no ejecutada; recomendada antes del merge (biblioteca, guardado
-  de una sola versión, selector de lorebook y round-trip de card).
-- **Estado del trabajo:** completado en local, sin bump de versión ni push/PR/merge.
+- **Prueba manual:** capturas y comprobaciones de interacción con Playwright sobre
+  escritorio (1440 px) y móvil (390 px): lista, crear/detalle de personaje,
+  estantería y detalle de lorebook, diálogo Crear, exportación de card/lorebook,
+  inspector JSON, vista de versiones y diálogo de borrado.
+- **Estado del trabajo:** refactor UI completo en local, sin bump de versión ni
+  push/PR/merge; pendiente de revisión independiente y aprobación humana.
+
+## Refactor de fidelidad UI (pre-merge)
+
+La implementación funcional de S133 pasó review y release checks, pero la prueba
+visual contra `docs/prototypes/card-first/` mostró que la UI seguía leyéndose como
+shadcn y que algunas acciones de S133 no estaban expuestas. Este refactor completa
+el slice antes del merge; no abre una slice nueva ni cambia el alcance de datos.
+
+**Decisiones cerradas con el usuario (2026-11-11):**
+
+1. **Alcance:** shell + superficies S133 (lista/crear/detalle de personaje,
+   diálogo Crear, lista/crear/detalle de lorebook). Chat, ajustes y tutoriales no
+   se rediseñan en esta pasada.
+2. **Sistema de diseño:** híbrido con identidad propia. Layout, paneles, cards,
+   nav, fichas y tipografía propios; shadcn/Radix solo como base accesible para
+   diálogos, menús y selects, re-estilizados.
+3. **Acciones:** las de S133 deben funcionar (iniciar conversación, exportar,
+   eliminar, ver versiones, inspector de card y export de lorebook). Lo diferido a
+   S134 se oculta o se marca como «S134», nunca como botón muerto.
+4. **Datos de cards:** se amplía la API de lista con tags, creador y resumen del
+   lorebook actual para que las cards sean fieles al prototipo.
+5. **Rama:** misma `feat/S133-card-first-character` y mismo PR #140.
+
+**Criterios de aceptación del refactor:**
+
+- Shell de papel con la sidebar de «Biblioteca» y topbar de tinta; sin el look
+  genérico de shadcn en las superficies S133.
+- Diálogo Crear con dos placas grandes (Personaje/Lorebook) y el import de card
+  conectado.
+- Lista de personajes con cards que muestran portada, tags, creador, versión y
+  lorebook actual; acciones accesibles sin menú contextual oculto.
+- Crear/detalle de personaje con portada, nav vertical sticky, tres columnas
+  (nav, paneles, rail) y barra de guardado; placeholders en el formulario vacío.
+- Acciones de S133 en el detalle: nueva conversación, exportar (RM y card),
+  eliminar, inspector de card y vista de versiones.
+- Sección Lorebook con ficha de libro, versión enlazada, estado y acciones
+  cambiar/quitar; versiones antiguas en lectura.
+- Lista de lorebooks como estantería de lomos, con filtros Todos/En uso/Sin usar.
+- Detalle de lorebook con portada, secciones, historial de versiones, export
+  funcional y edición completa de entradas; vínculo/uso marcados como S134.
+- Tests actualizados, `pnpm check`, build, audit y revisión independiente en
+  verde; sin bump de versión ni release.
+
+### Resultado del refactor
+
+- **Capa visual:** `packages/frontend/src/styles/card-first.css` define el
+  lenguaje de paneles de papel, portadas, nav vertical, estantería de libros,
+  fichas, rail y barra de guardado. Se importa desde `base.astro`.
+- **Shell:** sidebar/topbar con tokens de papel y tinta; la sidebar mantiene
+  Biblioteca (Personajes, Lorebooks, Personajes jugados) y el diálogo Crear.
+- **Personajes:** lista con cards de estantería (tags, creador, lorebook, fechas
+  y acciones visibles); crear/detalle con portada, nav sticky, tres columnas,
+  rail de resumen/vista previa mini-card, fila compacta de imagen y barra de
+  guardado.
+- **Acciones S133:** nueva conversación, exportación RM y card, eliminación,
+  inspector de card JSON y vista previa de versiones; iniciar conversación desde
+  una versión concreta.
+- **Lorebooks:** estantería con filtros Todos/En uso/Sin usar; detalle con
+  portada, identidad, ajustes, entradas plegables y completas, versiones,
+  exportación funcional y panel de vínculo marcado como S134.
+- **Datos:** `CharacterSummary` incluye `tags`, `creator` y el resumen del
+  lorebook enlazado; `LorebookSummaryDTO` incluye descripción, uso y fecha.
+  `POST /api/lorebooks/:id/export` exporta un libro suelto.
+- **Tests:** caso nuevo de metadatos de lista, export por id y acciones del
+  detalle de personaje; los tests existentes se ajustaron al nuevo DOM.
+- **Verificación:** `pnpm check` 7/7 + typecheck 5/5 + lint 5/5; backend 158
+  archivos / 1025 tests; frontend 84 archivos / 452 tests; `pnpm build` 4/4;
+  `pnpm audit --prod` limpio; `git diff --check` limpio.
 
 ## Review
 
