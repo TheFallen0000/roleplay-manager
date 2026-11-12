@@ -56,6 +56,12 @@ const buildDeps = () => ({
   updateLorebook: {
     execute: vi.fn(async () => ({ lorebook, createdNewVersion: false })),
   },
+  exportLorebook: {
+    executeById: vi.fn(async ({ format }: { format: string }) => ({
+      spec: "lorebook_v3",
+      data: { name: lorebook.name, format },
+    })),
+  },
 })
 
 describe("lorebooks resource routes", () => {
@@ -160,6 +166,52 @@ describe("lorebooks resource routes", () => {
     expect(deps.updateLorebook.execute).toHaveBeenCalledWith({
       id: "book-1",
       name: "Renamed",
+    })
+  })
+
+  it("exports a standalone lorebook and validates the format", async () => {
+    const { baseUrl, deps } = await startServer()
+
+    const response = await fetch(`${baseUrl}/lorebooks/book-1/export`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ format: "ccv3" }),
+    })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({
+      spec: "lorebook_v3",
+      data: { format: "ccv3" },
+    })
+    expect(deps.exportLorebook.executeById).toHaveBeenCalledWith({
+      lorebookId: "book-1",
+      format: "ccv3",
+    })
+
+    const invalid = await fetch(`${baseUrl}/lorebooks/book-1/export`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ format: "pdf" }),
+    })
+    expect(invalid.status).toBe(400)
+  })
+
+  it("maps a missing book on export to 404", async () => {
+    const deps = buildDeps()
+    deps.exportLorebook.executeById.mockRejectedValueOnce(
+      new DomainError("LOREBOOK_NOT_FOUND", "No lorebook.", 404),
+    )
+    const { baseUrl } = await startServer(deps)
+
+    const response = await fetch(`${baseUrl}/lorebooks/missing/export`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ format: "st-native" }),
+    })
+
+    expect(response.status).toBe(404)
+    expect(await response.json()).toMatchObject({
+      error: { code: "LOREBOOK_NOT_FOUND" },
     })
   })
 

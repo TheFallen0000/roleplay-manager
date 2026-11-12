@@ -295,10 +295,7 @@ export class DrizzleCharacterRepository
         lorebookCurrentVersionId: lorebooks.currentVersionId,
         lorebookOriginId: lorebooks.originId,
         lorebookDeletedAt: lorebooks.deletedAt,
-        lorebookEntryCount: sql<number>`(
-          SELECT COUNT(*) FROM ${lorebookEntries}
-          WHERE ${lorebookEntries.lorebookId} = ${lorebooks.id}
-        )`,
+        lorebookEntryCount: sql<number>`COALESCE(json_array_length(${lorebookVersions.entriesJson}), 0)`,
       })
       .from(characterVersions)
       .innerJoin(
@@ -406,10 +403,7 @@ export class DrizzleCharacterRepository
         lorebookCurrentVersionId: lorebooks.currentVersionId,
         lorebookOriginId: lorebooks.originId,
         lorebookDeletedAt: lorebooks.deletedAt,
-        lorebookEntryCount: sql<number>`(
-          SELECT COUNT(*) FROM ${lorebookEntries}
-          WHERE ${lorebookEntries.lorebookId} = ${lorebooks.id}
-        )`,
+        lorebookEntryCount: sql<number>`COALESCE(json_array_length(${lorebookVersions.entriesJson}), 0)`,
       })
       .from(characterVersions)
       .innerJoin(
