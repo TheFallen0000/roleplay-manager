@@ -18,6 +18,9 @@ export interface CharacterSummary {
   profileImageDimensions?: ImageDimensions | null
   profileImageMimeType?: string | null
   versionNumber: number
+  tags?: string[]
+  creator?: string | null
+  lorebook?: LorebookVersionSummary | null
   createdAt: string
   updatedAt: string
 }

@@ -22,10 +22,12 @@ export type {
 export interface LorebookSummaryDTO {
   id: string
   name: string | null
+  description: string | null
   currentVersionNumber: number | null
   entryCount: number
   originId?: string | null
   usageCount?: number
+  updatedAt: string
 }
 
 export interface LorebookVersionDTO {
