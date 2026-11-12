@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   DownloadIcon,
   FileDownIcon,
@@ -22,7 +22,10 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 
-import { createConversation } from "@/lib/api/conversations"
+import {
+  createConversation,
+  listConversations,
+} from "@/lib/api/conversations"
 import { deleteCharacter } from "@/lib/api/characters"
 import { translateApiError } from "@/lib/translate-api-error"
 import { useTranslation } from "@/lib/hooks/use-translation"
@@ -40,6 +43,22 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
   const [inspectorOpen, setInspectorOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [starting, setStarting] = useState(false)
+  const [conversationCount, setConversationCount] = useState(0)
+
+  const characterId = character?.id
+
+  useEffect(() => {
+    if (!characterId) return
+    let active = true
+    listConversations({ characterIds: [characterId], limit: 200 })
+      .then((conversations) => {
+        if (active) setConversationCount(conversations.length)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [characterId])
 
   if (!character) return null
   const summary: CharacterSummary = {
@@ -95,6 +114,15 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
     <>
       <button
         type="button"
+        className="rm-btn rm-btn--soft"
+        onClick={() => void state.save()}
+        disabled={state.saving || !state.dirty}
+      >
+        {state.saving ? t("common.loading") : t("characters.saveChanges")}
+      </button>
+
+      <button
+        type="button"
         className="rm-btn"
         onClick={() => void startConversation()}
         disabled={starting}
@@ -140,7 +168,7 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
 
       <ExportDialog
         character={summary}
-        conversationCount={0}
+        conversationCount={conversationCount}
         open={exportOpen}
         onOpenChange={setExportOpen}
       />

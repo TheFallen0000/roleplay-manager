@@ -930,6 +930,19 @@ body::before {
   align-items: center;
 }
 
+@media (max-width: 40rem) {
+  .rm-save-bar {
+    position: sticky;
+    bottom: 0.5rem;
+    z-index: 5;
+    padding-bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .rm-save-bar[data-dirty="false"] {
+    display: none;
+  }
+}
+
 /* ---------- Fichas ------------------------------------------------------ */
 .rm-ficha-list {
   display: flex;

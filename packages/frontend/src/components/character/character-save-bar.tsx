@@ -7,7 +7,7 @@ export function CharacterSaveBar({ state }: { state: CharacterPageState }) {
   const { isEditing, saving, dirty, save, saveError } = state
 
   return (
-    <div className="rm-save-bar">
+    <div className="rm-save-bar" data-dirty={dirty ? "true" : "false"}>
       <div className="rm-save-status" data-dirty={dirty ? "true" : "false"}>
         <span className={dirty ? "dot is-dirty" : "dot"} />
         <span>

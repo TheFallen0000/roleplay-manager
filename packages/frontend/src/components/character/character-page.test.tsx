@@ -209,9 +209,10 @@ describe("CharacterPage — sectioned card-first surface", () => {
     renderPage()
 
     expect(screen.getByRole("navigation")).toBeInTheDocument()
-    for (const label of ["Identidad", "Card", "Fichas", "Lorebook", "Versiones"]) {
+    for (const label of ["Identidad", "Card", "Fichas", "Lorebook"]) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0)
     }
+    expect(screen.queryByText("Versiones")).not.toBeInTheDocument()
     expect(screen.queryByText(/Tarjetas/i)).not.toBeInTheDocument()
     expect(screen.queryByRole("tab")).not.toBeInTheDocument()
     expect(

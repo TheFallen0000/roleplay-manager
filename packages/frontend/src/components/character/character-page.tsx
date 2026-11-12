@@ -57,7 +57,15 @@ function CharacterPageContent({ characterId }: { characterId?: string }) {
     { id: "section-card", label: t("characters.sectionCard"), number: "02" },
     { id: "section-fichas", label: t("characters.sectionFichas"), number: "03" },
     { id: "section-lorebook", label: t("characters.sectionLorebook"), number: "04" },
-    { id: "section-versions", label: t("characters.sectionVersions"), number: "05" },
+    ...(isEditing
+      ? [
+          {
+            id: "section-versions",
+            label: t("characters.sectionVersions"),
+            number: "05",
+          },
+        ]
+      : []),
   ]
 
   const scrollToIdentity = () => {
@@ -119,7 +127,7 @@ function CharacterPageContent({ characterId }: { characterId?: string }) {
           <CardSection state={state} />
           <FichasSection state={state} />
           <LorebookSection state={state} />
-          <VersionsSection state={state} />
+          {isEditing ? <VersionsSection state={state} /> : null}
           <CharacterSaveBar state={state} />
         </div>
 

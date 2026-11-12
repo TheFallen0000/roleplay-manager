@@ -54,7 +54,7 @@ export function CharacterCover({
       ? getCharacterAssetUrl(characterId, profileImageAssetId, "thumbnail")
       : null)
 
-  const spec = cardSpec?.startsWith("3") ? "V3" : "V2"
+  const spec = cardSpec?.startsWith("3") ? "V3" : cardSpec ? "V2" : "—"
   const initial = name.trim().charAt(0).toUpperCase() || "?"
   const avatar = imageUrl ? (
     <img src={imageUrl} alt="" />

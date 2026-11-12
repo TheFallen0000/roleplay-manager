@@ -1,7 +1,6 @@
 import { useRef } from "react"
 import {
   ChevronDownIcon,
-  DownloadIcon,
   PlusIcon,
   Trash2Icon,
   UploadIcon,
@@ -53,7 +52,6 @@ interface LorebookEditorProps {
   onChange: (value: LorebookEditorValue) => void
   onImportRequest?: () => void
   onImportFile?: (file: File) => void
-  onExport?: () => void
   showName?: boolean
   readOnly?: boolean
 }
@@ -81,7 +79,6 @@ export function LorebookEditor({
   onChange,
   onImportRequest,
   onImportFile,
-  onExport,
   showName = true,
   readOnly = false,
 }: LorebookEditorProps) {
@@ -152,17 +149,7 @@ export function LorebookEditor({
           <UploadIcon className="size-4" />
           {t("characters.lorebookImport")}
         </button>
-        {onExport ? (
-          <button
-            type="button"
-            className="rm-btn rm-btn--ghost rm-btn--sm"
-            onClick={onExport}
-            disabled={readOnly}
-          >
-            <DownloadIcon className="size-4" />
-            {t("characters.lorebookExport")}
-          </button>
-        ) : null}
+
         <input
           ref={inputRef}
           type="file"

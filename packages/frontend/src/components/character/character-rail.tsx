@@ -25,41 +25,39 @@ export function CharacterRail({ state }: { state: CharacterPageState }) {
 
   return (
     <aside className="rm-rail" aria-label={t("characters.cardSummary")}>
-      <div className="rm-rail-card">
-        <h3>{t("characters.cardSummary")}</h3>
-        <div className="rm-kv">
-          <span className="k">{t("characters.versionLabel")}</span>
-          <span className="v">
-            {character ? `v${character.currentVersion.versionNumber}` : "—"}
-          </span>
+      {character ? (
+        <div className="rm-rail-card">
+          <h3>{t("characters.cardSummary")}</h3>
+          <div className="rm-kv">
+            <span className="k">{t("characters.versionLabel")}</span>
+            <span className="v">v{character.currentVersion.versionNumber}</span>
+          </div>
+          <div className="rm-kv">
+            <span className="k">Card</span>
+            <span className="v">{spec}</span>
+          </div>
+          <div className="rm-kv">
+            <span className="k">{t("characters.sectionFichas")}</span>
+            <span className="v">{cards.length}</span>
+          </div>
+          <div className="rm-kv">
+            <span className="k">{t("characters.tags")}</span>
+            <span className="v">{tags.length > 0 ? tags.join(", ") : "—"}</span>
+          </div>
+          <div className="rm-kv">
+            <span className="k">{t("characters.creator")}</span>
+            <span className="v">{creator || "—"}</span>
+          </div>
+          <div className="rm-kv">
+            <span className="k">{t("characters.sectionVersions")}</span>
+            <span className="v">{versions.length}</span>
+          </div>
+          <div className="rm-kv">
+            <span className="k">{t("characters.updatedLabel")}</span>
+            <span className="v">{character.updatedAt.slice(0, 10)}</span>
+          </div>
         </div>
-        <div className="rm-kv">
-          <span className="k">Card</span>
-          <span className="v">{spec}</span>
-        </div>
-        <div className="rm-kv">
-          <span className="k">{t("characters.sectionFichas")}</span>
-          <span className="v">{cards.length}</span>
-        </div>
-        <div className="rm-kv">
-          <span className="k">{t("characters.tags")}</span>
-          <span className="v">{tags.length > 0 ? tags.join(", ") : "—"}</span>
-        </div>
-        <div className="rm-kv">
-          <span className="k">{t("characters.creator")}</span>
-          <span className="v">{creator || "—"}</span>
-        </div>
-        <div className="rm-kv">
-          <span className="k">{t("characters.sectionVersions")}</span>
-          <span className="v">{character ? versions.length : "—"}</span>
-        </div>
-        <div className="rm-kv">
-          <span className="k">{t("characters.updatedLabel")}</span>
-          <span className="v">
-            {character ? character.updatedAt.slice(0, 10) : "—"}
-          </span>
-        </div>
-      </div>
+      ) : null}
 
       <div className="rm-rail-card">
         <h3>{t("characters.sectionLorebook")}</h3>
@@ -85,14 +83,23 @@ export function CharacterRail({ state }: { state: CharacterPageState }) {
                 {t(STATUS_KEYS[lorebookSummary.status])}
               </span>
             </div>
-            <a
-              className="rm-btn rm-btn--ghost rm-btn--sm"
-              style={{ width: "100%", marginTop: "0.55rem" }}
-              href={`/lorebooks/${lorebookSummary.lorebookId}`}
-            >
-              <BookOpenIcon className="size-4" />
-              {t("characters.lorebookOpen")}
-            </a>
+            {lorebookSummary.status === "deleted" ? (
+              <span
+                className="rm-chip rm-chip--dashed"
+                style={{ marginTop: "0.55rem" }}
+              >
+                {t("characters.lorebookStatusDeleted")}
+              </span>
+            ) : (
+              <a
+                className="rm-btn rm-btn--ghost rm-btn--sm"
+                style={{ width: "100%", marginTop: "0.55rem" }}
+                href={`/lorebooks/${lorebookSummary.lorebookId}`}
+              >
+                <BookOpenIcon className="size-4" />
+                {t("characters.lorebookOpen")}
+              </a>
+            )}
           </>
         ) : (
           <p>{t("characters.lorebookNoSelection")}</p>

@@ -58,10 +58,20 @@ export function LorebookSection({ state }: { state: CharacterPageState }) {
             </p>
           </div>
           <div className="actions">
-            <button type="button" className="rm-btn rm-btn--ghost rm-btn--sm" onClick={openBook}>
-              <BookOpenIcon className="size-4" />
-              {t("characters.lorebookOpen")}
-            </button>
+            {lorebookSummary.status === "deleted" ? (
+              <span className="rm-chip rm-chip--dashed">
+                {t("characters.lorebookStatusDeleted")}
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="rm-btn rm-btn--ghost rm-btn--sm"
+                onClick={openBook}
+              >
+                <BookOpenIcon className="size-4" />
+                {t("characters.lorebookOpen")}
+              </button>
+            )}
             <button
               type="button"
               className="rm-btn rm-btn--ghost rm-btn--sm"
