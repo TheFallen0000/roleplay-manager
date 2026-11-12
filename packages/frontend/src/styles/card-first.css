@@ -931,6 +931,10 @@ body::before {
 }
 
 @media (max-width: 40rem) {
+  .rm-save-header-action {
+    display: none;
+  }
+
   .rm-save-bar {
     position: sticky;
     bottom: 0.5rem;

@@ -114,7 +114,7 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
     <>
       <button
         type="button"
-        className="rm-btn rm-btn--soft"
+        className="rm-btn rm-btn--soft rm-save-header-action"
         onClick={() => void state.save()}
         disabled={state.saving || !state.dirty}
       >
