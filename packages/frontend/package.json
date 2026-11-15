@@ -33,7 +33,7 @@
     "@tailwindcss/vite": "^4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.8",
+    "@testing-library/user-event": "^14.6.9",
     "@types/node": "^24",
     "eslint": "^10",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -43,6 +43,6 @@
     "typescript": "~6",
     "typescript-eslint": "^8",
     "vite": "^8.3.8",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   }
 }
