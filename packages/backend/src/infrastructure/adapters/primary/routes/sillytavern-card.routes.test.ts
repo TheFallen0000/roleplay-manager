@@ -61,13 +61,21 @@ describe("sillytavern card routes", () => {
 
   const startServer = async (
     deps = buildDeps(),
-    options: { withCharacterRouter?: boolean } = {}
+    options: {
+      withCharacterRouter?: boolean
+      characterDeps?: Record<string, unknown>
+    } = {}
   ) => {
     const app = express()
     app.use(buildSillyTavernCardRouter(deps as never))
     if (options.withCharacterRouter) {
       const getCharacter = { execute: vi.fn() }
-      app.use(buildCharacterRouter({ getCharacter } as never))
+      app.use(
+        buildCharacterRouter({
+          getCharacter,
+          ...(options.characterDeps ?? {}),
+        } as never)
+      )
     }
     app.use(buildErrorHandler(logger))
     server = app.listen(0)
@@ -207,5 +215,70 @@ describe("sillytavern card routes", () => {
     })
 
     expect(response.status).toBe(200)
+  })
+
+  it("serves the card contract through GET/PUT /characters/:id/card", async () => {
+    const envelope = {
+      spec: "chara_card_v3",
+      spec_version: "3.0",
+      data: { name: "Lyra", character_book: { entries: [] } },
+    }
+    const getCharacterCard = {
+      execute: vi.fn(async () => envelope),
+    }
+    const updateCharacterCard = {
+      execute: vi.fn(async () => envelope),
+    }
+    const { baseUrl } = await startServer(buildDeps(), {
+      withCharacterRouter: true,
+      characterDeps: { getCharacterCard, updateCharacterCard },
+    })
+
+    const get = await fetch(
+      `${baseUrl}/characters/char-1/card?spec=v2&versionId=ver-1`,
+    )
+    expect(get.status).toBe(200)
+    expect(await get.json()).toEqual(envelope)
+    expect(getCharacterCard.execute).toHaveBeenCalledWith({
+      characterId: "char-1",
+      spec: "v2",
+      versionId: "ver-1",
+    })
+
+    const put = await fetch(`${baseUrl}/characters/char-1/card`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(envelope),
+    })
+    expect(put.status).toBe(200)
+    expect(await put.json()).toEqual(envelope)
+    expect(updateCharacterCard.execute).toHaveBeenCalledWith({
+      characterId: "char-1",
+      payload: envelope,
+    })
+  })
+
+  it("maps an invalid card to 400 on PUT /characters/:id/card", async () => {
+    const getCharacterCard = { execute: vi.fn() }
+    const updateCharacterCard = {
+      execute: vi.fn(async () => {
+        throw new DomainError("INVALID_CARD_NAME", "The name is required.", 400)
+      }),
+    }
+    const { baseUrl } = await startServer(buildDeps(), {
+      withCharacterRouter: true,
+      characterDeps: { getCharacterCard, updateCharacterCard },
+    })
+
+    const response = await fetch(`${baseUrl}/characters/char-1/card`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ spec: "chara_card_v3", data: { name: "" } }),
+    })
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { code: "INVALID_CARD_NAME" },
+    })
   })
 })

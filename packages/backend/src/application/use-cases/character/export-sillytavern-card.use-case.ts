@@ -14,7 +14,10 @@ import type { CardPngPort } from "../../../domain/ports/card-png.port"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { LorebookRepository } from "../../../domain/ports/lorebook.repository"
 
-import { versionFieldsToCardData } from "./sillytavern-card.mapper"
+import {
+  lorebookVersionToCardLorebook,
+  versionFieldsToCardData,
+} from "./sillytavern-card.mapper"
 import { isRecord, type LorebookLike } from "./lorebook/lorebook.mapper"
 
 export interface ExportSillyTavernCardDeps {
@@ -45,14 +48,20 @@ export class ExportSillyTavernCardUseCase {
     if (!found) throw new CharacterNotFoundError(input.characterId)
     const { currentVersion: version } = found
 
-    const lorebook = await this.deps.lorebookRepository.findByCharacterId(
-      input.characterId,
-    )
+    const linkedVersion = version.lorebookVersionId
+      ? await this.deps.lorebookRepository.findVersionById(
+          version.lorebookVersionId,
+        )
+      : null
+    const liveLorebook = linkedVersion
+      ? null
+      : await this.deps.lorebookRepository.findByCharacterId(input.characterId)
 
-    const dataV3 = versionFieldsToCardData(
-      version,
-      (lorebook ?? null) as LorebookLike | null,
-    )
+    const lorebook = linkedVersion
+      ? lorebookVersionToCardLorebook(linkedVersion)
+      : ((liveLorebook ?? null) as LorebookLike | null)
+
+    const dataV3 = versionFieldsToCardData(version, lorebook)
     const rootExtras = isRecord(version.unknownRootFields)
       ? version.unknownRootFields
       : {}

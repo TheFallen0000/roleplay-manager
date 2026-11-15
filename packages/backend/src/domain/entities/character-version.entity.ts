@@ -28,6 +28,7 @@ export interface CharacterVersionProps {
   extensions?: unknown
   unknownFields?: unknown
   unknownRootFields?: unknown
+  lorebookVersionId?: string | null
 }
 
 const withCardDefaults = (
@@ -51,6 +52,7 @@ const withCardDefaults = (
   extensions: props.extensions ?? null,
   unknownFields: props.unknownFields ?? null,
   unknownRootFields: props.unknownRootFields ?? null,
+  lorebookVersionId: props.lorebookVersionId ?? null,
 })
 
 export class CharacterVersion {
@@ -97,4 +99,12 @@ export class CharacterVersion {
   get extensions(): unknown { return this.props.extensions ?? null }
   get unknownFields(): unknown { return this.props.unknownFields ?? null }
   get unknownRootFields(): unknown { return this.props.unknownRootFields ?? null }
+  get lorebookVersionId(): string | null { return this.props.lorebookVersionId ?? null }
+
+  withLorebookVersionId(lorebookVersionId: string | null): CharacterVersion {
+    return CharacterVersion.reconstruct({
+      ...this.props,
+      lorebookVersionId,
+    })
+  }
 }

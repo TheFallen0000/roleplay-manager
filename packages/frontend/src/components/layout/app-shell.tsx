@@ -83,7 +83,9 @@ function AppShellContent({
   const checkUpdates = useUpdatesStore((state) => state.check)
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href)
+    href === "/"
+      ? pathname === "/"
+      : pathname === href || pathname.startsWith(`${href}/`)
 
   useEffect(() => {
     hydrateUpdates()
@@ -97,12 +99,13 @@ function AppShellContent({
   const updatesAvailable = updateStatus?.behind === true
 
   return (
-    <SidebarProvider>
+    <div className="rm-app-shell">
+      <SidebarProvider>
       <Sidebar variant="sidebar" collapsible="icon" >
         <SidebarLogo />
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>{t("nav.groupCharacters")}</SidebarGroupLabel>
+            <SidebarGroupLabel>{t("nav.groupLibrary")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -114,6 +117,17 @@ function AppShellContent({
                   >
                       <UsersIcon />
                       <span>{t("nav.characters")}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    render={<a href="/lorebooks" />}
+                    tooltip={t("nav.lorebooks")}
+                    isActive={isActive("/lorebooks")}
+                    aria-current={isActive("/lorebooks") ? "page" : undefined}
+                  >
+                      <BookOpenIcon />
+                      <span>{t("nav.lorebooks")}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
@@ -194,7 +208,7 @@ function AppShellContent({
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex min-h-12 items-center gap-2 border-b bg-background/80 px-4 pt-[env(safe-area-inset-top,0px)] backdrop-blur-sm">
+        <header className="rm-topbar sticky top-0 z-10 flex min-h-12 items-center gap-2 px-4 pt-[env(safe-area-inset-top,0px)]">
           <SidebarTrigger />
           <AppMenubar />
         </header>
@@ -202,6 +216,7 @@ function AppShellContent({
       </SidebarInset>
       <PhoneAccessNotice />
       <Toaster richColors position="top-right" theme={resolvedMode} />
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   )
 }

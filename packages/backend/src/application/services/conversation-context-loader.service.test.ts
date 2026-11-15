@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi, type Mock } from "vitest"
 
 import {
   CharacterNotFoundError,
@@ -120,6 +120,48 @@ interface Repos {
   memoryRepository: MemoryRepository
   summaryRepository: SummaryRepository
   playerCharacterRepository: PlayerCharacterRepository
+  lorebookRepository: {
+    findVersionById: Mock
+    findByCharacterId: Mock
+  }
+}
+
+const lorebookVersion = (overrides: Record<string, unknown> = {}) => ({
+  id: "lv-1",
+  lorebookId: "book-1",
+  versionNumber: 1,
+  name: "Forest lore",
+  description: "Facts about the forest",
+  scanDepth: 4,
+  tokenBudget: 400,
+  recursiveScanning: false,
+  entriesJson: JSON.stringify([
+    {
+      id: "entry-v1",
+      keys: ["dragon"],
+      content: "Lorebook v1 dragon lore.",
+    },
+  ]),
+  sourceKey: "a".repeat(64),
+  createdAt: now,
+  ...overrides,
+})
+
+const liveLorebookV2 = {
+  book: {
+    id: "book-1",
+    name: "Forest lore",
+    scanDepth: 4,
+    tokenBudget: 400,
+    recursiveScanning: false,
+  },
+  entries: [
+    {
+      id: "entry-v2",
+      keys: ["dragon"],
+      content: "Lorebook v2 dragon lore.",
+    },
+  ],
 }
 
 const buildRepos = (overrides: {
@@ -130,6 +172,8 @@ const buildRepos = (overrides: {
   version?: CharacterVersion | null
   character?: { character: Character; currentVersion: CharacterVersion } | null
   playerCharacter?: PlayerCharacter | null
+  lorebookVersion?: unknown
+  liveLorebook?: unknown
 }): Repos => {
   const messages = overrides.messages ?? []
   const byId = new Map(messages.map((m) => [m.id, m]))
@@ -211,6 +255,11 @@ const buildRepos = (overrides: {
     delete: async () => {},
   }
 
+  const lorebookRepository = {
+    findVersionById: vi.fn(async () => overrides.lorebookVersion ?? null),
+    findByCharacterId: vi.fn(async () => overrides.liveLorebook ?? null),
+  }
+
   return {
     conversationRepository,
     characterRepository,
@@ -219,6 +268,7 @@ const buildRepos = (overrides: {
     memoryRepository,
     summaryRepository,
     playerCharacterRepository,
+    lorebookRepository,
   }
 }
 
@@ -438,6 +488,121 @@ describe("ConversationContextLoader", () => {
 
     expect(result.characterVersion.id).toBe("ver-old")
     expect(result.characterVersion.description).toBe("Old description")
+  })
+
+  it("uses the linked lorebook version, not the live book (S133)", async () => {
+    const pinnedVersion = CharacterVersion.create({
+      id: "ver-linked",
+      characterId: "char-1",
+      name: "Test Character",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "A test character.",
+      instructions: null,
+      greeting: "Hello!",
+      versionNumber: 1,
+      createdAt: now,
+      cards: [],
+      lorebookVersionId: "lv-1",
+    } as never)
+    const messages = [
+      buildMessage("msg-1", "user", "Tell me about the dragon", 1),
+    ]
+    const repos = buildRepos({
+      messages,
+      version: pinnedVersion,
+      lorebookVersion: lorebookVersion(),
+      liveLorebook: liveLorebookV2,
+    })
+    const loader = new ConversationContextLoader(repos as never)
+
+    const result = await loader.load({ conversationId: "conv-1" })
+
+    expect(repos.lorebookRepository.findVersionById).toHaveBeenCalledWith(
+      "lv-1",
+    )
+    expect(repos.lorebookRepository.findByCharacterId).not.toHaveBeenCalled()
+    const contents = [
+      ...(result.lorebook?.before ?? []),
+      ...(result.lorebook?.after ?? []),
+    ].map((entry) => entry.content)
+    expect(contents).toContain("Lorebook v1 dragon lore.")
+    expect(contents).not.toContain("Lorebook v2 dragon lore.")
+  })
+
+  it("keeps reading the pinned version when the live container is deleted", async () => {
+    const pinnedVersion = CharacterVersion.create({
+      id: "ver-deleted",
+      characterId: "char-1",
+      name: "Test Character",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "A test character.",
+      instructions: null,
+      greeting: "Hello!",
+      versionNumber: 1,
+      createdAt: now,
+      cards: [],
+      lorebookVersionId: "lv-deleted",
+    } as never)
+    const messages = [
+      buildMessage("msg-1", "user", "Tell me about the dragon", 1),
+    ]
+    const repos = buildRepos({
+      messages,
+      version: pinnedVersion,
+      lorebookVersion: lorebookVersion({
+        id: "lv-deleted",
+        entriesJson: JSON.stringify([
+          {
+            id: "entry-deleted",
+            keys: ["dragon"],
+            content: "Deleted-book pinned lore.",
+          },
+        ]),
+      }),
+    })
+    const loader = new ConversationContextLoader(repos as never)
+
+    const result = await loader.load({ conversationId: "conv-1" })
+
+    const contents = [
+      ...(result.lorebook?.before ?? []),
+      ...(result.lorebook?.after ?? []),
+    ].map((entry) => entry.content)
+    expect(contents).toContain("Deleted-book pinned lore.")
+  })
+
+  it("has no lorebook when the character version is not linked", async () => {
+    const unlinkedVersion = CharacterVersion.create({
+      id: "ver-unlinked",
+      characterId: "char-1",
+      name: "Test Character",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "A test character.",
+      instructions: null,
+      greeting: "Hello!",
+      versionNumber: 1,
+      createdAt: now,
+      cards: [],
+      lorebookVersionId: null,
+    } as never)
+    const messages = [
+      buildMessage("msg-1", "user", "Tell me about the dragon", 1),
+    ]
+    const repos = buildRepos({
+      messages,
+      version: unlinkedVersion,
+      liveLorebook: liveLorebookV2,
+    })
+    const loader = new ConversationContextLoader(repos as never)
+
+    const result = await loader.load({ conversationId: "conv-1" })
+
+    expect(repos.lorebookRepository.findVersionById).not.toHaveBeenCalled()
+    expect(repos.lorebookRepository.findByCharacterId).not.toHaveBeenCalled()
+    expect(result.lorebook).toBeUndefined()
   })
 
   it("throws ConversationNotFoundError for a missing conversation", async () => {

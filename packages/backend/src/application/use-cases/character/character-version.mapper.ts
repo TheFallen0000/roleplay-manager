@@ -2,12 +2,14 @@ import type {
   CharacterCardDTO,
   CharacterVersionDTO,
 } from "@workspace/shared/types/character"
+import type { LorebookVersionSummary } from "@workspace/shared/types/lorebook"
 
 import type { CharacterCard } from "../../../domain/entities/character-card.entity"
 import type { CharacterVersion } from "../../../domain/entities/character-version.entity"
 
 export function toCharacterVersionDTO(
   version: CharacterVersion,
+  lorebookVersion?: LorebookVersionSummary | null,
 ): CharacterVersionDTO {
   return {
     id: version.id,
@@ -37,6 +39,7 @@ export function toCharacterVersionDTO(
     extensions: version.extensions,
     unknownFields: version.unknownFields,
     unknownRootFields: version.unknownRootFields,
+    ...(lorebookVersion !== undefined ? { lorebookVersion } : {}),
   }
 }
 

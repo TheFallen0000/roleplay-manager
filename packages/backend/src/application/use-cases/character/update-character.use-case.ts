@@ -10,15 +10,24 @@ import type {
 import { CharacterCard } from "../../../domain/entities/character-card.entity"
 import { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
+import type { LorebookRepository } from "../../../domain/ports/lorebook.repository"
 import {
   CharacterNotFoundError,
   CharacterValidationError,
   NoChangesDetectedError,
 } from "../../../domain/errors"
-import { toCharacterVersionDTO } from "./character-version.mapper"
+import { resolveLorebookVersionId } from "./lorebook/lorebook-version-link"
+import { toCharacterVersionDTOWithLorebookSummary } from "./lorebook/lorebook-version-summary"
+
+export interface UpdateCharacterDeps {
+  lorebookRepository?: LorebookRepository
+}
 
 export class UpdateCharacterUseCase {
-  constructor(private readonly characterRepository: CharacterRepository) {}
+  constructor(
+    private readonly characterRepository: CharacterRepository,
+    private readonly deps: UpdateCharacterDeps = {},
+  ) {}
 
   async execute(
     id: string,
@@ -31,6 +40,15 @@ export class UpdateCharacterUseCase {
     }
 
     const prevVersion = existing.currentVersion
+
+    const requestedLorebookVersionId =
+      input.lorebookVersionId !== undefined
+        ? input.lorebookVersionId
+        : prevVersion.lorebookVersionId
+    const newLorebookVersionId = await resolveLorebookVersionId(
+      this.deps.lorebookRepository,
+      requestedLorebookVersionId,
+    )
 
     const newName = input.name ?? existing.character.name
     const newSubtitle = input.subtitle !== undefined ? input.subtitle : prevVersion.subtitle
@@ -102,7 +120,8 @@ export class UpdateCharacterUseCase {
       newPostHistoryInstructions === prevVersion.postHistoryInstructions &&
       isDeepStrictEqual(newExtensions, prevVersion.extensions) &&
       isDeepStrictEqual(newUnknownFields, prevVersion.unknownFields) &&
-      isDeepStrictEqual(newUnknownRootFields, prevVersion.unknownRootFields)
+      isDeepStrictEqual(newUnknownRootFields, prevVersion.unknownRootFields) &&
+      newLorebookVersionId === prevVersion.lorebookVersionId
     ) {
       throw new NoChangesDetectedError()
     }
@@ -164,19 +183,33 @@ export class UpdateCharacterUseCase {
       extensions: newExtensions,
       unknownFields: newUnknownFields,
       unknownRootFields: newUnknownRootFields,
+      lorebookVersionId: newLorebookVersionId,
     })
 
     await this.characterRepository.saveVersion(newVersion)
 
     const allVersions = await this.characterRepository.findVersionsByCharacterId(id)
 
+    const currentVersion = await toCharacterVersionDTOWithLorebookSummary(
+      newVersion,
+      this.deps.lorebookRepository,
+    )
+    const versions = await Promise.all(
+      allVersions.map((version) =>
+        toCharacterVersionDTOWithLorebookSummary(
+          version,
+          this.deps.lorebookRepository,
+        ),
+      ),
+    )
+
     return {
       id: updated.id,
       name: updated.name,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
-      currentVersion: toCharacterVersionDTO(newVersion),
-      versions: allVersions.map(toCharacterVersionDTO),
+      currentVersion,
+      versions,
     }
   }
 }

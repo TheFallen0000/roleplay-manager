@@ -62,6 +62,7 @@ const entry = (overrides: Record<string, unknown> = {}) => ({
 const buildRepos = (existing: { book: unknown; entries: unknown[] } | null = null) => ({
   lorebookRepository: {
     findByCharacterId: vi.fn(async () => existing),
+    findById: vi.fn(async () => existing),
     upsertBook: vi.fn(async (value) => value),
     createEntry: vi.fn(async (value) => value),
     updateEntry: vi.fn(async (value) => value),
@@ -182,6 +183,22 @@ describe("lorebook use cases — export", () => {
       disable: false,
       position: 1,
     })
+  })
+
+  it("exports a standalone book by id", async () => {
+    const repos = buildRepos({
+      book: book({ characterId: null }),
+      entries: [entry()],
+    })
+    const useCase = new ExportLorebookUseCase(repos as never)
+
+    const result = await useCase.executeById({
+      lorebookId: "book-1",
+      format: "ccv3",
+    })
+
+    expect(repos.lorebookRepository.findById).toHaveBeenCalledWith("book-1")
+    expect(result).toMatchObject({ data: { name: "Forest lore" } })
   })
 })
 

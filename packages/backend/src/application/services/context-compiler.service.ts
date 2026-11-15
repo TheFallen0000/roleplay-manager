@@ -160,6 +160,12 @@ export class ContextCompiler {
         ? {
             lorebook: {
               overBudget: input.lorebook.overBudgetCount ?? 0,
+              ...(input.lorebook.versionNumber !== undefined
+                ? { versionNumber: input.lorebook.versionNumber }
+                : {}),
+              ...(input.lorebook.sourceKey !== undefined
+                ? { sourceKey: input.lorebook.sourceKey }
+                : {}),
             },
           }
         : {}),

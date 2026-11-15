@@ -45,6 +45,31 @@ export interface SillyTavernCardEnvelope {
   data: Record<string, unknown>
 }
 
+/** Canonical V2/V3 character-card envelope returned by the card contract. */
+export type CharacterCardEnvelope = SillyTavernCardEnvelope
+
+/** RM-owned namespace inside a card's `extensions`. Unknown keys are kept. */
+export interface RmExtensions {
+  version: 1
+  subtitle?: string | null
+  instructions?: string | null
+  knowledgeCards?: Array<{
+    title: string
+    content: string
+    position: number
+    active: boolean
+  }>
+  versionNumber?: number
+  tagline?: string | null
+  lorebook?: {
+    lorebookId: string
+    lorebookVersionId: string
+    versionNumber: number
+    sourceKey: string
+    originId?: string | null
+  } | null
+}
+
 export type SillyTavernCardWarning =
   | "REGEX_IGNORED"
   | "TIMED_EFFECTS_PRESERVED"
@@ -72,7 +97,8 @@ export interface SillyTavernCardExportInput {
 
 export interface LorebookDTO {
   id: string
-  characterId: string
+  /** Legacy link; lorebooks are standalone since S133. */
+  characterId?: string | null
   name: string | null
   description: string | null
   scanDepth: number
@@ -80,6 +106,10 @@ export interface LorebookDTO {
   recursiveScanning: boolean
   extensions: unknown
   unknownFields: unknown
+  originId?: string | null
+  currentVersionId?: string | null
+  currentVersionNumber?: number | null
+  deletedAt?: string | null
   entries: LorebookEntryDTO[]
 }
 

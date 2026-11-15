@@ -55,6 +55,9 @@ export class UpdateLorebookUseCase {
         })
 
     const saved = await this.deps.lorebookRepository.upsertBook(book)
-    return toLorebookDTO(saved, existing?.entries ?? [])
+    return {
+      ...toLorebookDTO(saved, existing?.entries ?? []),
+      characterId: input.characterId,
+    }
   }
 }

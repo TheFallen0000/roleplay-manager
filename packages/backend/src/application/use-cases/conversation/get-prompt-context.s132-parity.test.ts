@@ -63,6 +63,7 @@ const version = CharacterVersion.create({
   systemPrompt: "You are the forest's guardian.",
   postHistoryInstructions: "Post history marker.",
   creatorNotes: "Creator note must stay out.",
+  lorebookVersionId: "lv-1",
 } as never)
 
 const lorebookEntry = {
@@ -103,6 +104,20 @@ const lorebook = {
   unknownFields: null,
   createdAt: now,
   updatedAt: now,
+}
+
+const lorebookVersion = {
+  id: "lv-1",
+  lorebookId: "book-1",
+  versionNumber: 1,
+  name: "Forest lore",
+  description: null,
+  scanDepth: 4,
+  tokenBudget: 400,
+  recursiveScanning: false,
+  entriesJson: JSON.stringify([lorebookEntry]),
+  sourceKey: "a".repeat(64),
+  createdAt: now,
 }
 
 const buildMessage = (
@@ -232,6 +247,7 @@ const buildRepos = (
         book: lorebook,
         entries: [lorebookEntry],
       }),
+      findVersionById: async () => lorebookVersion,
       upsertBook: async (value: unknown) => value,
       createEntry: async (value: unknown) => value,
       updateEntry: async (value: unknown) => value,

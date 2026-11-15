@@ -4,7 +4,9 @@ import { CHARACTER_ASSET_VARIANTS } from "@workspace/shared/types/image"
 
 import type { CreateCharacterUseCase } from "../../../../application/use-cases/character/create-character.use-case"
 import type { GetCharacterUseCase } from "../../../../application/use-cases/character/get-character.use-case"
+import type { GetCharacterCardUseCase } from "../../../../application/use-cases/character/get-character-card.use-case"
 import type { ListCharactersUseCase } from "../../../../application/use-cases/character/list-characters.use-case"
+import type { UpdateCharacterCardUseCase } from "../../../../application/use-cases/character/update-character-card.use-case"
 import type { UpdateCharacterUseCase } from "../../../../application/use-cases/character/update-character.use-case"
 import type { UpdateCharacterProfileImageUseCase } from "../../../../application/use-cases/character/update-character-profile-image.use-case"
 import type { ExportCharacterUseCase } from "../../../../application/use-cases/character/export-character.use-case"
@@ -72,6 +74,11 @@ const ListCharactersQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).optional(),
 })
 
+const GetCharacterCardQuerySchema = z.object({
+  spec: z.enum(["v2", "v3"]).optional(),
+  versionId: z.string().optional(),
+})
+
 const CreateCharacterSchema = z.object({
   name: z.string().min(1, "Name is required"),
   subtitle: z.string().nullable().optional(),
@@ -80,6 +87,7 @@ const CreateCharacterSchema = z.object({
   instructions: z.string().nullable().optional(),
   greeting: z.string().min(1, "Greeting is required"),
   cards: z.array(CardSchema).optional(),
+  lorebookVersionId: z.string().nullable().optional(),
   ...CharacterCardFieldsSchema,
   lorebook: z
     .object({
@@ -105,6 +113,7 @@ const UpdateCharacterSchema = z.object({
   instructions: z.string().nullable().optional(),
   greeting: z.string().min(1).optional(),
   cards: z.array(UpdateCardSchema).optional(),
+  lorebookVersionId: z.string().nullable().optional(),
   ...CharacterCardFieldsSchema,
 })
 
@@ -172,6 +181,8 @@ const ApplySettingsTemplateSchema = z.looseObject({
 export const buildCharacterRouter = (deps: {
   createCharacter: CreateCharacterUseCase
   getCharacter: GetCharacterUseCase
+  getCharacterCard?: GetCharacterCardUseCase
+  updateCharacterCard?: UpdateCharacterCardUseCase
   listCharacters: ListCharactersUseCase
   updateCharacter: UpdateCharacterUseCase
   updateCharacterProfileImage: UpdateCharacterProfileImageUseCase
@@ -219,6 +230,32 @@ export const buildCharacterRouter = (deps: {
       }
     },
   )
+
+  router.get("/characters/:id/card", async (req, res, next) => {
+    try {
+      const { spec, versionId } = GetCharacterCardQuerySchema.parse(req.query)
+      const result = await deps.getCharacterCard!.execute({
+        characterId: req.params.id,
+        spec: spec ?? "v3",
+        ...(versionId ? { versionId } : {}),
+      })
+      res.json(result)
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.put("/characters/:id/card", async (req, res, next) => {
+    try {
+      const result = await deps.updateCharacterCard!.execute({
+        characterId: req.params.id,
+        payload: req.body,
+      })
+      res.json(result)
+    } catch (error) {
+      next(error)
+    }
+  })
 
   router.get("/characters/:id", async (req, res, next) => {
     try {

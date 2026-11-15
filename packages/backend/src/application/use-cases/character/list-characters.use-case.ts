@@ -48,6 +48,7 @@ export class ListCharactersUseCase {
         ? assetsById.get(currentVersion.profileImageAssetId) ?? null
         : null
 
+      const linked = currentVersion.lorebook
       return {
         id: character.id,
         name: character.name,
@@ -59,6 +60,24 @@ export class ListCharactersUseCase {
             : null,
         profileImageMimeType: profileImage?.mimeType ?? null,
         versionNumber: currentVersion.versionNumber,
+        tags: currentVersion.tags ?? [],
+        creator: currentVersion.creator ?? null,
+        lorebook: linked
+          ? {
+              lorebookId: linked.lorebookId,
+              versionId: linked.versionId,
+              versionNumber: linked.versionNumber,
+              name: linked.name,
+              sourceKey: linked.sourceKey,
+              entryCount: linked.entryCount,
+              originId: linked.originId,
+              status: linked.deletedAt
+                ? "deleted"
+                : linked.currentVersionId === linked.versionId
+                  ? "current"
+                  : "outdated",
+            }
+          : null,
         createdAt: character.createdAt.toISOString(),
         updatedAt: character.updatedAt.toISOString(),
       }

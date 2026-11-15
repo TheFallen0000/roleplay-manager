@@ -26,7 +26,10 @@ import {
   resolvePlayerCharacterPrompt,
   type PlayerCharacterPrompt,
 } from "../use-cases/conversation/resolve-player-character"
-import { LorebookActivationService } from "./lorebook-activation.service"
+import {
+  LorebookActivationService,
+  type LorebookActivationEntryInput,
+} from "./lorebook-activation.service"
 
 export interface ConversationContextLoaderDeps {
   conversationRepository: ConversationRepository
@@ -145,7 +148,7 @@ export class ConversationContextLoader {
       conversation,
     )
 
-    const lorebook = await this.loadLorebook(characterVersion.characterId, messages)
+    const lorebook = await this.loadLorebook(characterVersion, messages)
 
     return {
       conversation,
@@ -164,18 +167,27 @@ export class ConversationContextLoader {
   }
 
   private async loadLorebook(
-    characterId: string,
+    characterVersion: CharacterVersion,
     messages: Message[],
   ): Promise<PromptContextLorebook | null> {
     const repository = this.deps.lorebookRepository
     if (!repository) return null
 
-    const lorebook = await repository.findByCharacterId(characterId)
-    if (!lorebook) return null
+    const versionId = characterVersion.lorebookVersionId
+    if (!versionId) return null
+
+    // The version is immutable and read by id, so a soft-deleted container
+    // keeps feeding the conversations pinned to it.
+    const version = await repository.findVersionById(versionId)
+    if (!version) return null
 
     const activated = await this.lorebookActivation.activate({
-      book: lorebook.book,
-      entries: lorebook.entries,
+      book: {
+        scanDepth: version.scanDepth,
+        tokenBudget: version.tokenBudget,
+        recursiveScanning: version.recursiveScanning,
+      },
+      entries: parseVersionEntries(version.entriesJson),
       messages,
     })
 
@@ -189,6 +201,72 @@ export class ConversationContextLoader {
         content: entry.content,
       })),
       overBudgetCount: activated.overBudgetCount,
+      versionNumber: version.versionNumber,
+      sourceKey: version.sourceKey,
     }
   }
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+
+const asString = (value: unknown): string =>
+  typeof value === "string" ? value : ""
+
+const asStringArray = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : []
+
+const asNumber = (value: unknown, fallback: number): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback
+
+const asBoolean = (value: unknown, fallback: boolean): boolean =>
+  typeof value === "boolean" ? value : fallback
+
+const asSelectiveLogic = (value: unknown): 0 | 1 | 2 | 3 =>
+  value === 1 || value === 2 || value === 3 ? value : 0
+
+const asPosition = (value: unknown): "before_char" | "after_char" =>
+  value === "before_char" ? "before_char" : "after_char"
+
+/**
+ * `lorebook_versions.entries_json` stores the normalized entry snapshot; older
+ * captures and hand-written fixtures omit fields the activation service needs,
+ * so every missing value falls back to the entity defaults.
+ */
+const parseVersionEntries = (
+  entriesJson: string,
+): LorebookActivationEntryInput[] => {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(entriesJson)
+  } catch {
+    return []
+  }
+  if (!Array.isArray(parsed)) return []
+
+  return parsed.map((raw, index) => {
+    const entry = isRecord(raw) ? raw : {}
+    return {
+      id: asString(entry.id) || asString(entry.sourceId) || `entry-${index}`,
+      keys: asStringArray(entry.keys),
+      secondaryKeys: asStringArray(entry.secondaryKeys),
+      content: asString(entry.content),
+      constant: asBoolean(entry.constant, false),
+      selective: asBoolean(entry.selective, false),
+      selectiveLogic: asSelectiveLogic(entry.selectiveLogic),
+      insertionOrder: asNumber(entry.insertionOrder, 100),
+      priority: asNumber(entry.priority, 0),
+      enabled: asBoolean(entry.enabled, true),
+      caseSensitive: asBoolean(entry.caseSensitive, false),
+      wholeWords: asBoolean(entry.wholeWords, false),
+      order: asNumber(entry.order, index),
+      position: asPosition(entry.position),
+      ...(typeof entry.useRegex === "boolean"
+        ? { useRegex: entry.useRegex }
+        : {}),
+      unknownFields: entry.unknownFields ?? null,
+    }
+  })
 }

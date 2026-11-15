@@ -1,5 +1,5 @@
 ---
-import { CharacterForm } from "@/components/character/character-form"
+import { CharacterPage } from "@/components/character/character-page"
 import BaseLayout from "@/layouts/base.astro"
 import { resolveLocale } from "@/lib/locale"
 import { translate } from "@workspace/shared/i18n"
@@ -12,5 +12,5 @@ const locale = resolveLocale(Astro.cookies.get("language")?.value)
 <BaseLayout
   title={`${translate(locale, "pages.newCharacter")} - Roleplay Manager`}
 >
-  <CharacterForm locale={locale} client:load />
+  <CharacterPage locale={locale} client:load />
 </BaseLayout>

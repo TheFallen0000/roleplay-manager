@@ -2,7 +2,8 @@ import { LorebookValidationError } from "../errors"
 
 export interface LorebookProps {
   id: string
-  characterId: string
+  /** Legacy S132 owner. Standalone containers created in S133 leave it null. */
+  characterId?: string | null
   name?: string | null
   description?: string | null
   scanDepth?: number
@@ -12,13 +13,18 @@ export interface LorebookProps {
   unknownFields?: unknown
   createdAt?: Date
   updatedAt?: Date
+  originId?: string | null
+  currentVersionId?: string | null
+  deletedAt?: Date | null
 }
 
-const withDefaults = (props: LorebookProps): Required<LorebookProps> => {
+type NormalizedLorebookProps = Required<LorebookProps>
+
+const withDefaults = (props: LorebookProps): NormalizedLorebookProps => {
   const createdAt = props.createdAt ?? new Date()
   return {
     id: props.id,
-    characterId: props.characterId,
+    characterId: props.characterId ?? null,
     name: props.name ?? null,
     description: props.description ?? null,
     scanDepth: props.scanDepth ?? 4,
@@ -28,12 +34,17 @@ const withDefaults = (props: LorebookProps): Required<LorebookProps> => {
     unknownFields: props.unknownFields ?? null,
     createdAt,
     updatedAt: props.updatedAt ?? createdAt,
+    originId: props.originId ?? null,
+    currentVersionId: props.currentVersionId ?? null,
+    deletedAt: props.deletedAt ?? null,
   }
 }
 
-const assertValid = (props: Required<LorebookProps>): void => {
-  if (!props.characterId.trim()) {
-    throw new LorebookValidationError("Lorebook characterId is required")
+const assertValid = (props: NormalizedLorebookProps): void => {
+  if (props.characterId !== null && !props.characterId.trim()) {
+    throw new LorebookValidationError(
+      "Lorebook characterId must be a non-empty string or null",
+    )
   }
   if (!Number.isInteger(props.scanDepth) || props.scanDepth < 0) {
     throw new LorebookValidationError("Lorebook scanDepth must be >= 0")
@@ -44,7 +55,7 @@ const assertValid = (props: Required<LorebookProps>): void => {
 }
 
 export class Lorebook {
-  private constructor(private readonly props: Required<LorebookProps>) {}
+  private constructor(private readonly props: NormalizedLorebookProps) {}
 
   static create(props: LorebookProps): Lorebook {
     const normalized = withDefaults(props)
@@ -57,7 +68,7 @@ export class Lorebook {
   }
 
   get id(): string { return this.props.id }
-  get characterId(): string { return this.props.characterId }
+  get characterId(): string | null { return this.props.characterId }
   get name(): string | null { return this.props.name }
   get description(): string | null { return this.props.description }
   get scanDepth(): number { return this.props.scanDepth }
@@ -67,6 +78,9 @@ export class Lorebook {
   get unknownFields(): unknown { return this.props.unknownFields }
   get createdAt(): Date { return this.props.createdAt }
   get updatedAt(): Date { return this.props.updatedAt }
+  get originId(): string | null { return this.props.originId }
+  get currentVersionId(): string | null { return this.props.currentVersionId }
+  get deletedAt(): Date | null { return this.props.deletedAt }
 
   withSettings(
     overrides: Partial<
@@ -85,5 +99,31 @@ export class Lorebook {
     const next = withDefaults({ ...this.props, ...overrides, updatedAt: new Date() })
     assertValid(next)
     return new Lorebook(next)
+  }
+
+  withCharacterId(characterId: string | null): Lorebook {
+    const next = withDefaults({
+      ...this.props,
+      characterId,
+      updatedAt: new Date(),
+    })
+    assertValid(next)
+    return new Lorebook(next)
+  }
+
+  withOriginId(originId: string | null): Lorebook {
+    return new Lorebook({ ...this.props, originId, updatedAt: new Date() })
+  }
+
+  withCurrentVersionId(currentVersionId: string | null): Lorebook {
+    return new Lorebook({
+      ...this.props,
+      currentVersionId,
+      updatedAt: new Date(),
+    })
+  }
+
+  withDeletedAt(deletedAt: Date | null): Lorebook {
+    return new Lorebook({ ...this.props, deletedAt, updatedAt: new Date() })
   }
 }

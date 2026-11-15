@@ -157,6 +157,77 @@ export const buildCardWithUnknownFields = (): FixtureRecord =>
     { custom_root_key: { nested: true } }
   )
 
+/**
+ * A V3 card with the full `extensions.rm` payload, an unknown key inside
+ * `extensions.rm`, unknown buckets, and assets/nickname in `data`. Used to
+ * prove the S133 RM merge keeps unknown data (field loss = 0).
+ */
+export const buildCardWithRmExtensions = (): FixtureRecord =>
+  buildV3Card(
+    {
+      assets: [{ type: "icon", uri: "ccdefault:", name: "main", ext: "png" }],
+      nickname: "The Guardian",
+      group_only_greetings: ["Group hello"],
+      creator_notes_multilingual: { es: "Notas del creador" },
+      source: ["https://example.test/card"],
+      creation_date: 1_700_000_000,
+      modification_date: 1_700_000_001,
+      character_book: buildLorebookCCv3([
+        buildCCv3Entry({
+          content: "@@depth 4\nDragons dwell in the northern mountains.",
+        }),
+      ]).data,
+      extensions: {
+        other: { keep: true },
+        rm: {
+          version: 1,
+          subtitle: "Guardian of the grove",
+          instructions: "Speak in riddles.",
+          knowledgeCards: [
+            {
+              title: "Oath",
+              content: "Protect the forest.",
+              position: 0,
+              active: true,
+            },
+          ],
+          versionNumber: 3,
+          tagline: "The forest's guardian",
+          lorebook: {
+            lorebookId: "imported-book",
+            lorebookVersionId: "imported-version",
+            versionNumber: 2,
+            sourceKey: "imported-source-key",
+            originId: "imported-origin",
+          },
+          futureRmKey: { keep: true },
+        },
+      },
+    },
+    { custom_root_key: { nested: true } }
+  )
+
+/** A V3 card whose imported lorebook footprint points at another install. */
+export const buildCardWithImportedLorebookIds = (): FixtureRecord =>
+  buildV3Card({
+    character_book: buildLorebookCCv3([
+      buildCCv3Entry({ content: "Imported dragon lore." }),
+    ]).data,
+    extensions: {
+      rm: {
+        version: 1,
+        tagline: "Imported guardian",
+        lorebook: {
+          lorebookId: "imported-book",
+          lorebookVersionId: "imported-version",
+          versionNumber: 9,
+          sourceKey: "imported-source-key",
+          originId: "imported-origin",
+        },
+      },
+    },
+  })
+
 /** A → B → C → D chain: each entry's content matches the next entry's key. */
 export const buildRecursionFixture = (): FixtureRecord[] => [
   buildCCv3Entry({

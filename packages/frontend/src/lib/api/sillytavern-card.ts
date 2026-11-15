@@ -1,6 +1,8 @@
 import type { CharacterSummary } from "@workspace/shared/types/character"
 import type {
+  CharacterCardEnvelope,
   SillyTavernCardExportInput,
+  SillyTavernCardExportSpec,
   SillyTavernCardFormat,
   SillyTavernCardPreview,
 } from "@workspace/shared/types/sillytavern-card"
@@ -32,6 +34,31 @@ export const importSillyTavernCard = (
   apiRequest("/api/characters/cards/import", {
     method: "POST",
     body: JSON.stringify(input),
+  })
+
+export interface GetCharacterCardOptions {
+  spec?: SillyTavernCardExportSpec
+  versionId?: string
+}
+
+export const getCharacterCard = (
+  characterId: string,
+  options: GetCharacterCardOptions = {},
+): Promise<CharacterCardEnvelope> => {
+  const params = new URLSearchParams()
+  if (options.spec) params.set("spec", options.spec)
+  if (options.versionId) params.set("versionId", options.versionId)
+  const query = params.size > 0 ? `?${params.toString()}` : ""
+  return apiRequest(`/api/characters/${characterId}/card${query}`)
+}
+
+export const updateCharacterCard = (
+  characterId: string,
+  payload: CharacterCardEnvelope,
+): Promise<CharacterCardEnvelope> =>
+  apiRequest(`/api/characters/${characterId}/card`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
   })
 
 /**

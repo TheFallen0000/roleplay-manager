@@ -3,18 +3,12 @@ import type {
   CharacterVersionDTO,
 } from "@workspace/shared/types/character"
 import type { ConversationSummary } from "@workspace/shared/types/conversation"
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import { Badge } from "@workspace/ui/components/badge"
+import { BookOpenIcon, MessageSquarePlusIcon } from "lucide-react"
+
 import { getCharacterAssetUrl } from "@/lib/api/client"
 import { createAssetSrcSet } from "@/lib/asset-srcset"
 import { useTranslation } from "@/lib/hooks/use-translation"
+
 import { CharacterContextMenu } from "./character-context-menu"
 
 export interface CharacterCardProps {
@@ -60,8 +54,9 @@ export function CharacterCard({
           "profile",
         )
       : undefined
-
   const initial = Array.from(character.name.trim())[0]?.toUpperCase() ?? "?"
+  const tags = character.tags ?? []
+  const lorebook = character.lorebook
 
   return (
     <CharacterContextMenu
@@ -73,73 +68,96 @@ export function CharacterCard({
       onEdit={onEdit}
       onDelete={onDelete}
     >
-      <Card
-        className="relative overflow-hidden pt-0 transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
-        size="sm"
-      >
+      <article className="rm-character-card">
         <button
           type="button"
           onClick={() => onImageClick(character)}
-          className="block w-full cursor-pointer text-left"
+          className="rm-character-cover"
           aria-label={t("characters.openMostRecent", { name: character.name })}
         >
           {imageSrc ? (
-            <>
-              <div className="absolute inset-0 z-30 aspect-[16/10]" />
-              <img
-                src={imageSrc}
-                srcSet={imageSrcSet}
-                sizes="(min-width: 64rem) calc((100vw - 20rem) / 3), (min-width: 48rem) calc((100vw - 19rem) / 2), (min-width: 40rem) calc((100vw - 3rem) / 2), calc(100vw - 2rem)"
-                width={character.profileImageDimensions?.width}
-                height={character.profileImageDimensions?.height}
-                loading="lazy"
-                decoding="async"
-                alt={`${character.name} avatar`}
-                className="relative z-20 aspect-[16/10] w-full object-cover"
-              />
-            </>
+            <img
+              src={imageSrc}
+              srcSet={imageSrcSet}
+              sizes="(min-width: 64rem) calc((100vw - 20rem) / 3), (min-width: 48rem) calc((100vw - 19rem) / 2), (min-width: 40rem) calc((100vw - 3rem) / 2), calc(100vw - 2rem)"
+              width={character.profileImageDimensions?.width}
+              height={character.profileImageDimensions?.height}
+              loading="lazy"
+              decoding="async"
+              alt={`${character.name} avatar`}
+            />
           ) : (
-            <div
-              aria-hidden
-              className="relative z-20 flex aspect-[16/10] w-full items-center justify-center bg-muted"
-            >
-              <span className="font-display text-4xl text-muted-foreground/50">
-                {initial}
-              </span>
-            </div>
+            <span className="initial">{initial}</span>
           )}
         </button>
-        <CardHeader>
-          <CardAction>
-            <Badge
-              variant="outline"
-              className="border-primary/35 bg-primary-soft text-primary"
-            >
-              v{character.versionNumber}
-            </Badge>
-          </CardAction>
-          <CardTitle className="font-heading font-bold">
-            {character.name}
-          </CardTitle>
-          {character.subtitle ? (
-            <CardDescription>{character.subtitle}</CardDescription>
+
+        <div className="rm-character-card-body">
+          <div className="flex items-start justify-between gap-2">
+            <h2>
+              <a href={`/characters/${character.id}`}>{character.name}</a>
+            </h2>
+            <span className="rm-chip rm-chip--violet">v{character.versionNumber}</span>
+          </div>
+
+          <p className="sub">
+            {character.subtitle || t("characters.cardFallbackDescription")}
+          </p>
+
+          {tags.length > 0 ? (
+            <div className="rm-chip-list">
+              {tags.slice(0, 3).map((tag, index) => (
+                <span
+                  key={`${tag}-${index}`}
+                  className={index === 0 ? "rm-chip rm-chip--violet" : "rm-chip"}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           ) : null}
-        </CardHeader>
-        <CardFooter className="flex flex-col items-start text-xs text-muted-foreground">
-          <span>
-            {t("characters.createdAt", {
-              date: new Date(character.createdAt).toLocaleDateString(),
-            })}
-          </span>
-          <span>
-            {t("characters.lastActivity", {
-              date: lastActivityAt
-                ? new Date(lastActivityAt).toLocaleDateString()
-                : t("characters.noConversations"),
-            })}
-          </span>
-        </CardFooter>
-      </Card>
+
+          <div className="rm-character-card-meta">
+            {lorebook ? (
+              <span className="flex items-center gap-1">
+                <BookOpenIcon className="size-3" />
+                {lorebook.name ?? t("common.untitled")} v{lorebook.versionNumber}
+              </span>
+            ) : (
+              <span>{t("characters.lorebookNone")}</span>
+            )}
+            {character.creator ? <span>{character.creator}</span> : null}
+            <span>
+              {t("characters.createdAt", {
+                date: new Date(character.createdAt).toLocaleDateString(),
+              })}
+            </span>
+            <span>
+              {t("characters.lastActivity", {
+                date: lastActivityAt
+                  ? new Date(lastActivityAt).toLocaleDateString()
+                  : t("characters.noConversations"),
+              })}
+            </span>
+          </div>
+
+          <div className="rm-character-card-actions">
+            <a
+              className="rm-btn rm-btn--ghost rm-btn--sm"
+              href={`/characters/${character.id}`}
+            >
+              {t("characters.openCard")}
+            </a>
+            <button
+              type="button"
+              className="rm-btn rm-btn--sm"
+              onClick={() => onImageClick(character)}
+            >
+              <MessageSquarePlusIcon className="size-4" />
+              {t("characters.startConversation")}
+            </button>
+          </div>
+        </div>
+      </article>
     </CharacterContextMenu>
   )
 }

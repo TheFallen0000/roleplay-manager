@@ -20,18 +20,28 @@ import {
   LorebookValidationError,
 } from "../../../domain/errors"
 import { buildLorebookEntities } from "./lorebook/lorebook.mapper"
-import { toCharacterVersionDTO } from "./character-version.mapper"
+import { resolveLorebookVersionId } from "./lorebook/lorebook-version-link"
+import { toCharacterVersionDTOWithLorebookSummary } from "./lorebook/lorebook-version-summary"
 
 export class CreateCharacterUseCase {
   constructor(
     private readonly characterRepository: CharacterRepository,
-    _lorebookRepository?: LorebookRepository,
+    private readonly lorebookRepository?: LorebookRepository,
   ) {}
 
   async execute(input: CreateCharacterInput): Promise<CharacterDetail> {
     if (input.cards?.some((c) => !c.title.trim() || !c.content.trim())) {
       throw new CharacterValidationError("Cards must have non-empty title and content")
     }
+
+    const hasLorebookSelector = Object.prototype.hasOwnProperty.call(
+      input,
+      "lorebookVersionId",
+    )
+    const lorebookVersionId = await resolveLorebookVersionId(
+      this.lorebookRepository,
+      input.lorebookVersionId,
+    )
 
     const now = new Date()
     const characterId = randomUUIDv7()
@@ -67,6 +77,7 @@ export class CreateCharacterUseCase {
       versionNumber: 1,
       createdAt: now,
       cards,
+      lorebookVersionId,
       personality: input.personality ?? null,
       scenario: input.scenario ?? null,
       mesExample: input.mesExample ?? null,
@@ -85,7 +96,9 @@ export class CreateCharacterUseCase {
       unknownRootFields: input.unknownRootFields ?? null,
     })
 
-    const lorebook = this.buildLorebook(input, characterId)
+    const lorebook = hasLorebookSelector
+      ? null
+      : this.buildLorebook(input, characterId)
 
     const result = await this.characterRepository.createWithFirstVersion(
       character,
@@ -93,7 +106,19 @@ export class CreateCharacterUseCase {
       lorebook ?? undefined,
     )
 
-    return toCharacterDetail(result.character, result.version, [result.version])
+    const currentVersion = await toCharacterVersionDTOWithLorebookSummary(
+      result.version,
+      this.lorebookRepository,
+    )
+
+    return {
+      id: result.character.id,
+      name: result.character.name,
+      createdAt: result.character.createdAt.toISOString(),
+      updatedAt: result.character.updatedAt.toISOString(),
+      currentVersion,
+      versions: [currentVersion],
+    }
   }
 
   private buildLorebook(
@@ -128,20 +153,5 @@ export class CreateCharacterUseCase {
     }
 
     return entities
-  }
-}
-
-function toCharacterDetail(
-  character: Character,
-  currentVersion: CharacterVersion,
-  allVersions: CharacterVersion[],
-): CharacterDetail {
-  return {
-    id: character.id,
-    name: character.name,
-    createdAt: character.createdAt.toISOString(),
-    updatedAt: character.updatedAt.toISOString(),
-    currentVersion: toCharacterVersionDTO(currentVersion),
-    versions: allVersions.map(toCharacterVersionDTO),
   }
 }

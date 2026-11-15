@@ -228,9 +228,7 @@ describe("CharacterList", () => {
     expect(visibleNames()).toEqual(["Kael", "Lyra"])
 
     const user = userEvent.setup()
-    await user.click(screen.getByLabelText("Ordenar por"))
-    const option = await screen.findByRole("option", { name: "Más antiguos" })
-    await user.click(option)
+    await user.selectOptions(screen.getByLabelText("Ordenar por"), "recency-asc")
 
     await waitFor(() => expect(visibleNames()).toEqual(["Lyra", "Kael"]))
   })

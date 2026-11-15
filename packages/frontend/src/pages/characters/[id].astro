@@ -1,6 +1,6 @@
 ---
-import { CharacterForm } from "@/components/character/character-form"
 import { CharacterNotFound } from "@/components/character/character-not-found"
+import { CharacterPage } from "@/components/character/character-page"
 import { getCharacter } from "@/lib/api/characters"
 import BaseLayout from "@/layouts/base.astro"
 import { resolveLocale } from "@/lib/locale"
@@ -33,7 +33,7 @@ if (id) {
   }
 >
   {character ? (
-    <CharacterForm locale={locale} client:load character={character} />
+    <CharacterPage locale={locale} characterId={character.id} client:load />
   ) : (
     <CharacterNotFound error={error} />
   )}

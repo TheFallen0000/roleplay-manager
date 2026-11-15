@@ -1,0 +1,15 @@
+---
+import { LorebookPage } from "@/components/lorebook/lorebook-page"
+import BaseLayout from "@/layouts/base.astro"
+import { resolveLocale } from "@/lib/locale"
+import { translate } from "@workspace/shared/i18n"
+
+export const prerender = false
+
+const { id } = Astro.params
+const locale = resolveLocale(Astro.cookies.get("language")?.value)
+---
+
+<BaseLayout title={`${translate(locale, "pages.lorebooks")} - Roleplay Manager`}>
+  <LorebookPage locale={locale} lorebookId={id} client:load />
+</BaseLayout>

@@ -176,18 +176,6 @@ describe("migration 0019_character_cards", () => {
     )
   })
 
-  it("enforces one lorebook per character with a unique index", () => {
-    const uniqueOnCharacter = indexesOf("lorebooks").find(
-      (index) =>
-        index.unique === 1 &&
-        indexColumnsOf(String(index.name)).length === 1 &&
-        indexColumnsOf(String(index.name))[0] === "character_id"
-    )
-
-    expect(uniqueOnCharacter).toBeDefined()
-    expect(uniqueOnCharacter?.name).toBe("lorebooks_character_idx")
-  })
-
   it("indexes entries by lorebook and presentation order", () => {
     const entryIndex = indexesOf("lorebook_entries").find(
       (index) => index.name === "lorebook_entries_lorebook_idx"
@@ -200,16 +188,10 @@ describe("migration 0019_character_cards", () => {
     ])
   })
 
-  it("cascades lorebooks with the character and entries with the book", () => {
-    const bookFk = foreignKeysOf("lorebooks").find(
-      (fk) => fk.from === "character_id"
-    )
-    expect(bookFk).toMatchObject({
-      table: "characters",
-      from: "character_id",
-      on_delete: "CASCADE",
-    })
-
+  it("keeps the entries cascade with the book", () => {
+    // The character -> lorebook cascade and the unique character index were
+    // removed by 0020 (a book is no longer owned by a character). Entries still
+    // belong to the live book head.
     const entryFk = foreignKeysOf("lorebook_entries").find(
       (fk) => fk.from === "lorebook_id"
     )

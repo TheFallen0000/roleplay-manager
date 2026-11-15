@@ -3,7 +3,6 @@ import { ChevronDownIcon, FileJsonIcon, PlusIcon, UploadIcon } from "lucide-reac
 
 import type { CharacterSummary } from "@workspace/shared/types/character"
 import type { CharacterExport } from "@workspace/shared/types/export"
-import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
 
@@ -21,9 +20,9 @@ import {
   type CharacterSortKey,
 } from "@/lib/sort-characters"
 import { MascotPose } from "../layout/brand"
+import { CreateDialog } from "../shared/create-dialog"
 import { LoadErrorState } from "../shared/states/load-error-state"
 import { CharacterCard } from "./character-card"
-import { CharacterCreateDialog } from "./character-create-dialog"
 import { CharacterDropOverlay } from "./character-drop-overlay"
 import { CharacterListToolbar } from "./character-list-toolbar"
 import {
@@ -76,11 +75,18 @@ function CharacterListContent() {
   const visibleCharacters = useMemo(() => {
     const term = normalizeText(search)
     const filtered = term
-      ? characters.filter(
-          (character) =>
-            normalizeText(character.name).includes(term) ||
-            normalizeText(character.subtitle ?? "").includes(term),
-        )
+      ? characters.filter((character) => {
+          const haystack = [
+            character.name,
+            character.subtitle ?? "",
+            character.creator ?? "",
+            ...(character.tags ?? []),
+            character.lorebook?.name ?? "",
+          ]
+            .map(normalizeText)
+            .join(" ")
+          return haystack.includes(term)
+        })
       : characters
     return sortCharacters(filtered, lastActivityByCharacter, sort)
   }, [characters, lastActivityByCharacter, search, sort])
@@ -200,118 +206,117 @@ function CharacterListContent() {
   return (
     <>
       <CharacterDropOverlay onFile={handleImportFile}>
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="grid gap-1">
-          <h1 className="font-heading text-3xl font-black tracking-tight">
-            {t("characters.title")}
-          </h1>
-          <p className="text-sm text-muted-foreground">{t("characters.lede")}</p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button variant="outline" onClick={() => setImportOpen(true)}>
-            <UploadIcon />
-            {t("characters.import")}
-          </Button>
-          <Button variant="outline" onClick={() => setCardImportOpen(true)}>
-            <FileJsonIcon />
-            {t("characters.sillytavern.importTitle")}
-          </Button>
-          <Button onClick={() => setCreateOpen(true)}>
-            <PlusIcon />
-            {t("characters.create")}
-          </Button>
-        </div>
-      </header>
-
-      {characters.length === 0 ? (
-        <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
-          <MascotPose pose="hello" className="h-36 w-36" />
-          <div className="grid gap-1.5">
-            <h2 className="font-heading text-xl font-bold">
-              {t("characters.emptyTitle")}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {t("characters.emptyDescription")}
-            </p>
-          </div>
-          <Button render={<a href="/characters/new" />} nativeButton={false}>
-            <PlusIcon />
-            {t("characters.create")}
-          </Button>
-        </div>
-      ) : (
-        <>
-          <CharacterListToolbar
-            search={search}
-            onSearchChange={setSearch}
-            sort={sort}
-            onSortChange={setSort}
-            resultCount={visibleCharacters.length}
-            totalCount={characters.length}
-          />
-          {visibleCharacters.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border px-6 py-10 text-center">
-              <MascotPose pose="thinking" className="h-20 w-20" />
-              <p className="text-sm text-muted-foreground">
-                {t("characters.noResults", { term: search.trim() })}
-              </p>
+        <div className="rm-content">
+          <header className="rm-page-head">
+            <div>
+              <h1>{t("characters.title")}</h1>
+              <p className="lede">{t("characters.lede")}</p>
             </div>
-          ) : (
-            <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-              {visibleCharacters.map((c) => (
-                <div key={c.id} className="mb-4 break-inside-avoid">
-                  <CharacterCard
-                    character={c}
-                    conversations={conversationsByCharacter.get(c.id) ?? []}
-                    lastActivityAt={lastActivityByCharacter.get(c.id) ?? null}
-                    getVersions={loadVersions}
-                    onImageClick={handleImageClick}
-                    onOpenConversation={openConversation}
-                    onCreateConversation={handleCreateConversation}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                </div>
-              ))}
-              <a
-                href="/characters/new"
-                className="mb-4 flex break-inside-avoid flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border px-4 py-10 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+            <div className="rm-page-actions">
+              <button
+                type="button"
+                className="rm-btn rm-btn--ghost"
+                onClick={() => setImportOpen(true)}
               >
-                <PlusIcon className="size-6" />
+                <UploadIcon className="size-4" />
+                {t("characters.import")}
+              </button>
+              <button
+                type="button"
+                className="rm-btn rm-btn--ghost"
+                onClick={() => setCardImportOpen(true)}
+              >
+                <FileJsonIcon className="size-4" />
+                {t("characters.sillytavern.importTitle")}
+              </button>
+              <button
+                type="button"
+                className="rm-btn"
+                onClick={() => setCreateOpen(true)}
+              >
+                <PlusIcon className="size-4" />
+                {t("characters.create")}
+              </button>
+            </div>
+          </header>
+
+          {characters.length === 0 ? (
+            <div className="rm-empty">
+              <MascotPose pose="hello" className="h-32 w-32" />
+              <h2>{t("characters.emptyTitle")}</h2>
+              <p>{t("characters.emptyDescription")}</p>
+              <a className="rm-btn" href="/characters/new">
+                <PlusIcon className="size-4" />
                 {t("characters.create")}
               </a>
             </div>
-          )}
-          {hasMore ? (
-            <div className="flex flex-col items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => void loadMore()}
-                disabled={loadingMore}
-              >
-                {loadingMore ? (
-                  <Spinner aria-hidden />
-                ) : (
-                  <ChevronDownIcon />
-                )}
-                {loadingMore
-                  ? t("characters.loadingMore")
-                  : t("characters.loadMore")}
-              </Button>
-              {loadMoreError ? (
-                <p role="alert" className="text-sm text-destructive">
-                  {translateApiError(
-                    loadMoreError,
-                    tRaw,
-                    t("characters.loadMoreFailed"),
-                  )}
-                </p>
+          ) : (
+            <>
+              <CharacterListToolbar
+                search={search}
+                onSearchChange={setSearch}
+                sort={sort}
+                onSortChange={setSort}
+                resultCount={visibleCharacters.length}
+                totalCount={characters.length}
+              />
+              {visibleCharacters.length === 0 ? (
+                <div className="rm-empty">
+                  <MascotPose pose="thinking" className="h-20 w-20" />
+                  <p>{t("characters.noResults", { term: search.trim() })}</p>
+                </div>
+              ) : (
+                <div className="rm-character-grid">
+                  {visibleCharacters.map((c) => (
+                    <CharacterCard
+                      key={c.id}
+                      character={c}
+                      conversations={conversationsByCharacter.get(c.id) ?? []}
+                      lastActivityAt={lastActivityByCharacter.get(c.id) ?? null}
+                      getVersions={loadVersions}
+                      onImageClick={handleImageClick}
+                      onOpenConversation={openConversation}
+                      onCreateConversation={handleCreateConversation}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                  <a href="/characters/new" className="rm-add-card">
+                    <PlusIcon className="size-7" />
+                    {t("characters.create")}
+                  </a>
+                </div>
+              )}
+              {hasMore ? (
+                <div className="flex flex-col items-center gap-2" style={{ marginTop: "1.25rem" }}>
+                  <button
+                    type="button"
+                    className="rm-btn rm-btn--ghost"
+                    onClick={() => void loadMore()}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <Spinner aria-hidden />
+                    ) : (
+                      <ChevronDownIcon className="size-4" />
+                    )}
+                    {loadingMore
+                      ? t("characters.loadingMore")
+                      : t("characters.loadMore")}
+                  </button>
+                  {loadMoreError ? (
+                    <p role="alert" className="text-sm text-destructive">
+                      {translateApiError(
+                        loadMoreError,
+                        tRaw,
+                        t("characters.loadMoreFailed"),
+                      )}
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
-            </div>
-          ) : null}
-        </>
-      )}
+            </>
+          )}
         </div>
       </CharacterDropOverlay>
       <ImportCharacterDialog
@@ -326,12 +331,13 @@ function CharacterListContent() {
           void refresh()
         }}
       />
-      <CharacterCreateDialog
+      <CreateDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         locale={locale}
-        onCreated={() => {
-          void refresh()
+        onImportCard={() => {
+          setCreateOpen(false)
+          setCardImportOpen(true)
         }}
       />
     </>
