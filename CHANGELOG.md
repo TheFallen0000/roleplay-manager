@@ -84,6 +84,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **S134**: las acciones diferidas (vincular desde el libro, uso por versión,
   historial/restore y borrado suave) se muestran como «S134» y no como botones
   muertos.
+- **Dependencias**: Astro 7.4.7 y `@astrojs/node` 11.1.12 (parches de seguridad),
+  Vite 8.3.8 y un override estable de `@emnapi` para mantener `astro check`
+  compatible con el language server.
 - **Modelos**: `GET /api/providers/:id/model-context` conserva su contrato y
   ahora solo devuelve lo que detecta el sondeo en vivo: no usa tabla curada,
   heurística, valores por defecto ni caché expirada.
@@ -119,6 +122,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Lorebooks**: editar un libro vuelve a mostrar todos los campos de cada
   entrada (claves, posición, prioridad, lógica selectiva y flags), y un error de
   guardado ya no sustituye la página por el estado «no encontrado».
+- **Personajes**: la vista previa de la card al crear un personaje usa la imagen
+  original (sin variante reducida), se actualiza en cuanto se recorta la imagen y
+  mantiene la nitidez en escritorio y móvil.
 - **Ajustes**: «Aplicar detectado» sobrescribe explícitamente una ventana
   manual y guarda la ventana bruta del modelo junto con la ventana de trabajo
   segura; «Detectar» también actualiza cuando hay un valor manual.

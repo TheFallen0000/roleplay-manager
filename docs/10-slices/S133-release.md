@@ -4,7 +4,7 @@
 **Fecha:** 2026-11-11
 **Rama:** `feat/S133-card-first-character`
 **Base:** `master` (`a309d03 docs(product): add card-first audit, UX plan and prototypes (#139)`)
-**HEAD de rama:** `f8c7702 fix(frontend): hide the desktop save action on mobile`
+**HEAD de rama:** `4c30bab chore(deps): patch Astro and align Vite`
 **Slice:** superficie card-first de personaje + fundación de lorebooks versionados
 (migración `0020` + backfill, versiones inmutables de lorebook, contrato de card
 `GET/PUT /api/characters/:id/card` con `extensions.rm`, prompt desde la versión
@@ -22,8 +22,8 @@ publish.
 - [x] `pnpm check` en verde (`check:arch` 7/7, typecheck 5/5, lint 5/5),
       repetido con `TURBO_FORCE=1` sin caché.
 - [x] `pnpm --filter @workspace/backend test` en verde (158 archivos / 1027 tests).
-- [x] `pnpm --filter @workspace/frontend exec vitest run` en verde (84 archivos /
-      452 tests).
+- [x] `pnpm --filter @workspace/frontend exec vitest run` en verde (85 archivos /
+      454 tests).
 - [x] `pnpm --filter @workspace/backend eval` en verde (1 archivo / 33 tests;
       snapshots S129 intactos).
 - [x] `pnpm build` en verde (4/4 tareas); backend y frontend reconstruidos sin
@@ -34,10 +34,13 @@ publish.
       (`git diff master...HEAD -- package.json` vacío).
 - [x] CHANGELOG sin cabecera de release nueva; las entradas S133 están solo bajo
       `## [Unreleased]`; la última release sigue siendo `## [1.57.2] - 2026-11-05`.
-- [x] Sin cambios de `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`,
-      `scripts/`, `.github/` ni dependencias (diff vacío).
-- [x] Sin cambios de empaquetado ni módulos nativos; dry-run del workflow de
-      release **no requerido**.
+- [x] Dependencias: parches de seguridad de Astro/Vite en `4c30bab`
+      (`astro 7.4.7`, `@astrojs/node 11.1.12`, `vite 8.3.8`) y override estable
+      de `@emnapi`; `pnpm audit --prod` limpio.
+- [x] Release dry-run **ejecutado** en la rama:
+      [run 43666120272](https://github.com/TheFallen0000/roleplay-manager/actions/runs/43666120272)
+      con `publish=false`; `win-x64`, `linux-x64`, `linux-arm64`, `mac-arm64` y
+      `mac-x64` en verde; publicación omitida.
 - [x] Sin secretos, claves, tokens, `.env`, `.pem`, `.key`, `.crt` añadidos.
 - [x] Review independiente: **PASS WITH NOTES** (`docs/10-slices/S133-review.md`);
       B1 (bloqueante) cerrado con `0892bf5` + `5d804dd`; refactor UI revisado en
@@ -112,7 +115,7 @@ Incluye `migration-0020.test.ts`, `lorebook-versions.backfill.test.ts`,
 ```text
 RUN  v5.0.5 .../packages/frontend
 Test Files  84 passed (84)
-     Tests  452 passed (452)
+     Tests  454 passed (454)
   Duration  16.19s
 ```
 
@@ -270,7 +273,7 @@ lorebook, no credenciales.
 - RFC completo con `Estado: Aprobado` (aprobación del usuario) y secciones de
   problema, restricciones, opciones, decisión, migración, tests y eval.
 - `## Verificación` con los mismos números que esta auditoría (158/1027,
-  84/452, 1/33, check 7/7 + 5/5 + 5/5, build y audit verdes, diff limpio).
+  85/454, 1/33, check 7/7 + 5/5 + 5/5, build y audit verdes, diff limpio).
 - `## Review`: **PASS WITH NOTES**, B1 resuelto, notas no bloqueantes.
 - `## Deferred`: S134 y limpieza, con I1/N1–N5 y la recomendación de prueba
   manual.
@@ -337,7 +340,7 @@ Antes del merge, probar en la app real:
 
 ---
 
-## Confirmación
+## Confirmación (auditoría original; ver Addendum 2026-11-14)
 
 - **Sin push:** la rama no tiene upstream (`git status -sb` sin `[ahead …]`).
 - **Sin PR, merge ni tag:** `gh pr list` vacío; `git tag --points-at HEAD` vacío;
@@ -352,3 +355,30 @@ verde con evidencia fresca, el slice no toca packaging, dependencias ni módulos
 nativos, y la review está en PASS WITH NOTES sin bloqueantes pendientes. Solo
 queda el cierre documental (commit/push del orquestador) y la prueba manual
 recomendada.
+
+---
+
+## Addendum 2026-11-14 — preview fix y parches de seguridad
+
+Esta sección actualiza la auditoría anterior; sustituye las afirmaciones de
+«sin push», «sin PR», «sin cambios de lockfile» y «dry-run no requerido».
+
+- **Vista previa de la card:** `ef92828` usa la imagen original o el `File`
+  pendiente (object URL) en el rail, se actualiza al recortar la imagen y evita
+  el pixelado del thumbnail. El avatar de portada y la fila de imagen usan
+  variantes mayores.
+- **Dependencias:** `4c30bab` actualiza `astro` a 7.4.7 y `@astrojs/node` a
+  11.1.12 (advisories nuevas de Astro), alinea `vite` a 8.3.8 y fija
+  `@emnapi/runtime`/`@emnapi/core` 1.11.3 para que `astro check` siga estable.
+- **Verificación final:** `pnpm check` 7/7 + typecheck 5/5 + lint 5/5; backend
+  158 archivos / 1027 tests; frontend 85 archivos / 454 tests; `pnpm build` 4/4;
+  `pnpm audit --prod` limpio; `git diff --check` limpio.
+- **Release dry-run:** [run 43666120272](https://github.com/TheFallen0000/roleplay-manager/actions/runs/43666120272)
+  completado con éxito; los cinco targets (`win-x64`, `linux-x64`,
+  `linux-arm64`, `mac-arm64`, `mac-x64`) empaquetaron y pasaron el smoke test;
+  `publish=false`, por lo que no se creó tag ni release.
+- **Estado de entrega:** rama `feat/S133-card-first-character` subida, PR #140
+  en draft con CI verde, sin merge, sin bump de versión y sin release.
+
+**Veredicto actualizado: PASS.** Sin bloqueantes; queda la revisión humana y el
+squash/merge.

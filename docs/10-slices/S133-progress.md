@@ -1035,8 +1035,15 @@ el slice antes del merge; no abre una slice nueva ni cambia el alcance de datos.
 - **Tests:** caso nuevo de metadatos de lista, export por id y acciones del
   detalle de personaje; los tests existentes se ajustaron al nuevo DOM.
 - **Verificación:** `pnpm check` 7/7 + typecheck 5/5 + lint 5/5; backend 158
-  archivos / 1027 tests; frontend 84 archivos / 452 tests; `pnpm build` 4/4;
+  archivos / 1027 tests; frontend 85 archivos / 454 tests; `pnpm build` 4/4;
   `pnpm audit --prod` limpio; `git diff --check` limpio.
+- **Vista previa:** la card del rail usa la imagen original o el `File` pendiente
+  (object URL), se actualiza al recortar y cubre el hueco sin deformar; el avatar
+  de portada y la fila de imagen usan variantes mayores para evitar pixelado.
+- **Dependencias y release:** `astro 7.4.7`, `@astrojs/node 11.1.12`, `vite
+  8.3.8` y override estable de `@emnapi`; release dry-run
+  [43666120272](https://github.com/TheFallen0000/roleplay-manager/actions/runs/43666120272)
+  en verde para los cinco targets con `publish=false`.
 - **Review:** PASS WITH NOTES (`docs/10-slices/S133-review.md`, sección
   «Revisión del refactor de fidelidad UI»). M1/M2, L1–L4 y N2/N3 corregidos;
   N1/N4/N5/N6 quedan como notas no bloqueantes.
@@ -1128,7 +1135,9 @@ commits de documentación y tests previos se agrupan para mantener la lista legi
 19. `9b60e45` — `fix(backend): count linked lorebook entries and cover export route`
 20. `a4a6d67` — `fix(frontend): close S133 UI review findings`
 21. `f8c7702` — `fix(frontend): hide the desktop save action on mobile`
-22. `docs(slice)`: review del refactor UI y actualización de este informe.
+22. `ef92828` — `fix(frontend): sharpen and live-update the card preview`
+23. `4c30bab` — `chore(deps): patch Astro and align Vite`
+24. `docs(slice)`: review del refactor UI y actualización de este informe.
 
 ## CHANGELOG
 

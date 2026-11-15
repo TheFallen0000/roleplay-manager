@@ -84,11 +84,14 @@ versiones y export de lorebook) están cableadas.
 - **N6 — revisión visual del subagente:** el revisor no tenía entrada de imagen;
   la fidelidad visual se validó con capturas humanas y la inspección de
   CSS/DOM. Las capturas finales están en `/tmp/opencode/s133-refactor/`.
+- **Vista previa (post-review):** `ef92828` corrige el pixelado y la falta de
+  actualización en creación usando la imagen original o el `File` pendiente; se
+  añadió `character-rail.test.tsx` para cubrir ambos casos.
 
 ## Recapitulación de verificación
 
 - B1 cerrado: import (card ST, import RM, crear con lorebook) genera v1 + enlace; prompt y `GET /card` ya ven el lorebook importado.
 - Refactor UI: PASS WITH NOTES; M1/M2, L1–L4 y N2/N3 corregidos; N1/N4/N5/N6 quedan como notas.
 - Sin bloqueantes nuevos: orden transaccional/FKs correcto, sin doble v1, precedencia selector/payload resuelta, compatibilidad S132 preservada.
-- Verificación final: `pnpm check` 7/7 + typecheck 5/5 + lint 5/5; backend 158 archivos / 1027 tests; frontend 84 archivos / 452 tests; build 4/4; audit limpio.
+- Verificación final: `pnpm check` 7/7 + typecheck 5/5 + lint 5/5; backend 158 archivos / 1027 tests; frontend 85 archivos / 454 tests; build 4/4; audit limpio; release dry-run de los cinco targets en verde (`publish=false`).
 - Hallazgos restantes I1/N1–N5 → notas no bloqueantes; estado **PASS WITH NOTES**.

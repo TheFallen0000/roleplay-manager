@@ -85,9 +85,11 @@ No version bump. The entries live under `[Unreleased]` in
   lorebook.
 - Sectioned character pages (`/characters/new`, `/characters/:id`) with cover,
   sticky section nav, preview rail, compact profile-image row, save bar and a
-  single `PUT /characters/:id` per save (one version per save). The header
-  exposes Save changes, New conversation, RM/card export, Card JSON inspector
-  and Delete; versions can be previewed and used to start a conversation.
+  single `PUT /characters/:id` per save (one version per save). The preview card
+  uses the original/pending image, updates live while creating and stays sharp
+  on desktop and mobile. The header exposes Save changes, New conversation,
+  RM/card export, Card JSON inspector and Delete; versions can be previewed and
+  used to start a conversation.
 - Lorebook shelf with All/In use/Unused filters, book-spine cards and an add
   tile; create page (v1 without a character link) and detail with version
   selector, collapsible full entry editor, functional export and S134-labelled
@@ -112,7 +114,7 @@ editing a book no longer changes conversations that were created earlier.
 
 - `pnpm check`: pass (`check:arch` 7/7, typecheck 5/5, lint 5/5).
 - `pnpm --filter @workspace/backend test`: 158 files / 1027 tests passed.
-- `pnpm --filter @workspace/frontend exec vitest run`: 84 files / 452 tests
+- `pnpm --filter @workspace/frontend exec vitest run`: 85 files / 454 tests
   passed.
 - `pnpm --filter @workspace/backend eval`: 1 file / 33 tests passed (S129
   assembly/context snapshots intact).
@@ -122,8 +124,11 @@ editing a book no longer changes conversations that were created earlier.
 - Manual check: Playwright captures at 1440 px and 390 px for the list,
   create/detail character, Create dialog, lorebook shelf/detail, card and
   lorebook export, Card JSON inspector, version preview and delete dialog.
-- Release dry-run: not required (no packaging, native-module or lockfile
-  changes).
+- Release dry-run: [run 43666120272](https://github.com/TheFallen0000/roleplay-manager/actions/runs/43666120272)
+  with `publish=false`; `win-x64`, `linux-x64`, `linux-arm64`, `mac-arm64` and
+  `mac-x64` packaged and passed the smoke test. No tag or release was created.
+- Security patches: `astro` 7.4.7, `@astrojs/node` 11.1.12, `vite` 8.3.8 and a
+  stable `@emnapi` override; `pnpm audit --prod` is clean.
 
 ## Review
 
@@ -141,7 +146,10 @@ also returned **PASS WITH NOTES**; the actionable findings were fixed in
 `9b60e45` + `a4a6d67`: desktop save action + mobile sticky save bar, export
 route tests, deleted-lorebook link, real conversation count in the export
 dialog, linked-version entry count, neutral card version for a new character,
-removed dead export prop and hidden Versions in create mode.
+removed dead export prop and hidden Versions in create mode. The create preview
+now uses the original/pending image, so it updates as soon as the crop is applied
+and no longer looks pixelated. A regression test covers the pending-file and
+saved-asset paths, and the release dry-run for all five targets is green.
 
 ## Deferred notes (non-blocking)
 
