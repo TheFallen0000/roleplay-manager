@@ -18,3 +18,7 @@ overrides:
   # Build tooling pulls vulnerable patch versions; keep the patched releases.
   "source-map-js": "^1.2.2"
   "postcss-selector-parser": "^7.1.6"
+  # Astro's astro2tsx language-server peer can resolve a beta @emnapi runtime
+  # that breaks `astro check`; keep the stable 1.x line.
+  "@emnapi/runtime": "1.11.3"
+  "@emnapi/core": "1.11.3"
