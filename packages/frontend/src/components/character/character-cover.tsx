@@ -51,7 +51,7 @@ export function CharacterCover({
   const imageUrl =
     pendingUrl ??
     (characterId && profileImageAssetId
-      ? getCharacterAssetUrl(characterId, profileImageAssetId, "thumbnail")
+      ? getCharacterAssetUrl(characterId, profileImageAssetId, "small")
       : null)
 
   const spec = cardSpec?.startsWith("3") ? "V3" : cardSpec ? "V2" : "—"

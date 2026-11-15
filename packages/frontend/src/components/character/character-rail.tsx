@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react"
 import { BookOpenIcon } from "lucide-react"
 
 import { getCharacterAssetUrl } from "@/lib/api/client"
@@ -22,6 +23,25 @@ export function CharacterRail({ state }: { state: CharacterPageState }) {
     : version
       ? "V2"
       : "—"
+  const pendingPreviewUrl = useMemo(
+    () => (state.pendingFile ? URL.createObjectURL(state.pendingFile) : null),
+    [state.pendingFile],
+  )
+
+  useEffect(() => {
+    return () => {
+      if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl)
+    }
+  }, [pendingPreviewUrl])
+
+  const previewImage =
+    pendingPreviewUrl ??
+    (state.character && state.profileImageAssetId
+      ? getCharacterAssetUrl(
+          state.character.id,
+          state.profileImageAssetId,
+        )
+      : null)
 
   return (
     <aside className="rm-rail" aria-label={t("characters.cardSummary")}>
@@ -108,42 +128,63 @@ export function CharacterRail({ state }: { state: CharacterPageState }) {
 
       <div className="rm-rail-card rm-rail-preview">
         <h3>{t("characters.cardPreview")}</h3>
-        <div className="rm-preview-cover">
-          {state.character && state.profileImageAssetId ? (
-            <img
-              src={getCharacterAssetUrl(
-                state.character.id,
-                state.profileImageAssetId,
-                "thumbnail",
-              )}
-              alt=""
-            />
-          ) : (
-            <span aria-hidden="true">
-              {state.name.trim().charAt(0).toUpperCase() || "?"}
-            </span>
-          )}
-        </div>
-        <p className="rm-preview-name">
-          {state.name.trim() || t("characters.createTitle")}
-        </p>
-        <p>
-          {cardFields.tagline?.trim() ||
-            state.subtitle.trim() ||
-            t("characters.cardFallbackDescription")}
-        </p>
-        {cardFields.tags.length > 0 ? (
-          <div className="rm-chip-list">
-            {cardFields.tags.slice(0, 4).map((tag, index) => (
-              <span
-                key={`${tag}-${index}`}
-                className={index === 0 ? "rm-chip rm-chip--violet" : "rm-chip"}
-              >
-                {tag}
+        <div className="rm-preview-card">
+          <div className="rm-preview-cover">
+            {previewImage ? (
+              <img src={previewImage} alt="" />
+            ) : (
+              <span aria-hidden="true">
+                {state.name.trim().charAt(0).toUpperCase() || "?"}
               </span>
-            ))}
+            )}
           </div>
-        ) : null}
+          <div className="rm-preview-body">
+            <div className="rm-preview-title-row">
+              <p className="rm-preview-name">
+                {state.name.trim() || t("characters.createTitle")}
+              </p>
+              {state.character ? (
+                <span className="rm-chip rm-chip--violet">
+                  v{state.character.currentVersion.versionNumber}
+                </span>
+              ) : null}
+            </div>
+            <p className="rm-preview-sub">
+              {state.subtitle.trim() || t("characters.newTitle")}
+            </p>
+            <p className="rm-preview-desc">
+              {cardFields.tagline?.trim() ||
+                state.description.trim() ||
+                t("characters.cardFallbackDescription")}
+            </p>
+            {cardFields.tags.length > 0 ? (
+              <div className="rm-chip-list">
+                {cardFields.tags.slice(0, 4).map((tag, index) => (
+                  <span
+                    key={`${tag}-${index}`}
+                    className={
+                      index === 0 ? "rm-chip rm-chip--violet" : "rm-chip"
+                    }
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <div className="rm-preview-meta">
+              <span>
+                <strong>Card</strong> {spec}
+              </span>
+              {lorebookSummary ? (
+                <span>
+                  <strong>{t("lorebooks.title")}</strong>{" "}
+                  {lorebookSummary.name ?? t("common.untitled")} v
+                  {lorebookSummary.versionNumber}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </div>
         <p className="rm-preview-note">{t("characters.cardPreviewHint")}</p>
       </div>
     </aside>

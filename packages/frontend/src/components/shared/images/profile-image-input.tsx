@@ -124,7 +124,7 @@ export function ProfileImageInput({
   const imageSrc =
     previewUrl ??
     (profileImageAssetId
-      ? getCharacterAssetUrl(characterId, profileImageAssetId, "thumbnail")
+      ? getCharacterAssetUrl(characterId, profileImageAssetId, "small")
       : null)
   const canRecrop = Boolean(recropAssetId && !pendingFile && imageSrc)
 
