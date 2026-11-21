@@ -6,9 +6,15 @@ import { MAX_LOREBOOK_ENTRIES } from "@workspace/shared/lib/sillytavern-card"
 import type { CreateLorebookUseCase } from "../../../../application/use-cases/character/lorebook/create-lorebook.use-case"
 import type { ExportLorebookUseCase } from "../../../../application/use-cases/character/lorebook/export-lorebook.use-case"
 import type { GetLorebookByIdUseCase } from "../../../../application/use-cases/character/lorebook/get-lorebook-by-id.use-case"
+import type { GetLorebookUsageUseCase } from "../../../../application/use-cases/character/lorebook/get-lorebook-usage.use-case"
 import type { GetLorebookVersionUseCase } from "../../../../application/use-cases/character/lorebook/get-lorebook-version.use-case"
+import type { ImportLorebookPreviewUseCase } from "../../../../application/use-cases/character/lorebook/import-lorebook-preview.use-case"
+import type { ImportLorebookStandaloneUseCase } from "../../../../application/use-cases/character/lorebook/import-lorebook-standalone.use-case"
+import type { LinkLorebookUseCase } from "../../../../application/use-cases/character/lorebook/link-lorebook.use-case"
 import type { ListLorebookVersionsUseCase } from "../../../../application/use-cases/character/lorebook/list-lorebook-versions.use-case"
 import type { ListLorebooksUseCase } from "../../../../application/use-cases/character/lorebook/list-lorebooks.use-case"
+import type { RestoreLorebookVersionUseCase } from "../../../../application/use-cases/character/lorebook/restore-lorebook-version.use-case"
+import type { SoftDeleteLorebookUseCase } from "../../../../application/use-cases/character/lorebook/soft-delete-lorebook.use-case"
 import type { UpdateLorebookByIdUseCase } from "../../../../application/use-cases/character/lorebook/update-lorebook-by-id.use-case"
 
 const SelectiveLogicSchema = z.union([
@@ -60,10 +66,32 @@ const UpdateLorebookSchema = LorebookSettingsSchema.extend({
 const ListLorebooksQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),
+  filter: z.enum(["all", "in-use", "unused"]).optional(),
 })
 
 const ExportLorebookSchema = z.object({
   format: z.enum(["ccv3", "st-native"]),
+  versionId: z.string().min(1).optional(),
+})
+
+const LorebookImportFormatSchema = z.enum(["json", "ccv3", "st-native"])
+
+const ImportLorebookPreviewSchema = z.object({
+  format: LorebookImportFormatSchema,
+  payload: z.string(),
+})
+
+const ImportLorebookSchema = ImportLorebookPreviewSchema.extend({
+  action: z.enum(["reuse", "restore", "new-version", "new-book"]),
+})
+
+const LorebookUsageQuerySchema = z.object({
+  versionId: z.string().min(1).optional(),
+})
+
+const LinkLorebookSchema = z.object({
+  characterId: z.string().min(1),
+  versionId: z.string().min(1).optional(),
 })
 
 export const buildLorebooksRouter = (deps: {
@@ -74,6 +102,12 @@ export const buildLorebooksRouter = (deps: {
   createLorebook: CreateLorebookUseCase
   updateLorebook: UpdateLorebookByIdUseCase
   exportLorebook: ExportLorebookUseCase
+  softDeleteLorebook: SoftDeleteLorebookUseCase
+  restoreLorebookVersion: RestoreLorebookVersionUseCase
+  getLorebookUsage: GetLorebookUsageUseCase
+  linkLorebook: LinkLorebookUseCase
+  importLorebookPreview: ImportLorebookPreviewUseCase
+  importLorebookStandalone: ImportLorebookStandaloneUseCase
 }): Router => {
   const router = Router()
   router.use(express.json({ limit: "15mb" }))
@@ -82,6 +116,25 @@ export const buildLorebooksRouter = (deps: {
     try {
       const query = ListLorebooksQuerySchema.parse(req.query)
       res.json(await deps.listLorebooks.execute(query))
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  // Import routes go before `/lorebooks/:id*` so `import` is never read as an id.
+  router.post("/lorebooks/import/preview", async (req, res, next) => {
+    try {
+      const body = ImportLorebookPreviewSchema.parse(req.body)
+      res.json(await deps.importLorebookPreview.execute(body))
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.post("/lorebooks/import", async (req, res, next) => {
+    try {
+      const body = ImportLorebookSchema.parse(req.body)
+      res.json(await deps.importLorebookStandalone.execute(body))
     } catch (error) {
       next(error)
     }
@@ -112,6 +165,60 @@ export const buildLorebooksRouter = (deps: {
     }
   })
 
+  router.post(
+    "/lorebooks/:id/versions/:versionId/restore",
+    async (req, res, next) => {
+      try {
+        res.json(
+          await deps.restoreLorebookVersion.execute({
+            lorebookId: req.params.id,
+            versionId: req.params.versionId,
+          }),
+        )
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
+
+  router.get("/lorebooks/:id/usage", async (req, res, next) => {
+    try {
+      const query = LorebookUsageQuerySchema.parse(req.query)
+      res.json(
+        await deps.getLorebookUsage.execute({
+          lorebookId: req.params.id,
+          ...(query.versionId ? { versionId: query.versionId } : {}),
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.post("/lorebooks/:id/link", async (req, res, next) => {
+    try {
+      const body = LinkLorebookSchema.parse(req.body)
+      res.status(201).json(
+        await deps.linkLorebook.execute({
+          lorebookId: req.params.id,
+          characterId: body.characterId,
+          ...(body.versionId ? { versionId: body.versionId } : {}),
+        }),
+      )
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.delete("/lorebooks/:id", async (req, res, next) => {
+    try {
+      await deps.softDeleteLorebook.execute(req.params.id)
+      res.status(204).end()
+    } catch (error) {
+      next(error)
+    }
+  })
+
   router.post("/lorebooks/:id/export", async (req, res, next) => {
     try {
       const body = ExportLorebookSchema.parse(req.body)
@@ -119,6 +226,7 @@ export const buildLorebooksRouter = (deps: {
         await deps.exportLorebook.executeById({
           lorebookId: req.params.id,
           format: body.format,
+          ...(body.versionId ? { versionId: body.versionId } : {}),
         }),
       )
     } catch (error) {

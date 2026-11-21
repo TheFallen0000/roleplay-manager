@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { toast } from "@workspace/ui/components/sonner"
 
 import type {
   CreateLorebookEntryInput,
@@ -12,6 +13,7 @@ import {
   getLorebook,
   getLorebookVersion,
   listLorebookVersions,
+  restoreLorebookVersion,
   updateLorebook,
 } from "@/lib/api/lorebooks"
 import { useTranslation } from "@/lib/hooks/use-translation"
@@ -150,6 +152,35 @@ export function useLorebookPage(lorebookId?: string) {
     [hydrateFromBook, hydrateFromVersion, lorebook, t],
   )
 
+  const restoreVersion = useCallback(
+    async (versionId: string) => {
+      if (!lorebookId) return
+      setSaveError(null)
+      try {
+        await restoreLorebookVersion(lorebookId, versionId)
+        const [book, bookVersions] = await Promise.all([
+          getLorebook(lorebookId),
+          listLorebookVersions(lorebookId),
+        ])
+        setLorebook(book)
+        setVersions(bookVersions)
+        const currentId =
+          book.currentVersionId ?? bookVersions[bookVersions.length - 1]?.id ?? ""
+        setSelectedVersionId(currentId)
+        setReadOnly(false)
+        hydrateFromBook(book)
+        toast.success(t("lorebooks.versionRestored"))
+      } catch (caught: unknown) {
+        setSaveError(
+          caught instanceof ApiClientError
+            ? caught.message
+            : t("lorebooks.saveFailed"),
+        )
+      }
+    },
+    [hydrateFromBook, lorebookId, t],
+  )
+
   const save = useCallback(async () => {
     if (saving || readOnly) return
     setSaving(true)
@@ -230,6 +261,7 @@ export function useLorebookPage(lorebookId?: string) {
     entries,
     setEntries,
     handleVersionChange,
+    restoreVersion,
     save,
   }
 }

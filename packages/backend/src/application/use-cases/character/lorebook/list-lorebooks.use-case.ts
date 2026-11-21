@@ -9,6 +9,7 @@ export interface ListLorebooksDeps {
 export interface ListLorebooksInput {
   limit?: number
   offset?: number
+  filter?: "all" | "in-use" | "unused"
 }
 
 export class ListLorebooksUseCase {
@@ -17,11 +18,13 @@ export class ListLorebooksUseCase {
   async execute(
     input: ListLorebooksInput = {},
   ): Promise<LorebookSummaryDTO[]> {
-    const summaries = await this.deps.lorebookRepository.listSummaries()
-    const offset = input.offset ?? 0
-    const end = input.limit === undefined ? undefined : offset + input.limit
+    const summaries = await this.deps.lorebookRepository.listSummaries({
+      ...(input.limit === undefined ? {} : { limit: input.limit }),
+      ...(input.offset === undefined ? {} : { offset: input.offset }),
+      ...(input.filter === undefined ? {} : { filter: input.filter }),
+    })
 
-    return summaries.slice(offset, end).map((summary) => ({
+    return summaries.map((summary) => ({
       id: summary.book.id,
       name: summary.book.name,
       description: summary.description,
@@ -29,6 +32,7 @@ export class ListLorebooksUseCase {
       entryCount: summary.entryCount,
       originId: summary.book.originId,
       usageCount: summary.usageCount,
+      usageVersionCount: summary.usageVersionCount,
       updatedAt: summary.book.updatedAt.toISOString(),
     }))
   }

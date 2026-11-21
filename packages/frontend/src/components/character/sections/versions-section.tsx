@@ -6,6 +6,7 @@ import type { CharacterVersionDTO } from "@workspace/shared/types/character"
 import type { TranslationKey } from "@workspace/shared/i18n"
 
 import { SectionPanel } from "@/components/shared/card-first/section-panel"
+import { AlternateGreetingPicker } from "@/components/shared/alternate-greeting-picker"
 import { createConversation } from "@/lib/api/conversations"
 import { translateApiError } from "@/lib/translate-api-error"
 import { useTranslation } from "@/lib/hooks/use-translation"
@@ -26,15 +27,21 @@ export function VersionsSection({ state }: { state: CharacterPageState }) {
   const { t, tRaw } = useTranslation()
   const { versions, character } = state
   const [preview, setPreview] = useState<CharacterVersionDTO | null>(null)
+  const [greetingVersion, setGreetingVersion] =
+    useState<CharacterVersionDTO | null>(null)
   const [starting, setStarting] = useState<string | null>(null)
 
-  const startConversation = async (versionId: string) => {
+  const createConversationFor = async (
+    versionId: string,
+    greetingIndex?: number,
+  ) => {
     if (!character) return
     setStarting(versionId)
     try {
       const result = await createConversation({
         characterId: character.id,
         versionId,
+        ...(greetingIndex !== undefined ? { greetingIndex } : {}),
       })
       if (result.defaultProviderStatus === "unavailable") {
         toast.warning(t("characters.providerUnavailable"))
@@ -50,6 +57,22 @@ export function VersionsSection({ state }: { state: CharacterPageState }) {
       )
     } finally {
       setStarting(null)
+    }
+  }
+
+  const startConversation = (version: CharacterVersionDTO) => {
+    if ((version.alternateGreetings?.length ?? 0) > 0) {
+      setGreetingVersion(version)
+      return
+    }
+    void createConversationFor(version.id)
+  }
+
+  const handleGreetingConfirm = (greetingIndex: number) => {
+    const version = greetingVersion
+    setGreetingVersion(null)
+    if (version) {
+      void createConversationFor(version.id, greetingIndex)
     }
   }
 
@@ -111,7 +134,7 @@ export function VersionsSection({ state }: { state: CharacterPageState }) {
                   <button
                     type="button"
                     className="rm-btn rm-btn--ghost rm-btn--sm"
-                    onClick={() => void startConversation(version.id)}
+                    onClick={() => startConversation(version)}
                     disabled={starting === version.id}
                   >
                     <MessageSquarePlusIcon className="size-4" />
@@ -123,6 +146,16 @@ export function VersionsSection({ state }: { state: CharacterPageState }) {
           })}
         </ul>
       )}
+
+      <AlternateGreetingPicker
+        open={greetingVersion !== null}
+        greeting={greetingVersion?.greeting ?? ""}
+        alternateGreetings={greetingVersion?.alternateGreetings ?? []}
+        onOpenChange={(open) => {
+          if (!open) setGreetingVersion(null)
+        }}
+        onConfirm={handleGreetingConfirm}
+      />
 
       <VersionPreviewDialog
         version={preview}

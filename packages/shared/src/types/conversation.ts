@@ -127,6 +127,8 @@ export interface MessageDTO {
 export interface CreateConversationInput {
   characterId: string
   versionId?: string
+  /** 0 = `first_mes`; `i >= 1` = `alternateGreetings[i - 1]`. */
+  greetingIndex?: number
 }
 
 export interface CreateConversationResult {

@@ -29,6 +29,7 @@ const version = CharacterVersion.create({
   subtitle: null, profileImageAssetId: null,
   description: "A test character", instructions: null,
   greeting: "Hello!", versionNumber: 1, createdAt: now, cards: [],
+  alternateGreetings: ["Alternate one", "Alternate two"],
 })
 const versionV2 = CharacterVersion.create({
   id: "ver-2", characterId: "char-1", name: "Test",
@@ -93,6 +94,17 @@ const buildAssetRepo = (): CharacterAssetRepository => ({
   findByCharacterId: async () => [],
   deleteById: async () => {},
 })
+
+const capture = async (
+  promise: Promise<unknown>,
+): Promise<{ code?: string; statusCode?: number } | null> => {
+  try {
+    await promise
+    return null
+  } catch (error) {
+    return error as { code?: string; statusCode?: number }
+  }
+}
 
 describe("CreateConversationUseCase", () => {
   it("crea conversación con greeting del personaje", async () => {
@@ -192,4 +204,65 @@ describe("CreateConversationUseCase", () => {
       "Version 'ver-3' does not belong to character 'char-1'.",
     )
   })
+
+  it("uses first_mes for greetingIndex 0 and undefined", async () => {
+    const useCase = new CreateConversationUseCase(
+      buildConversationRepo(),
+      buildMessageRepo(),
+      buildCharacterRepo(),
+      buildDefaultProvider(),
+      buildProviderInstanceRepo(),
+      buildAssetRepo(),
+    )
+
+    const zero = await useCase.execute({ characterId: "char-1", greetingIndex: 0 })
+    const missing = await useCase.execute({ characterId: "char-1" })
+
+    expect(zero.conversation.messages[0].content).toBe("Hello!")
+    expect(missing.conversation.messages[0].content).toBe("Hello!")
+  })
+
+  it("uses alternateGreetings[greetingIndex - 1] for message 0", async () => {
+    const useCase = new CreateConversationUseCase(
+      buildConversationRepo(),
+      buildMessageRepo(),
+      buildCharacterRepo(),
+      buildDefaultProvider(),
+      buildProviderInstanceRepo(),
+      buildAssetRepo(),
+    )
+
+    const first = await useCase.execute({
+      characterId: "char-1",
+      greetingIndex: 1,
+    })
+    const second = await useCase.execute({
+      characterId: "char-1",
+      greetingIndex: 2,
+    })
+
+    expect(first.conversation.messages).toHaveLength(1)
+    expect(first.conversation.messages[0].position).toBe(0)
+    expect(first.conversation.messages[0].role).toBe("assistant")
+    expect(first.conversation.messages[0].content).toBe("Alternate one")
+    expect(second.conversation.messages[0].content).toBe("Alternate two")
+  })
+
+  it("rejects an out-of-range greetingIndex with INVALID_GREETING", async () => {
+    const useCase = new CreateConversationUseCase(
+      buildConversationRepo(),
+      buildMessageRepo(),
+      buildCharacterRepo(),
+      buildDefaultProvider(),
+      buildProviderInstanceRepo(),
+      buildAssetRepo(),
+    )
+
+    const error = await capture(
+      useCase.execute({ characterId: "char-1", greetingIndex: 3 }),
+    )
+
+    expect(error).toMatchObject({ code: "INVALID_GREETING", statusCode: 400 })
+  })
+
 })

@@ -9,548 +9,561 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **Modelos**: cada modelo resuelve su ventana de contexto y su límite de
-  salida con procedencia y confianza (override manual, introspección del
-  servidor, catálogo del proveedor, tabla curada de LiteLLM, heurística por
-  tamaño y valor por defecto) y calcula una ventana de trabajo segura que
-  reserva la salida y un margen de seguridad del 5 %.
-- **Modelos**: catálogo curado vendorizado desde LiteLLM, con alias por prefijo
-  de proveedor y script de refresco
+- **Lorebooks**: complete library with standalone book creation, in-use/unused
+  filters and a detail page with Identity, Settings, Entries, Versions, Link and
+  Danger sections.
+- **Lorebooks**: full version history; previous versions are read-only and can be
+  restored as a new version.
+- **Lorebooks**: usage by version grouped by character ("In use by" and
+  "History"), with real character and version counts on the shelf.
+- **Lorebooks**: link a book to a character from the book itself, creating a new
+  character version.
+- **Lorebooks**: soft delete with a warning; character versions that used the
+  book keep working and the book is restored by importing it again.
+- **Lorebooks**: standalone import and export per book and version in CCv3 and ST
+  native, with `origin_id`/`source_key` matching, an import preview and explicit
+  history reconstruction. Export per version carries `extensions.rm.originId`
+  additively and preserves unknown keys.
+- **Chat**: alternate-greeting picker at conversation start, applied to the first
+  message of the new conversation.
+- **Models**: each model resolves its context window and its output limit with
+  provenance and confidence (manual override, server introspection, provider
+  catalog, curated LiteLLM table, size heuristic and default value) and computes
+  a safe working window that reserves the output plus a 5 % safety margin.
+- **Models**: curated catalog vendored from LiteLLM, with provider-prefix aliases
+  and a refresh script
   (`pnpm --filter @workspace/backend catalog:refresh`).
-- **Modelos**: overrides manuales por app, modelo e instancia en `settings`,
-  caché en memoria de los sondeos (15 min) y endpoint
-  `GET /api/providers/:id/capabilities`.
-- **Ajustes**: el diálogo Modelo muestra la ventana resuelta, el límite de
-  salida, la procedencia, la confianza y la ventana de trabajo segura, con un
-  botón «Aplicar detectado».
-- **Contexto**: la vista previa muestra un manifiesto por secciones con tokens
-  estimados, fuentes incluidas u omitidas y el motivo; el envío y el preview
-  comparten el mismo compilador.
-- **Evaluación**: banco de evaluación determinista del ensamblado de contexto
-  (`pnpm eval`), sin red ni proveedores reales.
-- **Contexto**: la conversación guarda la ventana de trabajo aplicada en un
-  campo propio, separada de la ventana bruta del modelo, que se conserva
-  intacta.
-- **Personajes**: importación y exportación de character cards compatibles con
-  SillyTavern en JSON y PNG (V1/V2/V3, chunks `chara`/`ccv3` con precedencia de
-  `ccv3`), conservando los campos desconocidos para no perder datos en el viaje
-  de ida y vuelta.
-- **Personajes**: campos nativos de card (personalidad, escenario, mensajes de
-  ejemplo, saludos alternativos, notas del creador, tags, creador, versión de
-  card, género, pronombres y tagline), con panel de notas del creador, chips de
-  tags/género/pronombres, saludos alternativos y tagline en la interfaz; las
-  notas del creador nunca se envían al modelo.
-- **Lorebooks**: lorebooks embebidos en la card y standalone (CCv3 y formato
-  nativo de SillyTavern) vinculados al personaje, con activación por claves
-  primarias y secundarias, lógica selectiva, entradas constantes, orden de
-  inserción, posición, sensibilidad a mayúsculas, palabras completas,
-  profundidad de escaneo, presupuesto de tokens y recursión acotada.
-- **Contexto**: overrides de card `system_prompt`/`post_history_instructions`;
-  `system_prompt` sustituye solo el bloque de persona y conserva el resto del
-  andamiaje del prompt.
-- **Personajes**: importación y exportación de lorebooks standalone y modal
-  «Crear» con pestañas Personaje/Lorebook.
-- **Compatibilidad**: la compatibilidad con SillyTavern se implementa de forma
-  clean-room desde las especificaciones públicas V2/V3, con límites de tamaño,
-  validación de PNG y sin regex de usuario ni llamadas de red.
-- **Biblioteca**: el panel lateral agrupa Personajes, Lorebooks y Personajes jugados,
-  y el diálogo «Crear» ofrece dos placas del mismo peso (Personaje y Lorebook) sin
-  pestañas.
-- **Personajes**: página seccionada con Identidad, Card, Fichas, Lorebook y Versiones,
-  navegación fija, barra de guardado y un único guardado por versión.
-- **Lorebooks**: versiones inmutables del libro; cada versión de personaje fija una
-  versión concreta y las versiones antiguas quedan en solo lectura.
-- **Personajes**: contrato de card `GET/PUT /api/characters/:id/card` con
-  `extensions.rm`, que conserva subtítulo, instrucciones, fichas, número de versión y
-  la referencia del lorebook en el viaje de ida y vuelta.
-- **Lorebooks**: páginas `/lorebooks`, `/lorebooks/new` y `/lorebooks/:id` con selector
-  de versión, y creación de un libro suelto con su primera versión.
-- **Biblioteca**: capa visual card-first propia (papel frío, tinta violeta, tipografía
-  de portada y grano sutil) para el shell, la lista de personajes, el diálogo Crear,
-  las páginas de personaje y la estantería de lorebooks.
-- **Personajes**: las cards de la lista muestran tags, creador y lorebook actual; el
-  detalle expone nueva conversación, exportación RM/card, eliminación, inspector de
-  card JSON y vista de versiones.
-- **Lorebooks**: exportación de un libro suelto desde su detalle, filtros
-  Todos/En uso/Sin usar en la estantería y entradas plegables con todos sus campos.
+- **Models**: manual overrides per app, model and instance in `settings`, an
+  in-memory cache for probes (15 min) and the
+  `GET /api/providers/:id/capabilities` endpoint.
+- **Settings**: the Model dialog shows the resolved window, the output limit,
+  the provenance, the confidence and the safe working window, with an "Apply
+  detected" button.
+- **Context**: the preview shows a per-section manifest with estimated tokens,
+  included or omitted sources and the reason; sending and the preview share the
+  same compiler.
+- **Evaluation**: deterministic evaluation bench for context assembly
+  (`pnpm eval`), with no network or real providers.
+- **Context**: the conversation stores the applied working window in its own
+  field, separate from the model's raw window, which is kept intact.
+- **Characters**: import and export of SillyTavern-compatible character cards in
+  JSON and PNG (V1/V2/V3, `chara`/`ccv3` chunks with `ccv3` taking precedence),
+  preserving unknown fields so no data is lost on the round trip.
+- **Characters**: native card fields (personality, scenario, example messages,
+  alternate greetings, creator notes, tags, creator, card version, gender,
+  pronouns and tagline), with a creator-notes panel, tag/gender/pronoun chips,
+  alternate greetings and tagline in the UI; creator notes are never sent to the
+  model.
+- **Lorebooks**: lorebooks embedded in the card and standalone (CCv3 and
+  SillyTavern native format) linked to the character, with activation by primary
+  and secondary keys, selective logic, constant entries, insertion order,
+  position, case sensitivity, whole words, scan depth, token budget and bounded
+  recursion.
+- **Context**: `system_prompt`/`post_history_instructions` card overrides;
+  `system_prompt` replaces only the persona block and keeps the rest of the
+  prompt scaffolding.
+- **Characters**: standalone lorebook import and export, and a "Create" modal
+  with Character/Lorebook tabs.
+- **Compatibility**: SillyTavern compatibility is implemented clean-room from the
+  public V2/V3 specifications, with size limits, PNG validation and no user
+  regexes or network calls.
+- **Library**: the sidebar groups Characters, Lorebooks and Played characters,
+  and the "Create" dialog offers two equally weighted tiles (Character and
+  Lorebook) without tabs.
+- **Characters**: sectioned page with Identity, Card, Knowledge cards, Lorebook
+  and Versions, sticky navigation, a save bar and a single save per version.
+- **Lorebooks**: immutable book versions; each character version pins a specific
+  version and older versions are read-only.
+- **Characters**: card contract `GET/PUT /api/characters/:id/card` with
+  `extensions.rm`, which round-trips the subtitle, instructions, knowledge cards,
+  version number and the lorebook reference.
+- **Lorebooks**: `/lorebooks`, `/lorebooks/new` and `/lorebooks/:id` pages with a
+  version selector, and creation of a standalone book with its first version.
+- **Library**: own card-first visual layer (cold paper, violet ink, cover
+  typography and subtle grain) for the shell, the character list, the Create
+  dialog, the character pages and the lorebook shelf.
+- **Characters**: list cards show tags, creator and current lorebook; the detail
+  page exposes new conversation, RM/card export, deletion, JSON card inspector
+  and the versions view.
+- **Lorebooks**: export of a standalone book from its detail page, All/In
+  use/Unused filters on the shelf and collapsible entries with all their fields.
 
 ### Changed
 
-- **Biblioteca**: los listados de personajes y lorebooks usan cards de estantería,
-  navegación vertical por secciones, rail de resumen y barra de guardado; el
-  formulario de imagen de perfil pasa a una fila compacta al editar.
-- **Lorebooks**: la edición de entradas usa el editor completo (claves, posición,
-  prioridad, lógica selectiva y flags) en lugar del formulario reducido.
-- **S134**: las acciones diferidas (vincular desde el libro, uso por versión,
-  historial/restore y borrado suave) se muestran como «S134» y no como botones
-  muertos.
-- **Dependencias**: Astro 7.4.7 y `@astrojs/node` 11.1.12 (parches de seguridad),
-  Vite 8.3.8 y un override estable de `@emnapi` para mantener `astro check`
-  compatible con el language server.
-- **Modelos**: `GET /api/providers/:id/model-context` conserva su contrato y
-  ahora solo devuelve lo que detecta el sondeo en vivo: no usa tabla curada,
-  heurística, valores por defecto ni caché expirada.
-- **Ajustes**: «Detectar» refresca el caché del backend y vuelve a leer la
-  sugerencia; en OpenAI-compatible solo refresca la resolución, sin aviso de
-  detección vacía.
-- **Dependencias**: `@types/better-sqlite3` 9.6.0 (solo tipos; el runtime
-  `better-sqlite3` sigue en 13.0.3).
-- **Compactación**: la compactación y la vista previa usan la ventana de trabajo
-  aplicada cuando existe y dejan de restar la reserva de respuesta dos veces;
-  las conversaciones sin ventana de trabajo mantienen el comportamiento
-  anterior.
-- **Contexto**: el ensamblado coloca `personality`, `scenario` y `mes_example`
-  en su sección, las entradas de lorebook antes/después del personaje y
-  `post_history_instructions` al final; sin esos datos el prompt no cambia.
-- **Contexto**: el manifiesto expone cuántas entradas de lorebook se descartaron
-  por presupuesto (`lorebook.overBudget`).
-- **Personajes**: «Tarjetas» pasa a llamarse «Fichas» (EN: «Knowledge cards») en toda
-  la interfaz.
-- **Contexto**: el prompt y la previsualización usan la versión de lorebook enlazada a
-  la versión del personaje, no el libro vivo.
-- **Personajes**: importar una card o un lorebook crea su primera versión y la enlaza
-  a la versión del personaje, de modo que el prompt y la card exportada ya ven ese
-  libro.
+- **Lorebooks**: the shelf paginates and filters in SQL and shows real usage
+  ("Used by N characters · M versions" or "Unused").
+- **Library**: the character and lorebook listings use shelf cards, vertical
+  section navigation, a summary rail and a save bar; the profile image form
+  becomes a compact row while editing.
+- **Lorebooks**: entry editing uses the full editor (keys, position, priority,
+  selective logic and flags) instead of the reduced form.
+- **Dependencies**: Astro 7.4.7 and `@astrojs/node` 11.1.12 (security patches),
+  Vite 8.3.8 and a stable `@emnapi` override to keep `astro check` compatible
+  with the language server.
+- **Models**: `GET /api/providers/:id/model-context` keeps its contract and now
+  returns only what the live probe detects: it does not use the curated table,
+  the heuristic, default values or an expired cache.
+- **Settings**: "Detect" refreshes the backend cache and re-reads the suggestion;
+  on OpenAI-compatible providers it only refreshes the resolution, with no
+  empty-detection notice.
+- **Dependencies**: `@types/better-sqlite3` 9.6.0 (types only; the
+  `better-sqlite3` runtime stays on 13.0.3).
+- **Compaction**: compaction and the preview use the applied working window when
+  it exists and no longer subtract the response reserve twice; conversations
+  without a working window keep the previous behaviour.
+- **Context**: assembly places `personality`, `scenario` and `mes_example` in
+  their section, lorebook entries before/after the character and
+  `post_history_instructions` at the end; without that data the prompt does not
+  change.
+- **Context**: the manifest exposes how many lorebook entries were dropped for
+  budget reasons (`lorebook.overBudget`).
+- **Characters**: the "Tarjetas" section is renamed to "Fichas" (EN: "Knowledge
+  cards") across the UI.
+- **Context**: the prompt and the preview use the lorebook version linked to the
+  character version, not the live book.
+- **Characters**: importing a card or a lorebook creates its first version and
+  links it to the character version, so the prompt and the exported card already
+  see that book.
 
 ### Fixed
 
-- **Lorebooks**: el botón «Exportar lorebook» ya descarga el libro desde su
-  detalle; antes se renderizaba sin acción asociada.
-- **Personajes**: el detalle recupera iniciar conversación, exportar, eliminar,
-  ver versiones e inspeccionar la card JSON, que solo eran accesibles desde el
-  menú contextual de la lista.
-- **Lorebooks**: editar un libro vuelve a mostrar todos los campos de cada
-  entrada (claves, posición, prioridad, lógica selectiva y flags), y un error de
-  guardado ya no sustituye la página por el estado «no encontrado».
-- **Personajes**: la vista previa de la card al crear un personaje usa la imagen
-  original (sin variante reducida), se actualiza en cuanto se recorta la imagen y
-  mantiene la nitidez en escritorio y móvil.
-- **Ajustes**: «Aplicar detectado» sobrescribe explícitamente una ventana
-  manual y guarda la ventana bruta del modelo junto con la ventana de trabajo
-  segura; «Detectar» también actualiza cuando hay un valor manual.
-- **Ajustes**: cambiar de modelo ya no borra una ventana escrita a mano; solo
-  se reemplaza el valor detectado automáticamente.
-- **Modelos**: un sondeo correcto que no devuelve datos ya no conserva un claim
-  antiguo en caché.
-- **Modelos**: editar o borrar una instancia de proveedor invalida las
-  capacidades cacheadas de esa instancia.
-- **Contexto**: las conversaciones usan la versión del personaje con la que se
-  crearon, igual que la vista previa; antes el envío podía usar la última versión
-  después de editar el personaje.
-- **Ajustes**: «Aplicar detectado» ya no reserva la salida dos veces; el límite
-  de respuesta solo se envía cuando es un valor positivo; las ventanas de
-  trabajo importadas o de plantilla que no encajan se descartan de forma segura.
-- **Personajes**: el límite de 15 MB de las rutas de cards y lorebooks se aplica
-  antes del límite global de 1 MB, así que las cards grandes ya no fallan con
-  413.
-- **Personajes**: los chunks PNG `chara`/`ccv3` exigen base64 estándar de JSON
-  UTF-8; un payload no base64 se rechaza con `INVALID_CARD_PNG` en vez de
-  interpretarse como JSON.
-- **Personajes**: editar un lorebook conserva los ajustes del libro, los campos
-  desconocidos, `sourceId` y la posición numérica, de modo que guardar no
-  degrada el formato importado.
-- **Lorebooks**: editar un libro ya no altera las conversaciones existentes, que
-  conservan la versión con la que se crearon.
-- **Personajes**: los imports de card y lorebook existentes ya no pierden el libro
-  en el prompt ni en la card exportada.
+- **Lorebooks**: the character detail resolves linked lorebook versions in
+  batches instead of one lookup per version, and version entries expose stable
+  synthetic ids so snapshots round-trip between the editor and the API.
+- **Lorebooks**: importing a deleted book with different content gives the new
+  book a fresh `origin_id` (including `extensions.rm.originId`) instead of
+  reusing the imported one.
+- **Lorebooks**: the "Export lorebook" button now downloads the book from its
+  detail page; it used to render without an associated action.
+- **Characters**: the detail page restores start conversation, export, delete,
+  view versions and inspect JSON card, which were only reachable from the list's
+  context menu.
+- **Lorebooks**: editing a book shows every field of each entry again (keys,
+  position, priority, selective logic and flags), and a save error no longer
+  replaces the page with the "not found" state.
+- **Characters**: the card preview while creating a character uses the original
+  image (no reduced variant), updates as soon as the image is cropped and stays
+  sharp on desktop and mobile.
+- **Settings**: "Apply detected" explicitly overwrites a manual window and stores
+  the model's raw window together with the safe working window; "Detect" also
+  updates when there is a manual value.
+- **Settings**: switching models no longer erases a hand-written window; only the
+  automatically detected value is replaced.
+- **Models**: a successful probe that returns no data no longer keeps a stale
+  claim in the cache.
+- **Models**: editing or deleting a provider instance invalidates the cached
+  capabilities of that instance.
+- **Context**: conversations use the character version they were created with,
+  like the preview; before, sending could use the latest version after editing
+  the character.
+- **Settings**: "Apply detected" no longer reserves the output twice; the
+  response limit is only sent when it is a positive value; imported or template
+  working windows that do not fit are dropped safely.
+- **Characters**: the 15 MB limit on the card and lorebook routes applies before
+  the global 1 MB limit, so large cards no longer fail with 413.
+- **Characters**: the `chara`/`ccv3` PNG chunks require standard base64 of UTF-8
+  JSON; a non-base64 payload is rejected with `INVALID_CARD_PNG` instead of being
+  interpreted as JSON.
+- **Characters**: editing a lorebook keeps the book settings, the unknown fields,
+  `sourceId` and the numeric position, so saving does not degrade the imported
+  format.
+- **Lorebooks**: editing a book no longer alters existing conversations, which
+  keep the version they were created with.
+- **Characters**: imports of existing cards and lorebooks no longer lose the book
+  in the prompt or in the exported card.
 
 ## [1.57.2] - 2026-11-05
 
 ### Fixed
 
-- **Resúmenes**: “Generar resumen ahora” sin mensajes nuevos muestra un aviso
-  amarillo localizado en vez de un error rojo (`NO_NEW_MESSAGES`).
-- **Chat**: al entrar o volver a una conversación el scroll queda al final del
-  último mensaje; la carga de mensajes antiguos ya no se dispara al entrar y el
-  ancla mide las alturas reales de los mensajes recientes.
+- **Summaries**: "Generate summary now" without new messages shows a localized
+  yellow notice instead of a red error (`NO_NEW_MESSAGES`).
+- **Chat**: entering or returning to a conversation leaves the scroll at the end
+  of the last message; loading older messages no longer triggers on entry and the
+  anchor measures the actual heights of recent messages.
 
 ## [1.57.1] - 2026-10-29
 
 ### Fixed
 
-- **Resúmenes**: la lista ya no se desborda en móvil; el botón de generar ocupa
-  el ancho disponible y el nombre del modelo se trunca en las tarjetas.
-- **Compactación**: el resumen manual ahora ejecuta una compactación real y
-  refresca el indicador; el presupuesto del resumen se calcula con el espacio
-  disponible y, si la reserva de respuesta no cabe, se reduce para ese envío con
-  un aviso. Si el resumen sigue sin caber se recorta o se descarta en vez de
-  bloquear el chat con `CONTEXT_TOO_LARGE`.
-- **Continuar**: se añade una instrucción sintética de continuación para que el
-  modelo no devuelva respuestas vacías o demasiado cortas.
-- **Chat**: al entrar en una conversación el scroll queda anclado al último
-  mensaje, sin el hueco del spacer del scroller.
-- **PWA**: se declara `color-scheme` y se sincronizan las variantes claro/oscuro
-  de `theme-color` antes del primer pintado para que la barra de estado y el
-  fondo inicial sigan al tema. La barra de navegación inferior de Android la
-  controla el sistema/Chrome y no puede cambiarse desde la web.
+- **Summaries**: the list no longer overflows on mobile; the generate button
+  takes the available width and the model name is truncated on the cards.
+- **Compaction**: a manual summary now runs a real compaction and refreshes the
+  indicator; the summary budget is computed from the available space and, if the
+  response reserve does not fit, it is reduced for that send with a notice. If
+  the summary still does not fit it is trimmed or dropped instead of blocking the
+  chat with `CONTEXT_TOO_LARGE`.
+- **Continue**: a synthetic continuation instruction is added so the model does
+  not return empty or too-short responses.
+- **Chat**: entering a conversation anchors the scroll to the last message,
+  without the gap from the scroller spacer.
+- **PWA**: `color-scheme` is declared and the light/dark `theme-color` variants
+  are synced before the first paint so the status bar and the initial background
+  follow the theme. The Android bottom navigation bar is controlled by the
+  system/Chrome and cannot be changed from the web.
 
 ## [1.57.0] - 2026-10-28
 
 ### Added
 
-- **Compactación automática**: antes de enviar, la app estima el contexto y, al
-  llegar al umbral configurado, resume los mensajes más antiguos y conserva los
-  recientes que caben. La transcripción larga se trocea, hay fallback a recorte
-  con aviso y un error claro si el prompt de sistema no cabe. El historial
-  visible no se borra y el resumen manual sigue disponible.
-- **Contexto**: cada conversación guarda su ventana de contexto. En Ollama se
-  detecta automáticamente con `/api/show`; en OpenAI-compatible y modelos
-  desconocidos se elige con ajustes rápidos (4k, 8k, 16k, 32k, 128k) o un valor
-  manual. La ventana viaja en las exportaciones, las plantillas de ajustes y las
-  ramas.
-- **Chat**: la cabecera muestra un indicador del uso del contexto que incluye el
-  texto que estás escribiendo, avisa al acercarse al umbral de compactación y
-  ofrece el desglose (sistema, mensajes, reserva de respuesta y total) en la
-  vista previa.
-- **Ajustes**: la sección Modelo avisa de ventanas pequeñas y de una reserva de
-  respuesta (`maxTokens`) que no cabe en la ventana configurada. La sección
-  Historia permite elegir el umbral de compactación (50-95 %, 80 % por defecto).
+- **Automatic compaction**: before sending, the app estimates the context and,
+  on reaching the configured threshold, summarizes the oldest messages and keeps
+  the recent ones that fit. Long transcripts are chunked, there is a fallback to
+  trimming with a notice and a clear error if the system prompt does not fit. The
+  visible history is not deleted and the manual summary stays available.
+- **Context**: each conversation stores its context window. On Ollama it is
+  detected automatically with `/api/show`; on OpenAI-compatible providers and
+  unknown models it is chosen with quick settings (4k, 8k, 16k, 32k, 128k) or a
+  manual value. The window travels in exports, settings templates and branches.
+- **Chat**: the header shows a context usage indicator that includes the text you
+  are typing, warns as you approach the compaction threshold and offers the
+  breakdown (system, messages, response reserve and total) in the preview.
+- **Settings**: the Model section warns about small windows and about a response
+  reserve (`maxTokens`) that does not fit the configured window. The History
+  section lets you choose the compaction threshold (50-95 %, 80 % by default).
 
 ### Changed
 
-- **API**: el contrato REST/SSE v1 queda documentado en
-  `docs/13-api-contract.md`; los eventos mantienen sus nombres y `done` usa
-  `{ "message": … }` en enviar, continuar y regenerar.
-- **Arquitectura**: la preparación de contexto, la compactación, el proveedor, el
-  streaming y las propuestas se unifican en un `ChatEngine` interno compartido
-  por los tres flujos de respuesta.
-- **Ajustes**: `summaryFrequency` y `recentMessageCount` dejan de aparecer en la
-  UI. El motor decide cuántos mensajes enviar según el presupuesto de tokens; las
-  columnas de base de datos y exportación se mantienen por compatibilidad.
-- **Resúmenes**: la generación manual deja los dos mensajes más recientes sin
-  resumir para que el siguiente envío conserve contexto literal.
+- **API**: the v1 REST/SSE contract is documented in `docs/13-api-contract.md`;
+  events keep their names and `done` uses `{ "message": … }` in send, continue and
+  regenerate.
+- **Architecture**: context preparation, compaction, the provider, streaming and
+  proposals are unified in an internal `ChatEngine` shared by the three response
+  flows.
+- **Settings**: `summaryFrequency` and `recentMessageCount` no longer appear in
+  the UI. The engine decides how many messages to send based on the token budget;
+  the database and export columns are kept for compatibility.
+- **Summaries**: manual generation leaves the two most recent messages
+  unsummarized so the next send keeps literal context.
 
 ### Fixed
 
-- **Chat**: el indicador de contexto descarta respuestas antiguas y la vista
-  previa limita el renderizado a los últimos 100 mensajes, manteniendo el
-  recuento de tokens completo.
-- **Ajustes**: `maxTokens` se limita a 200 000 y `contextWindow` a 2 000 000;
-  también se recortan al importar personajes o aplicar plantillas.
-- **Accesibilidad**: el aviso “Compactando contexto…” ya no duplica el anuncio
-  del lector de pantalla.
+- **Chat**: the context indicator discards stale responses and the preview limits
+  rendering to the last 100 messages, keeping the full token count.
+- **Settings**: `maxTokens` is capped at 200 000 and `contextWindow` at
+  2 000 000; they are also trimmed when importing characters or applying
+  templates.
+- **Accessibility**: the "Compacting context…" notice no longer duplicates the
+  screen reader announcement.
 
 ## [1.56.2] - 2026-10-28
 
 ### Fixed
 
-- **Arranque del paquete**: el launcher detecta si la app ya está corriendo y
-  abre esa instancia en vez de lanzar otra. Si el puerto 3001 por defecto está
-  ocupado por otra aplicación usa el siguiente libre; un `PORT` explícito
-  ocupado falla con un mensaje claro.
-- **Cierre y reinicio**: el reinicio usa `execve` en POSIX (mismo PID, sesión y
-  terminal) y un proceso adjunto en Windows, así Ctrl+C y cerrar la consola
-  detienen la app en lugar de dejarla en segundo plano.
-- **Chat**: la burbuja del mensaje del usuario ya no se comprime en pantallas
-  grandes; el contenedor del mensaje ocupa el ancho disponible y la burbuja
-  conserva su límite del 80 %.
+- **Package startup**: the launcher detects whether the app is already running
+  and opens that instance instead of launching another one. If the default port
+  3001 is taken by another application it uses the next free one; an explicit
+  `PORT` that is taken fails with a clear message.
+- **Shutdown and restart**: restart uses `execve` on POSIX (same PID, session and
+  terminal) and an attached process on Windows, so Ctrl+C and closing the console
+  stop the app instead of leaving it in the background.
+- **Chat**: the user message bubble no longer shrinks on large screens; the
+  message container takes the available width and the bubble keeps its 80 %
+  limit.
 
 ## [1.56.1] - 2026-10-28
 
 ### Fixed
 
-- **Actualizaciones**: el paquete ya no incluye la entrada `versions/` que el
-  validador de rutas rechazaba, así que los paquetes nuevos se pueden aplicar
-  desde 1.55.0. El validador también acepta esa entrada por compatibilidad.
+- **Updates**: the package no longer includes the `versions/` entry that the path
+  validator rejected, so new packages can be applied from 1.55.0. The validator
+  also accepts that entry for compatibility.
 
 ## [1.56.0] - 2026-10-28
 
 ### Changed
 
-- **Actualizaciones**: el estado distingue la versión en ejecución de la
-  instalada y expone `restartRequired`; el botón de reiniciar solo aparece
-  cuando hace falta. Tras reiniciar se muestra un aviso de éxito con la
-  versión nueva y, si la app no vuelve, un error con reintento.
+- **Updates**: the state distinguishes the running version from the installed
+  one and exposes `restartRequired`; the restart button only appears when it is
+  needed. After restarting, a success notice shows the new version and, if the app
+  does not come back, an error with retry.
 
 ### Fixed
 
-- **Actualizaciones**: el panel se sincroniza con el backend al abrirse, así
-  que ya no reutiliza un `job` antiguo de la caché ni muestra el botón de
-  reiniciar después de haber reiniciado.
-- **Editor de personaje**: la lista de tarjetas crece con el alto disponible
-  de la ventana en pantallas grandes, en lugar de quedarse en un máximo fijo
-  de 384 px. En pantallas pequeñas ese valor sigue siendo el mínimo.
-- **PWA**: el fondo del `html` sigue el tema activo, así el área segura
-  inferior de la PWA deja de mostrarse blanca en modo oscuro.
+- **Updates**: the panel syncs with the backend when it opens, so it no longer
+  reuses a stale `job` from the cache or shows the restart button after having
+  restarted.
+- **Character editor**: the card list grows with the available window height on
+  large screens, instead of staying at a fixed 384 px maximum. On small screens
+  that value is still the minimum.
+- **PWA**: the `html` background follows the active theme, so the PWA bottom safe
+  area no longer shows white in dark mode.
 
 ## [1.55.0] - 2026-10-28
 
 ### Changed
 
-- **Prompt del personaje**: declara que la historia es ficción privada, pide
-  mantenerse en personaje, prohíbe escribir las acciones o el diálogo del
-  personaje del usuario, permite temas maduros cuando la escena lo pida y
-  limita el ritmo a 2-4 párrafos.
-- **Idioma de respuesta**: el personaje responde en el idioma del último
-  mensaje del usuario (salvo que las Instrucciones del personaje indiquen
-  otro), con el idioma de la interfaz como respaldo.
-- **Resumen y título**: sus instrucciones se generan en el idioma de la
-  interfaz; el resumen sigue el idioma de la conversación y el título cae al
-  idioma de la interfaz cuando la conversación es demasiado corta.
-- **Propuestas de memoria**: el prompt define qué es una memoria, cuándo
-  proponer, cómo evitar duplicados, el actor, la escala de prioridad y el
-  idioma de la conversación. UPDATE conserva los campos omitidos y DELETE
-  solo necesita el id; las propuestas inválidas se descartan individualmente
-  y el bloque de respaldo se limpia aunque haya tool calling.
-- **Propuestas de memoria (UI)**: las UPDATE muestran un diff contra la
-  memoria actual y desaconsejan aceptar cambios vacíos; las DELETE muestran
-  la memoria que se borrará y piden confirmación, también al usar **Aceptar
-  todo**. Se añaden la leyenda de prioridad, las etiquetas Crear/Actualizar/
-  Eliminar y la validación del formulario de edición.
+- **Character prompt**: it states that the story is private fiction, asks to stay
+  in character, forbids writing the user character's actions or dialogue, allows
+  mature themes when the scene calls for them and limits the pace to 2-4
+  paragraphs.
+- **Response language**: the character replies in the language of the user's last
+  message (unless the character Instructions say otherwise), with the UI language
+  as a fallback.
+- **Summary and title**: their instructions are generated in the UI language; the
+  summary follows the conversation language and the title falls back to the UI
+  language when the conversation is too short.
+- **Memory proposals**: the prompt defines what a memory is, when to propose, how
+  to avoid duplicates, the actor, the priority scale and the conversation
+  language. UPDATE keeps the omitted fields and DELETE only needs the id; invalid
+  proposals are dropped individually and the fallback block is cleared even with
+  tool calling.
+- **Memory proposals (UI)**: UPDATEs show a diff against the current memory and
+  discourage accepting empty changes; DELETEs show the memory that will be deleted
+  and ask for confirmation, also when using **Accept all**. The priority legend,
+  the Create/Update/Delete labels and the edit form validation are added.
 
 ### Fixed
 
-- **Propuestas de memoria**: un UPDATE cuyos valores ya coinciden con la
-  memoria se descarta en el servidor (también en modo auto) sin modificar
-  `updatedAt`. Las propuestas se guardan antes del evento `done`, y una
-  respuesta que solo trae tool call ya no las pierde: quedan pendientes aunque
-  el turno devuelva `EMPTY_RESPONSE`.
+- **Memory proposals**: an UPDATE whose values already match the memory is
+  dropped on the server (also in auto mode) without modifying `updatedAt`.
+  Proposals are saved before the `done` event, and a response that only carries a
+  tool call no longer loses them: they stay pending even if the turn returns
+  `EMPTY_RESPONSE`.
 
 ## [1.54.9] - 2026-10-27
 
 ### Changed
 
-- **Assets**: borrar una imagen ya no recorre todas las conversaciones;
-  `existsByAssetId` resuelve la referencia con una consulta `EXISTS`.
-- **SQLite**: `busy_timeout` de 5 s y 16 MB de caché; WAL, foreign keys y
-  `synchronous` se mantienen sin cambios.
+- **Assets**: deleting an image no longer walks every conversation;
+  `existsByAssetId` resolves the reference with an `EXISTS` query.
+- **SQLite**: a 5 s `busy_timeout` and a 16 MB cache; WAL, foreign keys and
+  `synchronous` stay unchanged.
 
 ### Removed
 
-- **Código muerto**: se retira `findByIdWithMessages` y su DTO, sin callers de
-  producción; también se limpian sus mocks.
+- **Dead code**: `findByIdWithMessages` and its DTO are removed, with no
+  production callers; its mocks are cleaned up too.
 
 ## [1.54.8] - 2026-10-27
 
 ### Security
 
-- **CSP del sitio**: cada página publica una CSP con `script-src 'self'` y
-  hashes, incluidos los scripts inline que inyecta Starlight. El bootstrap de
-  tema/idioma es externo y `_headers` añade HSTS y `frame-ancestors 'none'`.
+- **Site CSP**: every page publishes a CSP with `script-src 'self'` and hashes,
+  including the inline scripts Starlight injects. The theme/language bootstrap
+  is external and `_headers` adds HSTS and `frame-ancestors 'none'`.
 
 ### Changed
 
-- **Paginación de personajes**: `GET /api/characters` acepta `limit`/`offset` y
-  la home carga por páginas con un botón **Cargar más**.
-- **Listas acotadas**: las conversaciones se filtran por los personajes
-  cargados y se limitan a 500; memorias y resúmenes también se limitan a 500
-  por defecto. Se evita cargar listas sin límite.
+- **Character pagination**: `GET /api/characters` accepts `limit`/`offset` and
+  the home page loads in pages with a **Load more** button.
+- **Bounded lists**: conversations are filtered by the loaded characters and
+  capped at 500; memories and summaries are also capped at 500 by default.
+  Unbounded list loads are avoided.
 
 ## [1.54.7] - 2026-10-27
 
 ### Security
 
-- **Protección CSRF en la API**: las peticiones que cambian estado desde otro
-  origen se rechazan antes de parsear el body, incluidas las que no llevan body
-  (`/api/updates/backup`, `/api/lan/enable`, reinicio, rollback, etc.). Se
-  validan `Origin` y `Sec-Fetch-Site`, con soporte para el proxy de desarrollo,
-  LAN y Tailscale.
+- **CSRF protection in the API**: state-changing requests from another origin
+  are rejected before the body is parsed, including those without a body
+  (`/api/updates/backup`, `/api/lan/enable`, restart, rollback, etc.). `Origin`
+  and `Sec-Fetch-Site` are validated, with support for the development proxy,
+  LAN and Tailscale.
 
 ### Fixed
 
-- **Errores de API**: el JSON malformado devuelve 400 `INVALID_JSON`, los
-  payloads demasiado grandes 413 `PAYLOAD_TOO_LARGE` y los encodings no
-  soportados 415. Las rutas `/api` desconocidas devuelven JSON 404 en lugar del
-  HTML de Astro, y los mensajes de validación raíz ya no empiezan por `": "`.
-- **Conversaciones por personaje**: un `INNER JOIN` en
-  `ConversationRepository.listByCharacterId` elimina el N+1 al exportar
-  personajes o aplicar una plantilla de ajustes.
+- **API errors**: malformed JSON returns 400 `INVALID_JSON`, oversized payloads
+  return 413 `PAYLOAD_TOO_LARGE` and unsupported encodings return 415. Unknown
+  `/api` routes return a JSON 404 instead of Astro's HTML, and root validation
+  messages no longer start with `": "`.
+- **Conversations by character**: an `INNER JOIN` in
+  `ConversationRepository.listByCharacterId` removes the N+1 when exporting
+  characters or applying a settings template.
 
 ### Changed
 
-- **Guardrails de mantenimiento**: `AGENTS.md` documenta la política de
-  Dependabot, las invariantes de seguridad y rendimiento, el dry-run de release
-  y la verificación de artefactos. El CI ejecuta `pnpm audit --prod`.
-- **Rendimiento del chat**: el streaming re-renderiza solo su burbuja, los
-  mensajes existentes están memoizados y su contenido se parsea una vez por
-  mensaje. `chat.tsx` se dividió en `chat-streaming-bubbles.tsx` para respetar
-  el límite de 500 líneas.
-- **Backups**: solo se copian los assets; la base SQLite en vivo, sus sidecars
-  WAL/SHM y los logs quedan fuera. Se conservan los 10 backups más recientes.
+- **Maintenance guardrails**: `AGENTS.md` documents the Dependabot policy, the
+  security and performance invariants, the release dry run and artifact
+  verification. CI runs `pnpm audit --prod`.
+- **Chat performance**: streaming re-renders only its own bubble, existing
+  messages are memoized and their content is parsed once per message.
+  `chat.tsx` was split into `chat-streaming-bubbles.tsx` to stay within the
+  500-line limit.
+- **Backups**: only assets are copied; the live SQLite database, its WAL/SHM
+  sidecars and the logs are left out. The 10 most recent backups are kept.
 
 ## [1.54.6] - 2026-10-27
 
 ### Changed
 
-- **Formateo Astro**: `prettier-plugin-astro` 1.x, basado en el compilador Rust
-  de Astro 7. Se reformatearon los `.astro` y se fijó
-  `astroCompressHTML: "jsx"` para que el formato no altere los espacios
-  renderizados. Sin cambios de comportamiento.
+- **Astro formatting**: `prettier-plugin-astro` 1.x, based on the Astro 7 Rust
+  compiler. The `.astro` files were reformatted and `astroCompressHTML: "jsx"`
+  was pinned so formatting does not alter rendered spacing. No behaviour
+  changes.
 
 ## [1.54.5] - 2026-10-27
 
 ### Changed
 
-- **Logging y UUID**: pino 10, pino-http 11, pino-pretty 13 y uuid 14. La
-  actualización conjunta alinea los tipos de pino-http; uuid 14 es ESM y ya
-  incluye tipos, así que se retira `@types/uuid`. Sin cambios en formato,
-  redacción ni rotación de logs.
+- **Logging and UUID**: pino 10, pino-http 11, pino-pretty 13 and uuid 14. The
+  joint upgrade aligns the pino-http types; uuid 14 is ESM and already ships
+  types, so `@types/uuid` is removed. No changes to log format, redaction or
+  rotation.
 
 ## [1.54.4] - 2026-10-27
 
 ### Changed
 
-- **better-sqlite3 13**: base de datos migrada a la versión N-API. Incluye
-  binarios precompilados para Windows, Linux y macOS (x64/arm64), elimina
-  `prebuild-install` y mantiene el fallback de compilación. Sin cambios de
-  esquema ni migraciones.
+- **better-sqlite3 13**: the database is migrated to the N-API version. It ships
+  prebuilt binaries for Windows, Linux and macOS (x64/arm64), removes
+  `prebuild-install` and keeps the compilation fallback. No schema changes or
+  migrations.
 
 ## [1.54.3] - 2026-10-27
 
 ### Changed
 
-- **Express 5**: backend migrado de Express 4.22 a 5.3. El middleware
-  `validate` ahora define una propiedad propia sobre el request para sustituir
-  `req.query`, que en Express 5 es un getter de solo lectura. El parser de query
-  queda explícito en modo `simple`; no hay cambios de rutas ni de API.
+- **Express 5**: the backend is migrated from Express 4.22 to 5.3. The
+  `validate` middleware now defines an own property on the request to replace
+  `req.query`, which is a read-only getter in Express 5. The query parser is
+  explicit in `simple` mode; there are no route or API changes.
 
 ## [1.54.2] - 2026-10-27
 
 ### Changed
 
-- **Actualizaciones de dependencias**: React 19.3, `lucide-react` 1.61,
-  `@base-ui/react` 1.9, `@shadcn/react` 0.3, Radix Slot 1.5, Prettier 3.9,
-  `turbo` 2.11, `shadcn` 4.22 y el resto de mejoras patch/minor de Dependabot.
-  Los majors (Express 5, `better-sqlite3` 13, `pino` 10, `uuid` 14,
-  TypeScript 7) quedan para slices posteriores.
-- **Dependabot**: los grupos semanales ahora solo incluyen actualizaciones
-  patch/minor; los majors llegan en PRs individuales para revisarlos uno a uno.
+- **Dependency updates**: React 19.3, `lucide-react` 1.61, `@base-ui/react` 1.9,
+  `@shadcn/react` 0.3, Radix Slot 1.5, Prettier 3.9, `turbo` 2.11, `shadcn`
+  4.22 and the rest of the Dependabot patch/minor updates. The majors (Express
+  5, `better-sqlite3` 13, `pino` 10, `uuid` 14, TypeScript 7) are left for
+  later slices.
+- **Dependabot**: the weekly groups now only include patch/minor updates;
+  majors arrive as individual PRs so they can be reviewed one by one.
 
 ### Security
 
-- **Dependencias transitivas**: overrides para `undici` 8.12.3,
-  `source-map-js` 1.2.2 y `postcss-selector-parser` 7.1.7. `pnpm audit --prod`
-  queda sin vulnerabilidades conocidas.
+- **Transitive dependencies**: overrides for `undici` 8.12.3, `source-map-js`
+  1.2.2 and `postcss-selector-parser` 7.1.7. `pnpm audit --prod` reports no
+  known vulnerabilities.
 
 ## [1.54.1] - 2026-10-27
 
 ### Changed
 
-- **Permisos de datos locales**: en Linux y macOS el proceso usa `umask 077`,
-  las carpetas `data/`, `backups/` y logs quedan en `700`, y la base SQLite
-  (incluidos WAL/SHM) en `600`. En Windows se mantiene la protección de la
-  cuenta del sistema y BitLocker.
-- **Documentación de seguridad**: se explica el cifrado de disco completo, que
-  los backups son texto plano y que las API keys deben rotarse si se pierde el
-  equipo o una copia. El cifrado a nivel de app (passphrase/SQLCipher) se
-  descarta para este modelo de uso local-first.
+- **Local data permissions**: on Linux and macOS the process uses `umask 077`,
+  the `data/`, `backups/` and log folders are left at `700`, and the SQLite
+  database (including WAL/SHM) at `600`. On Windows the system account
+  protection and BitLocker are kept.
+- **Security documentation**: full-disk encryption is explained, along with the
+  fact that backups are plain text and that API keys must be rotated if the
+  device or a copy is lost. App-level encryption (passphrase/SQLCipher) is
+  discarded for this local-first usage model.
 
 ## [1.54.0] - 2026-10-27
 
 ### Changed
 
-- **Cabeceras de seguridad y CSP**: el backend escucha en `127.0.0.1` por
-  defecto, usa `helmet`, envía `frame-ancestors 'none'` y
-  `Permissions-Policy`, y marca las respuestas de `/api` como `no-store`. Astro
-  genera una CSP con `script-src 'self'`; los scripts de tema/service worker
-  pasaron a `/rm-bootstrap.js` para no necesitar scripts inline.
-- **Dependabot para npm/pnpm**: actualizaciones semanales agrupadas por
-  dependencias de producción y desarrollo, además de las acciones de GitHub.
+- **Security headers and CSP**: the backend listens on `127.0.0.1` by default,
+  uses `helmet`, sends `frame-ancestors 'none'` and `Permissions-Policy`, and
+  marks `/api` responses as `no-store`. Astro generates a CSP with
+  `script-src 'self'`; the theme/service-worker scripts moved to
+  `/rm-bootstrap.js` so no inline scripts are needed.
+- **Dependabot for npm/pnpm**: weekly updates grouped by production and
+  development dependencies, in addition to the GitHub actions.
 
 ## [1.53.0] - 2026-10-27
 
 ### Added
 
-- **Releases firmadas con Ed25519**: cada release publica `SHA256SUMS.sig` y el
-  actualizador verifica la firma con una clave pública embebida antes de
-  confiar en el checksum. Una release sin firma o con firma inválida se
-  rechaza. La rotación de claves está documentada en
-  `docs/12-release-signing.md`.
+- **Ed25519-signed releases**: every release publishes `SHA256SUMS.sig` and the
+  updater verifies the signature with an embedded public key before trusting
+  the checksum. A release without a signature or with an invalid signature is
+  rejected. Key rotation is documented in `docs/12-release-signing.md`.
 
 ## [1.52.0] - 2026-10-27
 
 ### Added
 
-- **Paginación del historial del chat**: la conversación se abre con los
-  últimos 50 mensajes y carga páginas anteriores automáticamente al acercarse
-  al inicio, conservando la posición del scroll. Incluye botón manual, spinner y
-  reintento si falla la red. Nuevo endpoint
-  `GET /api/conversations/:id/messages` con cursor por posición.
+- **Chat history pagination**: a conversation opens with the last 50 messages
+  and loads earlier pages automatically when approaching the start, keeping the
+  scroll position. It includes a manual button, a spinner and a retry on
+  network failure. New endpoint `GET /api/conversations/:id/messages` with a
+  position-based cursor.
 
 ### Changed
 
-- **Desgaste de memoria**: los turnos desde la última actualización se calculan
-  en el backend, así que la lista de memorias deja de depender de cargar todo
-  el historial en el cliente.
-- **Rewind más ligero**: la respuesta devuelve solo los IDs de los mensajes
-  eliminados; el cliente trunca los mensajes que ya tiene y refresca memorias,
-  propuestas y resúmenes.
-- **Apertura del chat**: el detalle usa resúmenes de versión en lugar de cargar
-  todas las versiones y tarjetas del personaje.
+- **Memory staleness**: turns since the last update are computed in the
+  backend, so the memory list no longer depends on loading the whole history in
+  the client.
+- **Lighter rewind**: the response returns only the ids of the deleted messages;
+  the client truncates the messages it already has and refreshes memories,
+  proposals and summaries.
+- **Chat opening**: the detail uses version summaries instead of loading every
+  character version and card.
 
 ## [1.51.2] - 2026-10-27
 
 ### Changed
 
-- **Zod 4**: capa de validación actualizada a 4.6.7, con esquemas modernizados
-  (`z.looseObject` y `z.url`) y los mismos códigos de error de la API.
-- **OpenAI SDK 7**: adaptador actualizado a 7.44.0 manteniendo Chat Completions
-  para seguir siendo compatible con Ollama, LM Studio, vLLM y endpoints
-  compatibles.
-- **Vitest 5**: runner de tests actualizado a 5.0.5 en backend y frontend, con
-  Vite 8 declarado explícitamente y el config de frontend adaptado a
+- **Zod 4**: the validation layer is updated to 4.6.7, with modernized schemas
+  (`z.looseObject` and `z.url`) and the same API error codes.
+- **OpenAI SDK 7**: the adapter is updated to 7.44.0 while keeping Chat
+  Completions to stay compatible with Ollama, LM Studio, vLLM and compatible
+  endpoints.
+- **Vitest 5**: the test runner is updated to 5.0.5 in the backend and the
+  frontend, with Vite 8 declared explicitly and the frontend config adapted to
   `import.meta.dirname`.
 
 ## [1.51.1] - 2026-10-27
 
 ### Changed
 
-- **Drizzle ORM 0.45.4 y drizzle-kit 0.31.11**: actualización de la capa de
-  persistencia y de la herramienta de migraciones. No hay cambios de esquema ni
-  migraciones nuevas: `db:generate` no detecta diferencias y el historial
-  existente se aplica correctamente en una base temporal. La auditoría de
-  producción deja de mostrar la vulnerabilidad alta de Drizzle.
+- **Drizzle ORM 0.45.4 and drizzle-kit 0.31.11**: upgrade of the persistence
+  layer and the migration tool. There are no schema changes or new migrations:
+  `db:generate` detects no differences and the existing history applies
+  correctly to a temporary database. The production audit no longer reports
+  Drizzle's high-severity vulnerability.
 
 ## [1.51.0] - 2026-10-27
 
 ### Changed
 
-- **Rendimiento de la base de datos**: nuevos índices para mensajes,
-  resúmenes, propuestas de memoria, versiones, tarjetas y conversaciones. Los
-  listados de personajes y conversaciones usan consultas en lote en vez de
-  N+1, la generación carga solo la ventana reciente y el desgaste de memoria
-  solo consulta timestamps. El resumen con historial previo lee únicamente los
-  mensajes nuevos y el título usa el resumen más reciente más los últimos 20
-  mensajes.
+- **Database performance**: new indexes for messages, summaries, memory
+  proposals, versions, cards and conversations. Character and conversation
+  listings use batch queries instead of N+1, generation loads only the recent
+  window and memory staleness only queries timestamps. Summary generation with
+  previous history reads only the new messages, and the title uses the most
+  recent summary plus the last 20 messages.
 
 ### Fixed
 
-- **Último mensaje de una conversación**: `findLastByConversationId` ahora
-  ordena descendente y devuelve el último mensaje, no el primero.
+- **Last message of a conversation**: `findLastByConversationId` now sorts
+  descending and returns the last message, not the first one.
 
 ## [1.50.2] - 2026-10-27
 
 ### Fixed
 
-- **Paquete portátil sin herramientas de build**: el escáner de dependencias
-  confundía ejemplos JSDoc de Astro con imports reales y empaquetaba Astro, Vite
-  y sus binarios nativos. El paquete vuelve a ~63 MB (antes ~95 MB) y el smoke
-  test confirma que arranca con su runtime incluido.
+- **Portable package without build tooling**: the dependency scanner mistook
+  Astro JSDoc examples for real imports and bundled Astro, Vite and their native
+  binaries. The package is back to ~63 MB (from ~95 MB) and the smoke test
+  confirms it starts with its bundled runtime.
 
 ## [1.50.1] - 2026-10-27
 
 ### Changed
 
-- **Node.js 24.22.1**: `.nvmrc` fija la última LTS parcheada; CI, release,
-  deploy y el runtime que se copia al paquete portátil usan esa misma versión.
-  El mínimo para desarrollar sube a 22.23.4, y el empaquetado aborta si el
-  runtime local no coincide con `.nvmrc`.
-- **Dependencias de runtime y build**: Express 4.22.3 con body-parser 1.20.9,
-  proxy-addr 2.0.8 y qs 6.16.1; Astro 7.4.2 con `@astrojs/node` 11.1.9. La CLI
-  `shadcn` y `zod` dejan de ser dependencias de producción de `packages/ui`
-  porque no se usan en runtime.
+- **Node.js 24.22.1**: `.nvmrc` pins the latest patched LTS; CI, release, deploy
+  and the runtime copied into the portable package use that same version. The
+  minimum for development rises to 22.23.4, and packaging aborts if the local
+  runtime does not match `.nvmrc`.
+- **Runtime and build dependencies**: Express 4.22.3 with body-parser 1.20.9,
+  proxy-addr 2.0.8 and qs 6.16.1; Astro 7.4.2 with `@astrojs/node` 11.1.9. The
+  `shadcn` CLI and `zod` are no longer production dependencies of `packages/ui`
+  because they are not used at runtime.
 
 ### Fixed
 
-- **Las claves de proveedor ya no se exponen por la API**: listar, crear y
-  actualizar instancias devuelve un DTO sin `apiKey`; la clave solo queda en el
-  registro interno que usan los adaptadores. También se elimina el
-  `console.log` del formulario que imprimía la clave en desarrollo.
-- **Actualizaciones verificadas**: cada release publica `SHA256SUMS` y el
-  actualizador compara el hash antes de extraer. Si falta el checksum, el hash
-  no coincide o el archivo contiene rutas fuera de la versión, la actualización
-  se rechaza. El tag también se valida como versión semántica antes de usarlo
-  en rutas.
+- **Provider keys are no longer exposed by the API**: listing, creating and
+  updating instances returns a DTO without `apiKey`; the key stays only in the
+  internal record used by the adapters. The form's `console.log` that printed
+  the key in development is also removed.
+- **Verified updates**: every release publishes `SHA256SUMS` and the updater
+  compares the hash before extracting. If the checksum is missing, the hash does
+  not match or the archive contains paths outside the version, the update is
+  rejected. The tag is also validated as a semantic version before being used
+  in paths.
 
 ## [1.50.0] - 2026-10-27
 

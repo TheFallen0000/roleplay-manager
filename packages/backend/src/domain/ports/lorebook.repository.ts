@@ -13,6 +13,7 @@ export interface LorebookSummary {
   entryCount: number
   description: string | null
   usageCount: number
+  usageVersionCount: number
 }
 
 export interface CreateContainerWithVersionResult {
@@ -28,6 +29,19 @@ export interface SaveLiveHeadResult {
   createdNewVersion: boolean
 }
 
+export interface LorebookUsageRow {
+  characterVersionId: string
+  characterVersionNumber: number
+  characterId: string
+  characterName: string
+  lorebookVersionNumber: number
+}
+
+export interface CharacterVersionNumber {
+  characterId: string
+  versionNumber: number
+}
+
 export interface LorebookRepository {
   findByCharacterId(
     characterId: string,
@@ -37,11 +51,27 @@ export interface LorebookRepository {
 
   list(): Promise<Lorebook[]>
 
-  listSummaries(): Promise<LorebookSummary[]>
+  listSummaries(input?: {
+    limit?: number
+    offset?: number
+    filter?: "all" | "in-use" | "unused"
+  }): Promise<LorebookSummary[]>
 
   findVersions(lorebookId: string): Promise<LorebookVersion[]>
 
   findVersionById(versionId: string): Promise<LorebookVersion | null>
+
+  /** Batch lookup; an empty input returns `[]`. */
+  findVersionsByIds(ids: string[]): Promise<LorebookVersion[]>
+
+  /** Batch lookup of containers only; an empty input returns `[]`. */
+  findByIds(ids: string[]): Promise<Lorebook[]>
+
+  /** Includes soft-deleted containers: import matching classifies them. */
+  findBooksByOriginId(originId: string): Promise<Lorebook[]>
+
+  /** Includes versions of soft-deleted containers: import matching classifies them. */
+  findVersionsBySourceKey(sourceKey: string): Promise<LorebookVersion[]>
 
   upsertBook(book: Lorebook): Promise<Lorebook>
 
@@ -56,6 +86,23 @@ export interface LorebookRepository {
     entries: LorebookEntry[],
     version?: LorebookVersion,
   ): Promise<SaveLiveHeadResult>
+
+  restoreVersionAsNewHead(
+    book: Lorebook,
+    entries: LorebookEntry[],
+    sourceVersion: LorebookVersion,
+  ): Promise<SaveLiveHeadResult>
+
+  softDelete(id: string): Promise<void>
+
+  /** Clears `deleted_at`; it does not create a version. */
+  restoreBook(id: string): Promise<void>
+
+  findUsageVersions(lorebookId: string): Promise<LorebookUsageRow[]>
+
+  findCurrentCharacterVersionNumbers(
+    characterIds: string[],
+  ): Promise<CharacterVersionNumber[]>
 
   createEntry(entry: LorebookEntry): Promise<LorebookEntry>
 

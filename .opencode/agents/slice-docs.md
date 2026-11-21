@@ -15,11 +15,17 @@ permissions:
   - action: edit
     resource: "CHANGELOG.md"
     effect: allow
+  - action: edit
+    resource: "AGENTS.md"
+    effect: allow
   - action: shell
     resource: "*"
     effect: deny
   - action: shell
     resource: "pnpm *"
+    effect: allow
+  - action: shell
+    resource: "node scripts/release-notes.mjs *"
     effect: allow
   - action: shell
     resource: "git status *"

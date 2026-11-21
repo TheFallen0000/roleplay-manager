@@ -1,16 +1,15 @@
-import { useEffect, useMemo, useState } from "react"
-import { BookOpenIcon, PlusIcon } from "lucide-react"
+import { useEffect, useState } from "react"
+import { BookOpenIcon, PlusIcon, UploadIcon } from "lucide-react"
 
 import type { Locale } from "@workspace/shared/i18n"
 import type { LorebookSummaryDTO } from "@workspace/shared/types/lorebook"
 
-import { listLorebooks } from "@/lib/api/lorebooks"
+import { listLorebooks, type LorebookFilter } from "@/lib/api/lorebooks"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
 import { LorebookCard } from "./lorebook-card"
-
-type LorebookFilter = "all" | "linked" | "unlinked"
+import { LorebookImportDialog } from "./lorebook-import-dialog"
 
 interface LorebookListProps {
   locale: Locale
@@ -24,16 +23,24 @@ export function LorebookList({ locale }: LorebookListProps) {
   )
 }
 
+const FILTER_LABEL_KEYS = {
+  all: "lorebooks.filterAll",
+  "in-use": "lorebooks.filterLinked",
+  unused: "lorebooks.filterUnlinked",
+} as const
+
 function LorebookListContent() {
   const { t } = useTranslation()
   const [lorebooks, setLorebooks] = useState<LorebookSummaryDTO[]>([])
   const [filter, setFilter] = useState<LorebookFilter>("all")
+  const [reloadKey, setReloadKey] = useState(0)
+  const [importOpen, setImportOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
-    listLorebooks()
+    listLorebooks({ filter })
       .then((books) => {
         if (active) setLorebooks(books)
       })
@@ -46,26 +53,22 @@ function LorebookListContent() {
     return () => {
       active = false
     }
-  }, [t])
+  }, [filter, reloadKey, t])
 
-  const counts = useMemo(
-    () => ({
-      all: lorebooks.length,
-      linked: lorebooks.filter((book) => (book.usageCount ?? 0) > 0).length,
-      unlinked: lorebooks.filter((book) => (book.usageCount ?? 0) === 0).length,
-    }),
-    [lorebooks],
-  )
+  const handleFilterChange = (next: LorebookFilter) => {
+    if (next === filter) return
+    setFilter(next)
+    setLoading(true)
+    setError(null)
+  }
 
-  const visible = useMemo(() => {
-    if (filter === "linked") {
-      return lorebooks.filter((book) => (book.usageCount ?? 0) > 0)
-    }
-    if (filter === "unlinked") {
-      return lorebooks.filter((book) => (book.usageCount ?? 0) === 0)
-    }
-    return lorebooks
-  }, [filter, lorebooks])
+  const handleImported = () => {
+    setLoading(true)
+    setError(null)
+    setReloadKey((key) => key + 1)
+  }
+
+  const isEmptyShelf = !loading && lorebooks.length === 0 && filter === "all"
 
   return (
     <div className="rm-content">
@@ -75,6 +78,14 @@ function LorebookListContent() {
           <p className="lede">{t("lorebooks.subtitle")}</p>
         </div>
         <div className="rm-page-actions">
+          <button
+            type="button"
+            className="rm-btn rm-btn--ghost"
+            onClick={() => setImportOpen(true)}
+          >
+            <UploadIcon className="size-4" />
+            {t("lorebooks.import")}
+          </button>
           <a className="rm-btn" href="/lorebooks/new">
             <PlusIcon className="size-4" />
             {t("lorebooks.create")}
@@ -90,7 +101,7 @@ function LorebookListContent() {
 
       {loading ? (
         <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
-      ) : lorebooks.length === 0 ? (
+      ) : isEmptyShelf ? (
         <div className="rm-empty">
           <BookOpenIcon className="size-10 text-primary" />
           <h2>{t("lorebooks.emptyTitle")}</h2>
@@ -103,33 +114,33 @@ function LorebookListContent() {
       ) : (
         <>
           <div className="rm-toolbar">
-            <div className="rm-filter" role="group" aria-label={t("lorebooks.filterLabel")}>
+            <div
+              className="rm-filter"
+              role="group"
+              aria-label={t("lorebooks.filterLabel")}
+            >
               {(
-                [
-                  ["all", "lorebooks.filterAll", counts.all],
-                  ["linked", "lorebooks.filterLinked", counts.linked],
-                  ["unlinked", "lorebooks.filterUnlinked", counts.unlinked],
-                ] as const
-              ).map(([value, labelKey, count]) => (
+                ["all", "in-use", "unused"] as const
+              ).map((value) => (
                 <button
                   key={value}
                   type="button"
                   aria-pressed={filter === value}
-                  onClick={() => setFilter(value)}
+                  onClick={() => handleFilterChange(value)}
                 >
-                  {t(labelKey)} <span className="rm-mono">{count}</span>
+                  {t(FILTER_LABEL_KEYS[value])}
                 </button>
               ))}
             </div>
           </div>
 
-          {visible.length === 0 ? (
+          {lorebooks.length === 0 ? (
             <div className="rm-empty">
               <p>{t("lorebooks.filterEmpty")}</p>
             </div>
           ) : (
             <div className="rm-book-grid">
-              {visible.map((book) => (
+              {lorebooks.map((book) => (
                 <LorebookCard key={book.id} lorebook={book} />
               ))}
               <a href="/lorebooks/new" className="rm-book-card rm-book-card--add">
@@ -144,6 +155,13 @@ function LorebookListContent() {
           )}
         </>
       )}
+
+      <LorebookImportDialog
+        open={importOpen}
+        format="ccv3"
+        onOpenChange={setImportOpen}
+        onImported={handleImported}
+      />
     </div>
   )
 }

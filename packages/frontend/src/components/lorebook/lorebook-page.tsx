@@ -5,13 +5,17 @@ import { toast } from "@workspace/ui/components/sonner"
 import type { Locale } from "@workspace/shared/i18n"
 
 import { SectionNav } from "@/components/shared/card-first/section-nav"
-import { SectionPanel } from "@/components/shared/card-first/section-panel"
-import { exportLorebook } from "@/lib/api/lorebooks"
+import {
+  exportLorebook,
+  type LorebookExportFormat,
+} from "@/lib/api/lorebooks"
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
 import { useTranslation } from "@/lib/hooks/use-translation"
 
+import { LorebookDangerSection } from "./lorebook-danger-section"
 import { LorebookEntriesSection } from "./lorebook-entries-section"
 import { LorebookIdentitySection } from "./lorebook-identity-section"
+import { LorebookLinkSection } from "./lorebook-link-section"
 import { LorebookSettingsSection } from "./lorebook-settings-section"
 import { LorebookVersionsSection } from "./lorebook-versions-section"
 import { useLorebookPage } from "./use-lorebook-page"
@@ -45,7 +49,7 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
     handleVersionChange,
     save,
   } = state
-  const [exporting, setExporting] = useState(false)
+  const [exporting, setExporting] = useState<LorebookExportFormat | null>(null)
 
   if (loading) {
     return (
@@ -74,18 +78,25 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
   const entryCount = selectedVersion?.entries.length ?? state.entries.length
   const updatedAt = selectedVersion?.createdAt ?? ""
 
-  const handleExport = async () => {
-    if (!lorebook) return
-    setExporting(true)
+  const handleExport = async (format: LorebookExportFormat) => {
+    if (!lorebook || !selectedVersion) return
+    setExporting(format)
     try {
-      const payload = await exportLorebook(lorebook.id, "ccv3")
+      const payload = await exportLorebook(
+        lorebook.id,
+        format,
+        selectedVersion.id,
+      )
       const blob = new Blob([JSON.stringify(payload, null, 2)], {
         type: "application/json",
       })
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = `${(lorebook.name ?? "lorebook").replace(/[^\w-]+/g, "-").toLowerCase()}.json`
+      const slug = (lorebook.name ?? "lorebook")
+        .replace(/[^\w-]+/g, "-")
+        .toLowerCase()
+      link.download = `${slug}-v${selectedVersion.versionNumber}-${format}.json`
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -94,7 +105,7 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
     } catch {
       toast.error(t("characters.lorebookExportFailed"))
     } finally {
-      setExporting(false)
+      setExporting(null)
     }
   }
 
@@ -103,8 +114,17 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
     { id: "lorebook-settings", label: t("lorebooks.settings"), number: "02" },
     { id: "lorebook-entries", label: t("lorebooks.entries"), number: "03" },
     { id: "lorebook-versions", label: t("lorebooks.versions"), number: "04" },
-    { id: "lorebook-link", label: t("lorebooks.link"), number: "05" },
+    ...(isEditing
+      ? [
+          { id: "lorebook-link", label: t("lorebooks.link"), number: "05" },
+          { id: "lorebook-danger", label: t("lorebooks.danger"), number: "06" },
+        ]
+      : []),
   ]
+
+  const exportBusy = exporting !== null
+  const formatLabel = (format: LorebookExportFormat) =>
+    format === "ccv3" ? t("lorebooks.formatCcv3") : t("lorebooks.formatStNative")
 
   return (
     <div className="rm-content">
@@ -183,16 +203,38 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
               <SaveIcon className="size-4" />
               {saving ? t("common.loading") : t("lorebooks.save")}
             </button>
-            <button
-              type="button"
-              className="rm-btn rm-btn--ghost"
-              onClick={() => void handleExport()}
-              disabled={!lorebook || readOnly || exporting}
-              title={readOnly ? t("lorebooks.exportReadOnly") : undefined}
-            >
-              <DownloadIcon className="size-4" />
-              {exporting ? t("common.loading") : t("characters.lorebookExport")}
-            </button>
+            {isEditing && selectedVersion ? (
+              <>
+                <button
+                  type="button"
+                  className="rm-btn rm-btn--ghost"
+                  onClick={() => void handleExport("ccv3")}
+                  disabled={exportBusy}
+                >
+                  <DownloadIcon className="size-4" />
+                  {exporting === "ccv3"
+                    ? t("common.loading")
+                    : t("lorebooks.exportVersion", {
+                        format: formatLabel("ccv3"),
+                        version: selectedVersion.versionNumber,
+                      })}
+                </button>
+                <button
+                  type="button"
+                  className="rm-btn rm-btn--ghost"
+                  onClick={() => void handleExport("st-native")}
+                  disabled={exportBusy}
+                >
+                  <DownloadIcon className="size-4" />
+                  {exporting === "st-native"
+                    ? t("common.loading")
+                    : t("lorebooks.exportVersion", {
+                        format: formatLabel("st-native"),
+                        version: selectedVersion.versionNumber,
+                      })}
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
       </header>
@@ -215,18 +257,19 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
           <LorebookSettingsSection state={state} />
           <LorebookEntriesSection state={state} />
           <LorebookVersionsSection state={state} />
-          <SectionPanel
-            id="lorebook-link"
-            kicker={`05 · ${t("lorebooks.link")}`}
-            title={t("lorebooks.link")}
-            description={t("lorebooks.linkHint")}
-          >
-            <div className="rm-empty">
-              <h2>{t("lorebooks.linkDeferredTitle")}</h2>
-              <p>{t("lorebooks.linkDeferred")}</p>
-              <span className="rm-chip rm-chip--dashed">S134</span>
-            </div>
-          </SectionPanel>
+          {isEditing && lorebook && selectedVersionId ? (
+            <LorebookLinkSection
+              key={selectedVersionId}
+              lorebookId={lorebook.id}
+              versionId={selectedVersionId}
+            />
+          ) : null}
+          {isEditing && lorebook ? (
+            <LorebookDangerSection
+              lorebookId={lorebook.id}
+              lorebookName={lorebook.name}
+            />
+          ) : null}
 
           <div className="rm-save-bar">
             <div className="rm-save-status">
@@ -279,13 +322,6 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
                 {lorebook?.originId ? lorebook.originId.slice(0, 8) : "—"}
               </span>
             </div>
-          </div>
-          <div className="rm-rail-card">
-            <h3>{t("lorebooks.link")}</h3>
-            <p>{t("lorebooks.linkDeferred")}</p>
-            <span className="rm-chip rm-chip--dashed" style={{ marginTop: "0.55rem" }}>
-              S134
-            </span>
           </div>
         </aside>
       </div>

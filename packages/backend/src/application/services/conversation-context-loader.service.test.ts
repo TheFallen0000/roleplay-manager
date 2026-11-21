@@ -571,6 +571,10 @@ describe("ConversationContextLoader", () => {
       ...(result.lorebook?.after ?? []),
     ].map((entry) => entry.content)
     expect(contents).toContain("Deleted-book pinned lore.")
+    expect(repos.lorebookRepository.findVersionById).toHaveBeenCalledWith(
+      "lv-deleted",
+    )
+    expect(repos.lorebookRepository.findByCharacterId).not.toHaveBeenCalled()
   })
 
   it("has no lorebook when the character version is not linked", async () => {

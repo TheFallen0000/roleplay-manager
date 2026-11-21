@@ -60,6 +60,7 @@ export interface RmExtensions {
     active: boolean
   }>
   versionNumber?: number
+  originId?: string | null
   tagline?: string | null
   lorebook?: {
     lorebookId: string

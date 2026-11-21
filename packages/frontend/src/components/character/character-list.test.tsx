@@ -65,6 +65,31 @@ vi.mock("@/lib/api/conversations", () => ({
   createConversation: mocks.createConversation,
 }))
 
+const versionsWithoutAlternates = [
+  {
+    id: "ver-1",
+    characterId: "char-2",
+    name: "Kael",
+    subtitle: null,
+    profileImageAssetId: null,
+    description: "A wanderer.",
+    instructions: null,
+    greeting: "Hola.",
+    alternateGreetings: [],
+    versionNumber: 1,
+    createdAt: "2026-07-02T10:00:00.000Z",
+    cards: [],
+  },
+]
+
+const versionWithAlternates = {
+  ...versionsWithoutAlternates[0],
+  id: "ver-2",
+  greeting: "Hola.",
+  alternateGreetings: ["Buenas noches."],
+  versionNumber: 2,
+}
+
 beforeEach(() => {
   mocks.listCharacters.mockReset()
   mocks.listCharactersPage.mockReset()
@@ -77,6 +102,7 @@ beforeEach(() => {
   mocks.importCharacter.mockReset()
   mocks.listConversations.mockReset()
   mocks.createConversation.mockReset()
+  mocks.listCharacterVersions.mockResolvedValue(versionsWithoutAlternates)
 
   vi.stubGlobal("location", { href: "" })
 })
@@ -139,11 +165,52 @@ describe("CharacterList", () => {
       ),
     )
 
-    expect(mocks.createConversation).toHaveBeenCalledWith({
-      characterId: "char-2",
-    })
+    await waitFor(() =>
+      expect(mocks.createConversation).toHaveBeenCalledWith({
+        characterId: "char-2",
+      }),
+    )
     await waitFor(() =>
       expect(window.location.href).toBe("/conversations/conv-new"),
+    )
+  })
+
+  it("abre el selector de saludo alternativo y crea la conversación con greetingIndex", async () => {
+    mocks.listCharacters.mockResolvedValue([characters[1]])
+    mocks.listConversations.mockResolvedValue([])
+    mocks.listCharacterVersions.mockResolvedValue([versionWithAlternates])
+    mocks.createConversation.mockResolvedValue({
+      conversation: { id: "conv-new" },
+      defaultProviderStatus: "available",
+    })
+
+    renderList()
+
+    fireEvent.click(
+      await screen.findByLabelText(
+        "Abrir la conversación más reciente con Kael",
+      ),
+    )
+
+    expect(
+      (await screen.findAllByText(/Buenas noches\./)).length,
+    ).toBeGreaterThan(0)
+    expect(mocks.createConversation).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getAllByText(/Buenas noches\./)[0])
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: /Conversar|Iniciar|Confirmar|Continuar|Aceptar/i,
+      }),
+    )
+
+    await waitFor(() =>
+      expect(mocks.createConversation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          characterId: "char-2",
+          greetingIndex: 1,
+        }),
+      ),
     )
   })
 

@@ -1,9 +1,12 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   getCharacter: vi.fn(),
+  listCharacters: vi.fn(),
+  listCharactersPage: vi.fn(),
+  listCharacterVersions: vi.fn(),
   createCharacter: vi.fn(),
   updateCharacter: vi.fn(),
   updateCharacterProfileImage: vi.fn(),
@@ -14,6 +17,13 @@ const mocks = vi.hoisted(() => ({
   getLorebookVersion: vi.fn(),
   createLorebook: vi.fn(),
   updateLorebook: vi.fn(),
+  exportLorebook: vi.fn(),
+  deleteLorebook: vi.fn(),
+  getLorebookUsage: vi.fn(),
+  linkLorebook: vi.fn(),
+  restoreLorebookVersion: vi.fn(),
+  importLorebookPreview: vi.fn(),
+  importLorebook: vi.fn(),
   getCharacterCard: vi.fn(),
   updateCharacterCard: vi.fn(),
   previewSillyTavernCard: vi.fn(),
@@ -25,6 +35,9 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/api/characters", () => ({
   getCharacter: mocks.getCharacter,
+  listCharacters: mocks.listCharacters,
+  listCharactersPage: mocks.listCharactersPage,
+  listCharacterVersions: mocks.listCharacterVersions,
   createCharacter: mocks.createCharacter,
   updateCharacter: mocks.updateCharacter,
   updateCharacterProfileImage: mocks.updateCharacterProfileImage,
@@ -38,6 +51,13 @@ vi.mock("@/lib/api/lorebooks", () => ({
   getLorebookVersion: mocks.getLorebookVersion,
   createLorebook: mocks.createLorebook,
   updateLorebook: mocks.updateLorebook,
+  exportLorebook: mocks.exportLorebook,
+  deleteLorebook: mocks.deleteLorebook,
+  getLorebookUsage: mocks.getLorebookUsage,
+  linkLorebook: mocks.linkLorebook,
+  restoreLorebookVersion: mocks.restoreLorebookVersion,
+  importLorebookPreview: mocks.importLorebookPreview,
+  importLorebook: mocks.importLorebook,
 }))
 
 vi.mock("@/lib/api/sillytavern-card", () => ({
@@ -85,6 +105,7 @@ const characterDetail = (
     description: "A guardian of the forest.",
     instructions: null,
     greeting: "Hello, traveler.",
+    alternateGreetings: ["Buenas noches."],
     versionNumber: 2,
     createdAt: now,
     cards: [{ id: "card-1", versionId: "ver-2", title: "Oath", content: "Protect the forest.", position: 0, active: true }],
@@ -100,6 +121,7 @@ const characterDetail = (
       description: "Old Lyra.",
       instructions: null,
       greeting: "Hello.",
+      alternateGreetings: ["Old night."],
       versionNumber: 1,
       createdAt: now,
       cards: [],
@@ -114,6 +136,7 @@ const characterDetail = (
       description: "A guardian of the forest.",
       instructions: null,
       greeting: "Hello, traveler.",
+      alternateGreetings: ["Buenas noches."],
       versionNumber: 2,
       createdAt: now,
       cards: [],
@@ -196,7 +219,23 @@ beforeEach(() => {
   ])
   mocks.getLorebookVersion.mockResolvedValue(undefined)
   mocks.listConversations.mockResolvedValue([])
-  vi.stubGlobal("location", { href: "" })
+  mocks.listCharacters.mockResolvedValue([])
+  mocks.listCharactersPage.mockResolvedValue({
+    characters: [],
+    hasMore: false,
+    nextOffset: null,
+  })
+  mocks.listCharacterVersions.mockResolvedValue([])
+  mocks.getLorebookUsage.mockResolvedValue({ characters: [] })
+  mocks.restoreLorebookVersion.mockResolvedValue({
+    lorebook,
+    createdNewVersion: true,
+  })
+  mocks.createConversation.mockResolvedValue({
+    conversation: { id: "conv-new" },
+    defaultProviderStatus: "available",
+  })
+  vi.stubGlobal("location", { href: "", assign: vi.fn() })
 })
 
 afterEach(() => {
@@ -243,7 +282,7 @@ describe("CharacterPage — sectioned card-first surface", () => {
     ).toBeGreaterThan(0)
     expect(screen.getByRole("button", { name: /Abrir/i })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /Cambiar/i })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Quitar/i })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /^Quitar$/ })).toBeInTheDocument()
   })
 
   it("shows a deleted linked lorebook by name and version", async () => {
@@ -297,7 +336,7 @@ describe("CharacterPage — sectioned card-first surface", () => {
     renderPage("char-1")
 
     await screen.findByRole("heading", { name: "Lyra" })
-    await userEvent.click(screen.getByRole("button", { name: /Quitar/i }))
+    await userEvent.click(screen.getByRole("button", { name: /^Quitar$/ }))
     if (mocks.updateCharacter.mock.calls.length === 0) {
       await userEvent.click(
         screen.getAllByRole("button", { name: /Guardar/i })[0],
@@ -311,5 +350,66 @@ describe("CharacterPage — sectioned card-first surface", () => {
       Record<string, unknown>,
     ]
     expect(input).toMatchObject({ lorebookVersionId: null })
+  })
+
+  it("opens the alternate greeting picker from the detail action", async () => {
+    renderPage("char-1")
+
+    await screen.findByRole("heading", { name: "Lyra" })
+    await userEvent.click(
+      screen.getAllByRole("button", { name: /Nueva conversación/i })[0],
+    )
+
+    const picker = await screen.findByRole("dialog")
+    expect(within(picker).getAllByText(/Buenas noches\./).length).toBeGreaterThan(
+      0,
+    )
+    expect(mocks.createConversation).not.toHaveBeenCalled()
+
+    await userEvent.click(within(picker).getAllByText(/Buenas noches\./)[0])
+    await userEvent.click(
+      within(picker).getByRole("button", {
+        name: /Conversar|Iniciar|Confirmar|Continuar|Aceptar/i,
+      }),
+    )
+
+    await waitFor(() =>
+      expect(mocks.createConversation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          characterId: "char-1",
+          versionId: "ver-2",
+          greetingIndex: 1,
+        }),
+      ),
+    )
+  })
+
+  it("opens the alternate greeting picker from a version row", async () => {
+    renderPage("char-1")
+
+    await screen.findByRole("heading", { name: "Lyra" })
+    const buttons = screen.getAllByRole("button", {
+      name: /Nueva conversación/i,
+    })
+    await userEvent.click(buttons[buttons.length - 1])
+
+    const picker = await screen.findByRole("dialog")
+    expect(within(picker).getAllByText(/Old night\./).length).toBeGreaterThan(0)
+    await userEvent.click(within(picker).getAllByText(/Old night\./)[0])
+    await userEvent.click(
+      within(picker).getByRole("button", {
+        name: /Conversar|Iniciar|Confirmar|Continuar|Aceptar/i,
+      }),
+    )
+
+    await waitFor(() =>
+      expect(mocks.createConversation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          characterId: "char-1",
+          versionId: "ver-1",
+          greetingIndex: 1,
+        }),
+      ),
+    )
   })
 })

@@ -163,6 +163,12 @@ export const buildServer = ({
       createLorebook: container.createLorebook,
       updateLorebook: container.updateLorebookById,
       exportLorebook: container.exportLorebook,
+      softDeleteLorebook: container.softDeleteLorebook,
+      restoreLorebookVersion: container.restoreLorebookVersion,
+      getLorebookUsage: container.getLorebookUsage,
+      linkLorebook: container.linkLorebook,
+      importLorebookPreview: container.importLorebookPreview,
+      importLorebookStandalone: container.importLorebookStandalone,
     }),
   )
   app.use("/api", buildCharacterRouter(container))

@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react"
 import { ChevronDownIcon, FileJsonIcon, PlusIcon, UploadIcon } from "lucide-react"
 
-import type { CharacterSummary } from "@workspace/shared/types/character"
+import type {
+  CharacterSummary,
+  CharacterVersionDTO,
+} from "@workspace/shared/types/character"
 import type { CharacterExport } from "@workspace/shared/types/export"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/sonner"
@@ -22,6 +25,7 @@ import {
 import { MascotPose } from "../layout/brand"
 import { CreateDialog } from "../shared/create-dialog"
 import { LoadErrorState } from "../shared/states/load-error-state"
+import { AlternateGreetingPicker } from "@/components/shared/alternate-greeting-picker"
 import { CharacterCard } from "./character-card"
 import { CharacterDropOverlay } from "./character-drop-overlay"
 import { CharacterListToolbar } from "./character-list-toolbar"
@@ -38,6 +42,18 @@ function normalizeText(value: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim()
+}
+
+function currentVersionOf(
+  versions: CharacterVersionDTO[],
+): CharacterVersionDTO | null {
+  return versions.reduce<CharacterVersionDTO | null>(
+    (current, version) =>
+      current === null || version.versionNumber > current.versionNumber
+        ? version
+        : current,
+    null,
+  )
 }
 
 export function CharacterList({ locale }: { locale: Locale }) {
@@ -69,6 +85,10 @@ function CharacterListContent() {
   const [importOpen, setImportOpen] = useState(false)
   const [cardImportOpen, setCardImportOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  const [greetingPicker, setGreetingPicker] = useState<{
+    characterId: string
+    version: CharacterVersionDTO
+  } | null>(null)
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<CharacterSortKey>(DEFAULT_CHARACTER_SORT)
 
@@ -95,35 +115,17 @@ function CharacterListContent() {
     location.href = `/conversations/${conversationId}`
   }
 
-  const handleImageClick = async (character: CharacterSummary) => {
-    const latest = latestConversationByCharacter.get(character.id)
-    if (latest) {
-      openConversation(latest.id)
-      return
-    }
-    try {
-      const conv = await createConversation({ characterId: character.id })
-      if (conv.defaultProviderStatus === "unavailable") {
-        toast.warning(t("characters.providerUnavailable"))
-      }
-      openConversation(conv.conversation.id)
-    } catch (error) {
-      toast.error(
-        translateApiError(
-          error,
-          tRaw,
-          t("characters.conversationCreateFailed"),
-        ),
-      )
-    }
-  }
-
-  const handleCreateConversation = async (
+  const createConversationFor = async (
     characterId: string,
-    versionId: string,
+    versionId?: string,
+    greetingIndex?: number,
   ) => {
     try {
-      const conv = await createConversation({ characterId, versionId })
+      const conv = await createConversation({
+        characterId,
+        ...(versionId ? { versionId } : {}),
+        ...(greetingIndex !== undefined ? { greetingIndex } : {}),
+      })
       if (conv.defaultProviderStatus === "unavailable") {
         toast.warning(t("characters.providerUnavailable"))
       }
@@ -141,6 +143,57 @@ function CharacterListContent() {
           openConversation(latest.id)
         }
       }
+    }
+  }
+
+  const handleImageClick = async (character: CharacterSummary) => {
+    const latest = latestConversationByCharacter.get(character.id)
+    if (latest) {
+      openConversation(latest.id)
+      return
+    }
+
+    try {
+      const versions = await loadVersions(character.id)
+      const version = currentVersionOf(versions)
+      if (version && (version.alternateGreetings?.length ?? 0) > 0) {
+        setGreetingPicker({ characterId: character.id, version })
+        return
+      }
+    } catch {
+      // Fall back to the backend resolving the current version.
+    }
+
+    await createConversationFor(character.id)
+  }
+
+  const handleCreateConversation = async (
+    characterId: string,
+    versionId: string,
+  ) => {
+    try {
+      const versions = await loadVersions(characterId)
+      const version = versions.find((item) => item.id === versionId)
+      if (version && (version.alternateGreetings?.length ?? 0) > 0) {
+        setGreetingPicker({ characterId, version })
+        return
+      }
+    } catch {
+      // Fall back to creating the conversation with the requested version.
+    }
+
+    await createConversationFor(characterId, versionId)
+  }
+
+  const handleGreetingConfirm = (greetingIndex: number) => {
+    const pending = greetingPicker
+    setGreetingPicker(null)
+    if (pending) {
+      void createConversationFor(
+        pending.characterId,
+        pending.version.id,
+        greetingIndex,
+      )
     }
   }
 
@@ -340,6 +393,19 @@ function CharacterListContent() {
           setCardImportOpen(true)
         }}
       />
+      {greetingPicker ? (
+        <AlternateGreetingPicker
+          open
+          greeting={greetingPicker.version.greeting}
+          alternateGreetings={
+            greetingPicker.version.alternateGreetings ?? []
+          }
+          onOpenChange={(open) => {
+            if (!open) setGreetingPicker(null)
+          }}
+          onConfirm={handleGreetingConfirm}
+        />
+      ) : null}
     </>
   )
 }

@@ -29,6 +29,7 @@ import {
 import { deleteCharacter } from "@/lib/api/characters"
 import { translateApiError } from "@/lib/translate-api-error"
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { AlternateGreetingPicker } from "@/components/shared/alternate-greeting-picker"
 
 import { CardInspectorDialog } from "./card-inspector-dialog"
 import { ExportDialog } from "./export-dialog"
@@ -42,6 +43,7 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
   const [cardExportOpen, setCardExportOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [greetingPickerOpen, setGreetingPickerOpen] = useState(false)
   const [starting, setStarting] = useState(false)
   const [conversationCount, setConversationCount] = useState(0)
 
@@ -76,12 +78,13 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
     updatedAt: character.updatedAt,
   }
 
-  const startConversation = async () => {
+  const createConversationWithGreeting = async (greetingIndex?: number) => {
     setStarting(true)
     try {
       const result = await createConversation({
         characterId: character.id,
         versionId: character.currentVersion.id,
+        ...(greetingIndex !== undefined ? { greetingIndex } : {}),
       })
       if (result.defaultProviderStatus === "unavailable") {
         toast.warning(t("characters.providerUnavailable"))
@@ -98,6 +101,19 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
     } finally {
       setStarting(false)
     }
+  }
+
+  const startConversation = () => {
+    if ((character.currentVersion.alternateGreetings?.length ?? 0) > 0) {
+      setGreetingPickerOpen(true)
+      return
+    }
+    void createConversationWithGreeting()
+  }
+
+  const handleGreetingConfirm = (greetingIndex: number) => {
+    setGreetingPickerOpen(false)
+    void createConversationWithGreeting(greetingIndex)
   }
 
   const remove = async () => {
@@ -124,7 +140,7 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
       <button
         type="button"
         className="rm-btn"
-        onClick={() => void startConversation()}
+        onClick={startConversation}
         disabled={starting}
       >
         <MessageSquarePlusIcon className="size-4" />
@@ -181,6 +197,14 @@ export function CharacterPageActions({ state }: { state: CharacterPageState }) {
         characterId={character.id}
         open={inspectorOpen}
         onOpenChange={setInspectorOpen}
+      />
+
+      <AlternateGreetingPicker
+        open={greetingPickerOpen}
+        greeting={character.currentVersion.greeting}
+        alternateGreetings={character.currentVersion.alternateGreetings ?? []}
+        onOpenChange={setGreetingPickerOpen}
+        onConfirm={handleGreetingConfirm}
       />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
