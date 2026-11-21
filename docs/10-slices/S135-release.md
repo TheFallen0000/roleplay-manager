@@ -48,8 +48,8 @@ dry-run. La release batcheada se prepara después con `/release`.
 - El snapshot de la web (`packages/website/src/data/release.json`) queda en
   1.58.0; el próximo build de la web lo refresca si hay una release nueva.
 
-## Siguiente paso
+## Estado final
 
-1. Abrir el PR de `feat/S135-engineering-refinement`.
-2. Esperar CI verde y mergear con squash.
-3. Preparar la release batcheada con `/release` cuando corresponda.
+S135 se integró en `master` mediante el PR #150 (`1b25946`) con squash. El CI
+de `master` y el deploy de la website están en verde. No hay release de S135:
+la release batcheada se prepara con `/release` cuando corresponda.
