@@ -323,7 +323,7 @@ export function normalizeLorebook(root: unknown): NormalizedLorebook | null {
 
 export function buildLorebookEntities(
   root: unknown,
-  characterId: string,
+  characterId: string | null,
   options: { bookId?: string; now?: Date } = {},
 ): LorebookEntities | null {
   const normalized = normalizeLorebook(root)
@@ -696,16 +696,23 @@ const entryToStNativeData = (entry: LorebookEntryLike): JsonRecord => {
   }
 }
 
-/** ST native export: a keyed-by-uid `{ entries: { <id>: ... } }` object. */
+/**
+ * ST native export: a keyed-by-uid `{ entries: { <id>: ... } }` object plus the
+ * additive top-level `extensions` container (RM fingerprint metadata lives
+ * there, next to the payload's own unknown keys).
+ */
 export const toStNativeLorebook = (
   lorebook: LorebookLike,
-): { entries: Record<string, JsonRecord> } => {
+): { entries: Record<string, JsonRecord>; extensions?: JsonRecord } => {
+  const book = bookOf(lorebook)
   const entries: Record<string, JsonRecord> = {}
   for (const entry of entriesOf(lorebook)) {
     const key = entry.sourceId ?? entry.id
     if (key) entries[key] = entryToStNativeData(entry)
   }
-  return { entries }
+  return isRecord(book.extensions)
+    ? { entries, extensions: book.extensions }
+    : { entries }
 }
 
 export const assertLorebookEntryCount = (

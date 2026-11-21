@@ -8,6 +8,8 @@ import type { ExportLorebookUseCase } from "../../../../application/use-cases/ch
 import type { GetLorebookByIdUseCase } from "../../../../application/use-cases/character/lorebook/get-lorebook-by-id.use-case"
 import type { GetLorebookUsageUseCase } from "../../../../application/use-cases/character/lorebook/get-lorebook-usage.use-case"
 import type { GetLorebookVersionUseCase } from "../../../../application/use-cases/character/lorebook/get-lorebook-version.use-case"
+import type { ImportLorebookPreviewUseCase } from "../../../../application/use-cases/character/lorebook/import-lorebook-preview.use-case"
+import type { ImportLorebookStandaloneUseCase } from "../../../../application/use-cases/character/lorebook/import-lorebook-standalone.use-case"
 import type { LinkLorebookUseCase } from "../../../../application/use-cases/character/lorebook/link-lorebook.use-case"
 import type { ListLorebookVersionsUseCase } from "../../../../application/use-cases/character/lorebook/list-lorebook-versions.use-case"
 import type { ListLorebooksUseCase } from "../../../../application/use-cases/character/lorebook/list-lorebooks.use-case"
@@ -68,6 +70,18 @@ const ListLorebooksQuerySchema = z.object({
 
 const ExportLorebookSchema = z.object({
   format: z.enum(["ccv3", "st-native"]),
+  versionId: z.string().min(1).optional(),
+})
+
+const LorebookImportFormatSchema = z.enum(["json", "ccv3", "st-native"])
+
+const ImportLorebookPreviewSchema = z.object({
+  format: LorebookImportFormatSchema,
+  payload: z.string(),
+})
+
+const ImportLorebookSchema = ImportLorebookPreviewSchema.extend({
+  action: z.enum(["reuse", "restore", "new-version", "new-book"]),
 })
 
 const LorebookUsageQuerySchema = z.object({
@@ -91,6 +105,8 @@ export const buildLorebooksRouter = (deps: {
   restoreLorebookVersion: RestoreLorebookVersionUseCase
   getLorebookUsage: GetLorebookUsageUseCase
   linkLorebook: LinkLorebookUseCase
+  importLorebookPreview: ImportLorebookPreviewUseCase
+  importLorebookStandalone: ImportLorebookStandaloneUseCase
 }): Router => {
   const router = Router()
   router.use(express.json({ limit: "15mb" }))
@@ -99,6 +115,25 @@ export const buildLorebooksRouter = (deps: {
     try {
       const query = ListLorebooksQuerySchema.parse(req.query)
       res.json(await deps.listLorebooks.execute(query))
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  // Import routes go before `/lorebooks/:id*` so `import` is never read as an id.
+  router.post("/lorebooks/import/preview", async (req, res, next) => {
+    try {
+      const body = ImportLorebookPreviewSchema.parse(req.body)
+      res.json(await deps.importLorebookPreview.execute(body))
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  router.post("/lorebooks/import", async (req, res, next) => {
+    try {
+      const body = ImportLorebookSchema.parse(req.body)
+      res.json(await deps.importLorebookStandalone.execute(body))
     } catch (error) {
       next(error)
     }
@@ -190,6 +225,7 @@ export const buildLorebooksRouter = (deps: {
         await deps.exportLorebook.executeById({
           lorebookId: req.params.id,
           format: body.format,
+          ...(body.versionId ? { versionId: body.versionId } : {}),
         }),
       )
     } catch (error) {

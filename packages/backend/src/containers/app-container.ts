@@ -94,6 +94,8 @@ import { SoftDeleteLorebookUseCase } from "../application/use-cases/character/lo
 import { RestoreLorebookVersionUseCase } from "../application/use-cases/character/lorebook/restore-lorebook-version.use-case"
 import { GetLorebookUsageUseCase } from "../application/use-cases/character/lorebook/get-lorebook-usage.use-case"
 import { LinkLorebookUseCase } from "../application/use-cases/character/lorebook/link-lorebook.use-case"
+import { ImportLorebookPreviewUseCase } from "../application/use-cases/character/lorebook/import-lorebook-preview.use-case"
+import { ImportLorebookStandaloneUseCase } from "../application/use-cases/character/lorebook/import-lorebook-standalone.use-case"
 import { StoreCharacterAssetService } from "../application/services/store-character-asset.service"
 import { SharpCharacterAssetImageProcessor } from "../infrastructure/adapters/secondary/images/sharp-character-asset-image-processor"
 import { GetTunnelStatusUseCase } from "../application/use-cases/tunnel/get-tunnel-status.use-case"
@@ -226,6 +228,8 @@ export interface AppContainer {
   restoreLorebookVersion: RestoreLorebookVersionUseCase
   getLorebookUsage: GetLorebookUsageUseCase
   linkLorebook: LinkLorebookUseCase
+  importLorebookPreview: ImportLorebookPreviewUseCase
+  importLorebookStandalone: ImportLorebookStandaloneUseCase
   deleteCharacter: DeleteCharacterUseCase
   listCharacterVersions: ListCharacterVersionsUseCase
   uploadCharacterAsset: UploadCharacterAssetUseCase
@@ -797,6 +801,12 @@ export const buildContainer = ({
       lorebookRepository,
       characterRepository,
       updateCharacter,
+    }),
+    importLorebookPreview: new ImportLorebookPreviewUseCase({
+      lorebookRepository,
+    }),
+    importLorebookStandalone: new ImportLorebookStandaloneUseCase({
+      lorebookRepository,
     }),
     createPlayerCharacter: new CreatePlayerCharacterUseCase(playerCharacterRepository),
     listPlayerCharacters: new ListPlayerCharactersUseCase(playerCharacterRepository),

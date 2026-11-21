@@ -56,6 +56,12 @@ export interface LorebookRepository {
 
   findVersionById(versionId: string): Promise<LorebookVersion | null>
 
+  /** Includes soft-deleted containers: import matching classifies them. */
+  findBooksByOriginId(originId: string): Promise<Lorebook[]>
+
+  /** Includes versions of soft-deleted containers: import matching classifies them. */
+  findVersionsBySourceKey(sourceKey: string): Promise<LorebookVersion[]>
+
   upsertBook(book: Lorebook): Promise<Lorebook>
 
   createContainerWithVersion(
@@ -77,6 +83,9 @@ export interface LorebookRepository {
   ): Promise<SaveLiveHeadResult>
 
   softDelete(id: string): Promise<void>
+
+  /** Clears `deleted_at`; it does not create a version. */
+  restoreBook(id: string): Promise<void>
 
   findUsageVersions(lorebookId: string): Promise<LorebookUsageRow[]>
 

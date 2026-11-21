@@ -395,6 +395,26 @@ export class DrizzleLorebookRepository implements LorebookRepository {
     return rows.length > 0 ? toVersion(rows[0]) : null
   }
 
+  async findBooksByOriginId(originId: string): Promise<Lorebook[]> {
+    const rows = await this.db
+      .select()
+      .from(lorebooks)
+      .where(eq(lorebooks.originId, originId))
+      .orderBy(lorebooks.createdAt)
+
+    return rows.map(toBook)
+  }
+
+  async findVersionsBySourceKey(sourceKey: string): Promise<LorebookVersion[]> {
+    const rows = await this.db
+      .select()
+      .from(lorebookVersions)
+      .where(eq(lorebookVersions.sourceKey, sourceKey))
+      .orderBy(lorebookVersions.createdAt)
+
+    return rows.map(toVersion)
+  }
+
   async upsertBook(book: Lorebook): Promise<Lorebook> {
     const existing = await this.findExistingContainer(book)
 
@@ -645,6 +665,13 @@ export class DrizzleLorebookRepository implements LorebookRepository {
       .update(lorebooks)
       .set({ deletedAt: new Date() })
       .where(and(eq(lorebooks.id, id), isNull(lorebooks.deletedAt)))
+  }
+
+  async restoreBook(id: string): Promise<void> {
+    await this.db
+      .update(lorebooks)
+      .set({ deletedAt: null, updatedAt: new Date() })
+      .where(eq(lorebooks.id, id))
   }
 
   async findUsageVersions(lorebookId: string): Promise<LorebookUsageRow[]> {
