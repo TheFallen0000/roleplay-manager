@@ -6,6 +6,7 @@ import type { MemoryType } from "@workspace/shared/types/memory"
 import { CharacterVersion } from "../../domain/entities/character-version.entity"
 import { Conversation } from "../../domain/entities/conversation.entity"
 import { Memory } from "../../domain/entities/memory.entity"
+import { MemoryDecayPolicy } from "../../domain/value-objects/memory-decay-policy"
 import { PromptContextBuilderImpl } from "../../infrastructure/adapters/secondary/prompt-context-builder/prompt-context-builder.impl"
 import { selectMemoriesForPrompt } from "./memory-retrieval.service"
 
@@ -249,6 +250,50 @@ describe("selectMemoriesForPrompt", () => {
       selectionOf(result, "mem-fact")?.score ?? 0,
     )
     expect(result.memories.map((memory) => memory.id)).toContain("mem-thread")
+  })
+
+  it("keeps a thread eligible at the decay threshold while fact and episode decay", () => {
+    const conversation = mkConversation({
+      memoryDecayThreshold: 3,
+      memoryDecaySpeed: 10,
+    })
+    const messages = userMessages(10)
+    const policy = MemoryDecayPolicy.fromConversation(conversation)
+
+    // Exactly at the threshold: 4 - floor(10 / 10) === 3.
+    expect(policy.effectivePriority(4, 10)).toBe(policy.threshold)
+
+    const base = {
+      actor: "Marcus",
+      title: "Promesa",
+      description: "Volverá.",
+      priority: 4,
+      updatedAt: now,
+    }
+    const selectType = (type: "thread" | "fact" | "episode") =>
+      select({
+        conversation,
+        messages,
+        pendingMessage: "Cae la noche.",
+        memories: [mkMemory(`mem-${type}`, { ...base, type })],
+      })
+
+    const asThread = selectType("thread")
+    const asFact = selectType("fact")
+    const asEpisode = selectType("episode")
+
+    expect(selectionOf(asThread, "mem-thread")).toMatchObject({
+      included: true,
+      reason: "thread",
+    })
+    expect(selectionOf(asFact, "mem-fact")).toMatchObject({
+      included: false,
+      reason: "decay",
+    })
+    expect(selectionOf(asEpisode, "mem-episode")).toMatchObject({
+      included: false,
+      reason: "decay",
+    })
   })
 
   it("includes a fresh high priority memory even without lexical signal", () => {

@@ -551,6 +551,41 @@ describe("ConversationContextLoader", () => {
     ).toMatchObject({ included: true, reason: "thread" })
   })
 
+  it("uses the last history user message when there are no pending messages (regenerate)", async () => {
+    const messages = [
+      buildMessage("msg-3", "assistant", "Resumen de la escena.", 3),
+      buildMessage("msg-4", "user", "Busco el observatorio.", 4),
+      buildMessage("msg-5", "assistant", "La puerta está cerrada.", 5),
+    ]
+    const memories = [
+      Memory.reconstruct({
+        id: "mem-observatory",
+        conversationId: "conv-1",
+        actor: "Selene",
+        title: "Observatorio de Cristal",
+        description: "Un lugar antiguo en la montaña.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+    ]
+    const repos = buildRepos({ messages, memories })
+    const loader = new ConversationContextLoader(repos as never)
+
+    // Regenerate: there is no pending message, only the persisted history.
+    const result = await loader.load({ conversationId: "conv-1" })
+
+    expect(
+      result.promptMemories.map((memory) => memory.id),
+    ).toContain("mem-observatory")
+    expect(
+      result.memorySelection.find((entry) => entry.id === "mem-observatory"),
+    ).toMatchObject({ included: true, reason: "keyword" })
+  })
+
   it("resolves the player character when the conversation references one", async () => {
     const withPlayer = Conversation.create({
       ...conversationProps(),

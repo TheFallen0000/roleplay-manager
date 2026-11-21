@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest"
 
-import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
 import { estimateTextTokens } from "@workspace/shared/lib/token-estimate"
 
 import { ConversationContextLoader } from "../src/application/services/conversation-context-loader.service"
 import { ContextCompiler } from "../src/application/services/context-compiler.service"
+import { resolveMemoryBudget } from "../src/application/services/memory-retrieval.service"
 import { MemoryDecayPolicy } from "../src/domain/value-objects/memory-decay-policy"
 import type { CharacterRepository } from "../src/domain/ports/character.repository"
 import type { ConversationRepository } from "../src/domain/ports/conversation.repository"
@@ -147,16 +147,6 @@ const assemble = async (fixture: MemoryRetrievalEvalFixture) => {
   return { loaded, manifest, builder }
 }
 
-const memoryBudget = (fixture: MemoryRetrievalEvalFixture): number => {
-  const effective = resolveEffectiveWindow({
-    contextWindow: fixture.conversation.contextWindow,
-    workingWindow: fixture.conversation.workingWindow,
-    maxTokens: fixture.conversation.maxTokens,
-  })
-  if (effective.window === null) return 512
-  return Math.min(2048, Math.max(256, Math.round(effective.window * 0.12)))
-}
-
 const metrics = (
   fixture: MemoryRetrievalEvalFixture,
   includedIds: string[],
@@ -218,7 +208,7 @@ describe("memory retrieval eval", () => {
         fixture,
         includedIds,
       )
-      const budget = memoryBudget(fixture)
+      const budget = resolveMemoryBudget(fixture.conversation)
       const tokens = memorySectionTokens(manifest)
 
       expect(recall).toBeGreaterThanOrEqual(0.8)
