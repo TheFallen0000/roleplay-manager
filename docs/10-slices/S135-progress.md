@@ -318,4 +318,5 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 7. `a9869cc` `refactor(backend): remove unused card JSON limit`
 8. `7ad3d60` `fix(frontend): apply modern web guidance and resync key list`
 9. `d3be5d8` `chore(website): refresh release snapshot and translate fetch messages`
-10. `docs(slice): record S135 audits, roadmap and changelog`
+10. `152aaef` `docs(slice): record S135 audits, roadmap and changelog`
+11. `41eb126` `fix(backend): stabilize lorebook shelf ordering`
