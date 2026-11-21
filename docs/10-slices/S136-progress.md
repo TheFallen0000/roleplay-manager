@@ -1,6 +1,6 @@
 # S136 — Memoria estructurada y retrieval léxico
 
-**Estado:** Draft
+**Estado:** Aprobado
 **Inicio:** 2026-11-21
 **Fin:** —
 
