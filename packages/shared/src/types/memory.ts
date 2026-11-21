@@ -1,3 +1,11 @@
+export const MEMORY_TYPES = ["fact", "episode", "thread"] as const
+
+export type MemoryType = (typeof MEMORY_TYPES)[number]
+
+export const isMemoryType = (value: unknown): value is MemoryType =>
+  typeof value === "string" &&
+  (MEMORY_TYPES as readonly string[]).includes(value)
+
 export type MemoryDTO = {
   id: string
   conversationId: string
@@ -5,6 +13,7 @@ export type MemoryDTO = {
   title: string
   description: string
   priority: number
+  type: MemoryType
   createdBy: "user" | "assistant"
   updatedBy: "user" | "assistant" | "system"
   createdAt: string
@@ -18,6 +27,7 @@ export type CreateMemoryInput = {
   title: string
   description: string
   priority?: number
+  type?: MemoryType
 }
 
 export type UpdateMemoryInput = {
@@ -25,6 +35,14 @@ export type UpdateMemoryInput = {
   title?: string
   description?: string
   priority?: number
+  type?: MemoryType
+}
+
+export type ApplyMemoryChangesResult = {
+  memories: MemoryDTO[]
+  created: number
+  updated: number
+  discarded: number
 }
 
 export type DecayMemoriesResultDTO = {

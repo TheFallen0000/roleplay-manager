@@ -430,6 +430,162 @@ describe("ConversationContextLoader", () => {
     ])
   })
 
+  it("selects prompt memories by relevance after resolving the main actors", async () => {
+    const withPlayer = Conversation.create({
+      ...conversationProps(),
+      playerCharacterId: "pc-1",
+    })
+    const memories = [
+      Memory.reconstruct({
+        id: "mem-pending",
+        conversationId: "conv-1",
+        actor: "Lyra",
+        title: "Misión",
+        description: "Protege el bosque.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+      Memory.reconstruct({
+        id: "mem-main-character",
+        conversationId: "conv-1",
+        actor: "Test Character",
+        title: "Rutina",
+        description: "Se levanta temprano.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+      Memory.reconstruct({
+        id: "mem-main-player",
+        conversationId: "conv-1",
+        actor: "Alice",
+        title: "Rutina",
+        description: "Dibuja mapas.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+      Memory.reconstruct({
+        id: "mem-noise",
+        conversationId: "conv-1",
+        actor: "Marcus",
+        title: "Deuda",
+        description: "Debe monedas.",
+        priority: 7,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+      Memory.reconstruct({
+        id: "mem-thread",
+        conversationId: "conv-1",
+        actor: "Selene",
+        title: "Promesa",
+        description: "Volverá en invierno.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "thread",
+      }),
+    ]
+    const history = [
+      buildMessage("msg-1", "user", "Buenos días.", 1),
+      buildMessage("msg-2", "assistant", "Buenos días.", 2),
+    ]
+    const pending = buildMessage(
+      "msg-3",
+      "user",
+      "Lyra pregunta por el bosque.",
+      3,
+    )
+    const repos = buildRepos({
+      messages: history,
+      summary: null,
+      memories,
+      conversation: withPlayer,
+    })
+    const loader = new ConversationContextLoader(repos as never)
+
+    const result = await loader.load({
+      conversationId: "conv-1",
+      pendingMessages: [pending],
+    })
+
+    const ids = result.promptMemories.map((memory) => memory.id)
+    expect(ids).toContain("mem-pending")
+    expect(ids).toContain("mem-main-character")
+    expect(ids).toContain("mem-main-player")
+    expect(ids).toContain("mem-thread")
+    expect(ids).not.toContain("mem-noise")
+
+    expect(result.memorySelection.map((entry) => entry.id)).toEqual(
+      memories.map((memory) => memory.id),
+    )
+    expect(
+      result.memorySelection
+        .filter((entry) => entry.included)
+        .map((entry) => entry.id),
+    ).toEqual(ids)
+    expect(
+      result.memorySelection.find((entry) => entry.id === "mem-noise"),
+    ).toMatchObject({ included: false, reason: "not-relevant" })
+    expect(
+      result.memorySelection.find((entry) => entry.id === "mem-main-player"),
+    ).toMatchObject({ included: true, reason: "actor" })
+    expect(
+      result.memorySelection.find((entry) => entry.id === "mem-thread"),
+    ).toMatchObject({ included: true, reason: "thread" })
+  })
+
+  it("uses the last history user message when there are no pending messages (regenerate)", async () => {
+    const messages = [
+      buildMessage("msg-3", "assistant", "Resumen de la escena.", 3),
+      buildMessage("msg-4", "user", "Busco el observatorio.", 4),
+      buildMessage("msg-5", "assistant", "La puerta está cerrada.", 5),
+    ]
+    const memories = [
+      Memory.reconstruct({
+        id: "mem-observatory",
+        conversationId: "conv-1",
+        actor: "Selene",
+        title: "Observatorio de Cristal",
+        description: "Un lugar antiguo en la montaña.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+    ]
+    const repos = buildRepos({ messages, memories })
+    const loader = new ConversationContextLoader(repos as never)
+
+    // Regenerate: there is no pending message, only the persisted history.
+    const result = await loader.load({ conversationId: "conv-1" })
+
+    expect(
+      result.promptMemories.map((memory) => memory.id),
+    ).toContain("mem-observatory")
+    expect(
+      result.memorySelection.find((entry) => entry.id === "mem-observatory"),
+    ).toMatchObject({ included: true, reason: "keyword" })
+  })
+
   it("resolves the player character when the conversation references one", async () => {
     const withPlayer = Conversation.create({
       ...conversationProps(),

@@ -4,6 +4,7 @@ import type { Conversation } from "../../domain/entities/conversation.entity"
 import type { Memory } from "../../domain/entities/memory.entity"
 import type { Message } from "../../domain/entities/message.entity"
 import type { Summary } from "../../domain/entities/summary.entity"
+import type { ContextManifestMemorySelectionDTO } from "@workspace/shared/types/context"
 import type { CharacterRepository } from "../../domain/ports/character.repository"
 import type { ConversationRepository } from "../../domain/ports/conversation.repository"
 import type { MemoryRepository } from "../../domain/ports/memory.repository"
@@ -20,7 +21,6 @@ import {
   CharacterVersionNotFoundError,
   ConversationNotFoundError,
 } from "../../domain/errors"
-import { filterMemoriesForPrompt } from "../../lib/memory-decay"
 import { loadMessagesAfterSummary } from "../use-cases/conversation/load-messages-after-summary"
 import {
   resolvePlayerCharacterPrompt,
@@ -30,6 +30,7 @@ import {
   LorebookActivationService,
   type LorebookActivationEntryInput,
 } from "./lorebook-activation.service"
+import { selectMemoriesForPrompt } from "./memory-retrieval.service"
 
 export interface ConversationContextLoaderDeps {
   conversationRepository: ConversationRepository
@@ -63,6 +64,7 @@ export interface ConversationContextLoadResult {
   messages: Message[]
   memories: Memory[]
   promptMemories: Memory[]
+  memorySelection: ContextManifestMemorySelectionDTO[]
   playerCharacter: PlayerCharacterPrompt | undefined
   lorebook?: PromptContextLorebook
 }
@@ -129,6 +131,11 @@ export class ConversationContextLoader {
       ? candidateMessages.filter((message) => message.id !== excludedMessageId)
       : candidateMessages
 
+    const playerCharacter = await resolvePlayerCharacterPrompt(
+      this.deps.playerCharacterRepository,
+      conversation,
+    )
+
     const memories = await this.deps.memoryRepository.findByConversationId(
       conversation.id,
     )
@@ -137,16 +144,34 @@ export class ConversationContextLoader {
         conversation.id,
       )
     ).map((createdAt) => ({ role: "user", createdAt }))
-    const promptMemories = filterMemoriesForPrompt(
-      conversation,
-      memories,
-      memoryTurns,
-    )
-
-    const playerCharacter = await resolvePlayerCharacterPrompt(
-      this.deps.playerCharacterRepository,
-      conversation,
-    )
+    const pendingText = pendingMessages
+      .filter((message) => message.role === "user")
+      .map((message) => message.content)
+      .join(" ")
+    // Regenerate and continue have no pending message: the last user turn of
+    // the loaded history still carries the lexical signal for the retrieval.
+    let pendingMessage = pendingText
+    if (!pendingMessage) {
+      for (let index = messages.length - 1; index >= 0; index -= 1) {
+        const message = messages[index]
+        if (message.role === "user") {
+          pendingMessage = message.content
+          break
+        }
+      }
+    }
+    // Main actors are resolved first so the lexical scorer can weigh them.
+    const { memories: promptMemories, selection: memorySelection } =
+      selectMemoriesForPrompt({
+        conversation,
+        memories,
+        messages: memoryTurns,
+        pendingMessage,
+        mainActors: [
+          characterResult.character.name,
+          ...(playerCharacter ? [playerCharacter.name] : []),
+        ],
+      })
 
     const lorebook = await this.loadLorebook(characterVersion, messages)
 
@@ -161,6 +186,7 @@ export class ConversationContextLoader {
       messages,
       memories,
       promptMemories,
+      memorySelection,
       playerCharacter,
       ...(lorebook ? { lorebook } : {}),
     }

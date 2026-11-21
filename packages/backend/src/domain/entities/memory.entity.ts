@@ -1,3 +1,8 @@
+import {
+  isMemoryType,
+  type MemoryType,
+} from "@workspace/shared/types/memory"
+
 export interface MemoryProps {
   id: string
   conversationId: string
@@ -5,24 +10,31 @@ export interface MemoryProps {
   title: string
   description: string
   priority: number
+  type?: MemoryType
   createdBy: "user" | "assistant"
   updatedBy: "user" | "assistant" | "system"
   createdAt: Date
   updatedAt: Date
 }
 
+const resolveType = (type: MemoryType | undefined): MemoryType => {
+  if (type === undefined) return "fact"
+  if (!isMemoryType(type)) throw new Error("Memory type is invalid")
+  return type
+}
+
 export class Memory {
-  private constructor(private readonly props: MemoryProps) {}
+  private constructor(private readonly props: MemoryProps & { type: MemoryType }) {}
 
   static create(props: MemoryProps): Memory {
     if (!props.actor.trim()) throw new Error("Memory actor is required")
     if (!props.title.trim()) throw new Error("Memory title is required")
     if (props.priority < 1 || props.priority > 10) throw new Error("Memory priority must be between 1 and 10")
-    return new Memory(props)
+    return new Memory({ ...props, type: resolveType(props.type) })
   }
 
   static reconstruct(props: MemoryProps): Memory {
-    return new Memory(props)
+    return new Memory({ ...props, type: resolveType(props.type) })
   }
 
   get id(): string { return this.props.id }
@@ -31,24 +43,31 @@ export class Memory {
   get title(): string { return this.props.title }
   get description(): string { return this.props.description }
   get priority(): number { return this.props.priority }
+  get type(): MemoryType { return this.props.type }
   get createdBy(): "user" | "assistant" { return this.props.createdBy }
   get updatedBy(): "user" | "assistant" | "system" { return this.props.updatedBy }
   get createdAt(): Date { return this.props.createdAt }
   get updatedAt(): Date { return this.props.updatedAt }
 
   matches(
-    overrides: Pick<MemoryProps, "actor" | "title" | "description" | "priority">,
+    overrides: Pick<
+      MemoryProps,
+      "actor" | "title" | "description" | "priority" | "type"
+    >,
   ): boolean {
     return (
       this.props.actor === overrides.actor &&
       this.props.title === overrides.title &&
       this.props.description === overrides.description &&
-      this.props.priority === overrides.priority
+      this.props.priority === overrides.priority &&
+      this.props.type === (overrides.type ?? this.props.type)
     )
   }
 
   update(
-    overrides: Partial<Pick<MemoryProps, "actor" | "title" | "description" | "priority">>,
+    overrides: Partial<
+      Pick<MemoryProps, "actor" | "title" | "description" | "priority" | "type">
+    >,
     updatedBy: "user" | "assistant" | "system",
   ): Memory {
     const actor = overrides.actor ?? this.props.actor
@@ -63,6 +82,7 @@ export class Memory {
       title,
       description: overrides.description ?? this.props.description,
       priority,
+      type: resolveType(overrides.type ?? this.props.type),
       updatedBy,
       updatedAt: new Date(),
     })

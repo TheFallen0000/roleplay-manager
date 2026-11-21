@@ -18,6 +18,9 @@ export const memoryChangeProposals = sqliteTable(
     title: text("title").notNull(),
     description: text("description").notNull(),
     priority: integer("priority").notNull().default(5),
+    type: text("type", { enum: ["fact", "episode", "thread"] })
+      .notNull()
+      .default("fact"),
     status: text("status", { enum: ["pending", "applied", "discarded"] })
       .notNull()
       .default("pending"),

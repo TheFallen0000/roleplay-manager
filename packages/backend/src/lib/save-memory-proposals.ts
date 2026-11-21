@@ -29,6 +29,7 @@ export async function saveMemoryProposals(
       title: proposal.title,
       description: proposal.description,
       priority: proposal.priority,
+      type: proposal.type ?? "fact",
       status: "pending",
       createdAt: now,
       processedAt: null,

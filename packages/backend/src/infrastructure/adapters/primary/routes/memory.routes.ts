@@ -11,11 +11,14 @@ import type { DecayConversationMemoryUseCase } from "../../../../application/use
 import { validate } from "../middlewares/validation"
 import { z } from "zod"
 
+const MemoryTypeSchema = z.enum(["fact", "episode", "thread"])
+
 const CreateMemorySchema = z.object({
   actor: z.string().min(1),
   title: z.string().min(1),
   description: z.string().min(1),
   priority: z.number().int().min(1).max(10).optional(),
+  type: MemoryTypeSchema.optional(),
 })
 
 const UpdateMemorySchema = z.object({
@@ -23,6 +26,7 @@ const UpdateMemorySchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
   priority: z.number().int().min(1).max(10).optional(),
+  type: MemoryTypeSchema.optional(),
 })
 
 const ApplyProposalsSchema = z.object({
@@ -36,6 +40,7 @@ const ApplyProposalsSchema = z.object({
           title: z.string().optional(),
           description: z.string().optional(),
           priority: z.number().int().min(1).max(10).optional(),
+          type: MemoryTypeSchema.optional(),
         })
         .optional(),
     }),

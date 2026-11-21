@@ -3,6 +3,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { memorySelectionReasonKey } from "@/lib/format-memory"
 
 export function ContextManifestView({
   manifest,
@@ -81,6 +82,41 @@ export function ContextManifestView({
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {manifest.memories.selection.length > 0 ? (
+        <div className="mt-2 border-t pt-2">
+          <p className="text-[11px] font-medium">
+            {t("memory.selectionTitle")}
+          </p>
+          <ul className="mt-1 space-y-1">
+            {manifest.memories.selection.map((selection) => (
+              <li
+                key={selection.id}
+                className="flex flex-wrap items-center gap-1.5 text-[11px]"
+              >
+                <span className="font-mono">{selection.id}</span>
+                <Badge
+                  variant={selection.included ? "secondary" : "outline"}
+                  className={cn(
+                    "text-[10px]",
+                    !selection.included && "text-muted-foreground",
+                  )}
+                >
+                  {selection.included
+                    ? t("chat.contextManifestIncluded")
+                    : t("chat.contextManifestExcluded")}
+                </Badge>
+                <span className="tabular-nums text-muted-foreground">
+                  {selection.score}
+                </span>
+                <span className="text-muted-foreground">
+                  {t(memorySelectionReasonKey(selection.reason))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
     </section>
   )

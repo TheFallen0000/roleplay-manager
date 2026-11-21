@@ -475,9 +475,10 @@ Si el import encuentra un match:
 
 ### Después
 
-- S136 memoria/retrieval.
-- S137 políticas de contexto.
-- S138 tokenizer.
+- S136 memoria estructurada + retrieval léxico.
+- S137 retrieval vectorial/RAG y búsqueda híbrida.
+- S138 políticas de contexto.
+- S139 tokenizer.
 
 ---
 

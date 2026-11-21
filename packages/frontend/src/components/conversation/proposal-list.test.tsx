@@ -45,6 +45,7 @@ const memory = (overrides: Partial<MemoryDTO> = {}): MemoryDTO => ({
   title: "Guardia",
   description: "Vigila la puerta.",
   priority: 7,
+  type: "fact",
   createdBy: "assistant",
   updatedBy: "assistant",
   createdAt: "2026-01-01T00:00:00.000Z",
@@ -64,6 +65,7 @@ const proposal = (
   title: "Herida",
   description: "Corte en el brazo.",
   priority: 7,
+  type: "fact",
   status: "pending",
   createdAt: "2026-01-01T00:00:00.000Z",
   processedAt: null,
@@ -256,6 +258,40 @@ describe("ProposalList", () => {
     renderList()
 
     expect(screen.getByText(/1-3 detalle menor/)).toBeInTheDocument()
+  })
+
+  it("muestra el tipo de la propuesta", () => {
+    mocks.proposals = [proposal({ type: "episode" })]
+
+    renderList()
+
+    expect(screen.getByText(/^Episodio/)).toBeInTheDocument()
+  })
+
+  it("permite cambiar el tipo al editar y aceptar", async () => {
+    mocks.proposals = [proposal()]
+
+    renderList()
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Editar y aceptar" }),
+    )
+    const dialog = screen.getByRole("dialog")
+    await userEvent.click(within(dialog).getByRole("combobox", { name: "Tipo" }))
+    await userEvent.click(await screen.findByRole("option", { name: /^Hilo/ }))
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Aceptar cambios" }),
+    )
+
+    await waitFor(() =>
+      expect(mocks.applyProposals).toHaveBeenCalledWith("conv-1", [
+        {
+          proposalId: "prop-1",
+          action: "apply",
+          overrides: expect.objectContaining({ type: "thread" }),
+        },
+      ]),
+    )
   })
 
   it("no aplica una edición sin cambios", async () => {

@@ -15,6 +15,7 @@ const toMemory = (row: MemoryRow): Memory =>
     title: row.title,
     description: row.description,
     priority: row.priority,
+    type: row.type as Memory["type"],
     createdBy: row.createdBy as "user" | "assistant",
     updatedBy: row.updatedBy as "user" | "assistant" | "system",
     createdAt: new Date(row.createdAt),
@@ -57,6 +58,7 @@ export class DrizzleMemoryRepository implements MemoryRepository {
       title: memory.title,
       description: memory.description,
       priority: memory.priority,
+      type: memory.type,
       createdBy: memory.createdBy,
       updatedBy: memory.updatedBy,
       createdAt: memory.createdAt,
@@ -74,6 +76,7 @@ export class DrizzleMemoryRepository implements MemoryRepository {
         title: memory.title,
         description: memory.description,
         priority: memory.priority,
+        type: memory.type,
         updatedBy: memory.updatedBy,
         updatedAt: memory.updatedAt,
       })

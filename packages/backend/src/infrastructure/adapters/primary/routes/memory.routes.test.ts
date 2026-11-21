@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import type { Logger } from "../../../../domain/ports/logger.port"
 import { NotFoundError } from "../../../../domain/errors"
+import type { MemoryDTO } from "@workspace/shared/types/memory"
 import { buildErrorHandler } from "../middlewares/error-handler"
 import { buildMemoryRouter } from "./memory.routes"
 
@@ -17,14 +18,46 @@ const logger = {
   child: () => logger,
 } as unknown as Logger
 
+interface ApplyMemoryResult {
+  memories: MemoryDTO[]
+  created: number
+  updated: number
+  discarded: number
+}
+
+const memoryDto: MemoryDTO = {
+  id: "mem-1",
+  conversationId: "conv-1",
+  actor: "Lyra",
+  title: "Trusts Kael",
+  description: "She has started to trust him.",
+  priority: 5,
+  type: "fact",
+  createdBy: "user",
+  updatedBy: "user",
+  createdAt: "2026-10-26T12:00:00.000Z",
+  updatedAt: "2026-10-26T12:00:00.000Z",
+}
+
+const emptyApplyResult = (): ApplyMemoryResult => ({
+  memories: [],
+  created: 0,
+  updated: 0,
+  discarded: 0,
+})
+
 const buildDeps = () => ({
   listMemories: { execute: vi.fn(async () => []) },
   createMemory: { execute: vi.fn(async () => ({ id: "mem-1" })) },
   updateMemory: { execute: vi.fn(async () => ({ id: "mem-1" })) },
   deleteMemory: { execute: vi.fn(async () => undefined) },
   listProposals: { execute: vi.fn(async () => []) },
-  applyMemoryChanges: { execute: vi.fn(async () => []) },
-  applyAllMemoryChanges: { execute: vi.fn(async () => []) },
+  applyMemoryChanges: {
+    execute: vi.fn(async (): Promise<ApplyMemoryResult> => emptyApplyResult()),
+  },
+  applyAllMemoryChanges: {
+    execute: vi.fn(async (): Promise<ApplyMemoryResult> => emptyApplyResult()),
+  },
   decayMemories: { execute: vi.fn(async () => ({ decayed: 0, deleted: 0 })) },
 })
 
@@ -168,7 +201,15 @@ describe("memory routes", () => {
   })
 
   it("applies the selected proposals", async () => {
-    const { baseUrl, deps } = await startServer()
+    const deps = buildDeps()
+    const applied: ApplyMemoryResult = {
+      memories: [memoryDto],
+      created: 1,
+      updated: 0,
+      discarded: 0,
+    }
+    deps.applyMemoryChanges.execute.mockResolvedValueOnce(applied)
+    const { baseUrl } = await startServer(deps)
 
     const response = await fetch(
       `${baseUrl}/conversations/conv-1/memories/proposals/apply`,
@@ -182,6 +223,7 @@ describe("memory routes", () => {
     )
 
     expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(applied)
     expect(deps.applyMemoryChanges.execute).toHaveBeenCalledWith({
       conversationId: "conv-1",
       decisions: [{ proposalId: "proposal-1", action: "apply" }],
@@ -207,7 +249,15 @@ describe("memory routes", () => {
   })
 
   it("applies all pending proposals as the user", async () => {
-    const { baseUrl, deps } = await startServer()
+    const deps = buildDeps()
+    const applied: ApplyMemoryResult = {
+      memories: [memoryDto],
+      created: 1,
+      updated: 0,
+      discarded: 0,
+    }
+    deps.applyAllMemoryChanges.execute.mockResolvedValueOnce(applied)
+    const { baseUrl } = await startServer(deps)
 
     const response = await fetch(
       `${baseUrl}/conversations/conv-1/memories/proposals/apply-all`,
@@ -215,6 +265,7 @@ describe("memory routes", () => {
     )
 
     expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(applied)
     expect(deps.applyAllMemoryChanges.execute).toHaveBeenCalledWith({
       conversationId: "conv-1",
       processedBy: "user",

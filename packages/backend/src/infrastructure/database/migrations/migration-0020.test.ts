@@ -102,13 +102,13 @@ describe("migration 0020_lorebook_versions", () => {
     )
   })
 
-  it("does not ship a migration 0021 (S134 keeps the 0020 schema)", () => {
+  it("does not ship a migration 0022 (S136 adds 0021)", () => {
     const journal = readJournal()
-    expect(journal.entries.find((item) => item.idx === 21)).toBeUndefined()
+    expect(journal.entries.find((item) => item.idx === 22)).toBeUndefined()
 
     const files = readdirSync(migrationsDir)
-    expect(files.some((file) => /^0021_.*\.sql$/.test(file))).toBe(false)
-    expect(existsSync(join(migrationsDir, "meta", "0021_snapshot.json"))).toBe(
+    expect(files.some((file) => /^0022_.*\.sql$/.test(file))).toBe(false)
+    expect(existsSync(join(migrationsDir, "meta", "0022_snapshot.json"))).toBe(
       false,
     )
   })

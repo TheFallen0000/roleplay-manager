@@ -793,12 +793,13 @@ huérfanas.
 
 ### 10.3 Después
 
-| Slice | Contenido                                             |
-| ----- | ----------------------------------------------------- |
-| S135  | Refinamiento de ingeniería (modern web, nits, skill backend/DB) |
-| S136  | Memoria estructurada + retrieval (antes S133)         |
-| S137  | Políticas de contexto fast/balanced/deep (antes S134) |
-| S138  | Tokenizer real y presupuesto (antes S135)             |
+| Slice | Contenido                                                        |
+| ----- | ---------------------------------------------------------------- |
+| S135  | Refinamiento de ingeniería (modern web, nits, skill backend/DB)  |
+| S136  | Memoria estructurada + retrieval léxico (antes S133)             |
+| S137  | Retrieval vectorial/RAG y búsqueda híbrida (antes S134)          |
+| S138  | Políticas de contexto fast/balanced/deep y presupuesto (antes S135) |
+| S139  | Tokenizer real por proveedor                                     |
 
 Actualizar la numeración en `docs/03-roadmap.md` y `PM-backlog.md` cuando el
 plan se apruebe.
@@ -950,7 +951,7 @@ decisiones concretan el plan y deben pasar al RFC de S133/S134:
 10. **¿Cómo se borra un lorebook?** Recomendación: soft delete del contenedor;
     versiones conservadas; restauración al reimportar.
 11. **¿Reconstrucción en S134 o después?** Recomendación: S134 si cabe; si no,
-    guardar `source_key` y dejar la UI para S136.
+    guardar `source_key` y dejar la UI para un slice posterior.
 12. **¿La creación real empieza vacía o con un ejemplo precargado?**
     Recomendación: vacía con placeholders; el contenido precargado es solo una
     demo del prototipo para enseñar el placeholder al borrar.

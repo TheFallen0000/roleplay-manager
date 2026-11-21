@@ -61,6 +61,16 @@ describe("extractProposals", () => {
     expect(result.proposals[2].targetMemoryId).toBe("mem-2")
   })
 
+  it("extrae el tipo opcional de una propuesta", () => {
+    const text =
+      "```memory_proposals\n" +
+      '[{ "operation": "CREATE", "actor": "Alice", "title": "Promesa", "description": "Volverá.", "type": "thread" }]\n' +
+      "```"
+    const result = extractProposals(text)
+
+    expect(result.proposals[0].type).toBe("thread")
+  })
+
   it("retorna foundBlock=true y proposals=[] si el JSON es malformado", () => {
     const text = "```memory_proposals\n{ esto no es json valido }\n```"
     const result = extractProposals(text)

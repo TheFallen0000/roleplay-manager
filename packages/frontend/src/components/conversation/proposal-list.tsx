@@ -19,8 +19,10 @@ import { Label } from "@workspace/ui/components/label"
 import { toast } from "@workspace/ui/components/sonner"
 import { useMemoryStore } from "@/lib/stores/memory.store"
 import { useTranslation } from "@/lib/hooks/use-translation"
+import type { MemoryType } from "@workspace/shared/types/memory"
 import type { MemoryChangeProposalDTO } from "@workspace/shared/types/memory-change-proposal"
 
+import { MemoryTypeSelect } from "./memory-type-select"
 import { ProposalCard } from "./proposal-card"
 
 interface ProposalListProps {
@@ -32,6 +34,7 @@ interface ProposalOverrides {
   title?: string
   description?: string
   priority?: number
+  type?: MemoryType
 }
 
 export function ProposalList({ conversationId }: ProposalListProps) {
@@ -67,6 +70,7 @@ export function ProposalList({ conversationId }: ProposalListProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState(5)
+  const [type, setType] = useState<MemoryType>("fact")
 
   const pendingProposals = proposals.filter((p) => p.status === "pending")
   const pendingDeletes = pendingProposals.filter(
@@ -151,6 +155,7 @@ export function ProposalList({ conversationId }: ProposalListProps) {
     setTitle(proposal.title)
     setDescription(proposal.description)
     setPriority(proposal.priority)
+    setType(proposal.type)
     setEditingProposal(proposal)
   }
 
@@ -170,7 +175,8 @@ export function ProposalList({ conversationId }: ProposalListProps) {
       actor === editingTarget.actor &&
       title === editingTarget.title &&
       description === editingTarget.description &&
-      priority === editingTarget.priority
+      priority === editingTarget.priority &&
+      type === editingTarget.type
     ) {
       toast.info(t("memory.proposalNoChanges"))
       return
@@ -179,7 +185,7 @@ export function ProposalList({ conversationId }: ProposalListProps) {
     setEditingProposal(null)
     await applyOne(
       proposal,
-      { actor, title, description, priority },
+      { actor, title, description, priority, type },
       t("memory.appliedWithChanges"),
     )
   }
@@ -278,6 +284,16 @@ export function ProposalList({ conversationId }: ProposalListProps) {
                 id="edit-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+              />
+            </Field>
+            <Field>
+              <Label htmlFor="edit-type">{t("memory.type")}</Label>
+              <MemoryTypeSelect
+                id="edit-type"
+                label={t("memory.type")}
+                value={type}
+                onChange={setType}
+                className="w-full"
               />
             </Field>
             <Field>

@@ -42,6 +42,7 @@ function toMemoryDTO(m: Memory, turnsSinceUpdate: number): MemoryDTO {
     title: m.title,
     description: m.description,
     priority: m.priority,
+    type: m.type,
     createdBy: m.createdBy,
     updatedBy: m.updatedBy,
     createdAt: m.createdAt.toISOString(),

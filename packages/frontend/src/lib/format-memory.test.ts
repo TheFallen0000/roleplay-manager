@@ -39,6 +39,7 @@ const buildMemory = (overrides: Partial<MemoryDTO> = {}): MemoryDTO => ({
   title: "Memory 1",
   description: "A test memory",
   priority: 5,
+  type: "fact",
   createdBy: "assistant",
   updatedBy: "system",
   createdAt: "2026-07-31T12:00:00Z",
