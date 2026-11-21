@@ -12,7 +12,7 @@ resueltos o documentados antes del cierre.
 - `pnpm --filter @workspace/backend typecheck`: limpio.
 - `pnpm --filter @workspace/frontend typecheck`: 0 errores, 2 hints
   (`keyCode` del fallback IME y `document.execCommand`).
-- Backend: 167 archivos / 1085 tests en el momento de la review; 1090 tras
+- Backend: 167 archivos / 1087 tests en el momento de la review; 1090 tras
   añadir los tests de locale y el caso de `rm` obsoleto.
 - Frontend: 94 archivos / 495 tests.
 - Tests dirigidos de ventana efectiva, reorden, mapper de cards, settings,
