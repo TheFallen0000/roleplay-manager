@@ -1,8 +1,8 @@
 # S134 — Biblioteca de lorebooks completa y versionado
 
-**Estado:** En progreso
+**Estado:** Completado
 **Inicio:** 2026-11-14
-**Fin:** —
+**Fin:** 2026-11-21
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -867,6 +867,16 @@ RFC, explica por qué.
   confirmó los tres commits sin hallazgos nuevos.
 - **Pendiente (aceptado):** NIT 4 y NIT 5, recogidos en `## Deferred`.
 
+## Release
+
+- **Estado:** PASS (`docs/10-slices/S134-release.md`, auditoría read-only del
+  2026-11-21).
+- **Gates:** `pnpm check` 7/7 + 5/5 + 5/5; backend 166 archivos / 1078 tests;
+  frontend 93 archivos / 488 tests; eval 33 tests; build 4/4; audit limpio;
+  `git diff --check` limpio.
+- **Sin bump de versión, tag ni release.** La publicación `1.58.0` es un
+  `/release` aparte.
+
 ## Riesgos
 
 | Riesgo | Impacto | Mitigación | Owner/etapa |
@@ -944,14 +954,14 @@ Lista real de la slice (orden cronológico; sin bump de versión ni release).
 20. `1d6cd62` — `chore(agents): let slice-docs update AGENTS.md`
 21. `e86ff0f` — `chore(agents): let slice-docs verify release notes`
 22. `bf52267` — `docs(slice): add S134 review`
+23. `603fbcb` — `docs(changelog): add S134 entries under Unreleased`
+24. `efa5fd2` — `docs(slice): complete S134 implementation report`
+25. `1ce9c9b` — `docs(workflow): write the changelog in English`
+26. `bb891a2` — `docs(slice): complete S134 changelog translation and report`
 
-Este commit de docs recoge `## Decisiones`, `## Verificación`, `## Review`,
-`## Deferred`, `## Commits`, `## CHANGELOG`, las entradas de `CHANGELOG.md`, la
-política de `AGENTS.md`/`docs/10-slices/WORKFLOW.md` y el PR body
-(`S134-pr-body.md`). Siguiente etapa: `S134-release.md`.
-
-Queda pendiente de commit la pasada de docs que completa la traducción de
-`CHANGELOG.md` (`1.50.1`→`1.54.9`); todavía no tiene hash en esta lista.
+El cierre documental incluye `S134-release.md` (auditoría read-only PASS) y este
+commit de estado final. No hay bump de versión, tag ni release: la publicación
+`1.58.0` es un `/release` separado.
 
 ## CHANGELOG
 
