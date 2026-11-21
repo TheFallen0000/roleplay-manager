@@ -26,6 +26,7 @@ import type { PlayerCharacterRepository } from "../../domain/ports/player-charac
 import type { SummaryRepository } from "../../domain/ports/summary.repository"
 import { buildMessageHistoryRepository } from "../../test-utils/message-history"
 import { ConversationContextLoader } from "./conversation-context-loader.service"
+import { selectMemoriesForPrompt } from "./memory-retrieval.service"
 
 const now = new Date("2026-11-05T12:00:00.000Z")
 
@@ -549,6 +550,97 @@ describe("ConversationContextLoader", () => {
     expect(
       result.memorySelection.find((entry) => entry.id === "mem-thread"),
     ).toMatchObject({ included: true, reason: "thread" })
+  })
+
+  it("keeps the S136 memory selection bit-for-bit without embeddings", async () => {
+    const memories = [
+      Memory.reconstruct({
+        id: "mem-actor",
+        conversationId: "conv-1",
+        actor: "Lyra",
+        title: "Misión",
+        description: "Protege el bosque.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+      Memory.reconstruct({
+        id: "mem-keyword",
+        conversationId: "conv-1",
+        actor: "Nadie",
+        title: "Observatorio de Cristal",
+        description: "Un lugar antiguo.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+      Memory.reconstruct({
+        id: "mem-thread",
+        conversationId: "conv-1",
+        actor: "Selene",
+        title: "Promesa",
+        description: "Volverá en invierno.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "thread",
+      }),
+      Memory.reconstruct({
+        id: "mem-noise",
+        conversationId: "conv-1",
+        actor: "Marcus",
+        title: "Deuda",
+        description: "Debe monedas.",
+        priority: 4,
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: now,
+        updatedAt: now,
+        type: "fact",
+      }),
+    ]
+    const history = [
+      buildMessage("msg-1", "user", "Buenos días.", 1),
+      buildMessage("msg-2", "assistant", "Buenos días.", 2),
+    ]
+    const pending = buildMessage(
+      "msg-3",
+      "user",
+      "Lyra busca el Observatorio de Cristal.",
+      3,
+    )
+    const repos = buildRepos({ messages: history, summary: null, memories })
+    const loader = new ConversationContextLoader(repos as never)
+
+    const result = await loader.load({
+      conversationId: "conv-1",
+      pendingMessages: [pending],
+    })
+    const lexical = selectMemoriesForPrompt({
+      conversation,
+      memories,
+      messages: history
+        .filter((message) => message.role === "user")
+        .map((message) => ({ role: "user", createdAt: message.createdAt })),
+      pendingMessage: pending.content,
+      mainActors: ["Test Character", "Alice"],
+    })
+
+    expect(result.memorySelection).toEqual(lexical.selection)
+    expect(result.promptMemories.map((memory) => memory.id)).toEqual(
+      lexical.memories.map((memory) => memory.id),
+    )
+    expect(result.memorySelection.every((entry) =>
+      entry.reason !== "semantic" && entry.reason !== "hybrid",
+    )).toBe(true)
   })
 
   it("uses the last history user message when there are no pending messages (regenerate)", async () => {
