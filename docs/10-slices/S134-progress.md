@@ -738,8 +738,40 @@ cambio en el ensamblado de contexto, se abriría un eval; no se anticipa.
 - **Verdes intencionados (guardas/regresión, no rojos nuevos):**
   `migration-0020` sin `0021`, libro eliminado en prompt/card, paridad
   preview/send y `first_mes` para `greetingIndex` 0/undefined.
-- **Frontend:** pendiente de la segunda pasada; se registrará en el mismo
-  apartado.
+### Frontend (2026-11-21)
+
+- **Comando:** `pnpm --filter @workspace/frontend exec vitest run`
+- **Fallo esperado:** componentes nuevos ausentes (Link, Danger, Import,
+  Restore, Link dialog, AlternateGreetingPicker), acciones S134 aún no
+  cableadas (restore, delete, link, usage, filtros), placeholders S134 todavía
+  presentes, claves i18n nuevas ausentes/obsoletas presentes y picker de saludo
+  sin abrir en los tres puntos de entrada.
+- **Salida relevante:** `12 failed | 81 passed` archivos, `17 failed | 454
+  passed` tests. Seis suites fallan con 0 tests por módulos ausentes
+  (`Failed to resolve import "./lorebook-link-section"`, `./lorebook-danger-section`,
+  `./lorebook-import-dialog`, `./lorebook-restore-dialog`,
+  `./lorebook-link-dialog`, `./alternate-greeting-picker`). Fallos
+  representativos:
+  - estantería: no aparece `Usado por 2 personajes · 5 versiones`; el filtro
+    sigue filtrando en cliente (`listLorebooks` no recibe `filter`)
+  - detalle: no hay botón `Restaurar`; la versión antigua no muestra `solo
+    lectura`; siguen los textos/chips S134
+  - i18n: faltan 21 claves `lorebooks.*` y 4 `characters.greetingPicker*`;
+    siguen `linkDeferred*`, `versionsDeferred` y `characters.tabCards`
+  - picker: no se abre el diálogo desde el detalle, la fila de versión ni la
+    biblioteca (`role="dialog"` ausente)
+- **Verdes intencionados (guardas/regresión):** la tarjeta «Sin usar» existente,
+  la navegación de la estantería y los tests S133 no relacionados siguen
+  pasando.
+- **Contratos fijados por los tests para el implementer:**
+  `getLorebookUsage(lorebookId, versionId?)`,
+  `linkLorebook(lorebookId, { characterId, versionId? })`,
+  `deleteLorebook(lorebookId)`, `restoreLorebookVersion(lorebookId, versionId)`,
+  `listLorebooks({ filter: "in-use" | "unused" })`; `LorebookImportDialog`
+  recibe `format` y usa `importLorebookPreview` antes de `importLorebook`;
+  `LorebookRestoreDialog` recibe `preview` y `onConfirm(action)`;
+  `LorebookVersionsSection` usa `state.restoreVersion(versionId)`; el picker
+  confirma con `greetingIndex`.
 
 ## Decisiones
 
