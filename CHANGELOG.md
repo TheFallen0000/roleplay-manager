@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.58.0] - 2026-11-21
+
 ### Added
 
 - **Lorebooks**: complete library with standalone book creation, in-use/unused
