@@ -32,6 +32,10 @@
    misma normalización que los keywords (minúsculas, NFD sin acentos, espacios
    colapsados y trim), pero **guarda el texto original** del actor y del título
    para mostrarlo.
+8. **Resultado de consolidación.** `ApplyMemoryChangesUseCase` y
+   `ApplyAllMemoryChangesUseCase` devuelven
+   `{ memories: MemoryDTO[]; created: number; updated: number; discarded: number }`.
+   La ruta HTTP devuelve ese objeto y el frontend consume `result.memories`.
 
 ---
 
@@ -44,7 +48,7 @@
 | **repositorio** | persiste/lee `type`, duplicado actor+título rechazado | R/T |
 | **retrieval** | scoring, orden estable, regla de entrada, presupuesto | I |
 | **manifiesto** | `memories.selection` incluidas/omitidas + motivo + score | T |
-| **consolidación** | CREATE con `(actor,title)` normalizado existente → UPDATE; texto original preservado; resultado lo refleja | R |
+| **consolidación** | CREATE con `(actor,title)` normalizado existente → UPDATE; texto original preservado; resultado `{ memories, created, updated, discarded }` | R/T |
 | **prompt/tool** | `[type]` en línea; schema y bloque aceptan `type`; normalización a `fact`; `type` persiste en la propuesta | R/T |
 | **export/import** | round-trip de `type`; export antiguo sin `type` → `fact` | R/T |
 | **UI** | selector/badge/filtro de tipo; preview de selección | R/T |
@@ -73,6 +77,8 @@
 - `packages/backend/src/application/use-cases/memory/list-proposals.use-case.test.ts`
 - `packages/backend/src/application/use-cases/memory/apply-memory-changes.use-case.test.ts`
 - `packages/backend/src/application/use-cases/memory/apply-all-memory-changes.use-case.test.ts`
+- `packages/backend/src/infrastructure/adapters/primary/routes/memory.routes.test.ts` (el JSON de `apply`/`apply-all` pasa de array a `{ memories, created, updated, discarded }`)
+- `packages/backend/src/application/use-cases/conversation/send-message.use-case.test.ts` (verificar el mock `buildApplyAllForOoc` del auto-apply OOC ante el nuevo tipo de retorno)
 - `packages/backend/src/application/services/conversation-context-loader.service.test.ts`
 - `packages/backend/src/application/services/context-compiler.service.test.ts`
 - `packages/backend/src/infrastructure/adapters/secondary/prompt-context-builder/prompt-context-builder.impl.test.ts`
@@ -135,9 +141,12 @@
   importa con `as never`, recorte de presupuesto.
 - **Type-red (falla `tsc`/`astro check`):** todo lo que referencia
   `MemoryDTO.type`, `MemoryType`, `CreateMemoryInput.type`, `UpdateMemoryInput.type`,
-  `MemoryProps.type`, `memories.selection`, `MemoryChangeProposalDTO.type`, y los
-  props de componentes UI. El test-author **no** los enmascara con `as any`;
-  el rojo correcto es el de typecheck.
+  `MemoryProps.type`, `memories.selection`, `MemoryChangeProposalDTO.type`, el
+  tipo de retorno `{ memories, created, updated, discarded }` de
+  `ApplyMemoryChangesUseCase`/`ApplyAllMemoryChangesUseCase` (y el cambio de
+  `applyProposals`/`applyAllProposals` en el store), y los props de componentes
+  UI. El test-author **no** los enmascara con `as any`; el rojo correcto es el
+  de typecheck.
 - **Import-red:** `memory-retrieval.service.test.ts` importa un módulo que aún no
   existe. Es el rojo esperado del contrato nuevo; el implementador crea el
   módulo con el símbolo `selectMemoriesForPrompt` exacto.
@@ -158,8 +167,10 @@
 | thread | entra sin señal léxica; peso `1.5` |
 | prioridad alta | prioridad **efectiva** ≥ 8 entra como `priority` |
 | recencia | `max(0, 1 - turnos/50)`: 0 turnos → 1, ≥50 turnos → 0, monótona decreciente |
-| duplicado exacto | CREATE con `(actor,title)` cuya clave normalizada (minúsculas + NFD sin acentos + espacios colapsados + trim) coincide → UPDATE, `created:0 updated:1`; el título/actor guardados conservan el texto original |
+| duplicado exacto | CREATE con `(actor,title)` cuya clave normalizada (minúsculas + NFD sin acentos + espacios colapsados + trim) coincide → UPDATE; el título/actor guardados conservan el texto original |
 | duplicado con mayúsculas/acentos | "Misión" vs "mision" (mismo actor) → consolida; actores distintos con el mismo título → **no** consolida |
+| resultado de consolidación | `apply`/`apply-all` devuelven `{ memories, created, updated, discarded }` con conteos coherentes: 1 CREATE nuevo → `created:1 updated:0`; 1 UPDATE → `created:0 updated:1`; 1 discard → `discarded:1` |
+| ruta y frontend | `POST …/proposals/apply` y `…/apply-all` responden el objeto; el store y los componentes consumen `result.memories`, no el array plano |
 | migración datos antiguos | fila sin `type` → `fact` (en `memories` y `memory_change_proposals`); índice nuevo permite títulos repetidos entre actores y rechaza dentro del mismo actor |
 
 ---
@@ -195,6 +206,8 @@ pnpm --filter @workspace/backend exec vitest run src/infrastructure/database/mig
 pnpm --filter @workspace/backend exec vitest run src/infrastructure/adapters/secondary/drizzle/repositories/drizzle-memory.repository.test.ts
 pnpm --filter @workspace/backend exec vitest run src/application/services/memory-retrieval.service.test.ts
 pnpm --filter @workspace/backend exec vitest run src/application/use-cases/memory
+pnpm --filter @workspace/backend exec vitest run src/infrastructure/adapters/primary/routes/memory.routes.test.ts
+pnpm --filter @workspace/backend exec vitest run src/application/use-cases/conversation/send-message.use-case.test.ts
 pnpm --filter @workspace/backend exec vitest run src/application/services/conversation-context-loader.service.test.ts src/application/services/context-compiler.service.test.ts
 pnpm --filter @workspace/backend exec vitest run src/lib/propose-memory-changes.tool.test.ts src/lib/memory-proposal-extractor.test.ts src/lib/normalize-proposals.test.ts
 pnpm --filter @workspace/backend exec vitest run src/infrastructure/adapters/secondary/prompt-context-builder/prompt-context-builder.impl.test.ts
@@ -240,15 +253,21 @@ pnpm audit --prod
 - **Presupuesto y `estimateTextTokens`:** el recorte mide la sección renderizada
   (cabecera + hint + líneas). El test debe medir con el mismo estimador, no con
   `length`/caracteres, o el umbral "nunca superado" dará falsos positivos.
+- **Cambio de tipo de retorno de `apply`/`apply-all`:** pasar de `MemoryDTO[]`
+  al objeto `{ memories, created, updated, discarded }` es breaking para todo
+  consumidor del resultado (ruta HTTP, store, y el auto-apply OOC de
+  `send-message`). Verificar que ningún test siga asumiendo `result.length` o
+  `result[0]`; usar `result.memories`.
 
 ---
 
 ## Entregables
 
 - Ruta: `docs/10-slices/S136-test-plan.md`
-- Resumen de matriz: 10 áreas; 6 archivos nuevos, 21 existentes a modificar;
+- Resumen de matriz: 10 áreas; 6 archivos nuevos, 23 existentes a modificar;
   clasificados en type-red / runtime-red / import-red.
 - Sin bloqueos: las decisiones de §0 quedaron confirmadas el 2026-11-21
   (tokenización, prioridad efectiva, `type` en propuestas, recencia lineal,
-  forma de `selection`, servicio de retrieval, orden del loader y
-  normalización de consolidación).
+  forma de `selection`, servicio de retrieval, orden del loader,
+  normalización de consolidación y resultado `{ memories, created, updated,
+  discarded }`).
