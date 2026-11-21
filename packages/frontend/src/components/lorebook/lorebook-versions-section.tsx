@@ -1,4 +1,4 @@
-import { EyeIcon } from "lucide-react"
+import { EyeIcon, RotateCcwIcon } from "lucide-react"
 
 import { SectionPanel } from "@/components/shared/card-first/section-panel"
 import { useTranslation } from "@/lib/hooks/use-translation"
@@ -11,7 +11,14 @@ export function LorebookVersionsSection({
   state: LorebookPageState
 }) {
   const { t } = useTranslation()
-  const { versions, selectedVersionId, lorebook, handleVersionChange } = state
+  const {
+    versions,
+    selectedVersionId,
+    readOnly,
+    lorebook,
+    handleVersionChange,
+    restoreVersion,
+  } = state
 
   return (
     <SectionPanel
@@ -20,6 +27,12 @@ export function LorebookVersionsSection({
       title={t("lorebooks.versions")}
       description={t("lorebooks.versionsHint")}
     >
+      {readOnly ? (
+        <p className="mb-3 text-sm text-amber-700 dark:text-amber-400">
+          {t("lorebooks.readOnly")}
+        </p>
+      ) : null}
+
       {versions.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {t("lorebooks.versionsEmpty")}
@@ -58,22 +71,32 @@ export function LorebookVersionsSection({
                     {t("lorebooks.entryCount", { count: version.entries.length })}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className="rm-btn rm-btn--quiet rm-btn--sm rm-version-actions"
-                  onClick={() => void handleVersionChange(version.id)}
-                >
-                  <EyeIcon className="size-4" />
-                  {t("lorebooks.viewVersion")}
-                </button>
+                <div className="rm-version-actions flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="rm-btn rm-btn--quiet rm-btn--sm"
+                    onClick={() => void handleVersionChange(version.id)}
+                  >
+                    <EyeIcon className="size-4" />
+                    {t("lorebooks.viewVersion")}
+                  </button>
+                  {isCurrent ? null : (
+                    <button
+                      type="button"
+                      className="rm-btn rm-btn--quiet rm-btn--sm"
+                      onClick={() => void restoreVersion(version.id)}
+                      title={t("lorebooks.restoreHint")}
+                    >
+                      <RotateCcwIcon className="size-4" />
+                      {t("lorebooks.restoreVersion")}
+                    </button>
+                  )}
+                </div>
               </li>
             )
           })}
         </ul>
       )}
-      <p className="mt-3 text-xs text-muted-foreground">
-        {t("lorebooks.versionsDeferred")}
-      </p>
     </SectionPanel>
   )
 }
