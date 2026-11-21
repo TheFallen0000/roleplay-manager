@@ -332,17 +332,17 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
   **squash** and delete the branch; the agent merges the PR after a green CI
   unless the user says otherwise.
 - **Pull request titles and bodies are written in English.** Use a
-  conventional-commit title and an English description. `CHANGELOG.md` remains in
-  Spanish because it is user-facing.
+  conventional-commit title and an English description. The `CHANGELOG.md` is also
+  written in English: it feeds the English GitHub release notes.
 - Pull requests **never** bump the version on their own: the release commit
   (version bump + `CHANGELOG.md`) travels in a dedicated
   `chore(release): vX.Y.Z` pull request prepared on demand (see below).
 
 ### Version bump + CHANGELOG (batched releases)
 
-- Every slice adds its entries to `CHANGELOG.md` under **`[Unreleased]`** in
-  [Keep a Changelog](https://keepachangelog.com/) format (`Added` / `Changed` /
-  `Fixed` / `Removed`). No version bump happens here.
+- Every slice adds its entries to `CHANGELOG.md` under **`[Unreleased]`**, in
+  English and in [Keep a Changelog](https://keepachangelog.com/) format (`Added` /
+  `Changed` / `Fixed` / `Removed`). No version bump happens here.
 - Releases are **batched and on demand**: when the user asks (or a few slices
   pile up), prepare a `chore(release): vX.Y.Z` pull request that bumps the root
   `package.json` (semver: **minor** for features, **patch** for fixes, **major**
