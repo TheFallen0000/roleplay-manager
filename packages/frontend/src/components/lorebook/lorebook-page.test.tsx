@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -8,6 +8,15 @@ const mocks = vi.hoisted(() => ({
   getLorebookVersion: vi.fn(),
   createLorebook: vi.fn(),
   updateLorebook: vi.fn(),
+  exportLorebook: vi.fn(),
+  deleteLorebook: vi.fn(),
+  getLorebookUsage: vi.fn(),
+  linkLorebook: vi.fn(),
+  restoreLorebookVersion: vi.fn(),
+  importLorebookPreview: vi.fn(),
+  importLorebook: vi.fn(),
+  listCharacters: vi.fn(),
+  listCharactersPage: vi.fn(),
 }))
 
 vi.mock("@/lib/api/lorebooks", () => ({
@@ -16,6 +25,18 @@ vi.mock("@/lib/api/lorebooks", () => ({
   getLorebookVersion: mocks.getLorebookVersion,
   createLorebook: mocks.createLorebook,
   updateLorebook: mocks.updateLorebook,
+  exportLorebook: mocks.exportLorebook,
+  deleteLorebook: mocks.deleteLorebook,
+  getLorebookUsage: mocks.getLorebookUsage,
+  linkLorebook: mocks.linkLorebook,
+  restoreLorebookVersion: mocks.restoreLorebookVersion,
+  importLorebookPreview: mocks.importLorebookPreview,
+  importLorebook: mocks.importLorebook,
+}))
+
+vi.mock("@/lib/api/characters", () => ({
+  listCharacters: mocks.listCharacters,
+  listCharactersPage: mocks.listCharactersPage,
 }))
 
 import { I18nProvider } from "@/lib/hooks/i18n-provider"
@@ -106,6 +127,17 @@ beforeEach(() => {
     createdNewVersion: false,
   })
   mocks.getLorebookVersion.mockResolvedValue(versions[0])
+  mocks.getLorebookUsage.mockResolvedValue({ characters: [] })
+  mocks.listCharacters.mockResolvedValue([])
+  mocks.listCharactersPage.mockResolvedValue({
+    characters: [],
+    hasMore: false,
+    nextOffset: null,
+  })
+  mocks.restoreLorebookVersion.mockResolvedValue({
+    lorebook,
+    createdNewVersion: true,
+  })
 })
 
 afterEach(() => {
@@ -158,5 +190,40 @@ describe("LorebookPage — detail and version selector", () => {
     const saves = screen.getAllByRole("button", { name: /Guardar/i })
     expect(saves.length).toBeGreaterThan(0)
     expect(saves.every((button) => button.hasAttribute("disabled"))).toBe(true)
+  })
+
+  it("restores a non-current version through the API", async () => {
+    renderPage("book-1")
+
+    await screen.findAllByText("Forest lore")
+    const rows = screen.getAllByRole("listitem")
+    const old = rows.find(
+      (row) =>
+        within(row).queryByText("v1") !== null &&
+        within(row).queryByRole("button", { name: /Restaurar/i }) !== null,
+    )
+    expect(old).toBeDefined()
+
+    await userEvent.click(
+      within(old!).getByRole("button", { name: /Restaurar/i }),
+    )
+
+    await waitFor(() =>
+      expect(mocks.restoreLorebookVersion).toHaveBeenCalledWith(
+        "book-1",
+        "version-1",
+      ),
+    )
+  })
+
+  it("does not render the S134 placeholders", async () => {
+    renderPage("book-1")
+
+    await screen.findAllByText("Forest lore")
+
+    expect(screen.queryAllByText("S134")).toHaveLength(0)
+    expect(
+      screen.queryAllByText(/Vincular desde el libro llega en S134/i),
+    ).toHaveLength(0)
   })
 })
