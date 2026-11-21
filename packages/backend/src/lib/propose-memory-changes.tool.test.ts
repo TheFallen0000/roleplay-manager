@@ -22,6 +22,18 @@ describe("buildProposeMemoryChangesTool", () => {
     expect(tool.function.parameters.properties.operation).toBeDefined()
     expect(tool.function.parameters.properties.targetMemoryId).toBeDefined()
     expect(tool.function.parameters.properties.priority).toBeDefined()
+    expect(tool.function.parameters.properties.type).toBeDefined()
+  })
+
+  it("acepta los tipos fact, episode y thread en el schema", () => {
+    const tool = buildProposeMemoryChangesTool()
+    const type = tool.function.parameters.properties.type as {
+      enum: string[]
+    }
+    expect(type.enum).toHaveLength(3)
+    expect(type.enum).toEqual(
+      expect.arrayContaining(["fact", "episode", "thread"]),
+    )
   })
 
   it("las operaciones validas son CREATE, UPDATE, DELETE", () => {
@@ -248,6 +260,24 @@ describe("toolCallsToRawProposals", () => {
     expect(proposals).toHaveLength(1)
     expect(proposals[0].description).toBe("")
     expect(proposals[0].priority).toBeUndefined()
+  })
+
+  it("transporta el tipo propuesto", () => {
+    const proposals = toolCallsToRawProposals([
+      {
+        id: "c1",
+        functionName: PROPOSE_MEMORY_CHANGES_TOOL_NAME,
+        arguments: JSON.stringify({
+          operation: "CREATE",
+          actor: "Alice",
+          title: "Promesa",
+          description: "Volverá.",
+          type: "thread",
+        }),
+      },
+    ])
+
+    expect(proposals[0].type).toBe("thread")
   })
 
   it("acepta prioridad numérica en texto", () => {

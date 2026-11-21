@@ -20,7 +20,7 @@ const manifest: ContextManifestDTO = {
     lastMessageId: null,
     messagesAfter: 2,
   },
-  memories: { total: 0, included: 0, excluded: 0 },
+  memories: { total: 0, included: 0, excluded: 0, selection: [] },
   messages: { afterSummary: 2, pending: 1, excluded: 0, total: 3 },
   sections: [
     {
@@ -115,5 +115,26 @@ describe("ContextManifestView", () => {
     renderView({ ...manifest, sections: [] })
 
     expect(screen.getByText("Context manifest")).toBeTruthy()
+  })
+
+  it("shows why each memory was included or excluded", () => {
+    renderView({
+      ...manifest,
+      memories: {
+        total: 3,
+        included: 2,
+        excluded: 1,
+        selection: [
+          { id: "mem-1", included: true, score: 7.5, reason: "actor" },
+          { id: "mem-2", included: true, score: 3, reason: "keyword" },
+          { id: "mem-3", included: false, score: 0, reason: "budget" },
+        ],
+      },
+    })
+
+    expect(screen.getByText(/mem-1/)).toBeTruthy()
+    expect(screen.getByText(/actor/i)).toBeTruthy()
+    expect(screen.getByText(/mem-3/)).toBeTruthy()
+    expect(screen.getByText(/budget/i)).toBeTruthy()
   })
 })

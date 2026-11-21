@@ -18,7 +18,9 @@ const buildLogger = (): Logger => {
   return logger
 }
 
-const buildMemory = (): Memory =>
+const buildMemory = (
+  overrides: Partial<Parameters<typeof Memory.reconstruct>[0]> = {},
+): Memory =>
   Memory.reconstruct({
     id: "mem-1",
     conversationId: "conv-1",
@@ -26,10 +28,12 @@ const buildMemory = (): Memory =>
     title: "Old title",
     description: "Old description",
     priority: 3,
+    type: "fact",
     createdBy: "user",
     updatedBy: "user",
     createdAt: new Date("2026-10-20T10:00:00.000Z"),
     updatedAt: new Date("2026-10-20T10:00:00.000Z"),
+    ...overrides,
   })
 
 const buildProposal = (
@@ -44,6 +48,7 @@ const buildProposal = (
     title: "Trusts Kael",
     description: "She has started to trust him.",
     priority: 5,
+    type: "fact",
     status: "pending",
     createdAt: new Date("2026-10-20T10:00:00.000Z"),
     processedAt: null,
@@ -51,9 +56,12 @@ const buildProposal = (
     ...overrides,
   })
 
-const buildMemoryRepo = (existing: Memory | null = buildMemory()): MemoryRepository => ({
+const buildMemoryRepo = (
+  existing: Memory | null = buildMemory(),
+  conversationMemories: Memory[] = [],
+): MemoryRepository => ({
   findById: vi.fn(async () => existing),
-  findByConversationId: vi.fn(async () => []),
+  findByConversationId: vi.fn(async () => conversationMemories),
   create: vi.fn(async (memory: Memory) => memory),
   update: vi.fn(async (memory: Memory) => memory),
   deleteById: vi.fn(async () => {}),
@@ -99,17 +107,19 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "proposal-1", action: "apply" }],
     })
 
-    expect(result).toHaveLength(1)
-    expect(result[0]).toMatchObject({
+    expect(result.memories).toHaveLength(1)
+    expect(result.memories[0]).toMatchObject({
       conversationId: "conv-1",
       actor: "Lyra",
       title: "Trusts Kael",
       description: "She has started to trust him.",
       priority: 5,
+      type: "fact",
       createdBy: "user",
       updatedBy: "user",
       createdAt: "2026-10-26T12:00:00.000Z",
     })
+    expect(result).toMatchObject({ created: 1, updated: 0, discarded: 0 })
     expect(memoryRepo.create).toHaveBeenCalledTimes(1)
     expect(proposalRepo.markProcessed).toHaveBeenCalledWith("proposal-1", "applied", "user")
   })
@@ -134,12 +144,13 @@ describe("ApplyMemoryChangesUseCase", () => {
       ],
     })
 
-    expect(result[0]).toMatchObject({
+    expect(result.memories[0]).toMatchObject({
       actor: "Kael",
       title: "Overridden title",
       description: "She has started to trust him.",
       priority: 9,
     })
+    expect(result).toMatchObject({ created: 1, updated: 0, discarded: 0 })
   })
 
   it("applies an UPDATE proposal to the target memory", async () => {
@@ -150,6 +161,7 @@ describe("ApplyMemoryChangesUseCase", () => {
         targetMemoryId: "mem-1",
         actor: "Kael",
         title: "New title",
+        type: "thread",
       }),
     )
     const { useCase } = buildUseCase(memoryRepo, proposalRepo)
@@ -161,14 +173,80 @@ describe("ApplyMemoryChangesUseCase", () => {
 
     expect(memoryRepo.findById).toHaveBeenCalledWith("mem-1")
     expect(memoryRepo.update).toHaveBeenCalledTimes(1)
-    expect(result[0]).toMatchObject({
+    expect(result.memories[0]).toMatchObject({
       id: "mem-1",
       actor: "Kael",
       title: "New title",
+      type: "thread",
       updatedBy: "user",
       updatedAt: "2026-10-26T12:00:00.000Z",
     })
+    expect(result).toMatchObject({ created: 0, updated: 1, discarded: 0 })
     expect(proposalRepo.markProcessed).toHaveBeenCalledWith("proposal-1", "applied", "user")
+  })
+
+  it("consolidates a CREATE with the same normalized actor and title as an UPDATE", async () => {
+    const existing = buildMemory({ title: "Misión" })
+    const memoryRepo = buildMemoryRepo(existing, [existing])
+    const proposalRepo = buildProposalRepo(
+      buildProposal({
+        actor: "Lyra",
+        title: "mision",
+        description: "Ahora protege el río.",
+        type: "thread",
+      }),
+    )
+    const { useCase } = buildUseCase(memoryRepo, proposalRepo)
+
+    const result = await useCase.execute({
+      conversationId: "conv-1",
+      decisions: [{ proposalId: "proposal-1", action: "apply" }],
+    })
+
+    expect(memoryRepo.create).not.toHaveBeenCalled()
+    expect(memoryRepo.update).toHaveBeenCalledTimes(1)
+
+    const updated = vi.mocked(memoryRepo.update).mock.calls[0]![0]
+    expect(updated.id).toBe("mem-1")
+    expect(updated.actor).toBe("Lyra")
+    // The stored text keeps its original casing; only the edited fields change.
+    expect(updated.title).toBe("Misión")
+    expect(updated.description).toBe("Ahora protege el río.")
+    expect(updated.type).toBe("thread")
+
+    expect(result.memories).toHaveLength(1)
+    expect(result.memories[0]).toMatchObject({
+      id: "mem-1",
+      title: "Misión",
+      description: "Ahora protege el río.",
+      type: "thread",
+    })
+    expect(result).toMatchObject({ created: 0, updated: 1, discarded: 0 })
+    expect(proposalRepo.markProcessed).toHaveBeenCalledWith("proposal-1", "applied", "user")
+  })
+
+  it("consolidates only with the memory of the same actor", async () => {
+    const lyra = buildMemory({ id: "mem-lyra", actor: "Lyra", title: "Misión" })
+    const kael = buildMemory({ id: "mem-kael", actor: "Kael", title: "Misión" })
+    const memoryRepo = buildMemoryRepo(null, [lyra, kael])
+    const proposalRepo = buildProposalRepo(
+      buildProposal({ actor: "Kael", title: "Misión", description: "Nueva" }),
+    )
+    const { useCase } = buildUseCase(memoryRepo, proposalRepo)
+
+    const result = await useCase.execute({
+      conversationId: "conv-1",
+      decisions: [{ proposalId: "proposal-1", action: "apply" }],
+    })
+
+    expect(memoryRepo.create).not.toHaveBeenCalled()
+    expect(memoryRepo.update).toHaveBeenCalledTimes(1)
+    const updated = vi.mocked(memoryRepo.update).mock.calls[0]![0]
+    expect(updated.id).toBe("mem-kael")
+    expect(updated.actor).toBe("Kael")
+    expect(updated.description).toBe("Nueva")
+    expect(result.memories[0].id).toBe("mem-kael")
+    expect(result).toMatchObject({ created: 0, updated: 1, discarded: 0 })
   })
 
   it("discards an UPDATE proposal that does not change the memory", async () => {
@@ -190,7 +268,12 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "proposal-1", action: "apply" }],
     })
 
-    expect(result).toEqual([])
+    expect(result).toEqual({
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 1,
+    })
     expect(memoryRepo.update).not.toHaveBeenCalled()
     expect(proposalRepo.markProcessed).toHaveBeenCalledWith(
       "proposal-1",
@@ -211,7 +294,12 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "proposal-1", action: "apply" }],
     })
 
-    expect(result).toEqual([])
+    expect(result).toEqual({
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 1,
+    })
     expect(memoryRepo.update).not.toHaveBeenCalled()
     expect(proposalRepo.markProcessed).toHaveBeenCalledWith("proposal-1", "discarded", "user")
   })
@@ -228,7 +316,12 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "proposal-1", action: "apply" }],
     })
 
-    expect(result).toEqual([])
+    expect(result).toEqual({
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 1,
+    })
     expect(memoryRepo.findById).not.toHaveBeenCalled()
     expect(proposalRepo.markProcessed).toHaveBeenCalledWith("proposal-1", "discarded", "user")
   })
@@ -245,7 +338,12 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "proposal-1", action: "apply" }],
     })
 
-    expect(result).toEqual([])
+    expect(result).toEqual({
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 0,
+    })
     expect(memoryRepo.deleteById).toHaveBeenCalledWith("mem-1")
     expect(proposalRepo.markProcessed).toHaveBeenCalledWith("proposal-1", "applied", "user")
   })
@@ -262,7 +360,12 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "proposal-1", action: "apply" }],
     })
 
-    expect(result).toEqual([])
+    expect(result).toEqual({
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 1,
+    })
     expect(memoryRepo.deleteById).not.toHaveBeenCalled()
     expect(proposalRepo.markProcessed).toHaveBeenCalledWith("proposal-1", "discarded", "user")
   })
@@ -277,7 +380,12 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "proposal-1", action: "discard" }],
     })
 
-    expect(result).toEqual([])
+    expect(result).toEqual({
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 1,
+    })
     expect(memoryRepo.create).not.toHaveBeenCalled()
     expect(memoryRepo.update).not.toHaveBeenCalled()
     expect(memoryRepo.deleteById).not.toHaveBeenCalled()
@@ -294,7 +402,12 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "missing", action: "apply" }],
     })
 
-    expect(result).toEqual([])
+    expect(result).toEqual({
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 0,
+    })
     expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining("not found"))
     expect(proposalRepo.markProcessed).not.toHaveBeenCalled()
   })
@@ -311,7 +424,12 @@ describe("ApplyMemoryChangesUseCase", () => {
       decisions: [{ proposalId: "proposal-1", action: "apply" }],
     })
 
-    expect(result).toEqual([])
+    expect(result).toEqual({
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 0,
+    })
     expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining("already applied"))
     expect(proposalRepo.markProcessed).not.toHaveBeenCalled()
   })

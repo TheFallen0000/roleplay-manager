@@ -7,15 +7,22 @@ import type { MemoryDTO } from "@workspace/shared/types/memory"
 vi.mock("@/lib/api/memories", () => ({
   decayConversationMemories: vi.fn(),
   listMemories: vi.fn(),
+  createMemory: vi.fn(),
+  applyProposals: vi.fn(),
+  applyAllProposals: vi.fn(),
 }))
 
-const buildMemory = (id: string): MemoryDTO => ({
+const buildMemory = (
+  id: string,
+  type: MemoryDTO["type"] = "fact",
+): MemoryDTO => ({
   id,
   conversationId: "conv-1",
   actor: "Test",
   title: `Memory ${id}`,
   description: "A test memory",
   priority: 5,
+  type,
   createdBy: "assistant",
   updatedBy: "system",
   createdAt: "2026-07-31T12:00:00Z",
@@ -69,5 +76,55 @@ describe("useMemoryStore.runDecay", () => {
     )
 
     await expect(useMemoryStore.getState().runDecay("conv-1")).rejects.toThrow("boom")
+  })
+
+  it("crea una memoria con su tipo y la añade al estado", async () => {
+    vi.mocked(memoriesApi.createMemory).mockResolvedValue(
+      buildMemory("m-new", "thread"),
+    )
+
+    const created = await useMemoryStore.getState().createMemory("conv-1", {
+      actor: "Test",
+      title: "Promesa",
+      description: "Volverá.",
+      type: "thread",
+    })
+
+    expect(memoriesApi.createMemory).toHaveBeenCalledWith(
+      "conv-1",
+      expect.objectContaining({ type: "thread" }),
+    )
+    expect(created.type).toBe("thread")
+    expect(useMemoryStore.getState().memories.at(-1)?.type).toBe("thread")
+  })
+
+  it("devuelve result.memories al aplicar propuestas", async () => {
+    const memories = [buildMemory("m-1"), buildMemory("m-2", "thread")]
+    vi.mocked(memoriesApi.applyProposals).mockResolvedValue({
+      memories,
+      created: 1,
+      updated: 1,
+      discarded: 0,
+    })
+
+    const result = await useMemoryStore.getState().applyProposals("conv-1", [
+      { proposalId: "proposal-1", action: "apply" },
+    ])
+
+    expect(result).toEqual(memories)
+  })
+
+  it("devuelve result.memories al aplicar todas las propuestas", async () => {
+    const memories = [buildMemory("m-1"), buildMemory("m-2", "episode")]
+    vi.mocked(memoriesApi.applyAllProposals).mockResolvedValue({
+      memories,
+      created: 2,
+      updated: 0,
+      discarded: 0,
+    })
+
+    const result = await useMemoryStore.getState().applyAllProposals("conv-1")
+
+    expect(result).toEqual(memories)
   })
 })

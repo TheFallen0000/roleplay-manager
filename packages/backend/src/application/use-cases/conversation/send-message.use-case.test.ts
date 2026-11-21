@@ -301,8 +301,15 @@ const buildGenerateConversationTitle = (): GenerateConversationTitleUseCase =>
 import type { ApplyAllMemoryChangesUseCase } from "../memory/apply-all-memory-changes.use-case"
 import type { DecayConversationMemoryUseCase } from "../memory/decay-conversation-memory.use-case"
 
+const emptyApplyResult = {
+  memories: [],
+  created: 0,
+  updated: 0,
+  discarded: 0,
+}
+
 const applyAllMemoryChanges = {
-  execute: async () => [],
+  execute: async () => emptyApplyResult,
 } as unknown as ApplyAllMemoryChangesUseCase
 
 const decayMemories = {
@@ -625,7 +632,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
       buildLogger(),
       buildDefaultProvider(),
       providerInstanceRepository,
-      { execute: async () => [] } as unknown as ApplyAllMemoryChangesUseCase,
+      { execute: async () => emptyApplyResult } as unknown as ApplyAllMemoryChangesUseCase,
       buildSummaryRepo(),
       buildContextCompaction(),
       buildGenerateConversationTitle(),
@@ -668,7 +675,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     }
 
     const applyAll = {
-      execute: async () => [],
+      execute: async () => emptyApplyResult,
     } as unknown as ApplyAllMemoryChangesUseCase
 
     const useCase = new SendMessageUseCase(
@@ -894,18 +901,23 @@ describe("SendMessageUseCase — memory proposal flow", () => {
             input.processedBy,
           )
         }
-        return createdMemories.map((m: any) => ({
-          id: m.id,
-          conversationId: input.conversationId,
-          actor: m.actor,
-          title: m.title,
-          description: "",
-          priority: 5,
-          createdBy: "assistant",
-          updatedBy: "system",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }))
+        return {
+          memories: createdMemories.map((m: any) => ({
+            id: m.id,
+            conversationId: input.conversationId,
+            actor: m.actor,
+            title: m.title,
+            description: "",
+            priority: 5,
+            createdBy: "assistant",
+            updatedBy: "system",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })),
+          created: pending.length,
+          updated: 0,
+          discarded: 0,
+        }
       },
     } as unknown as ApplyAllMemoryChangesUseCase
 
@@ -1041,7 +1053,7 @@ describe("SendMessageUseCase — memory proposal flow", () => {
     })
 
     const applyAll = {
-      execute: async () => [],
+      execute: async () => emptyApplyResult,
     } as unknown as ApplyAllMemoryChangesUseCase
 
     const useCase = new SendMessageUseCase(
@@ -1374,7 +1386,7 @@ function buildProposalRepoForOoc(): MemoryChangeProposalRepository {
 
 function buildApplyAllForOoc(): ApplyAllMemoryChangesUseCase {
   return {
-    execute: async () => [],
+    execute: async () => emptyApplyResult,
   } as unknown as ApplyAllMemoryChangesUseCase
 }
 

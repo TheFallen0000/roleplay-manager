@@ -301,6 +301,7 @@ const assemble = async (fixture: Fixture) => {
     excludedCount: loaded.excludedMessageId ? 1 : 0,
     memories: loaded.memories,
     promptMemories: loaded.promptMemories,
+    memorySelection: loaded.memorySelection,
     summary: loaded.latestSummary,
     playerCharacter: loaded.playerCharacter,
     locale: fixture.locale,
@@ -531,6 +532,7 @@ describe("context assembly evals", () => {
         total,
         included: fixture.expected.memoriesIncluded.length,
         excluded: fixture.expected.memoriesExcluded.length,
+        selection: loaded.memorySelection,
       })
     })
 

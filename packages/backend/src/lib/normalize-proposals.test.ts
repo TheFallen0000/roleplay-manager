@@ -12,6 +12,7 @@ const buildMemory = (overrides: Partial<Parameters<typeof Memory.create>[0]> = {
     title: "Guardia",
     description: "Vigila la puerta.",
     priority: 7,
+    type: "fact",
     createdBy: "assistant",
     updatedBy: "assistant",
     createdAt: new Date("2026-01-01T00:00:00Z"),
@@ -50,6 +51,7 @@ describe("normalizeProposals", () => {
         title: "Herida",
         description: "Corte en el brazo.",
         priority: 10,
+        type: "fact",
       },
     ])
   })
@@ -90,6 +92,7 @@ describe("normalizeProposals", () => {
       title: "Nuevo título",
       description: "Vigila la puerta.",
       priority: 7,
+      type: "fact",
     })
   })
 
@@ -114,6 +117,7 @@ describe("normalizeProposals", () => {
       title: "Guardia",
       description: "Vigila la puerta.",
       priority: 7,
+      type: "fact",
     })
   })
 
@@ -153,5 +157,36 @@ describe("normalizeProposals", () => {
     )
 
     expect(result.proposals[0].priority).toBe(9)
+  })
+
+  it("normaliza un CREATE sin tipo a fact", () => {
+    const result = normalizeProposals([raw({ title: "Hecho" })], [])
+
+    expect(result.proposals[0].type).toBe("fact")
+  })
+
+  it("conserva el tipo propuesto en un CREATE", () => {
+    const result = normalizeProposals(
+      [raw({ title: "Episodio", type: "episode" })],
+      [],
+    )
+
+    expect(result.proposals[0].type).toBe("episode")
+  })
+
+  it("conserva el tipo de la memoria en UPDATE y DELETE sin tipo", () => {
+    const memory = buildMemory({ type: "thread" })
+    const result = normalizeProposals(
+      [
+        raw({ operation: "UPDATE", targetMemoryId: "mem-1", title: "Otro" }),
+        raw({ operation: "DELETE", targetMemoryId: "mem-1" }),
+      ],
+      [memory],
+    )
+
+    expect(result.proposals.map((proposal) => proposal.type)).toEqual([
+      "thread",
+      "thread",
+    ])
   })
 })

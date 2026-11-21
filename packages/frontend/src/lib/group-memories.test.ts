@@ -15,6 +15,7 @@ const memory = (
   title: id,
   description: "",
   priority,
+  type: "fact",
   createdBy: "assistant",
   updatedBy: "assistant",
   createdAt: "2026-10-12T10:00:00.000Z",
