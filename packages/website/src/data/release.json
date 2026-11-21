@@ -1,38 +1,38 @@
 {
-  "version": "1.58.0",
-  "tag": "v1.58.0",
-  "publishedAt": "2026-11-21T16:04:40Z",
-  "htmlUrl": "https://github.com/TheFallen0000/roleplay-manager/releases/tag/v1.58.0",
+  "version": "1.58.1",
+  "tag": "v1.58.1",
+  "publishedAt": "2026-11-21T18:31:59Z",
+  "htmlUrl": "https://github.com/TheFallen0000/roleplay-manager/releases/tag/v1.58.1",
   "assets": {
     "linux-arm64": {
-      "name": "roleplay-manager-1.58.0-linux-arm64.tar.gz",
-      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.0/roleplay-manager-1.58.0-linux-arm64.tar.gz",
-      "size": 73846578,
+      "name": "roleplay-manager-1.58.1-linux-arm64.tar.gz",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.1/roleplay-manager-1.58.1-linux-arm64.tar.gz",
+      "size": 74251308,
       "sizeLabel": "74 MB"
     },
     "linux-x64": {
-      "name": "roleplay-manager-1.58.0-linux-x64.tar.gz",
-      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.0/roleplay-manager-1.58.0-linux-x64.tar.gz",
-      "size": 74111144,
-      "sizeLabel": "74 MB"
+      "name": "roleplay-manager-1.58.1-linux-x64.tar.gz",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.1/roleplay-manager-1.58.1-linux-x64.tar.gz",
+      "size": 74510110,
+      "sizeLabel": "75 MB"
     },
     "mac-arm64": {
-      "name": "roleplay-manager-1.58.0-mac-arm64.tar.gz",
-      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.0/roleplay-manager-1.58.0-mac-arm64.tar.gz",
-      "size": 69215567,
-      "sizeLabel": "69 MB"
+      "name": "roleplay-manager-1.58.1-mac-arm64.tar.gz",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.1/roleplay-manager-1.58.1-mac-arm64.tar.gz",
+      "size": 69648851,
+      "sizeLabel": "70 MB"
     },
     "mac-x64": {
-      "name": "roleplay-manager-1.58.0-mac-x64.tar.gz",
-      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.0/roleplay-manager-1.58.0-mac-x64.tar.gz",
-      "size": 71316381,
-      "sizeLabel": "71 MB"
+      "name": "roleplay-manager-1.58.1-mac-x64.tar.gz",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.1/roleplay-manager-1.58.1-mac-x64.tar.gz",
+      "size": 71747307,
+      "sizeLabel": "72 MB"
     },
     "win-x64": {
-      "name": "roleplay-manager-1.58.0-win-x64.zip",
-      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.0/roleplay-manager-1.58.0-win-x64.zip",
-      "size": 71745887,
-      "sizeLabel": "72 MB"
+      "name": "roleplay-manager-1.58.1-win-x64.zip",
+      "url": "https://github.com/TheFallen0000/roleplay-manager/releases/download/v1.58.1/roleplay-manager-1.58.1-win-x64.zip",
+      "size": 72510055,
+      "sizeLabel": "73 MB"
     }
   }
 }
