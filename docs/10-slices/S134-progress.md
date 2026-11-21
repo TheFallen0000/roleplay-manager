@@ -874,8 +874,10 @@ RFC, explica por qué.
 - **Gates:** `pnpm check` 7/7 + 5/5 + 5/5; backend 166 archivos / 1078 tests;
   frontend 93 archivos / 488 tests; eval 33 tests; build 4/4; audit limpio;
   `git diff --check` limpio.
-- **Sin bump de versión, tag ni release.** La publicación `1.58.0` es un
-  `/release` aparte.
+- **Publicada como `v1.58.0`**
+  ([release](https://github.com/TheFallen0000/roleplay-manager/releases/tag/v1.58.0),
+  run 44921978018). Los cinco paquetes, `SHA256SUMS` y la firma Ed25519 se
+  verificaron; CI y Deploy website en verde.
 
 ## Riesgos
 
