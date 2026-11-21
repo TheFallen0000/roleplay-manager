@@ -25,7 +25,10 @@
    de dominio (nunca se propaga al usuario).
 3. **Config global en `settings`**: `embeddings_provider`,
    `embeddings_provider_instance_id`, `embeddings_model_ollama`,
-   `embeddings_model_openai_compatible`. Sin auto-detección de modelo.
+   `embeddings_model_openai_compatible` y **`embeddings_dimension`
+   (`number | null`)**. `embeddings_dimension` se escribe tras el primer embed
+   correcto y se **borra** al cambiar provider/model/instance. Sin
+   auto-detección de modelo.
 4. **Migración `0022`** aditiva: tabla `memory_embeddings` con `memory_id`
    (PK/FK → `memories.id`, `onDelete: cascade`), `provider`, `model`,
    `dimension`, `vector` (BLOB `Float32Array` little-endian), `text_hash`,
@@ -62,13 +65,13 @@
 | **adaptador OpenAI-compatible** | `POST /v1/embeddings` (`client.embeddings.create` mockeado), L2, dimensión; errores | R |
 | **adaptador sin `embed`** | no se rompe; el servicio degrada a léxico | R |
 | **migración 0022** | tabla + columnas + PK/FK cascade + índice único; snapshot; negativo "no 0023" | R |
-| **repositorio embeddings** | BLOB `Float32Array` round-trip, `upsert`/`findByMemoryIds`/`deleteByMemoryId(s)`/`listMissingForConversation`/`countStatus` (triple provider/model/dimension, sin hash) | R/T |
+| **repositorio embeddings** | BLOB `Float32Array` round-trip, `upsert`/`findByMemoryIds`/`deleteByMemoryId(s)`/`listMissingForConversation`/`countStatus` (dimension `number \| null`: null ⇒ todas missing; sin hash) | R/T |
 | **servicio embedding** | L2, `text_hash`, invalidación provider/model/dimension, timeout/fallo sin excepción, best-effort | R/T |
 | **retrieval híbrido** | `semanticScores` fusion, motivos, umbral/pesos, fallback S136 bit-igual, orden/presupuesto | I/R |
 | **manifiesto** | `selection` admite `semantic`/`hybrid`; `memories.embedding` `enabled/indexed/missing` | T |
-| **config/API** | get/set de config sin secretos; `reindex` por lotes con estado; DTO sin `apiKey` | R/T |
+| **config/API** | get/set de config sin secretos (incluye `dimension`); `reindex` **global** por conversaciones y lotes con estado; PUT responde 200 con DTO sin `apiKey` | R/T |
 | **export/import** | export no incluye vectores; import crea memorias sin vector | R |
-| **UI** | sección Embeddings (proveedor/modelo/estado/reindexar), aviso remoto, i18n en/es | R/T |
+| **UI** | sección Embeddings (proveedor/modelo/estado/reindexar) **global** sin prop `conversationId`; aviso remoto, i18n en/es | R/T |
 | **eval** | paráfrasis/sinonimia/falsa proximidad/fallback/presupuesto + baseline S136 | R |
 
 `T` = type-red (`tsc`/`astro check`), `R` = runtime-red (`vitest`), `I` = import-red
@@ -180,12 +183,31 @@ unit). Una única fuente, no dos copias. Esquema:
   dimension:8})` con 3 memorias — 1 con fila coincidente, 1 sin fila, 1 con fila
   de `model`/`dimension` distintos — → devuelve exactamente las 2 no válidas
   (sin fila + fila con triple distinto), **no** la coincidente (LEFT JOIN).
+- `listMissingForConversation("conv-1", {provider, model, dimension:null})` →
+  devuelve **todas** las memorias de la conversación (sin dimensión activa no
+  hay vector usable; todo se re-embebe).
 - `listMissingForConversation` con hash desactualizado pero fila presente →
   **no** la devuelve (el hash se compara fuera del repositorio, en el caso de
   uso vía `findByMemoryIds`).
 - `countStatus("conv-1", {provider, model, dimension})` → `{ indexed, missing }`
   coherente con las filas: `indexed` = filas con triple coincidente, `missing`
   = memorias sin fila o con triple distinto (sin concepto de `failed`).
+- `countStatus("conv-1", {provider, model, dimension:null})` → `{ indexed: 0,
+  missing: total }`.
+
+**Fixtures de reindexado global (`reindex-memory-embeddings.use-case.test.ts`)**
+
+- **Multi-conversación:** 2 conversaciones con 3 memorias cada una (1 válida,
+  2 missing por conversación) → `execute()` sin argumentos recorre ambas y
+  re-embebe solo las 4 missing, dejando intactas las 2 válidas → `{ indexed: 4,
+  missing: 0, failed: 0 }` (`indexed` cuenta lo re-embebido en esta ejecución,
+  no lo ya válido; ver §5).
+- **Lotes de 16:** 34 memorias missing → 3 invocaciones al embedding service
+  (16 + 16 + 2); el resultado agregado es determinista.
+- **Fallo parcial:** una conversación cuyo embedding service lanza
+  `EmbeddingUnavailableError` → su memoria cuenta como `failed`, el resto de
+  conversaciones/lotes sigue; `failed` cuenta **memorias**, no lotes.
+- **Primera indexación / cambio de modelo / dimensión:** ver §5.
 
 **Fixtures de eval (`evals/fixtures/memory-vector-retrieval.ts`)**
 
@@ -209,8 +231,8 @@ unit). Una única fuente, no dos copias. Esquema:
   léxico ante ausencia/timeout, reindex por lotes.
 - **Import-red:** `memory-embedding.service.test.ts` y
   `memory-hybrid-retrieval.service.test.ts` importan módulos que aún no existen.
-  Contrato de símbolo fijado (ver §4 fronteras A y B). El implementador crea el
-  módulo con ese símbolo exacto.
+  Contrato de símbolo fijado (ver §4 fronteras A, B, C y D). El implementador
+  crea el módulo con ese símbolo exacto.
 
 **Fronteras que el test-author NO debe adivinar (reportar si el implementador
 las resuelve distinto):**
@@ -225,8 +247,10 @@ las resuelve distinto):**
 - **B. `EmbeddingRepository`** (port en `domain/ports/embedding.repository.ts`)
   expone `upsert`, `findByMemoryIds`, `deleteByMemoryId`, `deleteByMemoryIds`,
   `listMissingForConversation(conversationId, { provider, model, dimension })` y
-  `countStatus(conversationId, { provider, model, dimension })`. Ninguno compara
-  `text_hash`: el repositorio solo detecta filas **ausentes** o con
+  `countStatus(conversationId, { provider, model, dimension })`, con
+  `dimension: number | null`. Si `dimension === null`, ambas consideran **todas**
+  las memorias missing (sin dimensión activa no hay vector usable). Ninguna
+  compara `text_hash`: el repositorio solo detecta filas **ausentes** o con
   `provider`/`model`/`dimension` distintos a la configuración activa (LEFT JOIN
   sobre `memories`). La obsolescencia por `text_hash` se resuelve **en el caso
   de uso**: carga las filas presentes con `findByMemoryIds`, recalcula el hash de
@@ -237,10 +261,19 @@ las resuelve distinto):**
   createdAt, updatedAt }`.
 - **C. API de config/reindex.** GET `/api/settings/embeddings` →
   `{ provider, providerInstanceId, models: {ollama?, openaiCompatible?},
-  hasApiKey, enabled, status: {indexed, missing} }` (sin clave). PUT
-  `/api/settings/embeddings` persiste y **no** devuelve la clave. POST
-  `/api/settings/embeddings/reindex` → `{ indexed, missing, failed }`. Si el
-  implementador usa otra ruta/forma, ajustar antes de congelar los tests.
+  hasApiKey, enabled, dimension: number | null,
+  status: {indexed, missing} }` (sin clave). PUT
+  `/api/settings/embeddings` persiste y responde **200** con el mismo DTO (sin
+  clave). POST `/api/settings/embeddings/reindex` **sin body** → `{ indexed,
+  missing, failed }` (agregado global). Si el implementador usa otra
+  ruta/forma, ajustar antes de congelar los tests.
+- **D. Reindexado global.** `ReindexMemoryEmbeddingsUseCase` recibe
+  `ConversationRepository` (o un método `listConversationIds()`), el
+  `MemoryRepository`, el `EmbeddingRepository` y el embedding service. Su
+  `execute()` **no** recibe `conversationId`: itera todas las conversaciones y
+  sus lotes de 16. `failed` cuenta **memorias** (no lotes). El embedding
+  service no expone dimensión de antemano: la dimensión se fija tras el primer
+  embed correcto y se persiste en `embeddings_dimension` (ver §0.3).
 
 ---
 
@@ -255,7 +288,10 @@ las resuelve distinto):**
 | timeout/fallo | `ProviderTimeoutError`/`ProviderError`/`EmbeddingUnavailableError` → servicio devuelve `null` (sin vector) y **no propaga**; el guardado de la memoria sigue |
 | `text_hash` | hash estable para `title + "\n" + description`; distinto si cambia `title` o `description`; **igual** si cambia solo `actor` (el vector no cubre actor) |
 | invalidación modelo | mismo texto, `model` distinto → vector no válido; `listMissingForConversation`/`countStatus` lo marcan como `missing` (comparación por triple, sin hash) |
-| dimensión distinta | `dimension !== config.dimension` → no se usa el vector; sin coseno |
+| dimensión activa nula | `dimension: null` en config → `listMissingForConversation`/`countStatus` tratan **todas** las memorias como `missing`; no se computa coseno |
+| primera indexación | primer embed correcto escribe `embeddings_dimension`; `GetEmbeddingConfig` devuelve `dimension: number` |
+| cambio de modelo | al cambiar provider/model/instance se **borra** `embeddings_dimension` (queda `null`) y los vectores viejos quedan invalidados |
+| dimensión distinta | fila con `dimension !== config.dimension` → no se usa el vector; sin coseno |
 | paráfrasis pura | `semanticScore >= 0.55`, sin `actorInPending`/`mainActor`/keyword → `included:true, reason:"semantic"` |
 | sinonimia parcial | señal léxica + `semanticScore >= 0.55` → `reason:"hybrid"`; score = léxico + `2.0 * semanticScore` (redondeado igual que S136) |
 | falsa proximidad | `semanticScore < 0.55` y sin señal léxica → `included:false, reason:"not-relevant"` (o `decay` si decayó) |
@@ -264,9 +300,11 @@ las resuelve distinto):**
 | presupuesto | `tokens <= budget`; `reason:"budget"` para las recortadas; sin cambiar `resolveMemoryBudget` |
 | conversación sin memorias | `selection: []`, `memories: []`, `tokens: 0`, `manifest.memories.embedding.indexed/missing` coherentes |
 | ventana desconocida | presupuesto de memoria = 512 (S136) |
-| reindex | procesa en lotes de 16; resultado `{indexed, missing, failed}`; `failed` cuenta fallos del proveedor sin abortar el resto; las memorias con `text_hash` desactualizado se detectan **en el caso de uso** (via `findByMemoryIds`) y se re-embeben |
+| reindex | `execute()` sin `conversationId`, itera conversaciones y lotes de 16; resultado `{indexed, missing, failed}` agregado; `indexed` = memorias **re-embebidas en esta ejecución** (las ya válidas se dejan intactas y no cuentan), `missing` = memorias que **siguen** sin vector válido tras la ejecución, `failed` cuenta **memorias** (no lotes) y no aborta el resto; las memorias con `text_hash` desactualizado se detectan **en el caso de uso** (via `findByMemoryIds`) y se re-embeben |
 | manifiesto | `memories.embedding` presente solo cuando hay config; `indexed + missing = total` (cuando aplica); `missing` sale de `countStatus` (sin hash) |
-| export/import | `toMemoryDTO` no incluye `vector`/`embedding`; import crea `Memory` sin fila en `memory_embeddings` |
+| PUT config | responde **200** con el DTO sin `apiKey` (nunca devuelve la clave); no 204 vacío |
+| UI global | la sección Embeddings no recibe prop `conversationId`; muestra el estado agregado `{indexed, missing}` del endpoint global y el botón reindexar llama `POST /api/settings/embeddings/reindex` sin body |
+| export/import | `toMemoryDTO` no incluye `vector`/`embedding`; import crea `Memory` sin fila en `memory_embeddings` (ver nota de cobertura en §8) |
 
 ---
 
@@ -362,6 +400,14 @@ pnpm audit --prod
   (mismo patrón que 0019/0020/0021).
 - **Estado compartido en migración/repo:** `mkdtempSync` por archivo; no
   reutilizar `db` entre `describe` (patrón de `drizzle-memory.repository.test.ts`).
+- **Cobertura export/import:** los vectores son derivados y **no** viajan en
+  export/import. Como `MemoryDTO` no gana campos de embedding y
+  `EXPORT_SCHEMA_VERSION` no cambia, **no hace falta un test específico** de
+  export/import más allá de lo ya cubierto por S136: basta verificar en el
+  repositorio que el borrado de una memoria limpia su fila en
+  `memory_embeddings` (cascade) y que un import crea memorias sin fila de
+  embedding (se reconstruye por reindexado). No añadir vectores al DTO de
+  export ni a `toMemoryDTO`.
 
 ---
 
@@ -371,11 +417,15 @@ pnpm audit --prod
 - **Resumen de matriz:** 14 áreas; 13 archivos nuevos de backend/shared, 2
   nuevos de frontend, 7 existentes a modificar; clasificados en type-red /
   runtime-red / import-red.
-- **Bloqueos / ambigüedades reportadas (sin cambiar alcance):** tres fronteras
+- **Bloqueos / ambigüedades reportadas (sin cambiar alcance):** cuatro fronteras
   de implementación que el test-author no debe adivinar — (A) la fusión
   semántica vive en un orquestador asíncrono nuevo porque
   `selectMemoriesForPrompt` es síncrono; (B) la forma exacta del
-  `EmbeddingRepository` port y su DTO de fila; (C) la ruta/forma de la API de
-  config y reindex. Si el implementador las resuelve distinto, son cambios de
-  contrato a confirmar antes de congelar los tests. Ninguna cambia el alcance
-  del RFC aprobado.
+  `EmbeddingRepository` port y su DTO de fila, con `dimension: number | null`
+  (null ⇒ todo missing); (C) la ruta/forma de la API de config (PUT responde
+  200 con DTO sin clave) y reindex (POST sin body); (D) el reindexado es
+  **global**: `ReindexMemoryEmbeddingsUseCase.execute()` sin `conversationId`,
+  itera conversaciones vía `ConversationRepository.listConversationIds()` y
+  `failed` cuenta memorias, no lotes. Si el implementador las resuelve
+  distinto, son cambios de contrato a confirmar antes de congelar los tests.
+  Ninguna cambia el alcance del RFC aprobado.
