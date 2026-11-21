@@ -475,9 +475,9 @@ Si el import encuentra un match:
 
 ### Después
 
-- S135 memoria/retrieval.
-- S136 políticas de contexto.
-- S137 tokenizer.
+- S136 memoria/retrieval.
+- S137 políticas de contexto.
+- S138 tokenizer.
 
 ---
 

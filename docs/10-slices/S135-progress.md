@@ -1,6 +1,6 @@
 # S135 — Engineering refinement: modern web, nits y skill backend/DB
 
-**Estado:** Draft
+**Estado:** En progreso
 **Inicio:** 2026-11-21
 **Fin:** —
 
@@ -14,6 +14,9 @@ Web Guidance, audita el frontend contra APIs y patrones modernos, cierra los
 nits seguros acumulados desde S130 y crea una skill interna de revisión de
 backend y base de datos. No añade features de producto, no cambia la versión y
 no publica release.
+
+**Artefactos:** `docs/10-slices/S135-modern-web-audit.md` y
+`docs/10-slices/S135-backend-audit.md`.
 
 ## RFC
 
@@ -168,6 +171,20 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 | S131 comparador | `workingWindow + maxTokens === contextWindow` se acepta como neto en el helper y settings no lo borra; por encima se rechaza/degrada. |
 | S131 NIT-4 | El tipo de `conversationOverride` no acepta `null`; typecheck falla si se reintroduce. |
 
+- **Comando backend:** `pnpm --filter @workspace/backend exec vitest run
+  src/application/use-cases/character/lorebook/reorder-lorebook-entries.use-case.test.ts
+  src/application/use-cases/character/sillytavern-card.mapper.test.ts
+  src/application/use-cases/conversation/update-conversation-settings.use-case.test.ts`
+- **Comando frontend:** `pnpm --filter @workspace/frontend exec vitest run
+  src/components/conversation/message-input.test.tsx
+  src/components/lorebook/lorebook-editor.test.tsx`
+- **Fallo esperado:** 6 tests backend y 6 tests frontend en rojo (locale,
+  `rm` nulo, pertenencia, duplicados, frontera de ventana, resync de claves,
+  nombre accesible e IME).
+- **Salida relevante:** los tests de reorden y locale fallaban con
+  `promise resolved "undefined"` y el fallback inglés; los de frontend fallaban
+  con `expected 'dragon' to be 'forest, river'` y sin nombre accesible.
+
 ## Auditoría modern web
 
 ### Alcance
@@ -224,8 +241,6 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 
 ## Decisiones
 
-Se completará durante la implementación. Decisiones ya tomadas en el RFC:
-
 - **Context7 sin API key por defecto.** El servidor remoto funciona con el
   límite gratuito; la clave se documenta como opcional.
 - **MWG sin vendorizar.** Se prioriza el tamaño del repo y la actualización
@@ -233,14 +248,41 @@ Se completará durante la implementación. Decisiones ya tomadas en el RFC:
 - **Skill interna en `.opencode/skills/`.** Las skills de terceros viven en
   `.agents/skills/`; la interna sigue el patrón de `release-workflow` y
   `slice-workflow`.
-- **R3 usa `Accept-Language`.** El cliente ya lo envía en `apiRequest`; no hace
-  falta un campo nuevo en el contrato.
+- **R3 usa `Accept-Language`.** El cliente ya lo envía en `apiRequest`; las
+  rutas de preview/import/update leen el header y pasan `locale` al mapper.
 - **R8 valida pertenencia, no exige permutación completa.** El endpoint sigue
   admitiendo reórdenes parciales, pero rechaza ids ajenos y duplicados.
+- **S131 comparte un type predicate.** `isSafeWorkingWindow` acepta la frontera
+  exacta (`workingWindow + maxTokens === contextWindow`) y lo usan el resolver y
+  la limpieza de settings; un valor explícito inseguro ahora se rechaza.
+- **S133 N3 omite claves nulas, no las borra del original.** El builder de `rm`
+  deja de escribir `subtitle`/`instructions` cuando no hay valor; las
+  extensiones importadas que ya los tuvieran se conservan.
+- **S133 UI N5 preserva la escritura.** El efecto de `KeyListInput` solo
+  reemplaza el texto si las claves parseadas difieren del `value` recibido.
+- **Modern web sin reescrituras.** `toSorted`/`toReversed` son seguros con
+  `target: ESNext`; los diálogos de Base UI se mantienen; el movimiento
+  reducido, la tipografía y las pistas de imagen son mejoras progresivas.
+- **IME con fallback de Safari.** Se usa `nativeEvent.isComposing` (tipo de
+  React) y `keyCode === 229` después de `preventDefault()`.
+- **Backend/DB:** DB-1 (pertenencia) y DB-2 (desempate de paginación) se
+  corrigen; DB-3 (subconsultas por fila e índice parcial) y DB-4 (planes de
+  lorebooks) se difieren con disparador.
 
 ## Verificación
 
-Pendiente.
+- `pnpm check:arch`: 7/7, 0 warnings.
+- `pnpm --filter @workspace/backend typecheck`: OK.
+- `pnpm --filter @workspace/frontend typecheck`: 0 errores, 2 hints
+  preexistentes (`keyCode` del fallback IME y `document.execCommand`).
+- `pnpm --filter @workspace/backend test`: 167 archivos / 1087 tests.
+- `pnpm --filter @workspace/frontend exec vitest run`: 94 archivos / 495 tests.
+- `drizzle-kit check`: `Everything's fine`.
+- `legacy-scan` frontend y website: 0 hallazgos.
+- `release.json`: 1.58.0 con los cinco assets.
+- `pnpm check`, `pnpm build` y `pnpm audit --prod`: verdes.
+- `git diff --check`: limpio.
+- Revisión visual desktop/móvil: pendiente en la etapa de review.
 
 ## Review
 
@@ -267,15 +309,13 @@ Pendiente.
 
 ## Commits
 
-1. `docs(slice): add S135 RFC`
-2. `chore(tooling): add Context7 MCP and Modern Web Guidance skill`
-3. `test(backend): cover S135 locale, reorder and rm export fixes`
-4. `test(frontend): cover S135 key list resync and working window helper`
-5. `fix(backend): localize card fallbacks and validate lorebook reorder`
-6. `fix(backend): omit null rm fields and unify working window guard`
-7. `fix(frontend): resync key list input and narrow capability override`
-8. `chore(website): refresh release snapshot and translate script messages`
-9. `docs(skill): add backend-database-review`
-10. `docs(slice): record S135 modern web and backend audits`
-11. `docs(roadmap): renumber slices after S135`
-12. `docs(changelog): add S135 entries`
+1. `6c7a357` `docs(slice): record final S134 release status` (base)
+2. `78e08d7` `docs(slice): add S135 RFC`
+3. `2dafc8e` `chore(tooling): add Context7, Modern Web Guidance and backend review skills`
+4. `da557de` `fix(backend): localize card fallbacks and omit null rm fields`
+5. `047620e` `fix(backend): validate lorebook entry reorder ownership`
+6. `f605e6c` `fix(backend): unify the working window boundary`
+7. `a9869cc` `refactor(backend): remove unused card JSON limit`
+8. `7ad3d60` `fix(frontend): apply modern web guidance and resync key list`
+9. `d3be5d8` `chore(website): refresh release snapshot and translate fetch messages`
+10. `docs(slice): record S135 audits, roadmap and changelog`
