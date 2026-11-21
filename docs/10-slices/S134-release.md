@@ -77,17 +77,12 @@ este informe. Sin push, PR, merge, tag, bump de versión ni publish.
 
 ## Notas no bloqueantes
 
-1. `S134-progress.md` sigue en `Estado: En progreso` / `Fin: —`; su lista de
-   commits termina en `bf52267` y la línea 953 aún dice que la pasada de docs
-   queda pendiente, aunque HEAD ya incluye `603fbcb`, `efa5fd2`, `1ce9c9b` y
-   `bb891a2`. El orquestador debe marcar `Completado` y refrescar la lista al
-   cerrar la etapa.
-2. El aviso `Not implemented: navigation to another Document` que imprime jsdom
+1. El aviso `Not implemented: navigation to another Document` que imprime jsdom
    en Vitest es benigno; los 488 tests frontend pasan.
-3. NIT 4 (`IMPORT_STALE_MATCH` acotado a `reuse` + `deleted-identical`) y NIT 5
+2. NIT 4 (`IMPORT_STALE_MATCH` acotado a `reuse` + `deleted-identical`) y NIT 5
    (libros frescos con `origin_id = null`) siguen aceptados y diferidos según el
    review.
-4. El hint de `document.execCommand` en `clipboard.ts` es preexistente y no está
+3. El hint de `document.execCommand` en `clipboard.ts` es preexistente y no está
    relacionado con S134.
 
 ## Veredicto
@@ -95,3 +90,18 @@ este informe. Sin push, PR, merge, tag, bump de versión ni publish.
 **PASS.** El slice está listo para cerrar su etapa de release: gates verdes, sin
 bump de versión, sin migración nueva, sin secretos y con AC/review reflejados. No
 se detectaron bloqueantes.
+
+
+---
+
+## Publicación — v1.58.0 (2026-11-21)
+
+- **Release:** https://github.com/TheFallen0000/roleplay-manager/releases/tag/v1.58.0
+- **PR de release:** #146 (`7ba77d6 chore(release): v1.58.0`).
+- **Release workflow:** run 44921978018, conclusión `success`; los cinco targets
+  empaquetaron, pasaron el smoke test y se publicaron.
+- **Assets:** `win-x64`, `linux-x64`, `linux-arm64`, `mac-arm64`, `mac-x64`,
+  `SHA256SUMS` y `SHA256SUMS.sig`.
+- **Verificación:** `sha256sum -c SHA256SUMS` correcto para los cinco paquetes;
+  firma Ed25519 `release-2026-10` válida.
+- **CI y website:** CI de `master` y Deploy website en verde.
