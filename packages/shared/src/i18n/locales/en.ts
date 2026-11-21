@@ -299,6 +299,7 @@ export const en = {
     fullscreenExit: "Exit fullscreen",
     settings: "Conversation settings",
     goToCharacter: "Go to the definition of {name}",
+    inputLabel: "Message",
     inputPlaceholder: "Write a message…",
     send: "Send",
     continue: "Continue",

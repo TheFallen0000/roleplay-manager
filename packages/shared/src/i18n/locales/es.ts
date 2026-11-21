@@ -299,6 +299,7 @@ export const es: Dictionary = {
     fullscreenExit: "Salir de pantalla completa",
     settings: "Ajustes de la conversación",
     goToCharacter: "Ir a la definición de {name}",
+    inputLabel: "Mensaje",
     inputPlaceholder: "Escribe un mensaje...",
     send: "Enviar",
     continue: "Continuar",

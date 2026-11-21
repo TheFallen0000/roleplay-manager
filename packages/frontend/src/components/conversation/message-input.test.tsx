@@ -27,14 +27,14 @@ describe("MessageInput", () => {
     renderInput()
 
     expect(
-      screen.getByRole("textbox", { name: "Write a message…" })
+      screen.getByRole("textbox", { name: "Message" })
     ).toBeTruthy()
   })
 
   it("submits on Enter", () => {
     const onSend = vi.fn()
     renderInput(onSend)
-    const input = screen.getByRole("textbox", { name: "Write a message…" })
+    const input = screen.getByRole("textbox", { name: "Message" })
 
     fireEvent.change(input, { target: { value: "Hello" } })
     fireEvent.keyDown(input, { key: "Enter" })
@@ -45,10 +45,10 @@ describe("MessageInput", () => {
   it("does not submit while an IME composition is active", () => {
     const onSend = vi.fn()
     renderInput(onSend)
-    const input = screen.getByRole("textbox", { name: "Write a message…" })
+    const input = screen.getByRole("textbox", { name: "Message" })
 
     fireEvent.change(input, { target: { value: "こんにちは" } })
-    fireEvent.keyDown(input, { key: "Enter", isComposing: true, keyCode: 229 })
+    fireEvent.keyDown(input, { key: "Enter", isComposing: true })
 
     expect(onSend).not.toHaveBeenCalled()
   })
@@ -56,7 +56,7 @@ describe("MessageInput", () => {
   it("does not submit on the Safari IME keyCode fallback", () => {
     const onSend = vi.fn()
     renderInput(onSend)
-    const input = screen.getByRole("textbox", { name: "Write a message…" })
+    const input = screen.getByRole("textbox", { name: "Message" })
 
     fireEvent.change(input, { target: { value: "こんにちは" } })
     fireEvent.keyDown(input, { key: "Enter", keyCode: 229 })
@@ -67,7 +67,7 @@ describe("MessageInput", () => {
   it("keeps Shift+Enter as a newline", () => {
     const onSend = vi.fn()
     renderInput(onSend)
-    const input = screen.getByRole("textbox", { name: "Write a message…" })
+    const input = screen.getByRole("textbox", { name: "Message" })
 
     fireEvent.change(input, { target: { value: "Hello" } })
     fireEvent.keyDown(input, { key: "Enter", shiftKey: true })

@@ -68,7 +68,7 @@ export function MessageInput({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={t("chat.inputPlaceholder")}
-          aria-label={t("chat.inputPlaceholder")}
+          aria-label={t("chat.inputLabel")}
           className="max-h-50 min-h-11 resize-none"
           rows={1}
           onKeyDown={(e) => {
