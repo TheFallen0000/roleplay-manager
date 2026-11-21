@@ -1,8 +1,8 @@
 # S136 — Memoria estructurada y retrieval léxico
 
-**Estado:** Aprobado
+**Estado:** Completado
 **Inicio:** 2026-11-21
-**Fin:** —
+**Fin:** 2026-11-21
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -194,24 +194,24 @@ Obligatorio porque cambia la selección de memoria y el prompt.
 
 ## Criterios de aceptación
 
-- [ ] `Memory` y `MemoryDTO` exponen `type`; las entradas lo aceptan opcional y
+- [x] `Memory` y `MemoryDTO` exponen `type`; las entradas lo aceptan opcional y
       el default es `fact`.
-- [ ] Migración: memorias existentes quedan como `fact`; dos actores pueden
+- [x] Migración: memorias existentes quedan como `fact`; dos actores pueden
       tener el mismo título; el mismo actor no puede duplicarlo.
-- [ ] El retrieval selecciona por relevancia y presupuesto, con orden estable y
+- [x] El retrieval selecciona por relevancia y presupuesto, con orden estable y
       motivos en el manifiesto.
-- [ ] El prompt incluye solo las memorias seleccionadas y muestra el tipo.
-- [ ] La herramienta y el bloque de propuestas aceptan `type`; sin `type` se
+- [x] El prompt incluye solo las memorias seleccionadas y muestra el tipo.
+- [x] La herramienta y el bloque de propuestas aceptan `type`; sin `type` se
       normaliza a `fact`.
-- [ ] Un CREATE duplicado por actor/título se aplica como UPDATE y el resultado
+- [x] Un CREATE duplicado por actor/título se aplica como UPDATE y el resultado
       lo refleja.
-- [ ] La UI permite elegir tipo, filtrar por tipo y ver la selección en el
+- [x] La UI permite elegir tipo, filtrar por tipo y ver la selección en el
       preview.
-- [ ] Export/import conserva `type`; un export antiguo importa como `fact`.
-- [ ] Eval de retrieval en verde con los umbrales del RFC.
-- [ ] `pnpm check`, tests backend/frontend, `pnpm build`, `pnpm audit --prod` y
+- [x] Export/import conserva `type`; un export antiguo importa como `fact`.
+- [x] Eval de retrieval en verde con los umbrales del RFC.
+- [x] `pnpm check`, tests backend/frontend, `pnpm build`, `pnpm audit --prod` y
       `pnpm eval` pasan.
-- [ ] `CHANGELOG` bajo `[Unreleased]`, en inglés; sin bump de versión.
+- [x] `CHANGELOG` bajo `[Unreleased]`, en inglés; sin bump de versión.
 
 ## Red tests
 
@@ -244,20 +244,77 @@ Decisiones ya cerradas en el RFC:
   de un hilo abierto sin cambiar el orden de las secciones.
 - **Sin memoria entre conversaciones.** La unidad sigue siendo la conversación.
 
-Se completarán durante la implementación los pesos definitivos, el formato
-exacto de `selection` y cualquier ajuste que salga de la eval.
+### Decisiones finales de implementación
+
+- **Decaimiento estricto.** Una memoria por debajo del umbral de decaimiento se
+  omite como `decay` aunque su actor o un keyword aparezcan en el mensaje: la
+  señal léxica no la revive. `thread` conserva su propia regla de elegibilidad.
+- **Tope de keywords.** `Math.min(keywordHits, 5)`: cinco o más keywords empatan
+  en `+5`; cuatro puntúan menos. Los tests asertan el tope, no el conteo exacto.
+- **`thread >=` es una excepción deliberada.** Un `thread` con prioridad efectiva
+  igual al umbral sigue siendo elegible; `fact`/`episode` en ese mismo punto
+  decaen. Está comentado en el servicio y cubierto por un test de frontera.
+- **Señal léxica en regenerate/continue.** Sin `pendingMessages`, el loader usa
+  el último mensaje de usuario del historial cargado; con mensaje pendiente no
+  recorre el historial (escaneo perezoso).
+- **Resultado de consolidación.** `apply` y `apply-all` devuelven
+  `{ memories, created, updated, discarded }`. La ruta y el store consumen
+  `result.memories`, y el store fusiona por `id` para conservar las memorias que
+  no viajan en la respuesta.
+- **Presupuesto único.** `resolveMemoryBudget` es la única fuente del
+  presupuesto (`clamp(round(ventana efectiva * 0.12), 256, 2048)`; 512 sin
+  ventana). La eval lo importa en lugar de duplicarlo. La sección renderizada se
+  mide en `en` y `es` y se toma el máximo.
+- **Pesos finales.** Actor en el pendiente `+4`, actor principal `+2`, keywords
+  `+1` hasta `+5`, prioridad efectiva `0–2`, recencia lineal
+  `max(0, 1 - turnos/50)` y multiplicador de tipo (`thread` 1.5, `fact` 1,
+  `episode` 0.5). Orden: score desc, prioridad almacenada desc, `updatedAt`
+  desc, `id` asc.
 
 ## Verificación
 
-Pendiente.
+- `pnpm check`: 5/5 (`check:arch` + `typecheck` + `lint`).
+- Backend: 171 archivos / 1139 tests.
+- Frontend: 94 archivos / 506 tests.
+- `pnpm --filter @workspace/backend eval`: 2 archivos / 52 tests.
+- `pnpm build`: 4/4.
+- `pnpm audit --prod`: limpio.
+- `git diff --check`: limpio.
+- Migración 0021 (columnas `type` con default, índice
+  `(conversation_id, actor, title)`) y tests dirigidos de retrieval,
+  consolidación y manifiesto: verdes.
+- Release dry-run: no aplica (sin cambios de packaging, lockfile ni módulos
+  nativos).
+- Sin bump de versión y sin release: el slice queda bajo `[Unreleased]`.
 
 ## Review
 
-- **Estado:** pendiente
+- **Estado:** PASS WITH NOTES
 - **Informe:** `docs/10-slices/S136-review.md`
+- **Bloqueantes/mayores:** ninguno tras las correcciones. La primera pasada
+  devolvió BLOCKED por un mayor: regenerate/continue perdía la señal léxica
+  porque `pendingMessage` quedaba vacío.
+- **Mayor resuelto:** fallback al último mensaje de usuario del historial
+  (`5e881d8`), escaneo perezoso (`d6858ff`) y test de regresión (`c19a7d9`).
+- **Menores resueltos:** la asimetría `thread >=` frente a `fact`/`episode >`
+  queda documentada como excepción deliberada y probada en la frontera
+  (`5928314`, `c19a7d9`); el presupuesto de la eval se importa del servicio
+  (`c19a7d9`).
+- **Nota aceptada:** la cobertura de backfill de `migration-0021.test.ts` cubre
+  el `DEFAULT`, no una fila pre-0021 real.
+- **Nit corregido:** el comentario de `selection` explica el orden que exige la
+  eval (`5e881d8`).
 
 ## Deferred
 
+- **`generate-summary` con el filtro antiguo.** La compactación sigue usando
+  `filterMemoriesForPrompt`; alinear el prompt de resumen con el retrieval y
+  darle su propio presupuesto corresponde a **S138 (políticas de contexto)**.
+- **Cobertura de backfill de la migración.** `migration-0021.test.ts` comprueba
+  el `DEFAULT 'fact'` sobre inserciones posteriores, no una base pre-0021 con
+  filas reales migradas.
+- **Complejidad de `selection`.** Se documenta el orden exigido por la eval;
+  simplificar la construcción requiere cambiar ese contrato.
 - Retrieval vectorial/RAG y búsqueda híbrida → S137.
 - Políticas de contexto y UI del presupuesto → S138.
 - Tokenizer real → S139.
@@ -267,14 +324,22 @@ Pendiente.
 
 ## Commits
 
-1. `docs(slice): add S136 RFC`
-2. `feat(shared): add memory types and retrieval DTOs`
-3. `feat(backend): add memory type migration and repository support`
-4. `feat(backend): add lexical memory retrieval and manifest selection`
-5. `feat(backend): consolidate duplicate memories by actor and title`
-6. `feat(backend): include memory type in proposals and prompt`
-7. `feat(frontend): add memory type controls and selection preview`
-8. `test(backend): cover memory retrieval, migration and consolidation`
-9. `test(frontend): cover memory type UI and selection preview`
-10. `docs(slice): document S136 and update the roadmap`
-11. `docs(changelog): add S136 entries`
+1. `92c3ad4` `docs(slice): add S136 RFC`
+2. `24bc243` `docs(slice): approve S136 RFC`
+3. `3a12549` `docs(slice): add S136 orchestration plan`
+4. `e7e9a42` `docs(slice): approve S136 test plan and clarifications`
+5. `d706a58` `docs(slice): define S136 consolidation result`
+6. `7267088` `test(memory): add S136 red tests and eval fixtures`
+7. `b1b0920` `docs(slice): enforce strict decay in S136 test plan`
+8. `d792572` `test(memory): align S136 decay and keyword cap expectations`
+9. `7aaab43` `feat(shared): add memory types and retrieval contracts`
+10. `5caf5c1` `feat(backend): add memory persistence and lexical retrieval`
+11. `945c150` `feat(backend): consolidate memories and expose apply counts`
+12. `824644d` `test(frontend): isolate memory list persistence`
+13. `5665116` `feat(frontend): add memory type controls and selection preview`
+14. `7cf4646` `test(frontend): cover memory store merge`
+15. `adfdda4` `fix(frontend): preserve unrelated memories on apply`
+16. `5928314` `docs(slice): clarify S136 regenerate and thread boundary`
+17. `c19a7d9` `test(backend): cover S136 regenerate and thread boundary`
+18. `5e881d8` `fix(backend): keep lexical signal on regenerate`
+19. `d6858ff` `refactor(backend): avoid history scan when a pending message exists`
