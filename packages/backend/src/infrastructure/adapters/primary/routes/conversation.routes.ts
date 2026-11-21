@@ -34,6 +34,7 @@ import {
 const CreateConversationSchema = z.object({
   characterId: z.string().min(1, "characterId is required"),
   versionId: z.string().min(1).optional(),
+  greetingIndex: z.number().int().min(0).optional(),
 })
 
 const BranchConversationSchema = z.object({

@@ -6,6 +6,7 @@ import type { DefaultProviderConfig, ProviderStatus } from "@workspace/shared/ty
 
 import { Conversation } from "../../../domain/entities/conversation.entity"
 import { Message } from "../../../domain/entities/message.entity"
+import type { CharacterVersion } from "../../../domain/entities/character-version.entity"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
@@ -15,6 +16,7 @@ import type { GetDefaultProviderUseCase } from "../provider/get-default-provider
 import {
   CharacterNotFoundError,
   CharacterVersionNotFoundError,
+  DomainError,
   InvalidVersionForCharacterError,
 } from "../../../domain/errors"
 import { resolveEffectiveProfileImageAssetId } from "../../../domain/value-objects/effective-profile-image"
@@ -40,6 +42,8 @@ export class CreateConversationUseCase {
     const version = input.versionId
       ? await this.resolveVersion(input.versionId, result.character.id)
       : result.currentVersion
+
+    const greetingContent = resolveGreeting(version, input.greetingIndex)
 
     const now = new Date()
     const conversationId = randomUUIDv7()
@@ -77,7 +81,7 @@ export class CreateConversationUseCase {
       id: randomUUIDv7(),
       conversationId,
       role: "assistant",
-      content: normalizeUserContent(version.greeting),
+      content: normalizeUserContent(greetingContent),
       position: 0,
       alternatives: [],
       alternativesCursor: 0,
@@ -178,6 +182,27 @@ export class CreateConversationUseCase {
     }
     return version
   }
+}
+
+function resolveGreeting(
+  version: CharacterVersion,
+  greetingIndex: number | undefined,
+): string {
+  if (greetingIndex === undefined || greetingIndex === 0) {
+    return version.greeting
+  }
+  const alternate =
+    Number.isInteger(greetingIndex) && greetingIndex > 0
+      ? version.alternateGreetings[greetingIndex - 1]
+      : undefined
+  if (alternate === undefined) {
+    throw new DomainError(
+      "INVALID_GREETING",
+      `Invalid greeting index '${greetingIndex}' for character version '${version.id}'.`,
+      400,
+    )
+  }
+  return alternate
 }
 
 function toMessageDTO(m: Message): MessageDTO {
