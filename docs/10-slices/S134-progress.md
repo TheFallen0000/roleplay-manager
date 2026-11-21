@@ -708,9 +708,38 @@ cambio en el ensamblado de contexto, se abriría un eval; no se anticipa.
 
 ## Red tests
 
-- **Comando:**
-- **Fallo esperado:**
-- **Salida relevante:**
+### Backend + contrato shared (2026-11-21)
+
+- **Comando:** `pnpm --filter @workspace/backend test`
+- **Fallo esperado:** módulos de use case nuevos ausentes, métodos nuevos del
+  puerto/repositorio ausentes (`softDelete`, `findBooksByOriginId`,
+  `findVersionsByIds`, `findByIds`, `listSummaries({ limit, offset, filter })`),
+  rutas S134 sin montar (404), y asserts de comportamiento aún no implementado
+  (restore, usage, link, import matching, export por versión, `greetingIndex`,
+  I1, N1, N4). No debe haber fallos de infraestructura.
+- **Salida relevante:** `13 failed | 153 passed` archivos, `18 failed | 1030
+  passed` tests. Cinco suites fallan con 0 tests por módulos ausentes:
+  `get-lorebook-usage.use-case`, `import-lorebook-preview.use-case`,
+  `link-lorebook.use-case`, `restore-lorebook-version.use-case` y
+  `soft-delete-lorebook.use-case` (`Cannot find module './…'`). Fallos
+  representativos:
+  - `repository.softDelete is not a function`
+  - `repository.findBooksByOriginId is not a function`
+  - `usageVersionCount` undefined y `listSummaries` devuelve 14 filas para
+    `limit: 2` (paginación en memoria)
+  - `expected 404 to be 200` en
+    `POST /lorebooks/book-1/versions/version-1/restore`
+  - `expected 'Hello!' to be 'Alternate one'` (`greetingIndex`)
+  - ids sintéticos `[undefined, undefined, undefined]` en
+    `toLorebookVersionDTO` (N1)
+  - `findVersionsByIds` no llamado (I1)
+  - export por versión devuelve el contenido de la cabeza viva (`Live v2
+    content.`) en vez de la versión seleccionada (`Version v1 content.`)
+- **Verdes intencionados (guardas/regresión, no rojos nuevos):**
+  `migration-0020` sin `0021`, libro eliminado en prompt/card, paridad
+  preview/send y `first_mes` para `greetingIndex` 0/undefined.
+- **Frontend:** pendiente de la segunda pasada; se registrará en el mismo
+  apartado.
 
 ## Decisiones
 
