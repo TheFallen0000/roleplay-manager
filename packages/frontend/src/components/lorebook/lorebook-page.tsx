@@ -259,6 +259,7 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
           <LorebookVersionsSection state={state} />
           {isEditing && lorebook && selectedVersionId ? (
             <LorebookLinkSection
+              key={selectedVersionId}
               lorebookId={lorebook.id}
               versionId={selectedVersionId}
             />

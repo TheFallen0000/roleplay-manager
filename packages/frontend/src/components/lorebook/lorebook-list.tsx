@@ -40,8 +40,6 @@ function LorebookListContent() {
 
   useEffect(() => {
     let active = true
-    setLoading(true)
-    setError(null)
     listLorebooks({ filter })
       .then((books) => {
         if (active) setLorebooks(books)
@@ -56,6 +54,19 @@ function LorebookListContent() {
       active = false
     }
   }, [filter, reloadKey, t])
+
+  const handleFilterChange = (next: LorebookFilter) => {
+    if (next === filter) return
+    setFilter(next)
+    setLoading(true)
+    setError(null)
+  }
+
+  const handleImported = () => {
+    setLoading(true)
+    setError(null)
+    setReloadKey((key) => key + 1)
+  }
 
   const isEmptyShelf = !loading && lorebooks.length === 0 && filter === "all"
 
@@ -115,7 +126,7 @@ function LorebookListContent() {
                   key={value}
                   type="button"
                   aria-pressed={filter === value}
-                  onClick={() => setFilter(value)}
+                  onClick={() => handleFilterChange(value)}
                 >
                   {t(FILTER_LABEL_KEYS[value])}
                 </button>
@@ -149,7 +160,7 @@ function LorebookListContent() {
         open={importOpen}
         format="ccv3"
         onOpenChange={setImportOpen}
-        onImported={() => setReloadKey((key) => key + 1)}
+        onImported={handleImported}
       />
     </div>
   )

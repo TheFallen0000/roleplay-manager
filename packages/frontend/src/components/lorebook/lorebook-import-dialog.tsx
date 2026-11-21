@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { FileJsonIcon, UploadIcon } from "lucide-react"
 import { toast } from "@workspace/ui/components/sonner"
 
@@ -51,15 +51,18 @@ export function LorebookImportDialog({
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!open) {
-      setPayload(null)
-      setPreview(null)
-      setLoading(false)
-      setImporting(false)
-      setError(null)
-    }
-  }, [open])
+  const reset = () => {
+    setPayload(null)
+    setPreview(null)
+    setLoading(false)
+    setImporting(false)
+    setError(null)
+  }
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) reset()
+    onOpenChange(next)
+  }
 
   const describeError = (caught: unknown): string =>
     caught instanceof ApiClientError
@@ -111,6 +114,7 @@ export function LorebookImportDialog({
         `${t("lorebooks.import")} · ${result.lorebook.name ?? ""}`.trim(),
       )
       onImported?.()
+      reset()
       onOpenChange(false)
     } catch (caught) {
       setError(describeError(caught))
@@ -137,7 +141,7 @@ export function LorebookImportDialog({
   const busy = loading || importing
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("lorebooks.import")}</DialogTitle>

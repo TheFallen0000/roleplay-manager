@@ -38,15 +38,13 @@ export function LorebookLinkDialog({
   const { t } = useTranslation()
   const [characters, setCharacters] = useState<CharacterSummary[]>([])
   const [characterId, setCharacterId] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [linking, setLinking] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
     let active = true
-    setLoading(true)
-    setError(null)
     listCharactersPage({ limit: 200 })
       .then((page) => {
         if (active) setCharacters(page.characters)
@@ -66,6 +64,7 @@ export function LorebookLinkDialog({
     if (!next) {
       setCharacterId("")
       setError(null)
+      setLoading(true)
     }
     onOpenChange(next)
   }

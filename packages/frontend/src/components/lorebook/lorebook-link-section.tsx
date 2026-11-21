@@ -30,8 +30,6 @@ export function LorebookLinkSection({
 
   useEffect(() => {
     let active = true
-    setLoading(true)
-    setError(null)
     getLorebookUsage(lorebookId, versionId)
       .then((next) => {
         if (active) setUsage(next)
@@ -118,7 +116,11 @@ export function LorebookLinkSection({
         lorebookId={lorebookId}
         versionId={versionId}
         onOpenChange={setDialogOpen}
-        onLinked={() => setReloadKey((key) => key + 1)}
+        onLinked={() => {
+          setLoading(true)
+          setError(null)
+          setReloadKey((key) => key + 1)
+        }}
       />
     </SectionPanel>
   )
