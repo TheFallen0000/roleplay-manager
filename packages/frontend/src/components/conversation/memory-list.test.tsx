@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -11,6 +11,9 @@ import { MemoryList } from "./memory-list"
 const mocks = vi.hoisted(() => ({
   listPlayerCharacters: vi.fn(),
   memories: [] as MemoryDTO[],
+  createMemory: vi.fn(),
+  updateMemory: vi.fn(),
+  deleteMemory: vi.fn(),
 }))
 
 vi.mock("@/lib/api/player-characters", () => ({
@@ -23,9 +26,9 @@ vi.mock("@/lib/stores/memory.store", () => ({
       memories: mocks.memories,
       loading: false,
       lastDecay: null,
-      createMemory: vi.fn(),
-      updateMemory: vi.fn(),
-      deleteMemory: vi.fn(),
+      createMemory: mocks.createMemory,
+      updateMemory: mocks.updateMemory,
+      deleteMemory: mocks.deleteMemory,
       loadMemories: vi.fn(),
     }),
 }))
@@ -44,6 +47,7 @@ const memory = (
   actor: string,
   title: string,
   priority: number,
+  type: MemoryDTO["type"] = "fact",
 ): MemoryDTO => ({
   id,
   conversationId: "conv-1",
@@ -51,6 +55,7 @@ const memory = (
   title,
   description: `descripción de ${id}`,
   priority,
+  type,
   createdBy: "assistant",
   updatedBy: "assistant",
   createdAt: "2026-10-12T10:00:00.000Z",
@@ -108,12 +113,19 @@ beforeEach(() => {
   mocks.listPlayerCharacters.mockResolvedValue([
     { id: "pc-1", name: "Auron" },
   ])
+  mocks.createMemory.mockReset()
+  mocks.createMemory.mockResolvedValue({})
+  mocks.updateMemory.mockReset()
+  mocks.updateMemory.mockResolvedValue({})
+  mocks.deleteMemory.mockReset()
+  mocks.deleteMemory.mockResolvedValue(undefined)
   mocks.memories = [
-    memory("m1", "Lyra", "Bosque de Vael", 8),
-    memory("m2", "Lyra", "Poción de la luna", 3),
-    memory("m3", "Auron", "Cicatriz en el brazo", 6),
-    memory("m4", "Marcus", "Deuda pendiente", 5),
+    memory("m1", "Lyra", "Bosque de Vael", 8, "fact"),
+    memory("m2", "Lyra", "Poción de la luna", 3, "thread"),
+    memory("m3", "Auron", "Cicatriz en el brazo", 6, "episode"),
+    memory("m4", "Marcus", "Deuda pendiente", 5, "fact"),
   ]
+  localStorage.clear()
 })
 
 afterEach(cleanup)
@@ -173,5 +185,61 @@ describe("MemoryList", () => {
     expect(
       await screen.findByText("Ninguna memoria coincide con la búsqueda."),
     ).toBeInTheDocument()
+  })
+
+  it("shows a type badge for every memory", async () => {
+    renderList()
+
+    await userEvent.click(screen.getByRole("button", { name: /Lyra/ }))
+
+    expect(await screen.findByText(/^Hecho/)).toBeVisible()
+    expect(screen.getByText(/^Hilo/)).toBeVisible()
+  })
+
+  it("filters the memories by type", async () => {
+    renderList()
+
+    await userEvent.click(
+      screen.getByRole("combobox", { name: "Filtrar por tipo" }),
+    )
+    await userEvent.click(await screen.findByRole("option", { name: /^Hilo/ }))
+
+    const lyra = screen.getByRole("button", { name: /Lyra/ })
+    if (lyra.getAttribute("aria-expanded") === "false") {
+      await userEvent.click(lyra)
+    }
+
+    expect(await screen.findByText("Poción de la luna")).toBeVisible()
+    expect(screen.queryByText("Bosque de Vael")).not.toBeInTheDocument()
+  })
+
+  it("lets the user choose the type when creating a memory", async () => {
+    renderList()
+
+    await userEvent.click(screen.getByRole("button", { name: "Crear memoria" }))
+    const dialog = screen.getByRole("dialog")
+
+    await userEvent.type(within(dialog).getByLabelText("Actor"), "Lyra")
+    await userEvent.type(within(dialog).getByLabelText("Título"), "Promesa")
+    await userEvent.type(
+      within(dialog).getByLabelText("Descripción"),
+      "Volverá en invierno.",
+    )
+    await userEvent.click(
+      within(dialog).getByRole("combobox", { name: "Tipo" }),
+    )
+    await userEvent.click(await screen.findByRole("option", { name: /^Hilo/ }))
+    await userEvent.click(within(dialog).getByRole("button", { name: "Crear" }))
+
+    await waitFor(() =>
+      expect(mocks.createMemory).toHaveBeenCalledWith(
+        "conv-1",
+        expect.objectContaining({
+          actor: "Lyra",
+          title: "Promesa",
+          type: "thread",
+        }),
+      ),
+    )
   })
 })

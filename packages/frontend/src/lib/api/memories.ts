@@ -2,6 +2,7 @@ import type {
   MemoryDTO,
   CreateMemoryInput,
   UpdateMemoryInput,
+  ApplyMemoryChangesResult,
   DecayMemoriesResultDTO,
 } from "@workspace/shared/types/memory"
 import type {
@@ -49,7 +50,7 @@ export const listProposals = (
 export const applyProposals = (
   conversationId: string,
   decisions: ApplyProposalDecision[],
-): Promise<MemoryDTO[]> =>
+): Promise<ApplyMemoryChangesResult> =>
   apiRequest(`/api/conversations/${conversationId}/memories/proposals/apply`, {
     method: "POST",
     body: JSON.stringify({ decisions }),
@@ -57,7 +58,7 @@ export const applyProposals = (
 
 export const applyAllProposals = (
   conversationId: string,
-): Promise<MemoryDTO[]> =>
+): Promise<ApplyMemoryChangesResult> =>
   apiRequest(
     `/api/conversations/${conversationId}/memories/proposals/apply-all`,
     { method: "POST" },

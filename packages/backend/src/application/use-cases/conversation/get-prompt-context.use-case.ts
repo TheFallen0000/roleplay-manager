@@ -20,9 +20,6 @@ export class GetPromptContextUseCase {
     pendingMessage?: string,
     locale?: Locale,
   ): Promise<PromptContextDTO> {
-    const loaded = await this.contextLoader.load({ conversationId })
-    const { conversation, characterVersion, latestSummary } = loaded
-
     const draft = pendingMessage?.trim()
     const pending = draft
       ? Message.create({
@@ -30,7 +27,7 @@ export class GetPromptContextUseCase {
           conversationId,
           role: "user",
           content: draft,
-          position: (loaded.messages.at(-1)?.position ?? -1) + 1,
+          position: 0,
           alternatives: [],
           alternativesCursor: 0,
           createdAt: new Date(),
@@ -38,7 +35,13 @@ export class GetPromptContextUseCase {
         })
       : null
 
-    const messages = pending ? [...loaded.messages, pending] : loaded.messages
+    const loaded = await this.contextLoader.load({
+      conversationId,
+      ...(pending ? { pendingMessages: [pending] } : {}),
+    })
+    const { conversation, characterVersion, latestSummary } = loaded
+
+    const messages = loaded.messages
     const pendingCount = pending ? 1 : 0
 
     const effective = resolveEffectiveWindow({
@@ -65,6 +68,7 @@ export class GetPromptContextUseCase {
       excludedCount: loaded.excludedMessageId ? 1 : 0,
       memories: loaded.memories,
       promptMemories: loaded.promptMemories,
+      memorySelection: loaded.memorySelection,
       summary: latestSummary,
       playerCharacter: loaded.playerCharacter,
       lorebook: loaded.lorebook,

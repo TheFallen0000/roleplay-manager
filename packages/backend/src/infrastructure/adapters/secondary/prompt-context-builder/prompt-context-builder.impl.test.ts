@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest"
 
 import { CharacterVersion } from "../../../../domain/entities/character-version.entity"
 import { CharacterCard } from "../../../../domain/entities/character-card.entity"
+import { Memory } from "../../../../domain/entities/memory.entity"
 import { Message } from "../../../../domain/entities/message.entity"
 import { PromptContextBuilderImpl } from "./prompt-context-builder.impl"
 
@@ -241,6 +242,50 @@ describe("PromptContextBuilderImpl", () => {
     expect(result.systemPrompt).toContain("Nunca uses la herramienta y el bloque")
     expect(result.systemPrompt).not.toContain("Incluye este bloque una sola vez")
     expect(result.systemPrompt).toContain("```memory_proposals")
+  })
+
+  it("muestra el tipo de cada memoria y lo acepta en el bloque fallback", async () => {
+    const fact = Memory.reconstruct({
+      id: "mem-1",
+      conversationId: "conv-1",
+      actor: "Lyra",
+      title: "Misión",
+      description: "Protege el bosque.",
+      priority: 7,
+      type: "fact",
+      createdBy: "assistant",
+      updatedBy: "system",
+      createdAt: now,
+      updatedAt: now,
+    })
+    const thread = Memory.reconstruct({
+      id: "mem-2",
+      conversationId: "conv-1",
+      actor: "Kael",
+      title: "Promesa",
+      description: "Debe volver antes del invierno.",
+      priority: 6,
+      type: "thread",
+      createdBy: "assistant",
+      updatedBy: "system",
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    const builder = new PromptContextBuilderImpl()
+    const result = await builder.build({
+      locale: "es",
+      characterVersion: baseVersion,
+      messages: [],
+      recentMessageCount: 10,
+      memories: [fact, thread],
+    })
+
+    expect(result.systemPrompt).toContain("[fact]")
+    expect(result.systemPrompt).toContain("[thread]")
+    expect(result.systemPrompt).toContain("Misión")
+    expect(result.systemPrompt).toContain("Promesa")
+    expect(result.systemPrompt).toMatch(/memory_proposals[\s\S]*"type"/)
   })
 
   it("filtra OOC de mensajes del usuario previos al ultimo cuando filterOocFromHistory=true", async () => {

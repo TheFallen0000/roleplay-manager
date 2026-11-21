@@ -133,6 +133,12 @@ const memories = [
 // The two eligible memories, matching what the loader would have filtered.
 const promptMemories = memories.slice(0, 2)
 
+const memorySelection: NonNullable<ContextCompileInput["memorySelection"]> = [
+  { id: "mem-1", included: true, score: 7.5, reason: "actor" },
+  { id: "mem-2", included: true, score: 3, reason: "keyword" },
+  { id: "mem-3", included: false, score: 0, reason: "decay" },
+]
+
 const fakeSections = [
   {
     id: "character",
@@ -178,6 +184,7 @@ const buildInput = (
   excludedCount: 0,
   memories,
   promptMemories,
+  memorySelection,
   summary,
   playerCharacter: { name: "Alice", description: "A curious explorer." },
   locale: "en",
@@ -203,8 +210,13 @@ describe("ContextCompiler", () => {
     expect(manifest.estimatedInputTokens).toBe(estimatedInput)
     expect(manifest.estimatedTotalTokens).toBe(estimatedInput + 2_048)
 
-    // Memory selection counts.
-    expect(manifest.memories).toEqual({ total: 3, included: 2, excluded: 1 })
+    // Memory selection counts and per-memory reasons.
+    expect(manifest.memories).toEqual({
+      total: 3,
+      included: 2,
+      excluded: 1,
+      selection: memorySelection,
+    })
 
     // Message selection counts.
     expect(manifest.messages).toEqual({

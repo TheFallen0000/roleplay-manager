@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
+import type { MemoryType } from "@workspace/shared/types/memory"
+
 import { CreateMemoryUseCase } from "./create-memory.use-case"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { Memory } from "../../../domain/entities/memory.entity"
@@ -39,6 +41,7 @@ describe("CreateMemoryUseCase", () => {
       title: "Trusts Kael",
       description: "She has started to trust him.",
       priority: 5,
+      type: "fact",
       createdBy: "user",
       updatedBy: "user",
       createdAt: "2026-10-26T12:00:00.000Z",
@@ -60,6 +63,23 @@ describe("CreateMemoryUseCase", () => {
     })
 
     expect(result.priority).toBe(9)
+  })
+
+  it("respects an explicit type and passes it to the repository", async () => {
+    const repo = buildRepo()
+    const useCase = new CreateMemoryUseCase(repo)
+    const type: MemoryType = "thread"
+
+    const result = await useCase.execute("conv-1", {
+      actor: "Lyra",
+      title: "Promesa a Kael",
+      description: "Prometió volver antes del invierno.",
+      type,
+    })
+
+    expect(result.type).toBe("thread")
+    const created = vi.mocked(repo.create).mock.calls[0]![0]
+    expect(created.type).toBe("thread")
   })
 
   it("passes the entity to the repository before returning the DTO", async () => {

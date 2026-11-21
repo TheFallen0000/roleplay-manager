@@ -596,7 +596,7 @@ export const es: Dictionary = {
     memoryHint:
       "Los siguientes hechos sobre la historia o los personajes se han almacenado previamente. Úsalos para mantener coherencia.",
     memoryLine:
-      "- [{id}] {actor} → {title}: {description} (prioridad {priority})",
+      "- [{id}] [{type}] {actor} → {title}: {description} (prioridad {priority})",
     summary: "## Resumen de la conversación",
     proposals: "## Propuestas de memoria",
     proposalsIntro:
@@ -1275,6 +1275,22 @@ export const es: Dictionary = {
     emptyDescription:
       "Las memorias se generan automáticamente durante la conversación o puedes crearlas manualmente.",
     priority: "Importancia: {priority}",
+    type: "Tipo",
+    typeFilter: "Filtrar por tipo",
+    typeAll: "Todos los tipos",
+    typeFact: "Hecho",
+    typeEpisode: "Episodio",
+    typeThread: "Hilo",
+    selectionTitle: "Selección de memorias",
+    selectionReason: {
+      actor: "Actor en el mensaje",
+      keyword: "Coincidencia de palabra clave",
+      priority: "Prioridad alta",
+      thread: "Hilo abierto",
+      budget: "Presupuesto de tokens",
+      decay: "Decaída",
+      notRelevant: "No relevante",
+    },
     priorityDecayed: {
       one: "Importancia almacenada: {stored} — cae a {effective} tras 1 turno",
       other:

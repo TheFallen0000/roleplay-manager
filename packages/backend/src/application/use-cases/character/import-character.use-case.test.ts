@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest"
 import type { CharacterExport } from "@workspace/shared/types/export"
 import { DEFAULT_EXPORT_SETTINGS } from "@workspace/shared/types/export"
 import type { CharacterVersionDTO } from "@workspace/shared/types/character"
+import type { MemoryDTO } from "@workspace/shared/types/memory"
 import { ImportCharacterUseCase } from "./import-character.use-case"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
@@ -226,6 +227,7 @@ describe("ImportCharacterUseCase", () => {
               title: "Memoria",
               description: "Detalle",
               priority: 7,
+              type: "thread",
               createdBy: "assistant",
               updatedBy: "system",
               createdAt: "2026-08-03T10:00:00.000Z",
@@ -291,6 +293,7 @@ describe("ImportCharacterUseCase", () => {
       .mock.calls[0][0]
     expect(createdMemory.conversationId).toBe(createdConversation.id)
     expect(createdMemory.title).toBe("Memoria")
+    expect(createdMemory.type).toBe("thread")
 
     expect(repos.summaryRepository.create).toHaveBeenCalledTimes(1)
     const createdSummary = (repos.summaryRepository.create as ReturnType<typeof vi.fn>)
@@ -298,6 +301,41 @@ describe("ImportCharacterUseCase", () => {
     expect(createdSummary.firstMessageId).not.toBe("old-msg-1")
     expect(createdSummary.lastMessageId).not.toBe("old-msg-2")
     expect(createdSummary.firstMessageId).not.toBe(createdSummary.lastMessageId)
+  })
+
+  it("importa un export antiguo sin type como fact", async () => {
+    const repos = buildRepos()
+    // Legacy export captured before S136: the memory carries no `type`.
+    const legacyMemory = {
+      id: "old-mem",
+      conversationId: "old-conv",
+      actor: "Lyra",
+      title: "Memoria antigua",
+      description: "Sin tipo",
+      priority: 5,
+      createdBy: "assistant",
+      updatedBy: "system",
+      createdAt: "2026-08-03T10:00:00.000Z",
+      updatedAt: "2026-08-03T10:00:00.000Z",
+    }
+    const payload = buildPayload({
+      conversations: [
+        {
+          id: "old-conv",
+          title: null,
+          versionId: "old-ver-1",
+          createdAt: "2026-08-03T10:00:00.000Z",
+          updatedAt: "2026-08-04T10:00:00.000Z",
+          memories: [legacyMemory as unknown as MemoryDTO],
+        },
+      ],
+    })
+
+    await buildUseCase(repos).execute({ payload })
+
+    const createdMemory = (repos.memoryRepository.create as ReturnType<typeof vi.fn>)
+      .mock.calls[0][0]
+    expect(createdMemory.type).toBe("fact")
   })
 
   it("importa solo la definición (sin imagen ni conversaciones)", async () => {

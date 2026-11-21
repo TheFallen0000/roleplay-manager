@@ -169,6 +169,7 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
             title: mem.title,
             description: mem.description,
             priority: mem.priority,
+            type: mem.type,
           }),
         )
       }
@@ -215,7 +216,7 @@ export class PromptContextBuilderImpl implements PromptContextBuilder {
     proposalParts.push("```memory_proposals")
     proposalParts.push("[")
     proposalParts.push(
-      '  { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5 }',
+      '  { "operation": "CREATE", "actor": "...", "title": "...", "description": "...", "priority": 5, "type": "fact" }',
     )
     proposalParts.push("]")
     proposalParts.push("```")

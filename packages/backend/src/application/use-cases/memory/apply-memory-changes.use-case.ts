@@ -5,7 +5,12 @@ import type { MemoryChangeProposalRepository } from "../../../domain/ports/memor
 import type { Logger } from "../../../domain/ports/logger.port"
 import { Memory } from "../../../domain/entities/memory.entity"
 import type { ApplyProposalDecision } from "@workspace/shared/types/memory-change-proposal"
-import type { MemoryDTO } from "@workspace/shared/types/memory"
+import type {
+  ApplyMemoryChangesResult,
+  MemoryDTO,
+  MemoryType,
+} from "@workspace/shared/types/memory"
+import { normalizeMemoryText } from "../../../lib/memory-text"
 
 export interface ApplyMemoryChangesInput {
   conversationId: string
@@ -19,9 +24,21 @@ export class ApplyMemoryChangesUseCase {
     private readonly logger: Logger,
   ) {}
 
-  async execute(input: ApplyMemoryChangesInput): Promise<MemoryDTO[]> {
-    const updatedMemories: Memory[] = []
+  async execute(input: ApplyMemoryChangesInput): Promise<ApplyMemoryChangesResult> {
+    const result: ApplyMemoryChangesResult = {
+      memories: [],
+      created: 0,
+      updated: 0,
+      discarded: 0,
+    }
     const now = new Date()
+    let conversationMemories: Memory[] | null = null
+
+    const getConversationMemories = async (): Promise<Memory[]> => {
+      conversationMemories ??=
+        await this.memoryRepository.findByConversationId(input.conversationId)
+      return conversationMemories
+    }
 
     for (const decision of input.decisions) {
       const proposal = await this.memoryChangeProposalRepository.findById(decision.proposalId)
@@ -36,6 +53,7 @@ export class ApplyMemoryChangesUseCase {
       }
 
       if (decision.action === "discard") {
+        result.discarded += 1
         await this.memoryChangeProposalRepository.markProcessed(
           decision.proposalId,
           "discarded",
@@ -49,9 +67,24 @@ export class ApplyMemoryChangesUseCase {
       const title = overrides.title ?? proposal.title
       const description = overrides.description ?? proposal.description
       const priority = overrides.priority ?? proposal.priority
+      const type: MemoryType = overrides.type ?? proposal.type
 
       switch (proposal.operation) {
         case "CREATE": {
+          const memories = await getConversationMemories()
+          const existing = findConsolidationTarget(memories, actor, title)
+          if (existing) {
+            const updated = existing.update(
+              { description, priority, type },
+              "user",
+            )
+            await this.memoryRepository.update(updated)
+            replaceMemory(memories, updated)
+            result.memories.push(toMemoryDTO(updated))
+            result.updated += 1
+            break
+          }
+
           const memory = Memory.create({
             id: randomUUIDv7(),
             conversationId: input.conversationId,
@@ -59,13 +92,16 @@ export class ApplyMemoryChangesUseCase {
             title,
             description,
             priority,
+            type,
             createdBy: "user",
             updatedBy: "user",
             createdAt: now,
             updatedAt: now,
           })
           await this.memoryRepository.create(memory)
-          updatedMemories.push(memory)
+          memories.push(memory)
+          result.memories.push(toMemoryDTO(memory))
+          result.created += 1
           break
         }
 
@@ -73,6 +109,7 @@ export class ApplyMemoryChangesUseCase {
           const targetId = proposal.targetMemoryId
           if (!targetId) {
             this.logger.warn("UPDATE proposal has no targetMemoryId, skipping")
+            result.discarded += 1
             await this.memoryChangeProposalRepository.markProcessed(
               decision.proposalId,
               "discarded",
@@ -83,6 +120,7 @@ export class ApplyMemoryChangesUseCase {
           const existing = await this.memoryRepository.findById(targetId)
           if (!existing) {
             this.logger.warn(`Target memory '${targetId}' not found for UPDATE proposal, discarding`)
+            result.discarded += 1
             await this.memoryChangeProposalRepository.markProcessed(
               decision.proposalId,
               "discarded",
@@ -90,7 +128,8 @@ export class ApplyMemoryChangesUseCase {
             )
             continue
           }
-          if (existing.matches({ actor, title, description, priority })) {
+          if (existing.matches({ actor, title, description, priority, type })) {
+            result.discarded += 1
             await this.memoryChangeProposalRepository.markProcessed(
               decision.proposalId,
               "discarded",
@@ -99,11 +138,12 @@ export class ApplyMemoryChangesUseCase {
             continue
           }
           const updated = existing.update(
-            { actor, title, description, priority },
+            { actor, title, description, priority, type },
             "user",
           )
           await this.memoryRepository.update(updated)
-          updatedMemories.push(updated)
+          result.memories.push(toMemoryDTO(updated))
+          result.updated += 1
           break
         }
 
@@ -111,6 +151,7 @@ export class ApplyMemoryChangesUseCase {
           const targetId = proposal.targetMemoryId
           if (!targetId) {
             this.logger.warn("DELETE proposal has no targetMemoryId, skipping")
+            result.discarded += 1
             await this.memoryChangeProposalRepository.markProcessed(
               decision.proposalId,
               "discarded",
@@ -130,7 +171,30 @@ export class ApplyMemoryChangesUseCase {
       )
     }
 
-    return updatedMemories.map(toMemoryDTO)
+    return result
+  }
+}
+
+export const findConsolidationTarget = (
+  memories: readonly Memory[],
+  actor: string,
+  title: string,
+): Memory | undefined => {
+  const actorKey = normalizeMemoryText(actor)
+  const titleKey = normalizeMemoryText(title)
+  return memories.find(
+    (memory) =>
+      normalizeMemoryText(memory.actor) === actorKey &&
+      normalizeMemoryText(memory.title) === titleKey,
+  )
+}
+
+const replaceMemory = (memories: Memory[], updated: Memory): void => {
+  const index = memories.findIndex((memory) => memory.id === updated.id)
+  if (index === -1) {
+    memories.push(updated)
+  } else {
+    memories[index] = updated
   }
 }
 
@@ -142,6 +206,7 @@ function toMemoryDTO(m: Memory): MemoryDTO {
     title: m.title,
     description: m.description,
     priority: m.priority,
+    type: m.type,
     createdBy: m.createdBy,
     updatedBy: m.updatedBy,
     createdAt: m.createdAt.toISOString(),

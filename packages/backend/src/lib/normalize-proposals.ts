@@ -1,5 +1,6 @@
 import type { Memory } from "../domain/entities/memory.entity"
 import type { ProposalOperation } from "../domain/entities/memory-change-proposal.entity"
+import type { MemoryType } from "@workspace/shared/types/memory"
 import type { RawProposal } from "./memory-proposal-extractor"
 
 export interface NormalizedProposal {
@@ -9,6 +10,7 @@ export interface NormalizedProposal {
   title: string
   description: string
   priority: number
+  type?: MemoryType
 }
 
 export interface NormalizeProposalsResult {
@@ -51,6 +53,7 @@ export function normalizeProposals(
         title,
         description: raw.description.trim(),
         priority: clampPriority(raw.priority, 5),
+        type: raw.type ?? "fact",
       })
       continue
     }
@@ -71,6 +74,7 @@ export function normalizeProposals(
         title: target.title,
         description: target.description,
         priority: target.priority,
+        type: target.type,
       })
       continue
     }
@@ -82,6 +86,7 @@ export function normalizeProposals(
       title: raw.title.trim() || target.title,
       description: raw.description.trim() || target.description,
       priority: clampPriority(raw.priority, target.priority),
+      type: raw.type ?? target.type,
     })
   }
 

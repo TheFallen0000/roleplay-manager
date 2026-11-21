@@ -1,3 +1,8 @@
+import {
+  isMemoryType,
+  type MemoryType,
+} from "@workspace/shared/types/memory"
+
 /**
  * The prompt asks for a fenced `memory_proposals` block, but models drift:
  * caps, hyphens or spaces in the label, and a missing closing fence when the
@@ -21,6 +26,7 @@ export interface RawProposal {
   title: string
   description: string
   priority?: number
+  type?: MemoryType
 }
 
 export interface ExtractedProposals {
@@ -147,6 +153,7 @@ const normalizeProposal = (item: unknown): RawProposal | null => {
   if (!isOperation(operation)) return null
 
   const targetMemoryId = toText(record.targetMemoryId)
+  const type = record.type
   return {
     operation,
     targetMemoryId: targetMemoryId || undefined,
@@ -154,6 +161,7 @@ const normalizeProposal = (item: unknown): RawProposal | null => {
     title: toText(record.title),
     description: toText(record.description),
     priority: toNumber(record.priority),
+    type: isMemoryType(type) ? type : undefined,
   }
 }
 

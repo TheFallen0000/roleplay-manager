@@ -6,6 +6,9 @@ import type { MemoryChangeProposalDTO } from "@workspace/shared/types/memory-cha
 import type { MemoryDTO } from "@workspace/shared/types/memory"
 
 import { useTranslation } from "@/lib/hooks/use-translation"
+import { memoryTypeLabelKey } from "@/lib/format-memory"
+
+import { MemoryTypeBadge } from "./memory-type-badge"
 
 interface ProposalCardProps {
   proposal: MemoryChangeProposalDTO
@@ -42,6 +45,7 @@ export function ProposalCard({
 
   const actor = !isCreate && target ? target.actor : proposal.actor
   const priority = isDelete && target ? target.priority : proposal.priority
+  const type = isDelete && target ? target.type : proposal.type
 
   const changes =
     isUpdate && target
@@ -66,6 +70,11 @@ export function ProposalCard({
             current: String(target.priority),
             next: String(proposal.priority),
           },
+          {
+            label: t("memory.type"),
+            current: t(memoryTypeLabelKey(target.type)),
+            next: t(memoryTypeLabelKey(proposal.type)),
+          },
         ].filter((change) => change.current !== change.next)
       : []
 
@@ -82,6 +91,7 @@ export function ProposalCard({
         <Badge variant="outline" title={t("memory.priorityHelp")}>
           {priority}
         </Badge>
+        <MemoryTypeBadge type={type} />
       </div>
 
       {isCreate ? (

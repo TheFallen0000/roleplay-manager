@@ -37,6 +37,22 @@ export interface ContextManifestSectionDTO {
   itemCount?: number
 }
 
+export type MemorySelectionReason =
+  | "actor"
+  | "keyword"
+  | "priority"
+  | "thread"
+  | "budget"
+  | "decay"
+  | "not-relevant"
+
+export interface ContextManifestMemorySelectionDTO {
+  id: string
+  included: boolean
+  score: number
+  reason: MemorySelectionReason
+}
+
 export interface ContextManifestDTO {
   version: 1
   model: string | null
@@ -59,6 +75,7 @@ export interface ContextManifestDTO {
     total: number
     included: number
     excluded: number
+    selection: ContextManifestMemorySelectionDTO[]
   }
   lorebook?: {
     /** Activated entries dropped because the token budget was exceeded. */

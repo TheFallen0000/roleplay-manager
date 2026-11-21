@@ -21,6 +21,7 @@ export class UpdateMemoryUseCase {
         title: input.title,
         description: input.description,
         priority: input.priority,
+        type: input.type,
       },
       "user",
     )
@@ -34,6 +35,7 @@ export class UpdateMemoryUseCase {
       title: updated.title,
       description: updated.description,
       priority: updated.priority,
+      type: updated.type,
       createdBy: updated.createdBy,
       updatedBy: updated.updatedBy,
       createdAt: updated.createdAt.toISOString(),

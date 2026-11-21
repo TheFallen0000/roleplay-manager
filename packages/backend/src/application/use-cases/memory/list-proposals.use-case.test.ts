@@ -29,6 +29,7 @@ const proposal = (
     title: "Trusts Kael",
     description: "She has started to trust him.",
     priority: 5,
+    type: "fact",
     status: "pending",
     createdAt: new Date("2026-10-20T10:00:00.000Z"),
     processedAt: null,
@@ -58,12 +59,23 @@ describe("ListProposalsUseCase", () => {
         title: "Trusts Kael",
         description: "She has started to trust him.",
         priority: 5,
+        type: "fact",
         status: "pending",
         createdAt: "2026-10-20T10:00:00.000Z",
         processedAt: null,
         processedBy: "user",
       },
     ])
+  })
+
+  it("serializes the proposal type", async () => {
+    const useCase = new ListProposalsUseCase(
+      buildRepo([proposal({ type: "episode" })]),
+    )
+
+    const result = await useCase.execute("conv-1")
+
+    expect(result[0].type).toBe("episode")
   })
 
   it("serializes processed proposals and keeps their target memory id", async () => {
