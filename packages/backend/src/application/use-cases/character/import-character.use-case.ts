@@ -15,6 +15,7 @@ import {
 import { normalizeDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { normalizeMessageStyle } from "@workspace/shared/lib/message-style"
 import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
+import { isSafeWorkingWindow } from "@workspace/shared/lib/context-window"
 import {
   clampContextWindow,
   clampOutputTokens,
@@ -364,14 +365,14 @@ export class ImportCharacterUseCase {
 
       const importedContextWindow = clampContextWindow(settings.contextWindow)
       const importedMaxTokens = clampOutputTokens(settings.maxTokens)
-      const importedWorkingWindow =
-        settings.workingWindow != null &&
-        settings.workingWindow > 0 &&
-        importedContextWindow !== null &&
-        settings.workingWindow <= importedContextWindow &&
-        settings.workingWindow + importedMaxTokens <= importedContextWindow
-          ? settings.workingWindow
-          : null
+      const importedWindowParams = {
+        contextWindow: importedContextWindow,
+        workingWindow: settings.workingWindow,
+        maxTokens: importedMaxTokens,
+      }
+      const importedWorkingWindow = isSafeWorkingWindow(importedWindowParams)
+        ? importedWindowParams.workingWindow
+        : null
 
       const conversation = Conversation.create({
         id: conversationId,
