@@ -210,7 +210,10 @@ export function withRmExtensions(
     if (value !== undefined) mergedRm[key] = value
   }
   if (!isRecord(extensions)) return { rm: mergedRm }
-  const currentRm = isRecord(extensions.rm) ? extensions.rm : {}
+  const currentRm = isRecord(extensions.rm) ? { ...extensions.rm } : {}
+  // The normalized version fields are authoritative: drop stale known keys so
+  // clearing a value in the editor removes the imported value on export.
+  for (const key of RM_KEYS) delete currentRm[key]
   return { ...extensions, rm: { ...currentRm, ...mergedRm } }
 }
 

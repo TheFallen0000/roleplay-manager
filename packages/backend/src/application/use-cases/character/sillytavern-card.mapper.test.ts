@@ -469,6 +469,27 @@ describe("versionFieldsToCardData", () => {
     expect(rm).not.toHaveProperty("instructions")
   })
 
+  it("removes stale rm values when the version fields are cleared", () => {
+    const cleared = {
+      ...version,
+      subtitle: null,
+      instructions: null,
+      extensions: {
+        rm: {
+          subtitle: "Imported subtitle",
+          instructions: "Imported instructions",
+          other: 1,
+        },
+      },
+    }
+    const data = asRecord(versionFieldsToCardData(cleared as never, null))
+    const rm = asRecord(asRecord(data.extensions).rm)
+
+    expect(rm).not.toHaveProperty("subtitle")
+    expect(rm).not.toHaveProperty("instructions")
+    expect(rm.other).toBe(1)
+  })
+
   it("re-emits the lorebook and per-entry unknown fields", () => {
     const data = asRecord(versionFieldsToCardData(version as never, lorebook as never))
     const book = asRecord(data.character_book)
