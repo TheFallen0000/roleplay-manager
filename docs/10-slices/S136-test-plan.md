@@ -16,8 +16,9 @@
    ES/EN. `actorInPending` (+4) es por **frase normalizada exacta** (no
    substring).
 2. **Regla de prioridad.** Usa la **prioridad efectiva** tras decaimiento. Una
-   memoria decaída por debajo de 8 no entra por `priority`, pero sí puede entrar
-   por `thread` o keyword.
+   memoria con prioridad efectiva < 8 pero **aún elegible por el umbral de
+   decaimiento** no entra por `priority`; sigue pudiendo entrar por `thread` o
+   keyword.
 3. **`type` en propuestas.** Se persiste en `memory_change_proposals` con
    columna propia en la migración 0021 y default `fact`.
 4. **Recencia.** `max(0, 1 - turnos/50)`. Los tests asertan **monotonía y
@@ -36,6 +37,10 @@
    `ApplyAllMemoryChangesUseCase` devuelven
    `{ memories: MemoryDTO[]; created: number; updated: number; discarded: number }`.
    La ruta HTTP devuelve ese objeto y el frontend consume `result.memories`.
+9. **Decaimiento estricto.** Una memoria por debajo del umbral de decaimiento se
+   omite como `decay` aunque su actor o una keyword aparezcan en el mensaje: la
+   señal léxica **no** la revive. `thread` sigue su regla de elegibilidad por
+   prioridad efectiva (si decae bajo el umbral, también es `decay`).
 
 ---
 
@@ -104,11 +109,14 @@
 | Fixture | Caso |
 | ------- | ---- |
 | `mkMemory(id, { type?, priority, updatedAt, actor, title, description })` | builder base; sin `type` → `fact` |
-| memoria `thread` con actor fuera del pendiente | entra por regla `thread` |
-| memoria prioridad 10 decaída (>50 turnos, efectiva < 8) | no entra por `priority`; sí por `thread` o keyword |
+| memoria `thread` elegible (efectiva > umbral) con actor fuera del pendiente | entra por regla `thread` |
+| memoria `thread` decaída bajo el umbral | omitida como `decay` (no entra por `thread`) |
+| memoria prioridad 10, efectiva entre umbral y 8 (elegible) | no entra por `priority`; sí por `thread` o keyword |
+| memoria decaída bajo el umbral con keyword/actor en el pendiente | omitida como `decay`; la señal léxica no la revive |
 | título con acentos/stopword/token de 2 chars vs pendiente normalizado | `keyword` respeta normalización + stopwords + longitud mínima |
-| dos memorias score idéntico, `updatedAt` distinto | orden estable `updatedAt desc` |
-| dos memorias score/updatedAt idénticos | desempate final por `id asc` |
+| `mem-5`, `mem-6`, `mem-10` (≥5 keywords) y `mem-4` (4 keywords) | tope `+5`: los tres empatan en keyword, `mem-4` puntúa menos |
+| dos memorias elegibles con score idéntico, `updatedAt` distinto | orden estable `updatedAt desc` |
+| dos memorias elegibles con score/updatedAt idénticos | desempate final por `id asc` |
 | memoria keyword (objeto/lugar solo en su título) | `keyword` selecciona |
 | conjunto mayor que el presupuesto mínimo (256) | recorte `budget` |
 | conversación `contextWindow: null` | presupuesto por defecto 512 |
@@ -160,11 +168,12 @@
 | ventana desconocida (`contextWindow:null`) | presupuesto de memoria = 512 |
 | presupuesto mínimo | `effectiveWindow*0.12 < 256` → clamp a 256; sección ≤ 256 tokens |
 | presupuesto máximo | `effectiveWindow*0.12 > 2048` → clamp a 2048 |
-| empate de score | orden `score desc → priority desc → updatedAt desc → id asc`; determinista en 2 ejecuciones |
-| memoria decaída | excluida como `decay` si la efectiva cae bajo el umbral; si es elegible y la efectiva < 8, no entra por `priority` pero sí por `thread`/keyword |
+| empate de score | con memorias **elegibles** (no decaídas): orden `score desc → priority desc → updatedAt desc → id asc`; determinista en 2 ejecuciones |
+| decaída con keyword/actor | `included:false`, `reason:'decay'`; la señal léxica no revive una memoria bajo el umbral de decaimiento |
+| elegible con efectiva < 8 | no entra por `priority`; sí por `thread` o keyword |
 | actor principal | `actorInPending (+4)` por frase normalizada exacta / `mainActor (+2)` ganan a prioridad alta no relacionada |
-| keyword | tokens normalizados únicos (minúsculas, sin acentos, 3+ chars, sin stopwords), `+1` cada uno, tope `+5`; motivo `keyword` |
-| thread | entra sin señal léxica; peso `1.5` |
+| keyword | tokens normalizados únicos (minúsculas, sin acentos, 3+ chars, sin stopwords), `+1` cada uno, tope `+5` (≥5 keywords empatan en `+5`; 4 puntúan menos); motivo `keyword` |
+| thread | entra sin señal léxica (solo si es elegible por prioridad efectiva); peso `1.5` |
 | prioridad alta | prioridad **efectiva** ≥ 8 entra como `priority` |
 | recencia | `max(0, 1 - turnos/50)`: 0 turnos → 1, ≥50 turnos → 0, monótona decreciente |
 | duplicado exacto | CREATE con `(actor,title)` cuya clave normalizada (minúsculas + NFD sin acentos + espacios colapsados + trim) coincide → UPDATE; el título/actor guardados conservan el texto original |
@@ -183,8 +192,8 @@
   1. Actor del mensaje con memorias relevantes + ruido de otros actores.
   2. Lugar/objeto mencionado que solo está en una memoria (keyword).
   3. Más relevantes que presupuesto.
-  4. Memorias decaídas que no deben entrar (sin señal de `thread`/keyword/actor
-     principal).
+  4. Memorias decaídas que no deben entrar (incluso con `thread`/keyword/actor
+     en el mensaje: `reason:'decay'`).
   5. Empate de score → orden estable.
 - **Métricas:** recall de relevantes, tasa de irrelevantes incluidas, tokens de
   la sección de memoria, presupuesto respetado, determinismo (dos ejecuciones),
@@ -269,5 +278,5 @@ pnpm audit --prod
 - Sin bloqueos: las decisiones de §0 quedaron confirmadas el 2026-11-21
   (tokenización, prioridad efectiva, `type` en propuestas, recencia lineal,
   forma de `selection`, servicio de retrieval, orden del loader,
-  normalización de consolidación y resultado `{ memories, created, updated,
-  discarded }`).
+  normalización de consolidación, resultado `{ memories, created, updated,
+  discarded }` y decaimiento estricto).
