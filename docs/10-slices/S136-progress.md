@@ -92,30 +92,64 @@ vectorial/RAG, S138 para políticas de contexto y S139 para el tokenizer real.
   - `actor` sigue siendo el dueño de la memoria; `thread` no añade
     participantes en S136.
 - **Scoring determinista** sobre las memorias elegibles por decaimiento:
-  - `actorInPending` (+4) si el actor aparece en el mensaje pendiente.
+  - `actorInPending` (+4) si el actor aparece como frase normalizada exacta en
+    el mensaje pendiente (no substring).
   - `mainActor` (+2) si el actor es el personaje o el jugador.
   - `keywordHits` (+1 cada uno, máximo +5) por tokens únicos de título,
-    descripción y actor presentes en el mensaje pendiente.
+    descripción y actor presentes en el mensaje pendiente; tokens en minúsculas,
+    normalizados sin acentos (Unicode), de 3+ caracteres, sin stopwords ES/EN.
   - `priority` (0–2) según la prioridad efectiva del decaimiento.
   - `typeWeight` (`thread` 1.5, `fact` 1, `episode` 0.5).
   - `recency` (0–1) según turnos desde `updatedAt`, con techo de 50.
   - Orden: score desc, prioridad desc, `updatedAt` desc, `id` asc.
 - **Regla de entrada:** se incluye una memoria si tiene señal de relevancia
   (actor en el pendiente, actor principal o algún keyword), o si es `thread` o
-  tiene prioridad ≥ 8. Las demás se omiten como `not-relevant`. El presupuesto
-  recorta después por score.
+  tiene prioridad efectiva ≥ 8. Las demás se omiten como `not-relevant`. El
+  presupuesto recorta después por score.
 - **Presupuesto:** `clamp(round(effectiveWindow * 0.12), 256, 2048)` tokens;
   con ventana desconocida, 512. El presupuesto cubre la sección completa
   (cabecera, hint y líneas). Si una memoria no cabe, se omite como `budget`.
-- **Consolidación:** al aplicar un CREATE, se normaliza `(actor, title)` y, si
-  existe una memoria con esa clave, se aplica como UPDATE. El resultado indica
-  cuántas se crearon, actualizaron o descartaron. El índice único pasa a
+- **Consolidación:** al aplicar un CREATE, se compara `(actor, title)`
+  normalizado (minúsculas, NFD sin acentos, espacios colapsados/trim) y, si
+  existe una memoria con esa clave, se aplica como UPDATE. La memoria guardada
+  conserva el texto original (actor y título sin normalizar). El resultado
+  indica cuántas se crearon, actualizaron o descartaron. El índice único pasa a
   `(conversation_id, actor, title)`.
 - **Manifiesto:** `memories.selection` con incluidas y omitidas, su score y el
   motivo (`actor`, `keyword`, `priority`, `thread`, `budget`, `decay`,
   `not-relevant`). El preview lo muestra de forma compacta.
 - **Prompt:** cada línea de memoria incluye `[type]`; la herramienta y el
   bloque aceptan `type` opcional y el servidor lo normaliza a `fact`.
+
+### Clarificaciones confirmadas (2026-11-21)
+
+Confirmadas por el usuario antes de la implementación; priman sobre la
+redacción genérica de arriba:
+
+- **Tokenización léxica.** Los keywords se extraen en **minúsculas**, con
+  normalización Unicode sin acentos (NFD + strip de marcas), como tokens de
+  letras/dígitos de **3+ caracteres**, descartando stopwords ES/EN.
+  `actorInPending` (+4) se evalúa por **frase normalizada exacta** (actor
+  normalizado presente como frase), no por substring.
+- **Regla de entrada por prioridad efectiva.** El umbral "prioridad ≥ 8" de la
+  regla de entrada usa la **prioridad efectiva tras decaimiento** (no la
+  almacenada). Una memoria con prioridad almacenada alta pero ya decaída no
+  entra como `priority`.
+- **`type` en propuestas.** `type` se persiste también en
+  `memory_change_proposals`, con **columna propia en la migración 0021** y
+  default `fact` (no solo en `memories`).
+- **Consolidación normalizada, almacenamiento original.** La comparación de
+  duplicados usa `(actor, title)` en **minúsculas**, con **NFD sin acentos** y
+  **espacios colapsados/trim**; la memoria guardada **conserva el texto
+  original** (actor y título sin normalizar).
+- **Recencia lineal.** `recency = max(0, 1 - turnos/50)`: decrece linealmente
+  de 1 a 0 hasta los 50 turnos desde `updatedAt`.
+- **`memories.selection`.** Expone `id`, `included`, `score` y `reason`.
+- **Servicio de retrieval.** `application/services/memory-retrieval.service.ts`
+  con `selectMemoriesForPrompt(...)`.
+- **Orden del loader.** El `ConversationContextLoader` resuelve los actores
+  principales (personaje + personaje del usuario) **antes** del retrieval, para
+  que `mainActor` esté disponible en el scoring.
 
 ### Fuera de alcance
 
@@ -192,7 +226,8 @@ Decisiones ya cerradas en el RFC:
 - **Léxico antes que vectorial.** S136 resuelve el problema actual sin añadir
   dependencias ni latencia de embeddings.
 - **Regla de entrada explícita.** No se inyectan memorias sin señal de
-  relevancia, salvo `thread` o prioridad ≥ 8; el presupuesto recorta después.
+  relevancia, salvo `thread` o prioridad efectiva ≥ 8; el presupuesto recorta
+  después.
 - **Presupuesto conservador.** 12 % de la ventana efectiva, con mínimo 256 y
   máximo 2048; se ajustará con la eval y se expondrá en S138.
 - **El servidor manda en la consolidación.** El modelo puede proponer, pero el
