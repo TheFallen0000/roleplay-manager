@@ -1230,6 +1230,25 @@ export const es: Dictionary = {
     openModelList: "Abrir lista de modelos",
     clearModel: "Borrar modelo",
     noModelsFound: "No se encontraron modelos.",
+    embeddingHeading: "Embeddings",
+    embeddingDescription:
+      "Búsqueda semántica de memoria opcional. Elige qué proveedor y modelo generan los vectores.",
+    embeddingProviderLabel: "Proveedor de embeddings",
+    embeddingModelLabel: "Modelo de embeddings",
+    embeddingModelsHint:
+      "Modelos conocidos: nomic-embed-text, mxbai-embed-large, all-minilm.",
+    embeddingPrivacyWarning:
+      "Con un proveedor remoto, el texto de la memoria sale del dispositivo.",
+    embeddingEnabled: "Embeddings activados",
+    embeddingDisabled: "Embeddings desactivados",
+    embeddingIndexed: "{count} indexadas",
+    embeddingPending: "{count} pendientes",
+    embeddingReindex: "Reindexar",
+    embeddingReindexRunning: "Reindexando…",
+    embeddingReindexDone: "Reindexado terminado",
+    embeddingReindexFailed: "No se pudieron reindexar las memorias",
+    embeddingLoadFailed: "No se pudo cargar la configuración de embeddings",
+    embeddingSaveFailed: "No se pudo guardar la configuración de embeddings",
   },
   summaries: {
     generateNow: "Generar resumen ahora",
@@ -1289,6 +1308,8 @@ export const es: Dictionary = {
       thread: "Hilo abierto",
       budget: "Presupuesto de tokens",
       decay: "Decaída",
+      semantic: "Coincidencia semántica",
+      hybrid: "Coincidencia léxica y semántica",
       notRelevant: "No relevante",
     },
     priorityDecayed: {
