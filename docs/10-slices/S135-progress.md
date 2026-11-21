@@ -7,8 +7,9 @@
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
 
-**Situación:** S135 se integró en `master` (`1b25946`, PR #150); CI de `master`
-y deploy de la website en verde. La release batcheada queda para `/release`.
+**Situación:** S135 se integró en `master` (`1b25946`, PR #150) y se publicó en
+la release batcheada `v1.58.1` (`b0ca4ec`, PR #152); CI, release y deploy de la
+website en verde.
 
 ## Descripción
 

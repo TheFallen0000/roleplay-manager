@@ -50,6 +50,10 @@ dry-run. La release batcheada se prepara después con `/release`.
 
 ## Estado final
 
-S135 se integró en `master` mediante el PR #150 (`1b25946`) con squash. El CI
-de `master` y el deploy de la website están en verde. No hay release de S135:
-la release batcheada se prepara con `/release` cuando corresponda.
+S135 se integró en `master` mediante el PR #150 (`1b25946`) con squash y se
+publicó en la release batcheada `v1.58.1` (PR #152, merge `b0ca4ec`). El CI de
+`master`, el workflow de release y el deploy de la website están en verde.
+
+Assets verificados: cinco paquetes, `SHA256SUMS` y `SHA256SUMS.sig`; checksum y
+firma Ed25519 correctos; smoke test del paquete Linux x64 PASS; `v1.58.1`
+visible en `/download` y `/es/download`.
