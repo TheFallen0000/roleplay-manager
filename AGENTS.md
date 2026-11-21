@@ -473,8 +473,9 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
 
 - **Context7 MCP** (`opencode.json`) resolves versioned library documentation
   before changing React, Astro, Vite, Tailwind, Base UI, Drizzle, Express, Zod
-  or Vitest APIs. The server is read-only; an optional `CONTEXT7_API_KEY` raises
-  the rate limit and is never committed.
+  or Vitest APIs. The server is read-only and works without a key. For a higher
+  rate limit, add the `CONTEXT7_API_KEY` header in your local config (for
+  example `{env:CONTEXT7_API_KEY}`) and never commit the value.
 - **`modern-web-guidance`** (`.opencode/skills/modern-web-guidance`) wraps the
   official Chrome guidance CLI. Use `pnpx modern-web-guidance@latest search`,
   `retrieve` and `legacy-scan`; the guide corpus is not vendored. For any UI,

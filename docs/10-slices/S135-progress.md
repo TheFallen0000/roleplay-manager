@@ -242,7 +242,8 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 ## Decisiones
 
 - **Context7 sin API key por defecto.** El servidor remoto funciona con el
-  límite gratuito; la clave se documenta como opcional.
+  límite gratuito; la clave se añade como header local
+  (`{env:CONTEXT7_API_KEY}`) y no se commitea.
 - **MWG sin vendorizar.** Se prioriza el tamaño del repo y la actualización
   continua sobre el funcionamiento offline.
 - **Skill interna en `.opencode/skills/`.** Las skills de terceros viven en
