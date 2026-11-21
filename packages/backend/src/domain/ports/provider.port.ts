@@ -1,4 +1,5 @@
 import type { CapabilityClaim } from "@workspace/shared/types/model-capabilities"
+import type { EmbedRequest, EmbedResult } from "@workspace/shared/types/embedding"
 import type {
   ListModelsResult,
   ProviderId,
@@ -15,6 +16,10 @@ export interface ProviderPort {
   getModelContextWindow?(model: string): Promise<number | null>
   /** Rich capability claims from runtime introspection or the provider API. */
   resolveCapabilities?(model: string): Promise<CapabilityClaim[]>
+  /** Optional: providers that can produce text embeddings (S137). */
+  embed?(input: EmbedRequest): Promise<EmbedResult>
+  /** Cheap capability check for callers that prefer not to attempt `embed`. */
+  supportsEmbeddings?(): boolean
   generateStreaming(
     context: PromptContext,
     options?: GenerateOptions,
