@@ -1,6 +1,6 @@
 # S137 — Retrieval vectorial/RAG y búsqueda híbrida
 
-**Estado:** Draft
+**Estado:** Aprobado
 **Inicio:** 2026-11-21
 **Fin:** —
 
@@ -15,6 +15,11 @@ híbrida determinista, con fallback léxico cuando el proveedor de embeddings no
 existe o falla. Los vectores son datos derivados, opt-in, local-first por
 defecto y nunca bloquean el envío. S138 (políticas de contexto), S139
 (tokenizer) y el RAG sobre mensajes/lorebooks completos quedan fuera.
+
+> **Nota de alcance:** S137 es retrieval **semántico de memoria**, no RAG sobre
+> mensajes o lorebooks completos. La recuperación vectorial solo indexa la
+> memoria dinámica; los mensajes y los lorebooks siguen su camino actual (S129,
+> S133) y el RAG sobre ellos queda fuera.
 
 ## RFC
 
@@ -128,9 +133,14 @@ defecto y nunca bloquean el envío. S138 (políticas de contexto), S139
 - **Ciclo de vida.** (1) Al crear/editar una memoria, el servicio **intenta**
   embeder de forma best-effort (fire-and-forget con timeout corto) y persiste el
   vector si tiene éxito; si el proveedor falla, la memoria queda sin vector.
-  (2) En retrieval, si una memoria no tiene vector o su `text_hash` no coincide
-  (texto cambiado o modelo cambiado), se re-embede perezosamente o se omite su
-  señal semántica y se puntúa solo léxica. (3) Reindexado manual: recorre las
+  (2) En retrieval, un vector es válido solo si existe, su `text_hash` coincide
+  con el texto actual (`title + description`) **y** su `provider`/`model`/
+  `dimension` coinciden con la configuración activa. `text_hash` cubre
+  únicamente el texto; `provider`/`model`/`dimension` se comparan por separado,
+  de modo que cambiar de modelo (u otro proveedor/dimensión) invalida el vector
+  y fuerza reindexado o fallback léxico. Una memoria sin vector válido se
+  puntúa solo léxicamente o se re-embebe perezosamente. (3) Reindexado manual:
+  recorre las
   memorias sin vector o con hash desactualizado, en lotes (p. ej. 16), con
   progreso y estado (`indexed`/`missing`/`failed`). (4) Sin reintentos
   automáticos (coherente con §06); sin límite de coste adicional porque la
@@ -221,7 +231,8 @@ Obligatorio: cambia la selección de memoria y el prompt.
       `settings` y se expone por DTO sin secretos.
 - [ ] Al crear/editar una memoria, el embedding se intenta best-effort y un
       fallo del proveedor **no** interrumpe el guardado ni el envío.
-- [ ] En retrieval, una memoria sin vector o con `text_hash` desactualizado se
+- [ ] En retrieval, una memoria sin vector, con `text_hash` desactualizado o con
+      `provider`/`model`/`dimension` distintos a la configuración activa se
       puntúa léxicamente (sin señal semántica) o se re-embebe; nunca rompe.
 - [ ] La fusión híbrida añade motivos `semantic`/`hybrid` al manifiesto y
       mantiene el orden estable y el presupuesto de S136.
@@ -253,8 +264,7 @@ Obligatorio: cambia la selección de memoria y el prompt.
 
 ## Decisiones
 
-Decisiones recomendadas en el RFC, pendientes de confirmación final en la
-implementación (ver **Ambigüedades** al pie):
+Decisiones cerradas en el RFC (ver **Clarificaciones confirmadas** más abajo):
 
 - **Opt-in y local-first.** Sin configuración, S137 es S136. Embeddings se
   activan explícitamente; default local (Ollama), remoto opt-in.
@@ -266,23 +276,27 @@ implementación (ver **Ambigüedades** al pie):
 - **Fusión por suma ponderada** sobre el scorer de S136, no RRF; motivos
   `semantic`/`hybrid` nuevos.
 - **Vectores derivados:** no se exportan; invalidación por `text_hash` del
-  texto `title + description`.
+  texto `title + description` y por comparación separada de
+  `provider`/`model`/`dimension` (cambiar de modelo invalida el vector).
 
-## Ambigüedades (requieren aprobación del usuario)
+## Clarificaciones confirmadas (2026-11-21)
 
-1. **Default fuera de caja.** Recomendación: embeddings **desactivados** por
-   defecto (léxico puro, privacidad total) y activación explícita. Alternativa:
-   auto-activar con Ollama si hay un modelo de embedding descargado. Cambia el
-   comportamiento de primer arranque.
-2. **Modelo de embedding por defecto.** Recomendación: **sin auto-detección**;
-   el usuario elige el modelo y la UI sugiere nombres conocidos. Alternativa:
-   heurística sobre `/api/tags` para adivinar. Cambia la fricción de setup.
-3. **Ubicación de la UI.** Recomendación: sección «Embeddings» dentro del
-   gestor de proveedores (coherente con proveedor/modelo). Alternativa: panel
-   propio en memoria. No toca políticas de contexto (S138).
-4. **Texto embebido.** Recomendación: `title + description` (actor resuelto
-   léxicamente). Alternativa: incluir `actor` en el texto embebido. Afecta a
-   qué agrupa la similitud semántica.
+Confirmadas por el usuario al aprobar el RFC; priman sobre la redacción
+genérica de arriba:
+
+1. **Embeddings desactivados por defecto.** Sin configuración, el comportamiento
+   es bit-igual a S136 (léxico). La activación es explícita: el usuario elige
+   proveedor + modelo en la sección «Embeddings». Default local (Ollama),
+   remoto opt-in.
+2. **Sin auto-detección del modelo de embedding.** El usuario selecciona el
+   modelo; la UI sugiere nombres conocidos (`nomic-embed-text`,
+   `mxbai-embed-large`, `all-minilm`) como ayuda, nunca como default forzado.
+3. **Configuración en el gestor de proveedores.** La sección «Embeddings» vive
+   dentro del gestor de proveedores, no en un panel propio de memoria; no toca
+   las políticas de contexto (S138).
+4. **Texto embebido = `title + description`.** El actor se resuelve léxicamente
+   (señal ya cubierta por S136); el vector captura el hecho, no la propiedad
+   del actor.
 
 ## Verificación pendiente
 
