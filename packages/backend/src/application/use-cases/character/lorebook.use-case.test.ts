@@ -11,6 +11,14 @@ import { UpdateLorebookEntryUseCase } from "./lorebook/update-lorebook-entry.use
 import { DeleteLorebookEntryUseCase } from "./lorebook/delete-lorebook-entry.use-case"
 import { ReorderLorebookEntriesUseCase } from "./lorebook/reorder-lorebook-entries.use-case"
 import {
+  buildLorebookEntities,
+  toLorebookCanonicalContent,
+} from "./lorebook/lorebook.mapper"
+import {
+  canonicalizeLorebookContent,
+  computeLorebookSourceKey,
+} from "./lorebook/source-key"
+import {
   buildLorebookCCv3,
   buildLorebookStNativeArray,
 } from "../../../test-utils/sillytavern-fixtures"
@@ -63,6 +71,7 @@ const buildRepos = (existing: { book: unknown; entries: unknown[] } | null = nul
   lorebookRepository: {
     findByCharacterId: vi.fn(async () => existing),
     findById: vi.fn(async () => existing),
+    findVersionById: vi.fn(async (): Promise<unknown> => null),
     upsertBook: vi.fn(async (value) => value),
     createEntry: vi.fn(async (value) => value),
     updateEntry: vi.fn(async (value) => value),
@@ -199,6 +208,106 @@ describe("lorebook use cases — export", () => {
 
     expect(repos.lorebookRepository.findById).toHaveBeenCalledWith("book-1")
     expect(result).toMatchObject({ data: { name: "Forest lore" } })
+  })
+
+  it("exports the selected version and merges extensions.rm for both formats", async () => {
+    const versionEntry = entry({
+      id: "entry-v1",
+      sourceId: "7",
+      content: "Version v1 content.",
+    })
+    const liveEntry = entry({
+      id: "entry-live",
+      sourceId: "7",
+      content: "Live v2 content.",
+    })
+    const bookFixture = book({
+      characterId: null,
+      originId: "origin-1",
+      currentVersionId: "version-2",
+      extensions: {
+        other: { keep: true },
+        rm: { futureRmKey: { keep: true } },
+      },
+    })
+    const sourceKey = computeLorebookSourceKey(
+      canonicalizeLorebookContent(
+        toLorebookCanonicalContent(bookFixture as never, [
+          versionEntry as never,
+        ]),
+      ),
+    )
+    const repos = buildRepos({ book: bookFixture, entries: [liveEntry] })
+    repos.lorebookRepository.findVersionById = vi.fn(async () => ({
+      id: "version-1",
+      lorebookId: "book-1",
+      versionNumber: 1,
+      name: "Forest lore",
+      description: "Facts about the forest",
+      scanDepth: 4,
+      tokenBudget: 400,
+      recursiveScanning: false,
+      entriesJson: JSON.stringify([versionEntry]),
+      sourceKey,
+      createdAt: now,
+    }))
+    const useCase = new ExportLorebookUseCase(repos as never)
+
+    const ccv3 = (await useCase.executeById({
+      lorebookId: "book-1",
+      versionId: "version-1",
+      format: "ccv3",
+    })) as unknown as {
+      spec: "lorebook_v3"
+      data: {
+        entries: Array<{ content: string }>
+        extensions: Record<string, unknown>
+      }
+    }
+    const data = ccv3.data
+    expect(data.entries.map((item) => item.content)).toEqual([
+      "Version v1 content.",
+    ])
+    expect(data.extensions).toMatchObject({
+      other: { keep: true },
+      rm: {
+        version: 1,
+        originId: "origin-1",
+        futureRmKey: { keep: true },
+      },
+    })
+
+    // Standalone export round-trip, no owning character: the mapper must
+    // accept `string | null` for `characterId`.
+    const roundTrip = buildLorebookEntities(ccv3, null, {
+      bookId: "book-1",
+      now,
+    })
+    if (!roundTrip) throw new Error("the exported lorebook was not importable")
+    expect(
+      computeLorebookSourceKey(
+        canonicalizeLorebookContent(
+          toLorebookCanonicalContent(roundTrip.book, roundTrip.entries),
+        ),
+      ),
+    ).toBe(sourceKey)
+
+    const stNative = (await useCase.executeById({
+      lorebookId: "book-1",
+      versionId: "version-1",
+      format: "st-native",
+    })) as unknown as {
+      entries: Record<string, { content: string }>
+      extensions?: Record<string, unknown>
+    }
+    expect(stNative.entries["7"].content).toBe("Version v1 content.")
+    expect(stNative.extensions).toMatchObject({
+      rm: {
+        version: 1,
+        originId: "origin-1",
+        futureRmKey: { keep: true },
+      },
+    })
   })
 })
 

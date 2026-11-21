@@ -102,6 +102,17 @@ describe("migration 0020_lorebook_versions", () => {
     )
   })
 
+  it("does not ship a migration 0021 (S134 keeps the 0020 schema)", () => {
+    const journal = readJournal()
+    expect(journal.entries.find((item) => item.idx === 21)).toBeUndefined()
+
+    const files = readdirSync(migrationsDir)
+    expect(files.some((file) => /^0021_.*\.sql$/.test(file))).toBe(false)
+    expect(existsSync(join(migrationsDir, "meta", "0021_snapshot.json"))).toBe(
+      false,
+    )
+  })
+
   it("creates lorebook_versions with a unique book/version index and a source_key index", () => {
     expect(columnsOf("lorebook_versions")).toEqual(
       expect.arrayContaining(VERSION_COLUMNS)

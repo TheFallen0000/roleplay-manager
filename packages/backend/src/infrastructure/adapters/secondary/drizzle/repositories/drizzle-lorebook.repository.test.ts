@@ -8,7 +8,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { buildDatabase, runMigrations } from "../../../../config/database"
 import { Lorebook } from "../../../../../domain/entities/lorebook.entity"
 import { LorebookEntry } from "../../../../../domain/entities/lorebook-entry.entity"
-import { characters, lorebookEntries, lorebooks } from "../schema"
+import {
+  characterVersions,
+  characters,
+  lorebookEntries,
+  lorebooks,
+} from "../schema"
 import { DrizzleLorebookRepository } from "./drizzle-lorebook.repository"
 
 const root = mkdtempSync(join(tmpdir(), "rm-lorebook-repository-"))
@@ -457,5 +462,185 @@ describe("DrizzleLorebookRepository — versioning", () => {
     const ids = books.map((item) => item.id)
     expect(ids).toContain("book-live")
     expect(ids).not.toContain("book-deleted")
+  })
+})
+
+describe("DrizzleLorebookRepository — S134 soft delete", () => {
+  it("sets deleted_at and keeps findById returning the book", async () => {
+    const repository = new DrizzleLorebookRepository(db)
+    const book = buildStandaloneBook({
+      id: "book-soft-delete",
+      name: "Soft delete lore",
+    })
+    const entry = buildEntry({
+      id: "entry-soft-delete",
+      lorebookId: "book-soft-delete",
+    })
+    const version = await buildVersion({
+      id: "version-soft-delete",
+      lorebookId: "book-soft-delete",
+    })
+    await repository.createContainerWithVersion(
+      book,
+      [entry],
+      version as never,
+    )
+
+    await repository.softDelete("book-soft-delete")
+
+    expect(containerRow("book-soft-delete")?.deleted_at).not.toBeNull()
+    const found = await repository.findById("book-soft-delete")
+    expect(found?.book.deletedAt).not.toBeNull()
+  })
+})
+
+describe("DrizzleLorebookRepository — S134 origin matching", () => {
+  it("finds every container with the same origin_id", async () => {
+    const repository = new DrizzleLorebookRepository(db)
+    const live = buildStandaloneBook({
+      id: "book-origin-live",
+      name: "Origin live",
+      originId: "origin-s134-shared",
+      createdAt: new Date("2026-11-01T00:00:00.000Z"),
+    })
+    const deleted = buildStandaloneBook({
+      id: "book-origin-deleted",
+      name: "Origin deleted",
+      originId: "origin-s134-shared",
+      createdAt: new Date("2026-11-02T00:00:00.000Z"),
+      deletedAt: now,
+    })
+    await repository.createContainerWithVersion(
+      live,
+      [],
+      (await buildVersion({
+        id: "version-origin-live",
+        lorebookId: "book-origin-live",
+      })) as never,
+    )
+    await repository.createContainerWithVersion(
+      deleted,
+      [],
+      (await buildVersion({
+        id: "version-origin-deleted",
+        lorebookId: "book-origin-deleted",
+      })) as never,
+    )
+
+    const found = await repository.findBooksByOriginId("origin-s134-shared")
+
+    expect(found.map((book) => book.id).sort()).toEqual([
+      "book-origin-deleted",
+      "book-origin-live",
+    ])
+  })
+})
+
+describe("DrizzleLorebookRepository — S134 listSummaries pushdown", () => {
+  let repository!: DrizzleLorebookRepository
+
+  const seedUsedAndUnused = async () => {
+    const repository = new DrizzleLorebookRepository(db)
+    const usedBook = buildStandaloneBook({
+      id: "book-s134-used",
+      name: "Used lore",
+      originId: "origin-s134-used",
+      createdAt: new Date("2026-11-03T00:00:00.000Z"),
+    })
+    const unusedBook = buildStandaloneBook({
+      id: "book-s134-unused",
+      name: "Unused lore",
+      createdAt: new Date("2026-11-04T00:00:00.000Z"),
+    })
+    await repository.createContainerWithVersion(
+      usedBook,
+      [buildEntry({ id: "entry-s134-used", lorebookId: "book-s134-used" })],
+      (await buildVersion({
+        id: "version-s134-used",
+        lorebookId: "book-s134-used",
+      })) as never,
+    )
+    await repository.createContainerWithVersion(
+      unusedBook,
+      [],
+      (await buildVersion({
+        id: "version-s134-unused",
+        lorebookId: "book-s134-unused",
+        sourceKey: "c".repeat(64),
+      })) as never,
+    )
+    await db.insert(characterVersions).values([
+      {
+        id: "cv-s134-1",
+        characterId: "char-1",
+        name: "Lyra",
+        description: "Uses the lore.",
+        greeting: "Hello.",
+        versionNumber: 1,
+        createdAt: now,
+        lorebookVersionId: "version-s134-used",
+      },
+      {
+        id: "cv-s134-2",
+        characterId: "char-2",
+        name: "Kael",
+        description: "Also uses the lore.",
+        greeting: "Hello.",
+        versionNumber: 1,
+        createdAt: now,
+        lorebookVersionId: "version-s134-used",
+      },
+    ])
+
+    return repository
+  }
+
+  beforeAll(async () => {
+    repository = await seedUsedAndUnused()
+  })
+
+  it("reports real usageCount and usageVersionCount", async () => {
+    const summaries = await repository.listSummaries()
+    const used = summaries.find(
+      (summary) => summary.book.id === "book-s134-used",
+    )
+
+    expect(used?.usageCount).toBe(2)
+    expect(used?.usageVersionCount).toBe(2)
+  })
+
+  it("pushes the in-use and unused filters into SQL", async () => {
+    const inUse = await repository.listSummaries({ filter: "in-use" })
+    expect(inUse.map((summary) => summary.book.id)).toContain(
+      "book-s134-used",
+    )
+    expect(inUse.map((summary) => summary.book.id)).not.toContain(
+      "book-s134-unused",
+    )
+
+    const unused = await repository.listSummaries({ filter: "unused" })
+    expect(unused.map((summary) => summary.book.id)).toContain(
+      "book-s134-unused",
+    )
+    expect(unused.map((summary) => summary.book.id)).not.toContain(
+      "book-s134-used",
+    )
+    expect(unused.every((summary) => summary.usageCount === 0)).toBe(true)
+  })
+
+  it("applies LIMIT and OFFSET instead of slicing every row", async () => {
+    const all = await repository.listSummaries()
+
+    const firstPage = await repository.listSummaries({ limit: 2, offset: 0 })
+    const secondPage = await repository.listSummaries({ limit: 2, offset: 2 })
+
+    expect(firstPage).toHaveLength(2)
+    expect(secondPage).toHaveLength(2)
+    expect(firstPage.map((summary) => summary.book.id)).toEqual(
+      all.slice(0, 2).map((summary) => summary.book.id),
+    )
+    expect(secondPage.map((summary) => summary.book.id)).toEqual(
+      all.slice(2, 4).map((summary) => summary.book.id),
+    )
   })
 })

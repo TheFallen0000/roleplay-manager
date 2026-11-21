@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 
 import { GetCharacterUseCase } from "./get-character.use-case"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
@@ -140,6 +140,115 @@ describe("GetCharacterUseCase", () => {
         status: item.status,
       })
     }
+  })
+
+  it("resolves linked lorebook summaries in one batch (I1)", async () => {
+    const secondLinkedVersion = CharacterVersion.create({
+      id: "ver-linked-2",
+      characterId: "char-1",
+      name: "Test",
+      subtitle: null,
+      profileImageAssetId: null,
+      description: "Desc",
+      instructions: null,
+      greeting: "Hi",
+      versionNumber: 3,
+      createdAt: now,
+      cards: [],
+      lorebookVersionId: "lv-2",
+    } as never)
+
+    const characterRepository: CharacterRepository = {
+      ...buildRepo(),
+      findById: async () => ({ character, currentVersion: linkedVersion }),
+      findVersionsByCharacterId: async () => [
+        linkedVersion,
+        secondLinkedVersion,
+      ],
+    }
+
+    const versionOne = {
+      id: "lv-1",
+      lorebookId: "book-1",
+      versionNumber: 2,
+      name: "Forest lore",
+      description: null,
+      scanDepth: 4,
+      tokenBudget: 400,
+      recursiveScanning: false,
+      entriesJson: "[]",
+      sourceKey: "a".repeat(64),
+      createdAt: now,
+    }
+    const versionTwo = {
+      ...versionOne,
+      id: "lv-2",
+      lorebookId: "book-2",
+      versionNumber: 1,
+      name: "River lore",
+    }
+    const lorebookRepository = {
+      findVersionsByIds: vi.fn(async (_ids: string[]) => [
+        versionOne,
+        versionTwo,
+      ]),
+      // The plan's contract is `findByIds(ids): Promise<Lorebook[]>`: books
+      // only, because the I1 summary does not need the live entries.
+      findByIds: vi.fn(async (_ids: string[]) => [
+        {
+          id: "book-1",
+          originId: "origin-1",
+          currentVersionId: "lv-1",
+          deletedAt: null,
+        },
+        {
+          id: "book-2",
+          originId: "origin-2",
+          currentVersionId: "lv-2",
+          deletedAt: null,
+        },
+      ]),
+      // Legacy per-id methods stay available but must not drive the mapping.
+      findVersionById: vi.fn(async (_id: string) => versionOne),
+      findById: vi.fn(async (_id: string) => ({
+        book: {
+          id: "book-1",
+          originId: "origin-1",
+          currentVersionId: "lv-1",
+          deletedAt: null,
+        },
+        entries: [],
+      })),
+    }
+
+    const useCase = new GetCharacterUseCase(
+      characterRepository,
+      lorebookRepository as never,
+    )
+    const result = await useCase.execute("char-1")
+
+    expect(lorebookRepository.findVersionsByIds).toHaveBeenCalledTimes(1)
+    const requestedVersionIds = lorebookRepository.findVersionsByIds.mock
+      .calls[0][0] as string[]
+    expect(requestedVersionIds).toHaveLength(2)
+    expect(new Set(requestedVersionIds)).toEqual(new Set(["lv-1", "lv-2"]))
+
+    expect(lorebookRepository.findByIds).toHaveBeenCalledTimes(1)
+    const requestedContainerIds = lorebookRepository.findByIds.mock
+      .calls[0][0] as string[]
+    expect(requestedContainerIds).toHaveLength(2)
+    expect(new Set(requestedContainerIds)).toEqual(
+      new Set(["book-1", "book-2"]),
+    )
+
+    expect(lorebookRepository.findVersionById).not.toHaveBeenCalled()
+    expect(
+      result.versions.map((version) => version.lorebookVersion?.lorebookId),
+    ).toEqual(["book-1", "book-2"])
+    expect(result.currentVersion.lorebookVersion).toMatchObject({
+      versionId: "lv-1",
+      status: "current",
+    })
   })
 
   it("lanza CharacterNotFoundError si no existe", async () => {
