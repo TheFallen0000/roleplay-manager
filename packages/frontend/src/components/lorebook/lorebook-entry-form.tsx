@@ -290,6 +290,18 @@ function KeyListInput({
   // Keep the typed text local so a trailing comma is not normalized away while
   // the user is still writing the next key.
   const [text, setText] = useState(value.join(", "))
+  const [previousValue, setPreviousValue] = useState(value)
+
+  // Adjust the local draft when the prop changes (version switch) without
+  // normalizing a trailing comma while the user is still typing.
+  if (value !== previousValue) {
+    setPreviousValue(value)
+    const currentKeys = splitKeys(text)
+    const unchanged =
+      currentKeys.length === value.length &&
+      currentKeys.every((key, index) => key === value[index])
+    if (!unchanged) setText(value.join(", "))
+  }
 
   return (
     <label className="flex flex-col gap-1 text-xs">

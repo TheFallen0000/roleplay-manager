@@ -57,7 +57,7 @@ export function CharacterCover({
   const spec = cardSpec?.startsWith("3") ? "V3" : cardSpec ? "V2" : "—"
   const initial = name.trim().charAt(0).toUpperCase() || "?"
   const avatar = imageUrl ? (
-    <img src={imageUrl} alt="" />
+    <img src={imageUrl} alt="" decoding="async" fetchPriority="high" />
   ) : (
     <span aria-hidden="true">{initial}</span>
   )
