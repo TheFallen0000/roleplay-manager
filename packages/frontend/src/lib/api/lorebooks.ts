@@ -6,6 +6,7 @@ import type {
   ImportLorebookResult,
   LinkLorebookInput,
   LorebookDTO,
+  LorebookImportFormat,
   LorebookSummaryDTO,
   LorebookUsageDTO,
   LorebookVersionDTO,
@@ -104,7 +105,7 @@ export const restoreLorebookVersion = (
   })
 
 export const importLorebookPreview = (input: {
-  format: LorebookExportFormat
+  format: LorebookImportFormat
   payload: string
 }): Promise<ImportLorebookPreview> =>
   apiRequest("/api/lorebooks/import/preview", {
@@ -113,7 +114,7 @@ export const importLorebookPreview = (input: {
   })
 
 export const importLorebook = (input: {
-  format: LorebookExportFormat
+  format: LorebookImportFormat
   payload: string
   action: ImportLorebookAction
 }): Promise<ImportLorebookResult> =>
