@@ -13,6 +13,7 @@ const buildMemory = (): Memory =>
     title: "Trusts Kael",
     description: "She has started to trust him.",
     priority: 5,
+    type: "fact",
     createdBy: "user",
     updatedBy: "user",
     createdAt: new Date("2026-10-20T10:00:00.000Z"),
@@ -52,6 +53,7 @@ describe("UpdateMemoryUseCase", () => {
       title: "Trusts Kael",
       description: "She has started to trust him.",
       priority: 8,
+      type: "fact",
       createdBy: "user",
       updatedBy: "user",
       createdAt: "2026-10-20T10:00:00.000Z",
@@ -76,6 +78,19 @@ describe("UpdateMemoryUseCase", () => {
       description: "The truce is over.",
       priority: 5,
     })
+  })
+
+  it("changes the memory type", async () => {
+    const repo = buildRepo(buildMemory())
+    const useCase = new UpdateMemoryUseCase(repo)
+
+    const result = await useCase.execute("conv-1", "mem-1", {
+      type: "episode",
+    })
+
+    expect(result.type).toBe("episode")
+    const updated = vi.mocked(repo.update).mock.calls[0]![0]
+    expect(updated.type).toBe("episode")
   })
 
   it("throws a 404 NotFoundError when the memory does not exist", async () => {

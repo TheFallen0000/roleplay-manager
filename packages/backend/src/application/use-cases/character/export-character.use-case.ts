@@ -333,6 +333,7 @@ function toMemoryDTO(m: Memory): MemoryDTO {
     title: m.title,
     description: m.description,
     priority: m.priority,
+    type: m.type,
     createdBy: m.createdBy,
     updatedBy: m.updatedBy,
     createdAt: m.createdAt.toISOString(),

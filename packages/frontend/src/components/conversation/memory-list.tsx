@@ -27,7 +27,15 @@ import { memoryDecayInfo } from "@/lib/format-memory"
 import { groupMemoriesByActor } from "@/lib/group-memories"
 import { listPlayerCharacters } from "@/lib/api/player-characters"
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
-import type { MemoryDTO } from "@workspace/shared/types/memory"
+import type { MemoryDTO, MemoryType } from "@workspace/shared/types/memory"
+
+import { MemoryTypeBadge } from "./memory-type-badge"
+import {
+  ALL_MEMORY_TYPES,
+  MemoryTypeFilterSelect,
+  MemoryTypeSelect,
+  type MemoryTypeFilter,
+} from "./memory-type-select"
 
 interface MemoryListProps {
   conversationId: string
@@ -56,6 +64,10 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState(5)
+  const [type, setType] = useState<MemoryType>("fact")
+  const [typeFilter, setTypeFilter] = useState<MemoryTypeFilter>(
+    ALL_MEMORY_TYPES,
+  )
   const [query, setQuery] = useState("")
   const [playerCharacterName, setPlayerCharacterName] = useState<string | null>(null)
   const [openGroups, setOpenGroups] = usePersistedStringList({
@@ -88,6 +100,7 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
     setTitle("")
     setDescription("")
     setPriority(5)
+    setType("fact")
     setTarget(null)
   }
 
@@ -101,6 +114,7 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
     setTitle(memory.title)
     setDescription(memory.description)
     setPriority(memory.priority)
+    setType(memory.type)
     setTarget(memory)
     setDialogMode("edit")
   }
@@ -116,7 +130,13 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
       return
     }
     try {
-      await createMemory(conversationId, { actor, title, description, priority })
+      await createMemory(conversationId, {
+        actor,
+        title,
+        description,
+        priority,
+        type,
+      })
       toast.success(t("memory.created"))
       setDialogMode(null)
       resetForm()
@@ -128,7 +148,13 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
   const handleEdit = async () => {
     if (!target) return
     try {
-      await updateMemory(conversationId, target.id, { actor, title, description, priority })
+      await updateMemory(conversationId, target.id, {
+        actor,
+        title,
+        description,
+        priority,
+        type,
+      })
       toast.success(t("memory.updated"))
       setDialogMode(null)
       resetForm()
@@ -158,13 +184,16 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
   }
 
   const normalizedQuery = query.trim().toLowerCase()
-  const visibleMemories = normalizedQuery
-    ? memories.filter((memory) =>
-        `${memory.actor} ${memory.title} ${memory.description}`
+  const visibleMemories = memories.filter((memory) => {
+    if (typeFilter !== ALL_MEMORY_TYPES && memory.type !== typeFilter) {
+      return false
+    }
+    return normalizedQuery
+      ? `${memory.actor} ${memory.title} ${memory.description}`
           .toLowerCase()
-          .includes(normalizedQuery),
-      )
-    : memories
+          .includes(normalizedQuery)
+      : true
+  })
 
   const priorityOf = (memory: MemoryDTO) =>
     memoryDecayInfo(memory, conversation, [], memory.turnsSinceUpdate)
@@ -175,13 +204,15 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
     priorityOf,
   })
   const totalActors = new Set(memories.map((memory) => memory.actor)).size
-  const expanded = normalizedQuery
+  const isFiltering =
+    Boolean(normalizedQuery) || typeFilter !== ALL_MEMORY_TYPES
+  const expanded = isFiltering
     ? groups.map((group) => group.actor)
     : openGroups
 
-  // While searching, the expansion follows the matches; only real toggles persist.
+  // While filtering, the expansion follows the matches; only real toggles persist.
   const handleOpenChange = (next: string[]) => {
-    if (normalizedQuery) return
+    if (isFiltering) return
     setOpenGroups(next)
   }
 
@@ -222,6 +253,12 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
               placeholder={t("memory.searchPlaceholder")}
               aria-label={t("memory.searchPlaceholder")}
               className="mt-2 h-8"
+            />
+            <MemoryTypeFilterSelect
+              label={t("memory.typeFilter")}
+              value={typeFilter}
+              onChange={setTypeFilter}
+              className="mt-2 w-full"
             />
             {groups.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -287,10 +324,11 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
                             key={memory.id}
                             className="flex flex-col gap-2 rounded-lg border p-3"
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Badge variant={badgeVariant} title={badgeTitle}>
                                 {info.effectivePriority}
                               </Badge>
+                              <MemoryTypeBadge type={memory.type} />
                               <span className="text-sm font-semibold">
                                 {memory.title}
                               </span>
@@ -348,6 +386,16 @@ export function MemoryList({ conversationId, conversation }: MemoryListProps) {
             <Field>
               <Label htmlFor="memory-description">{t("memory.description")}</Label>
               <Textarea id="memory-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("memory.descriptionPlaceholder")} />
+            </Field>
+            <Field>
+              <Label htmlFor="memory-type">{t("memory.type")}</Label>
+              <MemoryTypeSelect
+                id="memory-type"
+                label={t("memory.type")}
+                value={type}
+                onChange={setType}
+                className="w-full"
+              />
             </Field>
             <Field>
               <Label htmlFor="memory-priority">{t("memory.priorityLabel")}</Label>

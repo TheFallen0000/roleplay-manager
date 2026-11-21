@@ -134,6 +134,7 @@ export class BranchConversationUseCase {
           title: memory.title,
           description: memory.description,
           priority: memory.priority,
+          type: memory.type,
           createdBy: memory.createdBy,
           updatedBy: memory.updatedBy,
           createdAt: memory.createdAt,

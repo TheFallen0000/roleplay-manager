@@ -23,6 +23,7 @@ function toProposalDTO(p: MemoryChangeProposal): MemoryChangeProposalDTO {
     title: p.title,
     description: p.description,
     priority: p.priority,
+    type: p.type,
     status: p.status,
     createdAt: p.createdAt.toISOString(),
     processedAt: p.processedAt?.toISOString() ?? null,

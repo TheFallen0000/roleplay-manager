@@ -1,3 +1,5 @@
+import type { MemoryType } from "./memory"
+
 export type MemoryChangeProposalDTO = {
   id: string
   conversationId: string
@@ -7,6 +9,7 @@ export type MemoryChangeProposalDTO = {
   title: string
   description: string
   priority: number
+  type: MemoryType
   status: "pending" | "applied" | "discarded"
   createdAt: string
   processedAt: string | null
@@ -21,5 +24,6 @@ export type ApplyProposalDecision = {
     title?: string
     description?: string
     priority?: number
+    type?: MemoryType
   }
 }

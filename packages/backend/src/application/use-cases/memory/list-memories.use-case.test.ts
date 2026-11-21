@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest"
 import { ListMemoriesUseCase } from "./list-memories.use-case"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { MessageHistoryRepository } from "../../../domain/ports/message.repository"
+import type { MemoryDTO } from "@workspace/shared/types/memory"
 import { Memory } from "../../../domain/entities/memory.entity"
 
 const buildRepo = (memories: Memory[]): MemoryRepository => ({
@@ -32,6 +33,7 @@ const memory = (id: string, priority: number): Memory =>
     title: `Memory ${id}`,
     description: "A memory.",
     priority,
+    type: id === "mem-2" ? "thread" : "fact",
     createdBy: "user",
     updatedBy: "user",
     createdAt: new Date("2026-10-20T10:00:00.000Z"),
@@ -58,18 +60,21 @@ describe("ListMemoriesUseCase", () => {
 
     expect(result).toHaveLength(2)
     expect(result.map((item) => item.id)).toEqual(["mem-1", "mem-2"])
-    expect(result[1]).toEqual({
+    const expected: MemoryDTO = {
       id: "mem-2",
       conversationId: "conv-1",
       actor: "Lyra",
       title: "Memory mem-2",
       description: "A memory.",
       priority: 8,
+      type: "thread",
       createdBy: "user",
       updatedBy: "user",
       createdAt: "2026-10-20T10:00:00.000Z",
       updatedAt: "2026-10-21T11:00:00.000Z",
       turnsSinceUpdate: 2,
-    })
+    }
+    expect(result[1]).toEqual(expected)
+    expect(result[0].type).toBe("fact")
   })
 })

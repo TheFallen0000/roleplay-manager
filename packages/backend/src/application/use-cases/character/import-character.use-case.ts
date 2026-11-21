@@ -444,6 +444,8 @@ export class ImportCharacterUseCase {
             title: exportedMemory.title,
             description: exportedMemory.description,
             priority: exportedMemory.priority,
+            // Exports captured before S136 carry no type; they import as facts.
+            type: exportedMemory.type ?? "fact",
             createdBy: exportedMemory.createdBy,
             updatedBy: exportedMemory.updatedBy,
             createdAt: this.parseDate(exportedMemory.createdAt, now),

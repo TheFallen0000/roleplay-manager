@@ -1,3 +1,8 @@
+import {
+  isMemoryType,
+  type MemoryType,
+} from "@workspace/shared/types/memory"
+
 import type {
   ToolCall,
   ToolCallDelta,
@@ -46,6 +51,12 @@ export function buildProposeMemoryChangesTool(): ToolDefinition {
             type: "number",
             description:
               "Integer between 1 and 10. Higher means more important and lasts longer. Optional: 5 on CREATE, current value on UPDATE.",
+          },
+          type: {
+            type: "string",
+            enum: ["fact", "episode", "thread"],
+            description:
+              "Memory kind: fact (durable fact), episode (something that happened) or thread (open goal, promise or conflict). Optional: fact on CREATE, current value on UPDATE.",
           },
         },
         required: ["operation"],
@@ -132,6 +143,7 @@ export function toolCallsToRawProposals(calls: ToolCall[]): RawProposal[] {
       title,
       description,
       priority,
+      type: isMemoryType(obj.type) ? (obj.type as MemoryType) : undefined,
     })
   }
 

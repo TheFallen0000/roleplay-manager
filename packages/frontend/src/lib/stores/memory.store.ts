@@ -1,8 +1,27 @@
 import { create } from "zustand"
-import type { MemoryDTO } from "@workspace/shared/types/memory"
+import type {
+  MemoryDTO,
+  CreateMemoryInput,
+  UpdateMemoryInput,
+} from "@workspace/shared/types/memory"
 import type { MemoryChangeProposalDTO, ApplyProposalDecision } from "@workspace/shared/types/memory-change-proposal"
 
 import * as memoriesApi from "@/lib/api/memories"
+
+const mergeMemoriesById = (
+  current: MemoryDTO[],
+  incoming: MemoryDTO[],
+): MemoryDTO[] => {
+  const incomingById = new Map(incoming.map((memory) => [memory.id, memory]))
+  const merged = current.map((memory) => incomingById.get(memory.id) ?? memory)
+  const currentIds = new Set(current.map((memory) => memory.id))
+
+  for (const memory of incoming) {
+    if (!currentIds.has(memory.id)) merged.push(memory)
+  }
+
+  return merged
+}
 
 export interface LastDecayInfo {
   deleted: number
@@ -18,8 +37,8 @@ export interface MemoryState {
 
   loadMemories: (conversationId: string) => Promise<void>
   loadProposals: (conversationId: string) => Promise<void>
-  createMemory: (conversationId: string, input: { actor: string; title: string; description: string; priority?: number }) => Promise<MemoryDTO>
-  updateMemory: (conversationId: string, memoryId: string, input: { actor?: string; title?: string; description?: string; priority?: number }) => Promise<MemoryDTO>
+  createMemory: (conversationId: string, input: CreateMemoryInput) => Promise<MemoryDTO>
+  updateMemory: (conversationId: string, memoryId: string, input: UpdateMemoryInput) => Promise<MemoryDTO>
   deleteMemory: (conversationId: string, memoryId: string) => Promise<void>
   applyProposals: (conversationId: string, decisions: ApplyProposalDecision[]) => Promise<MemoryDTO[]>
   applyAllProposals: (conversationId: string) => Promise<MemoryDTO[]>
@@ -78,15 +97,19 @@ export const useMemoryStore = create<MemoryState>((set) => ({
     const result = await memoriesApi.applyProposals(conversationId, decisions)
     const processedIds = decisions.map((d) => d.proposalId)
     set((state) => ({
+      memories: mergeMemoriesById(state.memories, result.memories),
       proposals: state.proposals.filter((p) => !processedIds.includes(p.id)),
     }))
-    return result
+    return result.memories
   },
 
   applyAllProposals: async (conversationId) => {
     const result = await memoriesApi.applyAllProposals(conversationId)
-    set({ proposals: [] })
-    return result
+    set((state) => ({
+      memories: mergeMemoriesById(state.memories, result.memories),
+      proposals: [],
+    }))
+    return result.memories
   },
 
   runDecay: async (conversationId) => {

@@ -3,7 +3,11 @@ import {
   estimateMessagesTokens,
   estimateTextTokens,
 } from "@workspace/shared/lib/token-estimate"
-import type { ContextManifestDTO, ContextManifestSectionDTO } from "@workspace/shared/types/context"
+import type {
+  ContextManifestDTO,
+  ContextManifestMemorySelectionDTO,
+  ContextManifestSectionDTO,
+} from "@workspace/shared/types/context"
 import type { Locale } from "@workspace/shared/i18n"
 
 import type { CharacterVersion } from "../../domain/entities/character-version.entity"
@@ -30,6 +34,8 @@ export interface ContextCompileInput {
   memories: Memory[]
   /** Memories actually sent in the system prompt. */
   promptMemories: Memory[]
+  /** Per-memory selection detail exposed in the manifest. */
+  memorySelection?: ContextManifestMemorySelectionDTO[]
   summary: Summary | null
   playerCharacter?: { name: string; description: string }
   lorebook?: PromptContextLorebook
@@ -155,6 +161,7 @@ export class ContextCompiler {
           0,
           input.memories.length - input.promptMemories.length,
         ),
+        selection: input.memorySelection ?? [],
       },
       ...(input.lorebook
         ? {

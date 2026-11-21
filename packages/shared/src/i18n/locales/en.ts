@@ -594,7 +594,7 @@ export const en = {
     memoryHint:
       "The following facts about the story or the characters were stored earlier. Use them to stay consistent.",
     memoryLine:
-      "- [{id}] {actor} → {title}: {description} (priority {priority})",
+      "- [{id}] [{type}] {actor} → {title}: {description} (priority {priority})",
     summary: "## Conversation summary",
     proposals: "## Memory change proposals",
     proposalsIntro:
@@ -1261,6 +1261,22 @@ export const en = {
     emptyDescription:
       "Memories are generated automatically during the conversation, or you can create them manually.",
     priority: "Importance: {priority}",
+    type: "Type",
+    typeFilter: "Filter by type",
+    typeAll: "All types",
+    typeFact: "Fact",
+    typeEpisode: "Episode",
+    typeThread: "Thread",
+    selectionTitle: "Memory selection",
+    selectionReason: {
+      actor: "Actor in the message",
+      keyword: "Keyword match",
+      priority: "High priority",
+      thread: "Open thread",
+      budget: "Token budget",
+      decay: "Decayed",
+      notRelevant: "Not relevant",
+    },
     priorityDecayed: {
       one: "Stored importance: {stored} — drops to {effective} after 1 turn",
       other:

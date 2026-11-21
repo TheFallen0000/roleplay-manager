@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Memory**: memories have a type (`fact`, `episode`, `thread`) that can be set
+  when creating or editing a memory, shown as a badge, filtered in the list and
+  included as `[type]` in the prompt; existing memories and older exports
+  default to `fact`.
+- **Memory**: deterministic lexical retrieval selects which memories reach the
+  prompt by actor in the pending message, main actor, keyword hits, effective
+  priority, type and recency, under a token budget derived from the effective
+  window, with a stable order and no new dependencies.
+- **Context**: the manifest lists the memory selection per memory (included or
+  omitted, score and reason: actor, keyword, priority, thread, budget, decay or
+  not relevant) and the context preview renders it.
+- **Evaluation**: retrieval eval over three labeled conversations covering actor
+  noise, keyword-only matches, budget cuts, decayed memories and score ties,
+  alongside the existing context assembly eval.
+
+### Changed
+
+- **Memory**: duplicate CREATE proposals with the same normalized actor and title
+  are applied as an update, and `apply`/`apply-all` return
+  `{ memories, created, updated, discarded }` so the UI can report what
+  happened.
+- **Memory**: the unique index is `(conversation_id, actor, title)`, so two
+  actors can keep a memory with the same title while one actor still cannot
+  duplicate it.
+- **Context**: the prompt memory line shows the type, and the proposal tool and
+  fallback block accept an optional `type` that the server normalizes to `fact`.
+
+### Fixed
+
+- **Chat**: regenerating or continuing a reply keeps the lexical memory signal
+  by using the last user message of the history as the retrieval query.
+- **Memory**: a memory below the decay threshold stays out of the prompt even
+  when its actor or a keyword appears in the message.
+
+### Tests
+
+- Backend coverage for the memory entity, migration 0021, repository, lexical
+  retrieval, consolidation, prompt and tool schema, proposal normalization and
+  export/import; frontend coverage for the type controls, filters and selection
+  preview; regression tests for regenerate/continue and the `thread` decay
+  boundary.
+
 ## [1.58.1] - 2026-11-21
 
 ### Added
