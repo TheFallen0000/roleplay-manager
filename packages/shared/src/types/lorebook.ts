@@ -9,7 +9,9 @@
 
 import type {
   CreateLorebookEntryInput,
+  LorebookDTO,
   LorebookEntryDTO,
+  LorebookExportFormat,
 } from "./sillytavern-card"
 
 export type {
@@ -27,6 +29,8 @@ export interface LorebookSummaryDTO {
   entryCount: number
   originId?: string | null
   usageCount?: number
+  /** Distinct character versions linked to any version of this book. */
+  usageVersionCount?: number
   updatedAt: string
 }
 
@@ -55,6 +59,31 @@ export interface LorebookVersionSummary {
   status: "current" | "outdated" | "deleted"
 }
 
+export interface LorebookUsageVersion {
+  characterVersionId: string
+  characterVersionNumber: number
+  isCurrentCharacterVersion: boolean
+  lorebookVersionNumber: number
+}
+
+export interface LorebookUsageCharacter {
+  characterId: string
+  characterName: string
+  /** Character versions linked to the selected lorebook version. */
+  inUse: LorebookUsageVersion[]
+  /** Character versions linked to older versions of the same book. */
+  history: LorebookUsageVersion[]
+}
+
+export interface LorebookUsageDTO {
+  characters: LorebookUsageCharacter[]
+}
+
+export interface LinkLorebookInput {
+  characterId: string
+  versionId?: string
+}
+
 export interface CreateLorebookInput {
   name: string
   description?: string | null
@@ -71,4 +100,36 @@ export interface UpdateLorebookInput {
   tokenBudget?: number
   recursiveScanning?: boolean
   entries?: CreateLorebookEntryInput[]
+}
+
+export type ImportLorebookAction =
+  | "reuse"
+  | "restore"
+  | "new-version"
+  | "new-book"
+
+export type LorebookImportFormat = "json" | LorebookExportFormat
+
+export interface ImportLorebookPreview {
+  matched: boolean
+  suggestedAction: ImportLorebookAction
+  book?: {
+    id: string
+    name: string | null
+    deleted: boolean
+    matchedVersionNumber?: number | null
+    usedByCharacters?: number
+  }
+}
+
+export interface ImportLorebookResult {
+  action: ImportLorebookAction
+  lorebook: LorebookDTO
+  matchedVersionNumber?: number | null
+}
+
+export interface ImportLorebookInput {
+  format: LorebookImportFormat
+  payload: string
+  action: ImportLorebookAction
 }
