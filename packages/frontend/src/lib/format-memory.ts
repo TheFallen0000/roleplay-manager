@@ -25,6 +25,8 @@ const MEMORY_SELECTION_REASON_KEYS: Record<
   thread: "memory.selectionReason.thread",
   budget: "memory.selectionReason.budget",
   decay: "memory.selectionReason.decay",
+  semantic: "memory.selectionReason.semantic",
+  hybrid: "memory.selectionReason.hybrid",
   "not-relevant": "memory.selectionReason.notRelevant",
 }
 
