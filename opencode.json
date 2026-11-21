@@ -30,6 +30,11 @@
         "url": "https://mcp.docs.astro.build/mcp",
         "disabled": false
       },
+      "Context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "disabled": false
+      },
       "shadcn": {
         "type": "local",
         "command": ["pnpm", "dlx", "shadcn@latest", "mcp"],
