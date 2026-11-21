@@ -702,14 +702,13 @@ cambio en el ensamblado de contexto, se abriría un eval; no se anticipa.
       y biblioteca) con validación `greetingIndex` en el backend.
 - [x] Limpieza I1 (batch sin N+1), N1 (ids sintéticos) y N4 (paginación/filtros
       SQL + `usageVersionCount`) completas.
-- [ ] CHANGELOG `1.50.1`→`[Unreleased]` íntegramente en inglés; entradas nuevas
+- [x] CHANGELOG `1.50.1`→`[Unreleased]` íntegramente en inglés; entradas nuevas
       de S134 en inglés; `AGENTS.md`/`WORKFLOW.md` corregidos; `release-notes.mjs`
       verificado (sin cambio esperado).
-      **Parcial:** las entradas S134 están en inglés y `AGENTS.md`/`WORKFLOW.md`
-      están corregidos; la traducción completa del rango `1.50.1`→`[Unreleased]`
-      queda para una pasada de docs posterior (el resto del rango sigue en
-      español). La estructura de `release-notes.mjs` se verificó por inspección,
-      no por ejecución (shell restringido a git en esta sesión).
+      **Hecho:** todo el rango `1.50.1`→`[Unreleased]` está en inglés; la
+      extracción con `scripts/release-notes.mjs` se verificó para `Unreleased`,
+      `1.57.2`, `1.55.0`, `1.54.9`, `1.50.1` y `1.50.0` (sin cambio en el
+      script).
 - [x] `pnpm check`, tests backend/frontend, `pnpm build` y `pnpm audit --prod`
       en verde; sin archivos >500 líneas; aislamiento de features respetado;
       sin botones muertos; sin migración nueva; sin bump de versión.
@@ -849,12 +848,10 @@ RFC, explica por qué.
   `pnpm-lock.yaml`, módulos nativos ni empaquetado.
 - **Prueba manual:** no ejecutada en esta sesión (sin navegador); el
   comportamiento de UI está cubierto por las suites RTL.
-- **Release notes:** `node scripts/release-notes.mjs` no se pudo ejecutar en esta
-  sesión (shell restringido a metadatos git). Verificado por inspección del
-  script y de `CHANGELOG.md`: extrae desde la línea `## [<version>]` hasta la
-  siguiente cabecera `## [`; `## [Unreleased]` (línea 8) corta en `## [1.57.2]`
-  (línea 179) y `## [1.50.1]` (línea 552) corta en `## [1.50.0]` (línea 577), así
-  que ambas secciones se siguen extrayendo. Sin cambio en el script.
+- **Release notes:** `node scripts/release-notes.mjs` verificado para
+  `Unreleased`, `1.57.2`, `1.55.0`, `1.54.9`, `1.50.1` y `1.50.0` (vía
+  `pnpm node`; sin cambio en el script). Todas las secciones extraídas son no
+  vacías y en inglés; `1.50.0` sigue siendo la sección ya inglesa.
 
 ## Review
 
@@ -953,12 +950,16 @@ Este commit de docs recoge `## Decisiones`, `## Verificación`, `## Review`,
 política de `AGENTS.md`/`docs/10-slices/WORKFLOW.md` y el PR body
 (`S134-pr-body.md`). Siguiente etapa: `S134-release.md`.
 
+Queda pendiente de commit la pasada de docs que completa la traducción de
+`CHANGELOG.md` (`1.50.1`→`1.54.9`); todavía no tiene hash en esta lista.
+
 ## CHANGELOG
 
 Entradas añadidas a `CHANGELOG.md` bajo `[Unreleased]`, en inglés y en formato
-Keep a Changelog (sin bump de versión). El resto de `[Unreleased]` sigue en
-español; la traducción completa de `1.50.1`→`[Unreleased]` queda para una pasada
-de docs posterior.
+Keep a Changelog (sin bump de versión). Todo el rango `1.50.1`→`[Unreleased]`
+está ahora en inglés; `1.50.0` y las secciones anteriores quedan sin tocar (ya
+estaban en inglés). La traducción de `1.50.1`→`1.54.9` se hizo en esta pasada de
+docs, sin cambios de cabeceras, versiones, fechas, enlaces ni URLs.
 
 - **Added:** Complete lorebook library with standalone book creation, in-use/unused
   filters and a detail page with Identity, Settings, Entries, Versions, Link and
