@@ -6,6 +6,7 @@ import type { ProviderId } from "@workspace/shared/types/provider"
 import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { MESSAGE_STYLES, isMessageStyle } from "@workspace/shared/lib/message-style"
 import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
+import { isSafeWorkingWindow } from "@workspace/shared/lib/context-window"
 import {
   clampContextWindow,
   clampOutputTokens,
@@ -181,10 +182,16 @@ export class UpdateConversationSettingsUseCase {
     const finalMaxTokens =
       input.maxTokens !== undefined ? input.maxTokens : conv.maxTokens
     if (input.workingWindow !== undefined && input.workingWindow !== null) {
-      if (finalWindow === null || input.workingWindow > finalWindow) {
+      if (
+        !isSafeWorkingWindow({
+          contextWindow: finalWindow,
+          workingWindow: input.workingWindow,
+          maxTokens: finalMaxTokens,
+        })
+      ) {
         throw new DomainError(
           "INVALID_CONTEXT_BUDGET",
-          "The working window must fit inside the context window.",
+          "The working window must leave room for the reply inside the context window.",
         )
       }
     }
@@ -195,9 +202,11 @@ export class UpdateConversationSettingsUseCase {
     ) {
       const storedWorkingWindow = conv.workingWindow
       if (
-        finalWindow === null ||
-        storedWorkingWindow > finalWindow ||
-        storedWorkingWindow + finalMaxTokens >= finalWindow
+        !isSafeWorkingWindow({
+          contextWindow: finalWindow,
+          workingWindow: storedWorkingWindow,
+          maxTokens: finalMaxTokens,
+        })
       ) {
         input.workingWindow = null
       }
