@@ -232,6 +232,7 @@ export class ChatEngine {
       excludedCount: loaded.excludedMessageId ? 1 : 0,
       memories: loaded.memories,
       promptMemories: loaded.promptMemories,
+      memorySelection: loaded.memorySelection,
       summary: contextSummary,
       playerCharacter: loaded.playerCharacter,
       lorebook: loaded.lorebook,
