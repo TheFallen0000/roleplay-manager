@@ -423,7 +423,9 @@ const buildTieScenario = (): MemoryRetrievalEvalFixture => {
     character: mkCharacter(),
     characterVersion: mkVersion(),
     playerCharacter: mkPlayerCharacter(),
-    messages: baseMessages("conv-5"),
+    // No history means no decayed turns: every tied memory stays eligible, so
+    // the scenario measures score tie-breaks instead of keyword revival.
+    messages: [],
     pendingMessage,
     memories,
     relevantIds: relevant.map((memory) => memory.id),

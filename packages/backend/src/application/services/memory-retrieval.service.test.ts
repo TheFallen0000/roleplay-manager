@@ -187,6 +187,10 @@ describe("selectMemoriesForPrompt", () => {
     }
     const result = select({
       memories: [
+        mkMemory("mem-4", {
+          ...base,
+          title: "alfa bravo charlie delta",
+        }),
         mkMemory("mem-5", {
           ...base,
           title: "alfa bravo charlie delta echo",
@@ -204,12 +208,11 @@ describe("selectMemoriesForPrompt", () => {
       pendingMessage,
     })
 
-    expect(selectionOf(result, "mem-5")?.score).toBeLessThan(
-      selectionOf(result, "mem-6")?.score ?? 0,
-    )
-    expect(selectionOf(result, "mem-6")?.score).toBe(
-      selectionOf(result, "mem-10")?.score,
-    )
+    const score = (id: string) => selectionOf(result, id)?.score ?? 0
+
+    expect(score("mem-4")).toBeLessThan(score("mem-5"))
+    expect(score("mem-5")).toBe(score("mem-6"))
+    expect(score("mem-6")).toBe(score("mem-10"))
   })
 
   it("includes a thread without a lexical hit", () => {
@@ -219,7 +222,9 @@ describe("selectMemoriesForPrompt", () => {
           actor: "Marcus",
           title: "Promesa pendiente",
           type: "thread",
-          priority: 3,
+          // Above the decay threshold: the test measures the thread entry rule,
+          // not a thread-specific decay exemption.
+          priority: 4,
         }),
       ],
       pendingMessage: "Cae la noche.",
@@ -271,6 +276,25 @@ describe("selectMemoriesForPrompt", () => {
     expect(result.memories).toEqual([])
   })
 
+  it("keeps a below-threshold memory out even when the actor and a keyword match", () => {
+    const result = select({
+      memories: [
+        mkMemory("mem-decayed-signal", {
+          actor: "Lyra",
+          title: "Bosque",
+          priority: 2,
+        }),
+      ],
+      pendingMessage: "Lyra busca el bosque.",
+    })
+
+    expect(selectionOf(result, "mem-decayed-signal")).toMatchObject({
+      included: false,
+      reason: "decay",
+    })
+    expect(result.memories).toEqual([])
+  })
+
   it("does not enter by priority when the effective priority is below 8", () => {
     const conversation = mkConversation({
       memoryDecayThreshold: 1,
@@ -312,21 +336,27 @@ describe("selectMemoriesForPrompt", () => {
   })
 
   it("makes recency decrease with the turns since the update and stop at 50", () => {
+    // Priority 10 keeps every fixture above the default decay threshold at the
+    // turn counts used here, so the scores still measure recency.
     const fresh = mkMemory("mem-fresh", {
       title: "Bosque",
+      priority: 10,
       // Updated after every counted message: zero turns, maximum recency.
       updatedAt: new Date(now.getTime() + 60 * 60_000),
     })
     const tenTurnsOld = mkMemory("mem-old", {
       title: "Bosque",
+      priority: 10,
       updatedAt: now,
     })
     const fiftyTurnsOld = mkMemory("mem-50", {
       title: "Bosque",
+      priority: 10,
       updatedAt: new Date(now.getTime() - 60 * 60_000),
     })
     const sixtyTurnsOld = mkMemory("mem-60", {
       title: "Bosque",
+      priority: 10,
       updatedAt: new Date(now.getTime() - 60 * 60_000),
     })
 
@@ -341,10 +371,7 @@ describe("selectMemoriesForPrompt", () => {
 
     const capped = select({
       memories: [fiftyTurnsOld, sixtyTurnsOld],
-      messages: [
-        ...userMessages(50, now),
-        ...userMessages(60, new Date(now.getTime() - 30 * 60_000)),
-      ],
+      messages: userMessages(60),
       pendingMessage: "El bosque.",
     })
     expect(selectionOf(capped, "mem-50")?.score).toBe(
@@ -363,7 +390,9 @@ describe("selectMemoriesForPrompt", () => {
     })
     const sameTimeB = mkMemory("mem-b", { title: "Bosque", updatedAt: now })
     const sameTimeA = mkMemory("mem-a", { title: "Bosque", updatedAt: now })
-    const messages = userMessages(60)
+    // No turns have elapsed, so both stay decay-eligible: the tie-breakers
+    // under test are updatedAt and id, not the decay gate.
+    const messages: { role: string; createdAt: Date }[] = []
 
     const byUpdatedAt = select({
       memories: [older, newer],

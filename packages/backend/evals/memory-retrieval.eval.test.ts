@@ -5,6 +5,7 @@ import { estimateTextTokens } from "@workspace/shared/lib/token-estimate"
 
 import { ConversationContextLoader } from "../src/application/services/conversation-context-loader.service"
 import { ContextCompiler } from "../src/application/services/context-compiler.service"
+import { MemoryDecayPolicy } from "../src/domain/value-objects/memory-decay-policy"
 import type { CharacterRepository } from "../src/domain/ports/character.repository"
 import type { ConversationRepository } from "../src/domain/ports/conversation.repository"
 import type { MemoryRepository } from "../src/domain/ports/memory.repository"
@@ -308,5 +309,22 @@ describe("memory retrieval eval", () => {
       .filter((id) => /^m5-[a-f]$/.test(id))
 
     expect(ids).toEqual(["m5-a", "m5-b", "m5-c", "m5-d", "m5-e", "m5-f"])
+  })
+
+  it("tie scenario keeps every tied memory decay-eligible", () => {
+    const tieFixture = memoryRetrievalFixtures[4]
+    const policy = MemoryDecayPolicy.fromConversation(tieFixture.conversation)
+    const tied = tieFixture.memories.filter((memory) =>
+      tieFixture.relevantIds.includes(memory.id),
+    )
+
+    expect(tied).toHaveLength(6)
+    for (const memory of tied) {
+      const turns = policy.turnsSince(memory.updatedAt, tieFixture.messages)
+      expect(
+        policy.isPromptEligible(memory.priority, turns),
+        `${memory.id} should be above the decay threshold`,
+      ).toBe(true)
+    }
   })
 })
