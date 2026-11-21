@@ -12,6 +12,7 @@ import type { LorebookRepository } from "../../../../domain/ports/lorebook.repos
 
 import {
   buildLorebookEntities,
+  isRecord,
   serializeLorebookEntries,
   toLorebookCanonicalContent,
   toLorebookDTO,
@@ -146,9 +147,21 @@ export class ImportLorebookStandaloneUseCase {
     parsed: ParsedLorebookImport,
     kind: LorebookMatchKind,
   ): Promise<ImportLorebookResult> {
-    const originId =
-      kind === "deleted-different" ? randomUUIDv7() : parsed.originId
-    const book = parsed.entities.book.withOriginId(originId)
+    const freshOrigin = kind === "deleted-different"
+    const originId = freshOrigin ? randomUUIDv7() : parsed.originId
+    const baseBook = parsed.entities.book.withOriginId(originId)
+    const extensions = isRecord(baseBook.extensions)
+      ? baseBook.extensions
+      : {}
+    const rm = isRecord(extensions.rm) ? extensions.rm : {}
+    const book = freshOrigin
+      ? baseBook.withSettings({
+          extensions: {
+            ...extensions,
+            rm: { ...rm, originId },
+          },
+        })
+      : baseBook
     const entries = parsed.entities.entries
 
     const version = LorebookVersion.create({
