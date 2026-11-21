@@ -1,11 +1,15 @@
 # S134 — Biblioteca de lorebooks completa y versionado
 
-**Estado:** Aprobado
+**Estado:** En progreso
 **Inicio:** 2026-11-14
 **Fin:** —
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
+
+**Situación:** implementación, tests, revisión independiente y documentación
+completos; solo queda la preparación de release (`S134-release.md`). El
+orquestador marcará `Completado` al cerrar esa etapa.
 
 ## Descripción
 
@@ -675,36 +679,42 @@ cambio en el ensamblado de contexto, se abriría un eval; no se anticipa.
 
 ## Criterios de aceptación
 
-- [ ] Crear un lorebook standalone → v1, sin personaje.
-- [ ] Editar crea una versión nueva; las versiones antiguas son de solo lectura.
-- [ ] La estantería lista libros en uso/sin usar con versión actual, entradas y
+- [x] Crear un lorebook standalone → v1, sin personaje.
+- [x] Editar crea una versión nueva; las versiones antiguas son de solo lectura.
+- [x] La estantería lista libros en uso/sin usar con versión actual, entradas y
       uso real («Usado por N personajes · M versiones» / «Sin usar»), paginada en SQL.
-- [ ] El detalle muestra historial, uso por versión (agrupado por personaje,
+- [x] El detalle muestra historial, uso por versión (agrupado por personaje,
       `actual`/`histórica`) y versión antigua read-only.
-- [ ] «Restaurar como versión nueva» crea una versión nueva a partir de una
+- [x] «Restaurar como versión nueva» crea una versión nueva a partir de una
       antigua (no-op si ya es la actual).
-- [ ] «Vincular a un personaje» crea una versión nueva del personaje con esa
+- [x] «Vincular a un personaje» crea una versión nueva del personaje con esa
       versión del libro; no muta versiones previas.
-- [ ] Soft delete con el aviso de `docs/16` §5.1; las versiones de personaje
+- [x] Soft delete con el aviso de `docs/16` §5.1; las versiones de personaje
       siguen funcionando y el personaje muestra «Lorebook eliminado».
-- [ ] Reimportar un libro idéntico ofrece reconstruir el historial con
+- [x] Reimportar un libro idéntico ofrece reconstruir el historial con
       confirmación explícita (no silenciosa); contenido distinto crea un libro
       nuevo; un libro eliminado idéntico se restaura al confirmar.
-- [ ] Import/export por libro/versión en CCv3 y ST native con `origin_id`/
+- [x] Import/export por libro/versión en CCv3 y ST native con `origin_id`/
       `source_key` estables y `extensions.rm`/`unknownFields` preservados.
-- [ ] El import de card (`PUT /characters/:id/card`) conserva el comportamiento
+- [x] El import de card (`PUT /characters/:id/card`) conserva el comportamiento
       S133 (sin matching) — decisión documentada.
-- [ ] Selector de saludo alternativo al iniciar conversación (detalle, versiones
+- [x] Selector de saludo alternativo al iniciar conversación (detalle, versiones
       y biblioteca) con validación `greetingIndex` en el backend.
-- [ ] Limpieza I1 (batch sin N+1), N1 (ids sintéticos) y N4 (paginación/filtros
+- [x] Limpieza I1 (batch sin N+1), N1 (ids sintéticos) y N4 (paginación/filtros
       SQL + `usageVersionCount`) completas.
 - [ ] CHANGELOG `1.50.1`→`[Unreleased]` íntegramente en inglés; entradas nuevas
       de S134 en inglés; `AGENTS.md`/`WORKFLOW.md` corregidos; `release-notes.mjs`
       verificado (sin cambio esperado).
-- [ ] `pnpm check`, tests backend/frontend, `pnpm build` y `pnpm audit --prod`
+      **Parcial:** las entradas S134 están en inglés y `AGENTS.md`/`WORKFLOW.md`
+      están corregidos; la traducción completa del rango `1.50.1`→`[Unreleased]`
+      queda para una pasada de docs posterior (el resto del rango sigue en
+      español). La estructura de `release-notes.mjs` se verificó por inspección,
+      no por ejecución (shell restringido a git en esta sesión).
+- [x] `pnpm check`, tests backend/frontend, `pnpm build` y `pnpm audit --prod`
       en verde; sin archivos >500 líneas; aislamiento de features respetado;
-      sin botones muertos; UI fiel a los prototipos; sin migración nueva; sin
-      bump de versión.
+      sin botones muertos; sin migración nueva; sin bump de versión.
+      **Nota:** la fidelidad visual a los prototipos no se revalidó manualmente
+      en navegador en esta sesión; la UI está cubierta por las suites RTL.
 
 ## Red tests
 
@@ -778,20 +788,87 @@ cambio en el ensamblado de contexto, se abriría un eval; no se anticipa.
 Decisiones tomadas durante la implementación y su justificación. Si cambia el
 RFC, explica por qué.
 
+- **Sin migración nueva.** Se reutiliza el schema de `0020`
+  (`origin_id`, `current_version_id`, `deleted_at`, `source_key`,
+  `lorebook_version_id` y sus índices); no hay `0021`. Soft delete, uso, restore
+  y matching caben en las columnas existentes.
+- **Errata del RFC — uso «Historial».** «Historial» son solo las versiones de
+  personaje que usan versiones **anteriores** del libro
+  (`versionNumber < seleccionada`), no «cualquier otra»; una versión de personaje
+  que usa una versión más nueva no aparece. Queda fijado por
+  `docs/10-slices/S134-test-plan.md` y por el test de uso.
+- **Errata del RFC — restore de versión.** Restaurar una versión no actual
+  **siempre** crea una versión nueva (aunque el `sourceKey` coincida con la
+  cabeza actual, se permite duplicarlo); restaurar la versión actual responde 200
+  con `createdNewVersion: false` y no escribe. No hay 409
+  `LOREBOOK_VERSION_CURRENT`.
+- **Matriz de acciones de import.** `live-different` solo acepta `new-version` en
+  este slice; `new-book` para un libro vivo con contenido distinto **no** se
+  implementa (habría requerido otra fila de matching y otra rama de
+  `IMPORT_ACTION_MISMATCH`).
+- **`IMPORT_STALE_MATCH` acotado.** Solo cubre el caso que el usuario resolvió:
+  `reuse` confirmado cuando el libro ya está `deleted-identical`. Las demás
+  transiciones preview→confirmación incompatibles responden
+  `IMPORT_ACTION_MISMATCH` (también 409; la UI reejecuta el preview).
+- **Matching del import de card fuera.** `PUT /api/characters/:id/card` conserva
+  el comportamiento S133 (libro nuevo + v1, sin matcher); el matcher se cablea
+  solo en `POST /lorebooks/import`.
+- **`origin_id` nuevo en `deleted-different → new-book`.** El contenedor recibe un
+  `randomUUIDv7()` nuevo y también se reescribe `extensions.rm.originId` para que
+  el DTO no exponga un `originId` fresco junto a un `extensions.rm.originId`
+  antiguo (fix `8196a9e`); el libro eliminado conserva el suyo.
+- **`buildLorebookEntities` acepta `string | null`.** El import standalone no
+  tiene personaje propietario; el `characterId` pasa a `null` y la firma lo
+  refleja en lugar de forzar un id ficticio.
+- **Export por versión aditivo.** `mergeExtensions` fusiona `extensions.rm`
+  (`version: 1`, `originId`) preservando las claves desconocidas de libro y
+  entrada, tanto en CCv3 como en ST native; los exports S133 sin `originId` siguen
+  importando por `source_key`.
+- **N1 conserva un `id` explícito.** `withSyntheticEntryId` respeta un `id` ya
+  presente en el DTO antes de derivar `sourceId` o `entry-<índice>`, de modo que
+  un round-trip del snapshot no reescribe ids válidos.
+- **Ajuste de test solo por timing.** `character-list.test.tsx` envuelve la misma
+  aserción en `waitFor` porque el picker resuelve versiones de forma asíncrona;
+  no se relaja ningún contrato.
+
 ## Verificación
 
-- Tests: ...
-- `pnpm check`: ...
-- `pnpm build`: ...
-- `pnpm audit --prod`: ...
-- Release dry-run: ...
-- Prueba manual: ...
+- **Backend:** `pnpm --filter @workspace/backend test` → 166 archivos / 1078 tests
+  en verde.
+- **Frontend:** `pnpm --filter @workspace/frontend exec vitest run` → 93 archivos /
+  488 tests en verde.
+- **Eval (ancla S129):** `pnpm --filter @workspace/backend eval` → 1 archivo / 33
+  tests en verde.
+- **`pnpm check`:** pasa (`check:arch` 7/7, typecheck 5/5, lint 5/5).
+- **`pnpm build`:** 4/4 tareas correctas. El build regeneró
+  `packages/website/src/data/release.json` (1.47.0→1.57.2); ese snapshot generado
+  se restauró y no forma parte del slice.
+- **`pnpm audit --prod`:** sin vulnerabilidades conocidas.
+- **`git diff --check`:** limpio.
+- **Release dry-run:** no aplica; el slice no cambia `package.json`,
+  `pnpm-lock.yaml`, módulos nativos ni empaquetado.
+- **Prueba manual:** no ejecutada en esta sesión (sin navegador); el
+  comportamiento de UI está cubierto por las suites RTL.
+- **Release notes:** `node scripts/release-notes.mjs` no se pudo ejecutar en esta
+  sesión (shell restringido a metadatos git). Verificado por inspección del
+  script y de `CHANGELOG.md`: extrae desde la línea `## [<version>]` hasta la
+  siguiente cabecera `## [`; `## [Unreleased]` (línea 8) corta en `## [1.57.2]`
+  (línea 179) y `## [1.50.1]` (línea 552) corta en `## [1.50.0]` (línea 577), así
+  que ambas secciones se siguen extrayendo. Sin cambio en el script.
 
 ## Review
 
-- **Estado:** pendiente | PASS | PASS WITH NOTES | BLOCKED
-- **Informe:** `docs/10-slices/S134-review.md`
-- **Bloqueantes resueltos:** ...
+- **Estado:** PASS WITH NOTES
+- **Informe:** `docs/10-slices/S134-review.md` (commit `bf52267`).
+- **Bloqueantes/majors:** ninguno. La revisión validó contrato RFC,
+  clarificaciones de uso/restore, matriz de import, export, saludo, limpieza y
+  fronteras de la UI.
+- **Corregidos:** MINOR 1 (stale `extensions.rm.originId` en `new-book` de
+  `deleted-different`, `8196a9e`), MINOR 2 (claves i18n muertas
+  `lorebooks.usageCount`/`exportReadOnly`, `eeb05e4`) y NIT 3 (tipo `format`
+  alineado con `LorebookImportFormat`, `455680c`). La re-revisión del delta
+  confirmó los tres commits sin hallazgos nuevos.
+- **Pendiente (aceptado):** NIT 4 y NIT 5, recogidos en `## Deferred`.
 
 ## Riesgos
 
@@ -810,60 +887,105 @@ RFC, explica por qué.
 
 ## Deferred
 
+- **NIT 4 — `IMPORT_STALE_MATCH` acotado.** Solo cubre `reuse` confirmado sobre
+  un libro ya `deleted-identical`; otras transiciones preview→confirmación
+  incompatibles (por ejemplo `new-version` confirmado tras un soft delete, que
+  pasa a `deleted-different`) responden `IMPORT_ACTION_MISMATCH`. Ambos son 409 y
+  la UI reejecuta el preview, así que no bloquea.
+- **NIT 5 — libros frescos con `origin_id = null`.** Un libro creado a mano, o un
+  `new-book` importado sin `originId`, no tiene huella de origen; el matching por
+  `origin_id` solo aplica a libros que vienen de una card (S133) o de un import
+  standalone con origen. Es intencional y el round-trip es estable.
+- **N3 (`extensions.rm` emite `subtitle`/`instructions` en `null`):** cosmético,
+  `field loss = 0`; sigue fuera para no tocar el round-trip de card. Sin cambios
+  respecto a S133.
 - **Matching en `PUT /api/characters/:id/card`:** conserva S133 (libro+v1); el
-  matcher se cablea solo en `POST /lorebooks/import`. Reutilizar el matcher en el
-  import de card es un seguimiento opcional (requiere diseñar confirmación dentro
-  del flujo de card).
+  matcher se cablea solo en `POST /lorebooks/import`. Reutilizarlo en el import de
+  card es un seguimiento opcional (requiere diseñar confirmación dentro del flujo
+  de card).
 - **Export interno RM schema v2 (`docs/16` §11.2).** No es necesario para los
   flujos aprobados; no se toca `EXPORT_SCHEMA_VERSION`.
-- **N3 (`extensions.rm` emite `subtitle`/`instructions` en `null`):** cosmético,
-  `field loss = 0`; dejado fuera para no tocar el round-trip de card.
 - **Drop físico de `lorebooks.character_id`** y **limpieza de versiones
   huérfanas** → limpieza futura.
 - **`nickname` en `extensions.rm`** → sin aprobar.
 - **Múltiples lorebooks por versión de personaje, grupos, timed effects,
   probabilidad, decoradores, assets V3, prompt manager de ST** → fuera.
-- **Release post-S134 (`1.58.0`)** → `/release` aparte.
+- **Release post-S134 (`1.58.0`)** → `/release` aparte; este slice no bumpa
+  versión, no crea tag ni publica release.
 
 ## Commits
 
-(Orden por capas; sin bump de versión, tag ni release.)
+Lista real de la slice (orden cronológico; sin bump de versión ni release).
 
-1. `feat(shared): add lorebook usage, import and greeting types`
-2. `feat(backend): add lorebook soft delete, restore, usage and link use cases`
-3. `feat(backend): add standalone lorebook import with origin/source matching`
-4. `feat(backend): export lorebook by version with origin fingerprint`
-5. `feat(backend): select alternate greeting when creating a conversation`
-6. `refactor(backend): batch lorebook summaries and paginate in SQL` (I1/N1/N4)
-7. `feat(frontend): add lorebook usage, link, delete and import surfaces`
-8. `feat(frontend): add alternate-greeting picker at conversation start`
-9. `test(backend): cover S134 use cases, routes and import reconstruction`
-10. `test(frontend): cover lorebook and greeting-picker surfaces`
-11. `docs(changelog): translate 1.50.1..Unreleased to English` (commit **separado**
-    de docs: CHANGELOG completo en inglés + `AGENTS.md` + `docs/10-slices/WORKFLOW.md`)
-12. `docs(slice): record S134 RFC, review and changelog entries`
+**Documentación y tests**
+
+1. `91b0bd7` — `docs(slice): approve S134 RFC`
+2. `ef5ee20` — `docs(slice): add S134 test plan`
+3. `7f0462c` — `test(backend): add S134 red tests`
+4. `7593463` — `docs(slice): record S134 backend red tests`
+5. `fa14818` — `test(frontend): add S134 red tests`
+6. `cb78288` — `docs(slice): record S134 frontend red tests`
+
+**Implementación**
+
+7. `31afcf2` — `feat(shared): add S134 lorebook usage, import and greeting types`
+8. `9053d58` — `feat(backend): add lorebook soft delete, restore, usage and link`
+9. `f05ad9a` — `feat(backend): add standalone lorebook import and version export`
+10. `a52f6c2` — `feat(backend): select alternate greeting when creating a conversation`
+11. `cab11be` — `feat(frontend): add S134 lorebook library and detail surfaces`
+12. `3eff58b` — `feat(frontend): add alternate-greeting picker`
+13. `a0c3576` — `refactor(backend): batch lorebook summaries and paginate in SQL` (I1/N1/N4)
+14. `f6dd006` — `feat(shared): add S134 copy and remove S133 placeholders`
+
+**Cierre y correcciones de review**
+
+15. `1b27ceb` — `test(frontend): await version lookup in character list`
+16. `1a007c3` — `fix(frontend): keep S134 lorebook effects lint-clean`
+17. `8196a9e` — `fix(backend): refresh origin fingerprint on imported new book`
+18. `eeb05e4` — `chore(shared): drop dead S134 i18n keys`
+19. `455680c` — `refactor(frontend): align lorebook import format type`
+20. `1d6cd62` — `chore(agents): let slice-docs update AGENTS.md`
+21. `e86ff0f` — `chore(agents): let slice-docs verify release notes`
+22. `bf52267` — `docs(slice): add S134 review`
+
+Este commit de docs recoge `## Decisiones`, `## Verificación`, `## Review`,
+`## Deferred`, `## Commits`, `## CHANGELOG`, las entradas de `CHANGELOG.md`, la
+política de `AGENTS.md`/`docs/10-slices/WORKFLOW.md` y el PR body
+(`S134-pr-body.md`). Siguiente etapa: `S134-release.md`.
 
 ## CHANGELOG
 
-Entradas en inglés bajo `[Unreleased]` (no se edita `CHANGELOG.md` aquí):
+Entradas añadidas a `CHANGELOG.md` bajo `[Unreleased]`, en inglés y en formato
+Keep a Changelog (sin bump de versión). El resto de `[Unreleased]` sigue en
+español; la traducción completa de `1.50.1`→`[Unreleased]` queda para una pasada
+de docs posterior.
 
-- **Added:** Complete lorebook library: create standalone books, list with
-  in-use/unused filters, and a detail page with Identity, Settings, Entries,
-  Versions, Link and Danger sections.
-- **Added:** Full lorebook version history; old versions are read-only and can be
-  restored as a new version.
-- **Added:** Usage by version grouped by character («In use by» and «History»).
-- **Added:** Link a lorebook to a character from the book, creating a new
+- **Added:** Complete lorebook library with standalone book creation, in-use/unused
+  filters and a detail page with Identity, Settings, Entries, Versions, Link and
+  Danger sections.
+- **Added:** Full lorebook version history; previous versions are read-only and can
+  be restored as a new version.
+- **Added:** Usage by version grouped by character ("In use by" and "History"),
+  with real character and version counts on the shelf.
+- **Added:** Link a book to a character from the book itself, creating a new
   character version.
-- **Added:** Soft delete with a warning; linked character versions keep working
-  and the book is restored by re-importing it.
-- **Added:** Standalone import/export per book/version (CCv3 and ST native) with
-  `origin_id`/`source_key` matching and explicit history reconstruction.
-- **Added:** Alternate-greeting picker when starting a conversation.
-- **Changed:** The lorebook shelf paginates and filters in SQL and shows real
-  usage («Used by N characters · M versions» or «Unused»).
-- **Fixed:** The character detail no longer performs an N+1 lookup for linked
-  lorebook versions; version entries expose stable synthetic ids.
+- **Added:** Soft delete with a warning; character versions that used the book keep
+  working and the book is restored by importing it again.
+- **Added:** Standalone import and export per book and version in CCv3 and ST
+  native, with `origin_id`/`source_key` matching, an import preview and explicit
+  history reconstruction. Export per version carries `extensions.rm.originId`
+  additively and preserves unknown keys.
+- **Added:** Alternate-greeting picker at conversation start, applied to the first
+  message of the new conversation.
+- **Changed:** The lorebook shelf paginates and filters in SQL and shows real usage
+  ("Used by N characters · M versions" or "Unused").
+- **Fixed:** The character detail resolves linked lorebook versions in batches
+  instead of one lookup per version, and version entries expose stable synthetic
+  ids so snapshots round-trip between the editor and the API.
+- **Fixed:** Importing a deleted book with different content gives the new book a
+  fresh `origin_id` (including `extensions.rm.originId`).
+- **Removed:** The obsolete `**S134**` Changed entry that announced the deferred
+  lorebook actions as «S134»; they are now real features.
 
 ## Open questions (gate)
 
