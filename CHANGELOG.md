@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Tooling**: Context7 MCP for versioned library documentation and a
+  `modern-web-guidance` skill/CLI for web platform guidance.
+- **Tooling**: `backend-database-review` skill with a hexagonal Drizzle/SQLite
+  checklist.
+- **Docs**: S135 modern web and backend/database audit reports.
+
+### Changed
+
+- **Characters**: card preview, import and update fallbacks (description and
+  greeting) follow the request `Accept-Language` instead of always using
+  English.
+- **Context**: the working-window boundary is shared by the effective-window
+  resolver and the conversation settings cleanup, so a window that leaves
+  exactly the reply reserve is accepted consistently.
+- **Lorebooks**: the shelf order uses `created_at, id` for stable pagination.
+- **Website**: the committed release snapshot is refreshed to 1.58.0.
+
+### Fixed
+
+- **Chat**: pressing Enter during an IME composition no longer sends the
+  message; the input also has an accessible name.
+- **Lorebooks**: reordering entries rejects ids from another book and
+  duplicates instead of silently updating them.
+- **Cards**: exported `extensions.rm` omits `subtitle`/`instructions` when they
+  are null and clears stale imported values, so clearing a field in the editor
+  survives the export.
+- **Lorebooks**: the key list input resyncs when the selected version changes
+  while preserving a trailing comma during typing.
+- **Frontend**: reduced-motion preferences, text wrapping and image
+  loading/decoding hints are applied consistently.
+- **Tooling**: removed the unused `MAX_CARD_JSON_BYTES` constant.
+- **Website**: release fetch script messages are in English.
+
 ## [1.58.0] - 2026-11-21
 
 ### Added

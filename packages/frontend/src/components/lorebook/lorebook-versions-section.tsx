@@ -39,7 +39,7 @@ export function LorebookVersionsSection({
         </p>
       ) : (
         <ul className="rm-version-list">
-          {[...versions].reverse().map((version) => {
+          {versions.toReversed().map((version) => {
             const isCurrent = version.id === lorebook?.currentVersionId
             const isSelected = version.id === selectedVersionId
             return (

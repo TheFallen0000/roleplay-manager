@@ -43,7 +43,7 @@ export interface ChatState {
 }
 
 const sortByPosition = (messages: MessageDTO[]): MessageDTO[] =>
-  [...messages].sort((a, b) => a.position - b.position)
+  messages.toSorted((a, b) => a.position - b.position)
 
 export const useChatStore = create<ChatState>((set) => ({
   messages: [],

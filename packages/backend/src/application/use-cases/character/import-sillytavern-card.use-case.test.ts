@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 
+import { translate } from "@workspace/shared/i18n"
+
 import { ImportSillyTavernCardUseCase } from "./import-sillytavern-card.use-case"
 import { pngCardAdapter } from "../../../infrastructure/adapters/secondary/sillytavern/png-card.adapter"
 import { buildCardPngFixture } from "../../../test-utils/png-fixtures"
@@ -113,6 +115,34 @@ describe("ImportSillyTavernCardUseCase", () => {
       tokenBudget: 400,
     })
     expect(writeBook.entries).toHaveLength(1)
+  })
+
+  it("persists the localized fallbacks for the requested locale", async () => {
+    const repos = buildRepos()
+
+    await buildUseCase(repos).execute({
+      format: "json",
+      locale: "es",
+      payload: JSON.stringify(
+        buildV3Card({
+          description: "   ",
+          first_mes: "",
+          alternate_greetings: [],
+        })
+      ),
+    })
+
+    const [, version] = (
+      repos.characterRepository.createWithFirstVersion as ReturnType<
+        typeof vi.fn
+      >
+    ).mock.calls[0]
+    expect(version.description).toBe(
+      translate("es", "characters.cardFallbackDescription")
+    )
+    expect(version.greeting).toBe(
+      translate("es", "characters.cardFallbackGreeting")
+    )
   })
 
   it("imports a V1 JSON card (import-only) with unknown root fields", async () => {

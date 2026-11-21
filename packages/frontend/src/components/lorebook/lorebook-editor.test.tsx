@@ -1,4 +1,9 @@
-import { render as rtlRender, screen, cleanup } from "@testing-library/react"
+import {
+  render as rtlRender,
+  screen,
+  cleanup,
+  fireEvent,
+} from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import type * as React from "react"
 
@@ -60,6 +65,51 @@ describe("LorebookEditor", () => {
 
     expect(screen.getByText("Dragon lore")).toBeInTheDocument()
     expect(screen.getByText("dragon")).toBeInTheDocument()
+  })
+
+  it("resyncs the key input when the entry changes", () => {
+    const { rerender } = render(
+      <LorebookEditor
+        value={{ name: "Forest lore", entries: [entry] }}
+        onChange={() => {}}
+      />
+    )
+
+    expect(
+      (screen.getByLabelText("Keys", { exact: true }) as HTMLInputElement).value
+    ).toBe("dragon")
+
+    rerender(
+      <I18nProvider initialLocale="es">
+        <LorebookEditor
+          value={{
+            name: "Forest lore",
+            entries: [{ ...entry, keys: ["forest", "river"] }],
+          }}
+          onChange={() => {}}
+        />
+      </I18nProvider>
+    )
+
+    expect(
+      (screen.getByLabelText("Keys", { exact: true }) as HTMLInputElement).value
+    ).toBe("forest, river")
+  })
+
+  it("keeps a trailing comma while the user is typing", () => {
+    render(
+      <LorebookEditor
+        value={{ name: "Forest lore", entries: [entry] }}
+        onChange={() => {}}
+      />
+    )
+
+    const keys = screen.getByLabelText("Keys", {
+      exact: true,
+    }) as HTMLInputElement
+    fireEvent.change(keys, { target: { value: "dragon, " } })
+
+    expect(keys.value).toBe("dragon, ")
   })
 
   it("notifies changes when adding an entry", () => {

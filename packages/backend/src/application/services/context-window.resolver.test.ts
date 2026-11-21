@@ -21,6 +21,16 @@ describe("resolveEffectiveWindow", () => {
     ).toEqual({ window: 128, outputReserve: 0, net: true })
   })
 
+  it("accepts the exact reply-reserve boundary as net", () => {
+    expect(
+      resolveEffectiveWindow({
+        contextWindow: 10_000,
+        workingWindow: 8_000,
+        maxTokens: 2_000,
+      }),
+    ).toEqual({ window: 8_000, outputReserve: 0, net: true })
+  })
+
   it("falls back to the raw window when the working window is not usable", () => {
     const cases = [null, undefined, 0, -5, Number.NaN, 8_000, 9_000]
 

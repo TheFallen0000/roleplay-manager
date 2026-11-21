@@ -68,11 +68,15 @@ export function MessageInput({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={t("chat.inputPlaceholder")}
+          aria-label={t("chat.inputLabel")}
           className="max-h-50 min-h-11 resize-none"
           rows={1}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault()
+              // Safari reports the confirming Enter after compositionend, so
+              // keyCode 229 is still needed besides the standard check.
+              if (e.nativeEvent.isComposing || e.keyCode === 229) return
               handleSubmit(e)
             }
           }}

@@ -39,5 +39,5 @@ export function sortCharacters(
     : (character: CharacterSummary) =>
         recencyValue(character, lastActivityByCharacter)
 
-  return [...characters].sort((a, b) => (valueOf(a) - valueOf(b)) * direction)
+  return characters.toSorted((a, b) => (valueOf(a) - valueOf(b)) * direction)
 }

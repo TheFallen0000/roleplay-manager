@@ -201,6 +201,8 @@ export function BackgroundImageInput({
               )}
               alt=""
               aria-hidden
+              loading="lazy"
+              decoding="async"
               className={cn(
                 "size-full",
                 fit === "contain" ? "object-contain" : "object-cover",

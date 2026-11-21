@@ -89,7 +89,7 @@ export function VersionsSection({ state }: { state: CharacterPageState }) {
         </p>
       ) : (
         <ul className="rm-version-list">
-          {[...versions].reverse().map((version) => {
+          {versions.toReversed().map((version) => {
             const isCurrent =
               character?.currentVersion.id === version.id
             return (

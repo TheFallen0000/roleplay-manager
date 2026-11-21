@@ -256,4 +256,26 @@ describe("UpdateCharacterCardUseCase — card PUT", () => {
       translate("en", "characters.cardFallbackGreeting"),
     )
   })
+
+  it("uses the requested locale for the fallbacks", async () => {
+    const harness = buildDeps()
+    const useCase = new UpdateCharacterCardUseCase(harness.deps as never)
+
+    await useCase.execute({
+      characterId: "char-1",
+      locale: "es",
+      payload: buildV3Card({
+        description: "   ",
+        first_mes: "",
+        alternate_greetings: [],
+      }),
+    })
+
+    expect(harness.savedVersion?.description).toBe(
+      translate("es", "characters.cardFallbackDescription"),
+    )
+    expect(harness.savedVersion?.greeting).toBe(
+      translate("es", "characters.cardFallbackGreeting"),
+    )
+  })
 })

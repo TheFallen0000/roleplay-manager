@@ -20,7 +20,7 @@ interface CapabilitiesSnapshot {
 
 interface RequestOptions {
   refresh?: boolean
-  conversationOverride?: { maxTokens?: number | null }
+  conversationOverride?: { maxTokens?: number }
 }
 
 const buildOptions = (

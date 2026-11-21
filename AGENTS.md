@@ -466,3 +466,27 @@ Every non-trivial task is delivered as a **slice** (`SX`) with the same lifecycl
   `chore(release): vX.Y.Z` PR at the end of the batch.
 - After the release: verify `SHA256SUMS`/`SHA256SUMS.sig`, start the artifact,
   run the smoke test and confirm the website deploy.
+
+---
+
+## 12. Agent tooling and modern web policy
+
+- **Context7 MCP** (`opencode.json`) resolves versioned library documentation
+  before changing React, Astro, Vite, Tailwind, Base UI, Drizzle, Express, Zod
+  or Vitest APIs. The server is read-only and works without a key. For a higher
+  rate limit, add the `CONTEXT7_API_KEY` header in your local config (for
+  example `{env:CONTEXT7_API_KEY}`) and never commit the value.
+- **`modern-web-guidance`** (`.opencode/skills/modern-web-guidance`) wraps the
+  official Chrome guidance CLI. Use `pnpx modern-web-guidance@latest search`,
+  `retrieve` and `legacy-scan`; the guide corpus is not vendored. For any UI,
+  CSS, form, accessibility, performance or client-side browser API change,
+  consult the relevant guide before writing a custom solution.
+- **`backend-database-review`** (`.opencode/skills/backend-database-review`) is
+  the checklist for use cases, repository ports, Drizzle schemas, migrations,
+  indexes, N+1, pagination, transactions and API error contracts. Run it for
+  backend reviews and schema changes.
+- **Browser support:** Baseline **widely available** features need no fallback.
+  For newer features, follow the guide's fallback or use progressive
+  enhancement. Do not add a polyfill or a heavy dependency without approval.
+- **No vendored guide corpora.** Keep third-party skills in `.agents/skills/`
+  with `skills-lock.json`; internal skills live in `.opencode/skills/`.

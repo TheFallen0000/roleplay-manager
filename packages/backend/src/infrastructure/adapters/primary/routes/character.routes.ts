@@ -18,6 +18,7 @@ import type { GetCharacterAssetUseCase } from "../../../../application/use-cases
 import type { ApplySettingsTemplateUseCase } from "../../../../application/use-cases/character/apply-settings-template.use-case"
 import { parseMultipartBody } from "../middlewares/multipart"
 import { validate } from "../middlewares/validation"
+import { resolveRequestLocale } from "../request-locale"
 
 import type { CharacterExport, ExportSection } from "@workspace/shared/types/export"
 import {
@@ -250,6 +251,7 @@ export const buildCharacterRouter = (deps: {
       const result = await deps.updateCharacterCard!.execute({
         characterId: req.params.id,
         payload: req.body,
+        locale: resolveRequestLocale(req.header("accept-language")),
       })
       res.json(result)
     } catch (error) {

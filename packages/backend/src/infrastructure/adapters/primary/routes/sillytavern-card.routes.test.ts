@@ -99,8 +99,27 @@ describe("sillytavern card routes", () => {
     expect(deps.previewSillyTavernCard.execute).toHaveBeenCalledWith({
       format: "json",
       payload: '{"name":"Lyra"}',
+      locale: "en",
     })
     expect(deps.importSillyTavernCard.execute).not.toHaveBeenCalled()
+  })
+
+  it("forwards the request locale to the card use cases", async () => {
+    const { baseUrl, deps } = await startServer()
+
+    const response = await fetch(`${baseUrl}/characters/cards/preview`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept-Language": "es-ES,es;q=0.9",
+      },
+      body: JSON.stringify({ format: "json", payload: '{"name":"Lyra"}' }),
+    })
+
+    expect(response.status).toBe(200)
+    expect(deps.previewSillyTavernCard.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ locale: "es" }),
+    )
   })
 
   it("imports a card and returns 201", async () => {
@@ -117,6 +136,7 @@ describe("sillytavern card routes", () => {
     expect(deps.importSillyTavernCard.execute).toHaveBeenCalledWith({
       format: "png",
       payload: "iVBORw0KGgo=",
+      locale: "en",
     })
   })
 
@@ -255,6 +275,7 @@ describe("sillytavern card routes", () => {
     expect(updateCharacterCard.execute).toHaveBeenCalledWith({
       characterId: "char-1",
       payload: envelope,
+      locale: "en",
     })
   })
 

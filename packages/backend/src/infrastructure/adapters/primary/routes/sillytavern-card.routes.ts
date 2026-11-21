@@ -4,6 +4,7 @@ import { z } from "zod"
 import type { ImportSillyTavernCardUseCase } from "../../../../application/use-cases/character/import-sillytavern-card.use-case"
 import type { PreviewSillyTavernCardUseCase } from "../../../../application/use-cases/character/preview-sillytavern-card.use-case"
 import type { ExportSillyTavernCardUseCase } from "../../../../application/use-cases/character/export-sillytavern-card.use-case"
+import { resolveRequestLocale } from "../request-locale"
 
 const CardPayloadSchema = z.object({
   format: z.enum(["json", "png"]),
@@ -26,7 +27,12 @@ export const buildSillyTavernCardRouter = (deps: {
   router.post("/characters/cards/preview", async (req, res, next) => {
     try {
       const input = CardPayloadSchema.parse(req.body)
-      res.json(await deps.previewSillyTavernCard.execute(input))
+      res.json(
+        await deps.previewSillyTavernCard.execute({
+          ...input,
+          locale: resolveRequestLocale(req.header("accept-language")),
+        }),
+      )
     } catch (error) {
       next(error)
     }
@@ -35,7 +41,12 @@ export const buildSillyTavernCardRouter = (deps: {
   router.post("/characters/cards/import", async (req, res, next) => {
     try {
       const input = CardPayloadSchema.parse(req.body)
-      res.status(201).json(await deps.importSillyTavernCard.execute(input))
+      res.status(201).json(
+        await deps.importSillyTavernCard.execute({
+          ...input,
+          locale: resolveRequestLocale(req.header("accept-language")),
+        }),
+      )
     } catch (error) {
       next(error)
     }

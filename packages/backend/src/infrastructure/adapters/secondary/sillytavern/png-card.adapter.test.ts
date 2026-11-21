@@ -2,7 +2,6 @@ import { describe, expect, it, vi, afterEach } from "vitest"
 
 import {
   buildCardPng,
-  MAX_CARD_JSON_BYTES,
   MAX_CARD_PNG_BYTES,
   MAX_DECODED_CARD_JSON_BYTES,
   MAX_IDAT_DECOMPRESSED_BYTES,
@@ -212,7 +211,6 @@ describe("PNG card adapter — injectable limits", () => {
   })
 
   it("exports the RFC defaults", () => {
-    expect(MAX_CARD_JSON_BYTES).toBe(5 * 1024 * 1024)
     expect(MAX_CARD_PNG_BYTES).toBe(10 * 1024 * 1024)
     expect(MAX_PNG_CHUNKS).toBe(512)
     expect(MAX_TEXT_CHUNK_BYTES).toBe(8 * 1024 * 1024)
