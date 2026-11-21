@@ -8,6 +8,21 @@ import type { MemoryChangeProposalDTO, ApplyProposalDecision } from "@workspace/
 
 import * as memoriesApi from "@/lib/api/memories"
 
+const mergeMemoriesById = (
+  current: MemoryDTO[],
+  incoming: MemoryDTO[],
+): MemoryDTO[] => {
+  const incomingById = new Map(incoming.map((memory) => [memory.id, memory]))
+  const merged = current.map((memory) => incomingById.get(memory.id) ?? memory)
+  const currentIds = new Set(current.map((memory) => memory.id))
+
+  for (const memory of incoming) {
+    if (!currentIds.has(memory.id)) merged.push(memory)
+  }
+
+  return merged
+}
+
 export interface LastDecayInfo {
   deleted: number
   at: string
@@ -82,7 +97,7 @@ export const useMemoryStore = create<MemoryState>((set) => ({
     const result = await memoriesApi.applyProposals(conversationId, decisions)
     const processedIds = decisions.map((d) => d.proposalId)
     set((state) => ({
-      memories: result.memories,
+      memories: mergeMemoriesById(state.memories, result.memories),
       proposals: state.proposals.filter((p) => !processedIds.includes(p.id)),
     }))
     return result.memories
@@ -90,7 +105,10 @@ export const useMemoryStore = create<MemoryState>((set) => ({
 
   applyAllProposals: async (conversationId) => {
     const result = await memoriesApi.applyAllProposals(conversationId)
-    set({ memories: result.memories, proposals: [] })
+    set((state) => ({
+      memories: mergeMemoriesById(state.memories, result.memories),
+      proposals: [],
+    }))
     return result.memories
   },
 
