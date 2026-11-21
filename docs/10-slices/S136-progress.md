@@ -343,3 +343,5 @@ Decisiones ya cerradas en el RFC:
 17. `c19a7d9` `test(backend): cover S136 regenerate and thread boundary`
 18. `5e881d8` `fix(backend): keep lexical signal on regenerate`
 19. `d6858ff` `refactor(backend): avoid history scan when a pending message exists`
+20. `590a756` `docs(slice): add S136 review report`
+21. `e15723b` `docs(slice): close S136 and update roadmap`
