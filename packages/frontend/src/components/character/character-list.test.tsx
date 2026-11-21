@@ -165,9 +165,11 @@ describe("CharacterList", () => {
       ),
     )
 
-    expect(mocks.createConversation).toHaveBeenCalledWith({
-      characterId: "char-2",
-    })
+    await waitFor(() =>
+      expect(mocks.createConversation).toHaveBeenCalledWith({
+        characterId: "char-2",
+      }),
+    )
     await waitFor(() =>
       expect(window.location.href).toBe("/conversations/conv-new"),
     )
