@@ -1,8 +1,8 @@
 # S135 — Engineering refinement: modern web, nits y skill backend/DB
 
-**Estado:** En progreso
+**Estado:** Completado
 **Inicio:** 2026-11-21
-**Fin:** —
+**Fin:** 2026-11-21
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -284,7 +284,11 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 - `release.json`: 1.58.0 con los cinco assets.
 - `pnpm check`, `pnpm build` y `pnpm audit --prod`: verdes.
 - `git diff --check`: limpio.
-- Revisión visual desktop/móvil: pendiente en la etapa de review.
+- Release dry-run: no aplica (sin cambios de empaquetado, lockfile ni módulos
+  nativos).
+- Revisión visual desktop/móvil: no realizada; los cambios son CSS/atributos
+  progresivos, sin cambios de layout, cubiertos por typecheck, tests y revisión
+  estática.
 
 ## Review
 
@@ -329,3 +333,9 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 10. `152aaef` `docs(slice): record S135 audits, roadmap and changelog`
 11. `41eb126` `fix(backend): stabilize lorebook shelf ordering`
 12. `93087e8` `docs(tooling): clarify the optional Context7 key`
+13. `075bc16` `fix(backend): make normalized rm fields authoritative`
+14. `e6c85b9` `fix(backend): align lorebook reorder validation errors`
+15. `abba618` `refactor(backend): reuse the working window guard on import`
+16. `3e18581` `test(backend): cover localized card fallbacks per use case`
+17. `8f338d8` `fix(frontend): isolate IME checks and label the chat input`
+18. `c8db941` `docs(slice): add the S135 review report`

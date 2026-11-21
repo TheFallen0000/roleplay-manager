@@ -75,7 +75,9 @@ se acepta y queda documentado en el código.
 - `pnpm --filter @workspace/frontend exec vitest run`: 94 archivos / 495 tests.
 - Nuevo `message-input.test.tsx`: nombre accesible, Enter, IME nativo, fallback
   Safari y Shift+Enter.
-- Revisión visual manual pendiente en la etapa de review (desktop y móvil).
+- Revisión visual manual no realizada: los cambios son progresivos
+  (movimiento, tipografía y atributos de imagen) y no alteran el layout; se
+  validan con typecheck, tests y revisión estática.
 
 ## Disparadores para reabrir lo diferido
 
