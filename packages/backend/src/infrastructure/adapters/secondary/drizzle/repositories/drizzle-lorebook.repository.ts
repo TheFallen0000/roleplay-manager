@@ -351,7 +351,7 @@ export class DrizzleLorebookRepository implements LorebookRepository {
       .select()
       .from(lorebooks)
       .where(isNull(lorebooks.deletedAt))
-      .orderBy(lorebooks.createdAt)
+      .orderBy(lorebooks.createdAt, lorebooks.id)
 
     return rows.map(toBook)
   }
@@ -401,7 +401,7 @@ export class DrizzleLorebookRepository implements LorebookRepository {
         eq(lorebooks.currentVersionId, lorebookVersions.id),
       )
       .where(and(...conditions))
-      .orderBy(lorebooks.createdAt)
+      .orderBy(lorebooks.createdAt, lorebooks.id)
 
     const rows = await (input.limit === undefined && input.offset === undefined
       ? query

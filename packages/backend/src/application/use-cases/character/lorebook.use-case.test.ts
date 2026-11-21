@@ -386,7 +386,10 @@ describe("lorebook use cases — get, update and CRUD", () => {
   })
 
   it("reorders entries", async () => {
-    const repos = buildRepos({ book: book(), entries: [entry()] })
+    const repos = buildRepos({
+      book: book(),
+      entries: [entry(), entry({ id: "entry-2", sourceId: "8" })],
+    })
     const useCase = new ReorderLorebookEntriesUseCase(repos as never)
 
     await useCase.execute({

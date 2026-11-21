@@ -1,5 +1,6 @@
 import { v7 as randomUUIDv7 } from "uuid"
 
+import type { Locale } from "@workspace/shared/i18n"
 import type { CharacterSummary } from "@workspace/shared/types/character"
 import type { SillyTavernCardFormat } from "@workspace/shared/types/sillytavern-card"
 import {
@@ -32,6 +33,7 @@ export interface ImportSillyTavernCardDeps {
 export interface ImportSillyTavernCardInput {
   format: SillyTavernCardFormat
   payload: string
+  locale?: Locale
 }
 
 export class ImportSillyTavernCardUseCase {
@@ -41,7 +43,11 @@ export class ImportSillyTavernCardUseCase {
     input: ImportSillyTavernCardInput,
   ): Promise<CharacterSummary> {
     const decoded = decodeCardPayload(input, this.deps.cardPng)
-    const fields = cardDataToVersionFields(decoded.data, decoded.root)
+    const fields = cardDataToVersionFields(
+      decoded.data,
+      decoded.root,
+      input.locale,
+    )
 
     const size = validateCardFieldSize(decoded.data)
     if (!size.ok) {

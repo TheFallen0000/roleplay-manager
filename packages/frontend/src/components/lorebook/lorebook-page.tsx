@@ -183,7 +183,7 @@ function LorebookPageContent({ lorebookId }: { lorebookId?: string }) {
                   }}
                   aria-label={t("lorebooks.versionLabel")}
                 >
-                  {[...versions].reverse().map((version) => (
+                  {versions.toReversed().map((version) => (
                     <option key={version.id} value={version.id}>
                       v{version.versionNumber}
                       {version.id === lorebook?.currentVersionId

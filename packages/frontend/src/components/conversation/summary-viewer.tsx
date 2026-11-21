@@ -65,7 +65,7 @@ export function SummaryViewer({
     setDialogMode("delete")
   }
 
-  const sortedSummaries = [...summaries].sort(
+  const sortedSummaries = summaries.toSorted(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   )
 

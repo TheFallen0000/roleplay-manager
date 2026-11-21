@@ -25,7 +25,7 @@
 | Versionado de lorebook            | **Editar crea una versión nueva.** Nombre, descripción, ajustes y entradas se versionan; las versiones antiguas son de solo lectura.                                                   |
 | Destino de los flujos de creación | **Páginas dedicadas.** El diálogo «Crear» solo elige; `/characters/new` y `/lorebooks/new` contienen los formularios.                                                                  |
 | Editor de personaje               | **Página con secciones y nav sticky.** Sin tabs; anclas y barra de guardado.                                                                                                           |
-| Secuencia                         | **Personaje → Lorebooks → memoria/retrieval.** S133 personaje + versionado de lorebooks; S134 biblioteca completa; S135 vuelve a memoria.                                              |
+| Secuencia                         | **Personaje → Lorebooks → memoria/retrieval.** S133 personaje + versionado de lorebooks; S134 biblioteca completa; S135 refinamiento; S136 vuelve a memoria.                                              |
 | Crear personaje                   | **Esenciales + card + fichas + lorebook opcional** en la misma página, con avanzados plegados.                                                                                         |
 | Lorebook dentro del personaje     | **Resumen de la versión enlazada + enlace.** La edición vive en la sección Lorebooks.                                                                                                  |
 | Dirección visual                  | **Ink & Violet existente.** No se crea un mundo nuevo; se extiende el sistema actual.                                                                                                  |
@@ -795,9 +795,10 @@ huérfanas.
 
 | Slice | Contenido                                             |
 | ----- | ----------------------------------------------------- |
-| S135  | Memoria estructurada + retrieval (antes S133)         |
-| S136  | Políticas de contexto fast/balanced/deep (antes S134) |
-| S137  | Tokenizer real y presupuesto (antes S135)             |
+| S135  | Refinamiento de ingeniería (modern web, nits, skill backend/DB) |
+| S136  | Memoria estructurada + retrieval (antes S133)         |
+| S137  | Políticas de contexto fast/balanced/deep (antes S134) |
+| S138  | Tokenizer real y presupuesto (antes S135)             |
 
 Actualizar la numeración en `docs/03-roadmap.md` y `PM-backlog.md` cuando el
 plan se apruebe.
@@ -949,7 +950,7 @@ decisiones concretan el plan y deben pasar al RFC de S133/S134:
 10. **¿Cómo se borra un lorebook?** Recomendación: soft delete del contenedor;
     versiones conservadas; restauración al reimportar.
 11. **¿Reconstrucción en S134 o después?** Recomendación: S134 si cabe; si no,
-    guardar `source_key` y dejar la UI para S135.
+    guardar `source_key` y dejar la UI para S136.
 12. **¿La creación real empieza vacía o con un ejemplo precargado?**
     Recomendación: vacía con placeholders; el contenido precargado es solo una
     demo del prototipo para enseñar el placeholder al borrar.

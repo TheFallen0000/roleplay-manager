@@ -180,7 +180,7 @@ export function ProfileImageInput({
             aria-label={t("characters.fieldProfileImage")}
           >
             {imageSrc ? (
-              <img src={imageSrc} alt={name} />
+              <img src={imageSrc} alt={name} decoding="async" />
             ) : (
               <ImagePlusIcon className="size-6" />
             )}

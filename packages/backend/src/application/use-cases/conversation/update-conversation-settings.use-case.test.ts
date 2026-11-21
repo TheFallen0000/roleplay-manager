@@ -437,6 +437,49 @@ describe("UpdateConversationSettingsUseCase", () => {
     expect(capturedSettings.workingWindow).toBe(5_735)
   })
 
+  it("keeps a stored working window that leaves exactly the reply reserve", async () => {
+    const conversation = Conversation.create({
+      id: "conv-1",
+      versionId: "ver-1",
+      title: null,
+      titleSource: null,
+      model: null,
+      provider: null,
+      providerInstanceId: null,
+      recentMessageCount: 10,
+      summaryFrequency: 20,
+      contextWindow: 10_000,
+      workingWindow: 8_000,
+      compactionThreshold: 80,
+      temperature: 0.7,
+      maxTokens: 2_000,
+      topP: 0.9,
+      frequencyPenalty: 0,
+      presencePenalty: 0,
+      stopSequences: [],
+      memoryProposalMode: "auto",
+      createdAt: now,
+      updatedAt: now,
+    })
+    const useCase = buildUseCase(conversation)
+
+    await useCase.execute("conv-1", { contextWindow: 10_000 })
+
+    expect(capturedSettings.workingWindow).toBeUndefined()
+  })
+
+  it("rejects an explicit working window that leaves no room for the reply", async () => {
+    const useCase = buildUseCase()
+
+    await expect(
+      useCase.execute("conv-1", {
+        contextWindow: 10_000,
+        maxTokens: 2_000,
+        workingWindow: 8_001,
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_CONTEXT_BUDGET" })
+  })
+
   it("clears the stored working window when the raw window is lowered", async () => {
     const conversation = Conversation.create({
       id: "conv-1",

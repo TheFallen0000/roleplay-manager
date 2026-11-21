@@ -131,7 +131,12 @@ export function CharacterRail({ state }: { state: CharacterPageState }) {
         <div className="rm-preview-card">
           <div className="rm-preview-cover">
             {previewImage ? (
-              <img src={previewImage} alt="" />
+              <img
+                src={previewImage}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <span aria-hidden="true">
                 {state.name.trim().charAt(0).toUpperCase() || "?"}

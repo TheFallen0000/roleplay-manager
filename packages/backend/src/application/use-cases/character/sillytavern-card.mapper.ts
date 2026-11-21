@@ -1,4 +1,4 @@
-import { translate } from "@workspace/shared/i18n"
+import { translate, type Locale } from "@workspace/shared/i18n"
 import type {
   RmExtensions,
   SillyTavernCardWarning,
@@ -210,7 +210,10 @@ export function withRmExtensions(
     if (value !== undefined) mergedRm[key] = value
   }
   if (!isRecord(extensions)) return { rm: mergedRm }
-  const currentRm = isRecord(extensions.rm) ? extensions.rm : {}
+  const currentRm = isRecord(extensions.rm) ? { ...extensions.rm } : {}
+  // The normalized version fields are authoritative: drop stale known keys so
+  // clearing a value in the editor removes the imported value on export.
+  for (const key of RM_KEYS) delete currentRm[key]
   return { ...extensions, rm: { ...currentRm, ...mergedRm } }
 }
 
@@ -250,6 +253,7 @@ export const parseCardRoot = (payload: unknown): ParsedCardRoot => {
 export function cardDataToVersionFields(
   data: unknown,
   root?: unknown,
+  locale: Locale = "en",
 ): CardVersionFields {
   const dataRecord = isRecord(data) ? data : {}
   const rootRecord = isRecord(root) ? root : undefined
@@ -272,7 +276,7 @@ export function cardDataToVersionFields(
   const rawDescription = asString(dataRecord.description)
   const description =
     rawDescription.trim() === ""
-      ? translate("en", "characters.cardFallbackDescription")
+      ? translate(locale, "characters.cardFallbackDescription")
       : rawDescription
   if (rawDescription.trim() === "") warnings.push("EMPTY_DESCRIPTION")
 
@@ -283,7 +287,7 @@ export function cardDataToVersionFields(
       greeting = alternateGreetings[0]
       alternateGreetings = alternateGreetings.slice(1)
     } else {
-      greeting = translate("en", "characters.cardFallbackGreeting")
+      greeting = translate(locale, "characters.cardFallbackGreeting")
       warnings.push("EMPTY_GREETING")
     }
   }
@@ -497,11 +501,11 @@ export function versionFieldsToCardData(
   const tags = asStringArray(version.tags)
   if (tags.length > 0) data.tags = tags
 
-  const rm: RmExtensions = {
-    version: 1,
-    subtitle: asOptionalString(version.subtitle),
-    instructions: asOptionalString(version.instructions),
-  }
+  const rm: RmExtensions = { version: 1 }
+  const subtitle = asOptionalString(version.subtitle)
+  if (subtitle !== null) rm.subtitle = subtitle
+  const instructions = asOptionalString(version.instructions)
+  if (instructions !== null) rm.instructions = instructions
   const knowledgeCards = toKnowledgeCards(version.cards)
   if (knowledgeCards !== undefined && knowledgeCards.length > 0) {
     rm.knowledgeCards = knowledgeCards

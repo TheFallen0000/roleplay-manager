@@ -1,5 +1,6 @@
 import { v7 as randomUUIDv7 } from "uuid"
 
+import type { Locale } from "@workspace/shared/i18n"
 import type { CharacterCardEnvelope } from "@workspace/shared/types/sillytavern-card"
 import {
   MAX_LOREBOOK_ENTRIES,
@@ -43,6 +44,7 @@ export interface UpdateCharacterCardDeps {
 export interface UpdateCharacterCardInput {
   characterId: string
   payload: unknown
+  locale?: Locale
 }
 
 export class UpdateCharacterCardUseCase {
@@ -55,7 +57,11 @@ export class UpdateCharacterCardUseCase {
     if (!found) throw new CharacterNotFoundError(input.characterId)
 
     const parsed = parseCardRoot(input.payload)
-    const fields = cardDataToVersionFields(parsed.data, parsed.root)
+    const fields = cardDataToVersionFields(
+      parsed.data,
+      parsed.root,
+      input.locale,
+    )
 
     const size = validateCardFieldSize(parsed.data)
     if (!size.ok) {

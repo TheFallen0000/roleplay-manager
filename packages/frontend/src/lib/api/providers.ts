@@ -45,8 +45,8 @@ export const getModelCapabilities = async (
   options?: {
     refresh?: boolean
     conversationOverride?: {
-      contextWindow?: number | null
-      maxTokens?: number | null
+      contextWindow?: number
+      maxTokens?: number
     }
   },
 ): Promise<ModelCapabilitiesResult> => {

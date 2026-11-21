@@ -405,7 +405,7 @@ lorebook que ya existen.
 
 Aprobar la dirección **card-first, motor RM** y convertirla en dos slices
 después de cerrar S132 (o repriorizar si el usuario quiere que salga antes que
-S133–S135). No reescribir el núcleo ni portar el prompt manager de ST.
+S133–S136). No reescribir el núcleo ni portar el prompt manager de ST.
 
 El orden sugerido:
 

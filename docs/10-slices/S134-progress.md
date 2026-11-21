@@ -7,9 +7,10 @@
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
 
-**Situación:** implementación, tests, revisión independiente y documentación
-completos; solo queda la preparación de release (`S134-release.md`). El
-orquestador marcará `Completado` al cerrar esa etapa.
+**Situación:** implementación, tests, revisión independiente, documentación y
+release checks completos. S134 se integró en `master` (`62a9dd1`, PR #144) y se
+publicó en la release batcheada `v1.58.0` (`7ba77d6`, PR #146); el informe final
+está en `S134-release.md`.
 
 ## Descripción
 
@@ -848,10 +849,9 @@ RFC, explica por qué.
   `pnpm-lock.yaml`, módulos nativos ni empaquetado.
 - **Prueba manual:** no ejecutada en esta sesión (sin navegador); el
   comportamiento de UI está cubierto por las suites RTL.
-- **Release notes:** `node scripts/release-notes.mjs` verificado para
-  `Unreleased`, `1.57.2`, `1.55.0`, `1.54.9`, `1.50.1` y `1.50.0` (vía
-  `pnpm node`; sin cambio en el script). Todas las secciones extraídas son no
-  vacías y en inglés; `1.50.0` sigue siendo la sección ya inglesa.
+- **Release notes:** `scripts/release-notes.mjs` extrae secciones no vacías y en
+  inglés para `1.58.0` y `1.50.1` (sin cambio en el script). `Unreleased` queda
+  vacío tras la release, como se espera.
 
 ## Review
 
@@ -919,8 +919,8 @@ RFC, explica por qué.
 - **`nickname` en `extensions.rm`** → sin aprobar.
 - **Múltiples lorebooks por versión de personaje, grupos, timed effects,
   probabilidad, decoradores, assets V3, prompt manager de ST** → fuera.
-- **Release post-S134 (`1.58.0`)** → `/release` aparte; este slice no bumpa
-  versión, no crea tag ni publica release.
+- **Release post-S134:** publicada como `v1.58.0` (`7ba77d6`, PR #146); la
+  release batcheada es independiente de la implementación del slice.
 
 ## Commits
 
@@ -962,16 +962,16 @@ Lista real de la slice (orden cronológico; sin bump de versión ni release).
 26. `bb891a2` — `docs(slice): complete S134 changelog translation and report`
 
 El cierre documental incluye `S134-release.md` (auditoría read-only PASS) y este
-commit de estado final. No hay bump de versión, tag ni release: la publicación
-`1.58.0` es un `/release` separado.
+commit de estado final. La publicación `v1.58.0` se hizo en `7ba77d6` (PR #146),
+fuera de la slice.
 
 ## CHANGELOG
 
-Entradas añadidas a `CHANGELOG.md` bajo `[Unreleased]`, en inglés y en formato
-Keep a Changelog (sin bump de versión). Todo el rango `1.50.1`→`[Unreleased]`
-está ahora en inglés; `1.50.0` y las secciones anteriores quedan sin tocar (ya
-estaban en inglés). La traducción de `1.50.1`→`1.54.9` se hizo en esta pasada de
-docs, sin cambios de cabeceras, versiones, fechas, enlaces ni URLs.
+Entradas publicadas en `CHANGELOG.md` bajo `[1.58.0]`, en inglés y en formato
+Keep a Changelog. Todo el rango `1.50.1`→`1.58.0` está en inglés; `1.50.0` y las
+secciones anteriores quedan sin tocar (ya estaban en inglés). La traducción de
+`1.50.1`→`1.54.9` se hizo en la pasada de docs, sin cambios de cabeceras,
+versiones, fechas, enlaces ni URLs.
 
 - **Added:** Complete lorebook library with standalone book creation, in-use/unused
   filters and a detail page with Identity, Settings, Entries, Versions, Link and

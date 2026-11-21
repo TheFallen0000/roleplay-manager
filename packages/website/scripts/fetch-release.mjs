@@ -51,11 +51,11 @@ const main = async () => {
       headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
     }
     const response = await fetch(API, { headers })
-    if (!response.ok) throw new Error(`GitHub API respondió ${response.status}`)
+    if (!response.ok) throw new Error(`GitHub API responded with ${response.status}`)
     const data = await response.json()
     const assets = mapAssets(data.assets ?? [])
     if (!assets["win-x64"] || !assets["linux-x64"] || !assets["mac-arm64"]) {
-      throw new Error("La release no contiene los assets esperados")
+      throw new Error("The release does not contain the expected assets")
     }
     release = {
       version: String(data.tag_name ?? "").replace(/^v/, ""),
@@ -67,16 +67,16 @@ const main = async () => {
   } catch (error) {
     const fallback = await readFallback()
     if (!fallback) {
-      console.error(`No se pudo leer la última release: ${error.message}`)
+      console.error(`Could not read the latest release: ${error.message}`)
       process.exitCode = 1
       return
     }
-    console.warn(`Usando snapshot local de release: ${error.message}`)
+    console.warn(`Using local release snapshot: ${error.message}`)
     return
   }
 
   await writeFile(OUTPUT, `${JSON.stringify(release, null, 2)}\n`)
-  console.log(`Release ${release.version} guardada en ${OUTPUT}`)
+  console.log(`Saved release ${release.version} to ${OUTPUT}`)
 }
 
 await main()

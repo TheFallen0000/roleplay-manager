@@ -9,7 +9,6 @@ import type { CardPngPort } from "../../../../domain/ports/card-png.port"
  * valid static PNG; pixel data is never re-encoded here.
  */
 
-export const MAX_CARD_JSON_BYTES = 5 * 1024 * 1024
 export const MAX_CARD_PNG_BYTES = 10 * 1024 * 1024
 export const MAX_PNG_CHUNKS = 512
 export const MAX_TEXT_CHUNK_BYTES = 8 * 1024 * 1024
