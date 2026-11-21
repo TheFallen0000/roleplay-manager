@@ -1,3 +1,4 @@
+import type { TranslationKey } from "@workspace/shared/i18n"
 import {
   effectivePriority,
   isDeletionCandidate,
@@ -5,7 +6,34 @@ import {
   turnsSince,
 } from "@workspace/shared/lib/memory-decay"
 import type { ConversationDetail } from "@workspace/shared/types/conversation"
-import type { MemoryDTO } from "@workspace/shared/types/memory"
+import type { MemorySelectionReason } from "@workspace/shared/types/context"
+import type { MemoryDTO, MemoryType } from "@workspace/shared/types/memory"
+
+const MEMORY_TYPE_LABEL_KEYS: Record<MemoryType, TranslationKey> = {
+  fact: "memory.typeFact",
+  episode: "memory.typeEpisode",
+  thread: "memory.typeThread",
+}
+
+const MEMORY_SELECTION_REASON_KEYS: Record<
+  MemorySelectionReason,
+  TranslationKey
+> = {
+  actor: "memory.selectionReason.actor",
+  keyword: "memory.selectionReason.keyword",
+  priority: "memory.selectionReason.priority",
+  thread: "memory.selectionReason.thread",
+  budget: "memory.selectionReason.budget",
+  decay: "memory.selectionReason.decay",
+  "not-relevant": "memory.selectionReason.notRelevant",
+}
+
+export const memoryTypeLabelKey = (type: MemoryType): TranslationKey =>
+  MEMORY_TYPE_LABEL_KEYS[type]
+
+export const memorySelectionReasonKey = (
+  reason: MemorySelectionReason,
+): TranslationKey => MEMORY_SELECTION_REASON_KEYS[reason]
 
 export interface MemoryDecayDisplayInfo {
   turns: number
