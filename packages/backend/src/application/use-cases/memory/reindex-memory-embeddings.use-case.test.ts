@@ -20,14 +20,13 @@ import { ReindexMemoryEmbeddingsUseCase } from "./reindex-memory-embeddings.use-
 
 const now = new Date("2026-11-21T12:00:00.000Z")
 
-const target: EmbeddingTarget = {
+const target: EmbeddingTarget & { provider: string } = {
   provider: "ollama",
   model: DETERMINISTIC_EMBEDDING_MODEL,
   dimension: DETERMINISTIC_EMBEDDING_DIMENSION,
 }
 
 const runtimeConfig = {
-  provider: "ollama" as const,
   providerInstanceId: null,
   ...target,
 }
