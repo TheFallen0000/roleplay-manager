@@ -245,6 +245,27 @@ describe("cardDataToVersionFields — empty fields policy", () => {
     expect(fields.warnings).toContain("EMPTY_DESCRIPTION")
   })
 
+  it("uses the requested locale for the default description and greeting", () => {
+    const fields = asRecord(
+      cardDataToVersionFields(
+        buildV2Card({
+          description: "   ",
+          first_mes: "",
+          alternate_greetings: [],
+        }).data,
+        undefined,
+        "es"
+      )
+    )
+
+    expect(fields.description).toBe(
+      translate("es", "characters.cardFallbackDescription")
+    )
+    expect(fields.greeting).toBe(
+      translate("es", "characters.cardFallbackGreeting")
+    )
+  })
+
   it("uses alternate_greetings[0] when first_mes is empty and removes it", () => {
     const fields = asRecord(
       cardDataToVersionFields(
@@ -438,6 +459,14 @@ describe("versionFieldsToCardData", () => {
     expect(asRecord(data.extensions)).toMatchObject({
       rm: { other: 1, tagline: "The forest's guardian" },
     })
+  })
+
+  it("omits null subtitle and instructions from rm extensions", () => {
+    const data = asRecord(versionFieldsToCardData(version as never, null))
+    const rm = asRecord(asRecord(data.extensions).rm)
+
+    expect(rm).not.toHaveProperty("subtitle")
+    expect(rm).not.toHaveProperty("instructions")
   })
 
   it("re-emits the lorebook and per-entry unknown fields", () => {

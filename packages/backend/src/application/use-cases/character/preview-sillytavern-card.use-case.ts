@@ -1,3 +1,4 @@
+import type { Locale } from "@workspace/shared/i18n"
 import type {
   SillyTavernCardFormat,
   SillyTavernCardPreview,
@@ -25,6 +26,7 @@ export interface PreviewSillyTavernCardDeps {
 export interface PreviewSillyTavernCardInput {
   format: SillyTavernCardFormat
   payload: string
+  locale?: Locale
 }
 
 export class PreviewSillyTavernCardUseCase {
@@ -34,7 +36,11 @@ export class PreviewSillyTavernCardUseCase {
     input: PreviewSillyTavernCardInput,
   ): Promise<SillyTavernCardPreview> {
     const decoded = decodeCardPayload(input, this.deps.cardPng)
-    const fields = cardDataToVersionFields(decoded.data, decoded.root)
+    const fields = cardDataToVersionFields(
+      decoded.data,
+      decoded.root,
+      input.locale,
+    )
 
     const size = validateCardFieldSize(decoded.data)
     if (!size.ok) {
