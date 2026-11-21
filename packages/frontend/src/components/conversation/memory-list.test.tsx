@@ -125,6 +125,7 @@ beforeEach(() => {
     memory("m3", "Auron", "Cicatriz en el brazo", 6, "episode"),
     memory("m4", "Marcus", "Deuda pendiente", 5, "fact"),
   ]
+  localStorage.clear()
 })
 
 afterEach(cleanup)
