@@ -145,8 +145,9 @@ export function selectMemoriesForPrompt(
     .filter((entry) => entry.included)
     .sort(compareEntries)
   let next = 0
-  // Included entries fill their original slots in score order, so the manifest
-  // keeps one entry per memory without losing the prompt order.
+  // Included entries fill their original slots in score order: the manifest
+  // keeps one entry per memory while `memorySelection.filter(included)` follows
+  // the prompt order.
   const selection = finalEntries.map((entry) =>
     entry.included
       ? toSelectionDTO(includedEntries[next++]!)

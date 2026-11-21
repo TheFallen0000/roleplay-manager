@@ -144,10 +144,16 @@ export class ConversationContextLoader {
         conversation.id,
       )
     ).map((createdAt) => ({ role: "user", createdAt }))
-    const pendingMessage = pendingMessages
+    const pendingText = pendingMessages
       .filter((message) => message.role === "user")
       .map((message) => message.content)
       .join(" ")
+    // Regenerate and continue have no pending message: the last user turn of
+    // the loaded history still carries the lexical signal for the retrieval.
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find((message) => message.role === "user")
+    const pendingMessage = pendingText || lastUserMessage?.content || ""
     // Main actors are resolved first so the lexical scorer can weigh them.
     const { memories: promptMemories, selection: memorySelection } =
       selectMemoriesForPrompt({
