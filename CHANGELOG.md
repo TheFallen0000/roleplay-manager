@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Lorebooks**: complete library with standalone book creation, in-use/unused
+  filters and a detail page with Identity, Settings, Entries, Versions, Link and
+  Danger sections.
+- **Lorebooks**: full version history; previous versions are read-only and can be
+  restored as a new version.
+- **Lorebooks**: usage by version grouped by character ("In use by" and
+  "History"), with real character and version counts on the shelf.
+- **Lorebooks**: link a book to a character from the book itself, creating a new
+  character version.
+- **Lorebooks**: soft delete with a warning; character versions that used the
+  book keep working and the book is restored by importing it again.
+- **Lorebooks**: standalone import and export per book and version in CCv3 and ST
+  native, with `origin_id`/`source_key` matching, an import preview and explicit
+  history reconstruction. Export per version carries `extensions.rm.originId`
+  additively and preserves unknown keys.
+- **Chat**: alternate-greeting picker at conversation start, applied to the first
+  message of the new conversation.
 - **Modelos**: cada modelo resuelve su ventana de contexto y su límite de
   salida con procedencia y confianza (override manual, introspección del
   servidor, catálogo del proveedor, tabla curada de LiteLLM, heurística por
@@ -76,14 +93,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Lorebooks**: the shelf paginates and filters in SQL and shows real usage
+  ("Used by N characters · M versions" or "Unused").
 - **Biblioteca**: los listados de personajes y lorebooks usan cards de estantería,
   navegación vertical por secciones, rail de resumen y barra de guardado; el
   formulario de imagen de perfil pasa a una fila compacta al editar.
 - **Lorebooks**: la edición de entradas usa el editor completo (claves, posición,
   prioridad, lógica selectiva y flags) en lugar del formulario reducido.
-- **S134**: las acciones diferidas (vincular desde el libro, uso por versión,
-  historial/restore y borrado suave) se muestran como «S134» y no como botones
-  muertos.
 - **Dependencias**: Astro 7.4.7 y `@astrojs/node` 11.1.12 (parches de seguridad),
   Vite 8.3.8 y un override estable de `@emnapi` para mantener `astro check`
   compatible con el language server.
@@ -114,6 +130,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Lorebooks**: the character detail resolves linked lorebook versions in
+  batches instead of one lookup per version, and version entries expose stable
+  synthetic ids so snapshots round-trip between the editor and the API.
+- **Lorebooks**: importing a deleted book with different content gives the new
+  book a fresh `origin_id` (including `extensions.rm.originId`) instead of
+  reusing the imported one.
 - **Lorebooks**: el botón «Exportar lorebook» ya descarga el libro desde su
   detalle; antes se renderizaba sin acción asociada.
 - **Personajes**: el detalle recupera iniciar conversación, exportar, eliminar,
