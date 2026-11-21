@@ -96,6 +96,22 @@ const toVersion = (row: VersionRow): LorebookVersion =>
     createdAt: new Date(row.createdAt),
   })
 
+const usageExistsCondition = sql`EXISTS (
+  SELECT 1
+  FROM character_versions cv
+  INNER JOIN lorebook_versions lv
+    ON lv.id = cv.lorebook_version_id
+  WHERE lv.lorebook_id = ${lorebooks.id}
+)`
+
+const usageMissingCondition = sql`NOT EXISTS (
+  SELECT 1
+  FROM character_versions cv
+  INNER JOIN lorebook_versions lv
+    ON lv.id = cv.lorebook_version_id
+  WHERE lv.lorebook_id = ${lorebooks.id}
+)`
+
 export const bookValues = (book: Lorebook) => ({
   id: book.id,
   characterId: book.characterId,
@@ -340,8 +356,22 @@ export class DrizzleLorebookRepository implements LorebookRepository {
     return rows.map(toBook)
   }
 
-  async listSummaries(): Promise<LorebookSummary[]> {
-    const rows = await this.db
+  async listSummaries(
+    input: {
+      limit?: number
+      offset?: number
+      filter?: "all" | "in-use" | "unused"
+    } = {},
+  ): Promise<LorebookSummary[]> {
+    const conditions = [isNull(lorebooks.deletedAt)]
+
+    if (input.filter === "in-use") {
+      conditions.push(usageExistsCondition)
+    } else if (input.filter === "unused") {
+      conditions.push(usageMissingCondition)
+    }
+
+    const query = this.db
       .select({
         book: lorebooks,
         currentVersionNumber: lorebookVersions.versionNumber,
@@ -357,14 +387,25 @@ export class DrizzleLorebookRepository implements LorebookRepository {
             ON lv.id = cv.lorebook_version_id
           WHERE lv.lorebook_id = ${lorebooks.id}
         )`,
+        usageVersionCount: sql<number>`(
+          SELECT COUNT(DISTINCT cv.id)
+          FROM character_versions cv
+          INNER JOIN lorebook_versions lv
+            ON lv.id = cv.lorebook_version_id
+          WHERE lv.lorebook_id = ${lorebooks.id}
+        )`,
       })
       .from(lorebooks)
       .leftJoin(
         lorebookVersions,
         eq(lorebooks.currentVersionId, lorebookVersions.id),
       )
-      .where(isNull(lorebooks.deletedAt))
+      .where(and(...conditions))
       .orderBy(lorebooks.createdAt)
+
+    const rows = await (input.limit === undefined && input.offset === undefined
+      ? query
+      : query.limit(input.limit ?? -1).offset(input.offset ?? 0))
 
     return rows.map((row) => ({
       book: toBook(row.book),
@@ -372,6 +413,7 @@ export class DrizzleLorebookRepository implements LorebookRepository {
       entryCount: Number(row.entryCount ?? 0),
       description: row.description ?? null,
       usageCount: Number(row.usageCount ?? 0),
+      usageVersionCount: Number(row.usageVersionCount ?? 0),
     }))
   }
 
@@ -393,6 +435,30 @@ export class DrizzleLorebookRepository implements LorebookRepository {
       .limit(1)
 
     return rows.length > 0 ? toVersion(rows[0]) : null
+  }
+
+  async findVersionsByIds(ids: string[]): Promise<LorebookVersion[]> {
+    if (ids.length === 0) return []
+
+    const rows = await this.db
+      .select()
+      .from(lorebookVersions)
+      .where(inArray(lorebookVersions.id, ids))
+      .orderBy(lorebookVersions.createdAt)
+
+    return rows.map(toVersion)
+  }
+
+  async findByIds(ids: string[]): Promise<Lorebook[]> {
+    if (ids.length === 0) return []
+
+    const rows = await this.db
+      .select()
+      .from(lorebooks)
+      .where(inArray(lorebooks.id, ids))
+      .orderBy(lorebooks.createdAt)
+
+    return rows.map(toBook)
   }
 
   async findBooksByOriginId(originId: string): Promise<Lorebook[]> {

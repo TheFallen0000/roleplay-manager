@@ -66,6 +66,7 @@ const UpdateLorebookSchema = LorebookSettingsSchema.extend({
 const ListLorebooksQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),
+  filter: z.enum(["all", "in-use", "unused"]).optional(),
 })
 
 const ExportLorebookSchema = z.object({

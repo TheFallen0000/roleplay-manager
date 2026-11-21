@@ -13,6 +13,7 @@ export interface LorebookSummary {
   entryCount: number
   description: string | null
   usageCount: number
+  usageVersionCount: number
 }
 
 export interface CreateContainerWithVersionResult {
@@ -50,11 +51,21 @@ export interface LorebookRepository {
 
   list(): Promise<Lorebook[]>
 
-  listSummaries(): Promise<LorebookSummary[]>
+  listSummaries(input?: {
+    limit?: number
+    offset?: number
+    filter?: "all" | "in-use" | "unused"
+  }): Promise<LorebookSummary[]>
 
   findVersions(lorebookId: string): Promise<LorebookVersion[]>
 
   findVersionById(versionId: string): Promise<LorebookVersion | null>
+
+  /** Batch lookup; an empty input returns `[]`. */
+  findVersionsByIds(ids: string[]): Promise<LorebookVersion[]>
+
+  /** Batch lookup of containers only; an empty input returns `[]`. */
+  findByIds(ids: string[]): Promise<Lorebook[]>
 
   /** Includes soft-deleted containers: import matching classifies them. */
   findBooksByOriginId(originId: string): Promise<Lorebook[]>

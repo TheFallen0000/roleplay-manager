@@ -598,21 +598,50 @@ export const toLorebookCanonicalContent = (
   ),
 })
 
+const withSyntheticEntryId = (
+  entry: unknown,
+  index: number,
+): LorebookEntryDTO => {
+  const record = isRecord(entry) ? entry : {}
+  const existingId = record.id
+  const sourceId = record.sourceId
+
+  // Snapshots normally omit `id`; keep one if a previous DTO round-trip
+  // already produced it, otherwise derive a stable id.
+  const id =
+    typeof existingId === "string" && existingId.length > 0
+      ? existingId
+      : typeof sourceId === "string" && sourceId.length > 0
+        ? sourceId
+        : `entry-${index}`
+
+  return {
+    ...record,
+    id,
+  } as unknown as LorebookEntryDTO
+}
+
 export const toLorebookVersionDTO = (
   version: LorebookVersion,
-): LorebookVersionDTO => ({
-  id: version.id,
-  lorebookId: version.lorebookId,
-  versionNumber: version.versionNumber,
-  name: version.name,
-  description: version.description,
-  scanDepth: version.scanDepth,
-  tokenBudget: version.tokenBudget,
-  recursiveScanning: version.recursiveScanning,
-  sourceKey: version.sourceKey,
-  entries: JSON.parse(version.entriesJson) as LorebookEntryDTO[],
-  createdAt: version.createdAt.toISOString(),
-})
+): LorebookVersionDTO => {
+  const parsed: unknown = JSON.parse(version.entriesJson)
+
+  return {
+    id: version.id,
+    lorebookId: version.lorebookId,
+    versionNumber: version.versionNumber,
+    name: version.name,
+    description: version.description,
+    scanDepth: version.scanDepth,
+    tokenBudget: version.tokenBudget,
+    recursiveScanning: version.recursiveScanning,
+    sourceKey: version.sourceKey,
+    entries: Array.isArray(parsed)
+      ? parsed.map(withSyntheticEntryId)
+      : [],
+    createdAt: version.createdAt.toISOString(),
+  }
+}
 
 const entryToCardData = (entry: LorebookEntryLike): JsonRecord => {
   const unknown = isRecord(entry.unknownFields) ? entry.unknownFields : {}
