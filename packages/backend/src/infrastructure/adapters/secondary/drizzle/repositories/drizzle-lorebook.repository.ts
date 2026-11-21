@@ -1,13 +1,15 @@
-import { desc, eq, isNull, sql } from "drizzle-orm"
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm"
 import { v7 as randomUUIDv7 } from "uuid"
 
 import { LorebookEntry } from "../../../../../domain/entities/lorebook-entry.entity"
 import { Lorebook } from "../../../../../domain/entities/lorebook.entity"
 import { LorebookVersion } from "../../../../../domain/entities/lorebook-version.entity"
 import type {
+  CharacterVersionNumber,
   CreateContainerWithVersionResult,
   LorebookRepository,
   LorebookSummary,
+  LorebookUsageRow,
   LorebookWithEntries,
   SaveLiveHeadResult,
 } from "../../../../../domain/ports/lorebook.repository"
@@ -18,6 +20,7 @@ import {
 } from "../../../../../application/use-cases/character/lorebook/source-key"
 import type { Database } from "../../../../config/database"
 import {
+  characters,
   characterVersions,
   lorebookEntries,
   lorebooks,
@@ -571,6 +574,126 @@ export class DrizzleLorebookRepository implements LorebookRepository {
     }
 
     return result
+  }
+
+  async restoreVersionAsNewHead(
+    book: Lorebook,
+    entries: LorebookEntry[],
+    _sourceVersion: LorebookVersion,
+  ): Promise<SaveLiveHeadResult> {
+    const snapshot = versionSnapshot(book, entries)
+    let result: SaveLiveHeadResult | undefined
+
+    this.db.transaction((tx) => {
+      const maxRow = tx
+        .select({
+          value: sql<number>`COALESCE(MAX(${lorebookVersions.versionNumber}), 0)`,
+        })
+        .from(lorebookVersions)
+        .where(eq(lorebookVersions.lorebookId, book.id))
+        .all()[0]
+
+      const savedVersion = LorebookVersion.create({
+        id: randomUUIDv7(),
+        lorebookId: book.id,
+        versionNumber: (maxRow?.value ?? 0) + 1,
+        name: book.name,
+        description: book.description,
+        scanDepth: book.scanDepth,
+        tokenBudget: book.tokenBudget,
+        recursiveScanning: book.recursiveScanning,
+        entriesJson: snapshot.entriesJson,
+        sourceKey: snapshot.sourceKey,
+        createdAt: new Date(),
+      })
+
+      tx.insert(lorebookVersions).values(versionValues(savedVersion)).run()
+
+      tx.update(lorebooks)
+        .set({
+          ...bookUpdateValues(book),
+          currentVersionId: savedVersion.id,
+        })
+        .where(eq(lorebooks.id, book.id))
+        .run()
+
+      tx.delete(lorebookEntries)
+        .where(eq(lorebookEntries.lorebookId, book.id))
+        .run()
+
+      if (entries.length > 0) {
+        tx.insert(lorebookEntries).values(entries.map(entryValues)).run()
+      }
+
+      result = {
+        book: book.withCurrentVersionId(savedVersion.id),
+        entries,
+        version: savedVersion,
+        createdNewVersion: true,
+      }
+    })
+
+    if (!result) {
+      throw new Error(`Lorebook '${book.id}' could not be restored`)
+    }
+
+    return result
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await this.db
+      .update(lorebooks)
+      .set({ deletedAt: new Date() })
+      .where(and(eq(lorebooks.id, id), isNull(lorebooks.deletedAt)))
+  }
+
+  async findUsageVersions(lorebookId: string): Promise<LorebookUsageRow[]> {
+    const rows = await this.db
+      .select({
+        characterVersionId: characterVersions.id,
+        characterVersionNumber: characterVersions.versionNumber,
+        characterId: characterVersions.characterId,
+        characterName: characters.name,
+        lorebookVersionNumber: lorebookVersions.versionNumber,
+      })
+      .from(characterVersions)
+      .innerJoin(
+        lorebookVersions,
+        eq(characterVersions.lorebookVersionId, lorebookVersions.id),
+      )
+      .innerJoin(
+        characters,
+        eq(characterVersions.characterId, characters.id),
+      )
+      .where(eq(lorebookVersions.lorebookId, lorebookId))
+
+    return rows.map((row) => ({
+      characterVersionId: row.characterVersionId,
+      characterVersionNumber: row.characterVersionNumber,
+      characterId: row.characterId,
+      characterName: row.characterName,
+      lorebookVersionNumber: row.lorebookVersionNumber,
+    }))
+  }
+
+  async findCurrentCharacterVersionNumbers(
+    characterIds: string[],
+  ): Promise<CharacterVersionNumber[]> {
+    if (characterIds.length === 0) return []
+
+    const rows = await this.db
+      .select({
+        characterId: characterVersions.characterId,
+        versionNumber: sql<number>`MAX(${characterVersions.versionNumber})`,
+      })
+      .from(characterVersions)
+      .where(inArray(characterVersions.characterId, characterIds))
+      .groupBy(characterVersions.characterId)
+
+    return rows.map((row) => ({
+      characterId: row.characterId,
+      versionNumber: Number(row.versionNumber),
+    }))
   }
 
   async createEntry(entry: LorebookEntry): Promise<LorebookEntry> {

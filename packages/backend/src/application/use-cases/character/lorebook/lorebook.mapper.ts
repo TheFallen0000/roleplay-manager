@@ -518,6 +518,72 @@ export const serializeLorebookEntries = (
     presentationOrder(entries).map((entry) => lorebookEntrySnapshot(entry)),
   )
 
+const asSnapshotPosition = (
+  raw: JsonRecord,
+): { position: LorebookPosition; rawPosition: string | null } => {
+  const rawPosition = typeof raw.rawPosition === "string"
+    ? raw.rawPosition
+    : raw.rawPosition === null || raw.rawPosition === undefined
+      ? null
+      : String(raw.rawPosition)
+
+  if (raw.position === "before_char" || raw.position === "after_char") {
+    return { position: raw.position, rawPosition }
+  }
+
+  return resolveEntryPosition(raw.rawPosition ?? raw.position)
+}
+
+const asNullableSourceId = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null
+  return typeof value === "string" ? value : String(value)
+}
+
+/**
+ * Rebuilds live `LorebookEntry` entities from an immutable version snapshot.
+ * The snapshot does not carry row ids, so every live head gets new ids while
+ * the version itself stays untouched.
+ */
+export const deserializeLorebookEntries = (
+  entriesJson: string,
+  lorebookId: string,
+  now: Date = new Date(),
+): LorebookEntryEntity[] => {
+  const parsed: unknown = JSON.parse(entriesJson)
+  if (!Array.isArray(parsed)) return []
+
+  return parsed.map((value, index) => {
+    const raw = isRecord(value) ? value : {}
+    const { position, rawPosition } = asSnapshotPosition(raw)
+
+    return LorebookEntry.create({
+      id: randomUUIDv7(),
+      lorebookId,
+      name: asNullableString(raw.name),
+      sourceId: asNullableSourceId(raw.sourceId),
+      keys: asStringArray(raw.keys),
+      secondaryKeys: asStringArray(raw.secondaryKeys),
+      comment: asNullableString(raw.comment),
+      content: asString(raw.content),
+      constant: asBoolean(raw.constant, false),
+      selective: asBoolean(raw.selective, false),
+      selectiveLogic: asSelectiveLogic(raw.selectiveLogic),
+      insertionOrder: asInteger(raw.insertionOrder, 100),
+      position,
+      rawPosition,
+      priority: asInteger(raw.priority, 0),
+      enabled: asBoolean(raw.enabled, true),
+      caseSensitive: asBoolean(raw.caseSensitive, false),
+      wholeWords: asBoolean(raw.wholeWords, false),
+      order: asInteger(raw.order, index),
+      extensions: raw.extensions ?? null,
+      unknownFields: raw.unknownFields ?? null,
+      createdAt: now,
+      updatedAt: now,
+    })
+  })
+}
+
 export const toLorebookCanonicalContent = (
   book: LorebookEntity,
   entries: LorebookEntryEntity[],

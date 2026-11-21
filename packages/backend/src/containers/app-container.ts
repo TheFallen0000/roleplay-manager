@@ -90,6 +90,10 @@ import { ListLorebookVersionsUseCase } from "../application/use-cases/character/
 import { GetLorebookVersionUseCase } from "../application/use-cases/character/lorebook/get-lorebook-version.use-case"
 import { CreateLorebookUseCase } from "../application/use-cases/character/lorebook/create-lorebook.use-case"
 import { UpdateLorebookByIdUseCase } from "../application/use-cases/character/lorebook/update-lorebook-by-id.use-case"
+import { SoftDeleteLorebookUseCase } from "../application/use-cases/character/lorebook/soft-delete-lorebook.use-case"
+import { RestoreLorebookVersionUseCase } from "../application/use-cases/character/lorebook/restore-lorebook-version.use-case"
+import { GetLorebookUsageUseCase } from "../application/use-cases/character/lorebook/get-lorebook-usage.use-case"
+import { LinkLorebookUseCase } from "../application/use-cases/character/lorebook/link-lorebook.use-case"
 import { StoreCharacterAssetService } from "../application/services/store-character-asset.service"
 import { SharpCharacterAssetImageProcessor } from "../infrastructure/adapters/secondary/images/sharp-character-asset-image-processor"
 import { GetTunnelStatusUseCase } from "../application/use-cases/tunnel/get-tunnel-status.use-case"
@@ -218,6 +222,10 @@ export interface AppContainer {
   getLorebookVersion: GetLorebookVersionUseCase
   createLorebook: CreateLorebookUseCase
   updateLorebookById: UpdateLorebookByIdUseCase
+  softDeleteLorebook: SoftDeleteLorebookUseCase
+  restoreLorebookVersion: RestoreLorebookVersionUseCase
+  getLorebookUsage: GetLorebookUsageUseCase
+  linkLorebook: LinkLorebookUseCase
   deleteCharacter: DeleteCharacterUseCase
   listCharacterVersions: ListCharacterVersionsUseCase
   uploadCharacterAsset: UploadCharacterAssetUseCase
@@ -611,6 +619,10 @@ export const buildContainer = ({
     playerCharacterRepository,
   )
 
+  const updateCharacter = new UpdateCharacterUseCase(characterRepository, {
+    lorebookRepository,
+  })
+
   return {
     logger,
     pino,
@@ -709,9 +721,7 @@ export const buildContainer = ({
       characterRepository,
       characterAssetRepository,
     ),
-    updateCharacter: new UpdateCharacterUseCase(characterRepository, {
-      lorebookRepository,
-    }),
+    updateCharacter,
     updateCharacterProfileImage: new UpdateCharacterProfileImageUseCase(
       characterRepository,
       characterAssetRepository,
@@ -778,6 +788,16 @@ export const buildContainer = ({
     getLorebookVersion: new GetLorebookVersionUseCase({ lorebookRepository }),
     createLorebook: new CreateLorebookUseCase({ lorebookRepository }),
     updateLorebookById: new UpdateLorebookByIdUseCase({ lorebookRepository }),
+    softDeleteLorebook: new SoftDeleteLorebookUseCase({ lorebookRepository }),
+    restoreLorebookVersion: new RestoreLorebookVersionUseCase({
+      lorebookRepository,
+    }),
+    getLorebookUsage: new GetLorebookUsageUseCase({ lorebookRepository }),
+    linkLorebook: new LinkLorebookUseCase({
+      lorebookRepository,
+      characterRepository,
+      updateCharacter,
+    }),
     createPlayerCharacter: new CreatePlayerCharacterUseCase(playerCharacterRepository),
     listPlayerCharacters: new ListPlayerCharactersUseCase(playerCharacterRepository),
     updatePlayerCharacter: new UpdatePlayerCharacterUseCase(playerCharacterRepository),

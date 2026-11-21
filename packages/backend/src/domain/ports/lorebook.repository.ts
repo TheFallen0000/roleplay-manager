@@ -28,6 +28,19 @@ export interface SaveLiveHeadResult {
   createdNewVersion: boolean
 }
 
+export interface LorebookUsageRow {
+  characterVersionId: string
+  characterVersionNumber: number
+  characterId: string
+  characterName: string
+  lorebookVersionNumber: number
+}
+
+export interface CharacterVersionNumber {
+  characterId: string
+  versionNumber: number
+}
+
 export interface LorebookRepository {
   findByCharacterId(
     characterId: string,
@@ -56,6 +69,20 @@ export interface LorebookRepository {
     entries: LorebookEntry[],
     version?: LorebookVersion,
   ): Promise<SaveLiveHeadResult>
+
+  restoreVersionAsNewHead(
+    book: Lorebook,
+    entries: LorebookEntry[],
+    sourceVersion: LorebookVersion,
+  ): Promise<SaveLiveHeadResult>
+
+  softDelete(id: string): Promise<void>
+
+  findUsageVersions(lorebookId: string): Promise<LorebookUsageRow[]>
+
+  findCurrentCharacterVersionNumbers(
+    characterIds: string[],
+  ): Promise<CharacterVersionNumber[]>
 
   createEntry(entry: LorebookEntry): Promise<LorebookEntry>
 
