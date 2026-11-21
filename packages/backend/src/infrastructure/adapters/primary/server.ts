@@ -21,6 +21,7 @@ import { buildConversationRouter } from "./routes/conversation.routes"
 import { buildHealthRouter } from "./routes/health.routes"
 import { buildProviderRouter } from "./routes/provider.routes"
 import { buildSettingsRouter } from "./routes/settings.routes"
+import { buildSettingsEmbeddingRouter } from "./routes/settings-embedding.routes"
 import { buildProviderInstanceRouter } from "./routes/provider-instance.routes"
 import { buildMemoryRouter } from "./routes/memory.routes"
 import { buildContextRouter } from "./routes/context.routes"
@@ -145,6 +146,14 @@ export const buildServer = ({
       configureDefaultProvider: container.configureDefaultProvider,
       setProviderModel: container.setProviderModel,
       settings: container.settings,
+    }),
+  )
+  app.use(
+    "/api/settings",
+    buildSettingsEmbeddingRouter({
+      getEmbeddingConfig: container.getEmbeddingConfig,
+      configureEmbedding: container.configureEmbedding,
+      reindexMemoryEmbeddings: container.reindexMemoryEmbeddings,
     }),
   )
   app.use("/api", buildProviderInstanceRouter(container))

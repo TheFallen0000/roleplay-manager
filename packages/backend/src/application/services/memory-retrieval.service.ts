@@ -23,6 +23,11 @@ export interface SelectMemoriesInput {
   messages: readonly { role: string; createdAt: Date }[]
   pendingMessage: string
   mainActors: readonly string[]
+  /**
+   * Optional cosine similarity per memory id, already in [0,1]. When absent or
+   * empty the result is bit-for-bit the lexical S136 selection.
+   */
+  semanticScores?: ReadonlyMap<string, number>
 }
 
 export interface SelectMemoriesResult {
@@ -40,6 +45,8 @@ const RECENCY_WINDOW = 50
 const ACTOR_IN_PENDING_WEIGHT = 4
 const MAIN_ACTOR_WEIGHT = 2
 const KEYWORD_HIT_CAP = 5
+export const SEMANTIC_WEIGHT = 2
+export const SEMANTIC_THRESHOLD = 0.55
 const TYPE_WEIGHT: Record<MemoryType, number> = {
   thread: 1.5,
   fact: 1,
@@ -85,15 +92,18 @@ export function selectMemoriesForPrompt(
     const keywordHits = countKeywordHits(memory, pendingKeywords)
     const priorityScore = ((effectivePriority - 1) / 9) * 2
     const recency = Math.max(0, 1 - turns / RECENCY_WINDOW)
+    const semanticScore = input.semanticScores?.get(memory.id) ?? 0
+    const semanticEligible = semanticScore >= SEMANTIC_THRESHOLD
 
     const signal =
       (actorInPending ? ACTOR_IN_PENDING_WEIGHT : 0) +
       (mainActor ? MAIN_ACTOR_WEIGHT : 0) +
       Math.min(keywordHits, KEYWORD_HIT_CAP)
-    const base = signal + priorityScore + recency
+    const base =
+      signal + priorityScore + recency + SEMANTIC_WEIGHT * semanticScore
     const score = roundScore(base * TYPE_WEIGHT[memory.type])
 
-    const reason: MemorySelectionReason =
+    const lexicalReason: MemorySelectionReason =
       actorInPending || mainActor
         ? "actor"
         : keywordHits > 0
@@ -108,12 +118,20 @@ export function selectMemoriesForPrompt(
       keywordHits > 0 ||
       memory.type === "thread" ||
       effectivePriority >= 8
+    const included = hasSignal || semanticEligible
+    const reason: MemorySelectionReason = included
+      ? hasSignal && semanticEligible
+        ? "hybrid"
+        : hasSignal
+          ? lexicalReason
+          : "semantic"
+      : "not-relevant"
 
     return {
       memory,
-      included: hasSignal,
-      score: hasSignal ? score : 0,
-      reason: hasSignal ? reason : ("not-relevant" as MemorySelectionReason),
+      included,
+      score: included ? score : 0,
+      reason,
     }
   })
 

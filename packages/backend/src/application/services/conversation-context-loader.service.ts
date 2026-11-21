@@ -7,6 +7,7 @@ import type { Summary } from "../../domain/entities/summary.entity"
 import type { ContextManifestMemorySelectionDTO } from "@workspace/shared/types/context"
 import type { CharacterRepository } from "../../domain/ports/character.repository"
 import type { ConversationRepository } from "../../domain/ports/conversation.repository"
+import type { EmbeddingRepository } from "../../domain/ports/embedding.repository"
 import type { MemoryRepository } from "../../domain/ports/memory.repository"
 import type {
   MessageHistoryRepository,
@@ -30,6 +31,8 @@ import {
   LorebookActivationService,
   type LorebookActivationEntryInput,
 } from "./lorebook-activation.service"
+import type { EmbeddingRuntimeConfig } from "./embedding/embedding-config"
+import type { MemoryHybridRetrievalService } from "./memory-hybrid-retrieval.service"
 import { selectMemoriesForPrompt } from "./memory-retrieval.service"
 
 export interface ConversationContextLoaderDeps {
@@ -41,6 +44,10 @@ export interface ConversationContextLoaderDeps {
   summaryRepository: SummaryRepository
   playerCharacterRepository: PlayerCharacterRepository
   lorebookRepository?: LorebookRepository
+  /** Optional hybrid retrieval (S137). Without it, retrieval stays lexical. */
+  memoryHybridRetrieval?: MemoryHybridRetrievalService
+  embeddingRepository?: EmbeddingRepository
+  resolveEmbeddingConfig?: () => Promise<EmbeddingRuntimeConfig | null>
 }
 
 export interface ConversationContextLoadInput {
@@ -65,6 +72,13 @@ export interface ConversationContextLoadResult {
   memories: Memory[]
   promptMemories: Memory[]
   memorySelection: ContextManifestMemorySelectionDTO[]
+  embedding?: {
+    enabled: boolean
+    provider?: string
+    model?: string
+    indexed: number
+    missing: number
+  }
   playerCharacter: PlayerCharacterPrompt | undefined
   lorebook?: PromptContextLorebook
 }
@@ -161,17 +175,36 @@ export class ConversationContextLoader {
       }
     }
     // Main actors are resolved first so the lexical scorer can weigh them.
-    const { memories: promptMemories, selection: memorySelection } =
-      selectMemoriesForPrompt({
-        conversation,
-        memories,
-        messages: memoryTurns,
-        pendingMessage,
-        mainActors: [
-          characterResult.character.name,
-          ...(playerCharacter ? [playerCharacter.name] : []),
-        ],
-      })
+    const mainActors = [
+      characterResult.character.name,
+      ...(playerCharacter ? [playerCharacter.name] : []),
+    ]
+    const embeddingConfig =
+      this.deps.memoryHybridRetrieval && this.deps.resolveEmbeddingConfig
+        ? await this.deps.resolveEmbeddingConfig()
+        : null
+    const selected = this.deps.memoryHybridRetrieval
+      ? await this.deps.memoryHybridRetrieval.retrieve({
+          conversation,
+          memories,
+          messages: memoryTurns,
+          pendingMessage,
+          mainActors,
+          embedding: embeddingConfig,
+        })
+      : selectMemoriesForPrompt({
+          conversation,
+          memories,
+          messages: memoryTurns,
+          pendingMessage,
+          mainActors,
+        })
+    const { memories: promptMemories, selection: memorySelection } = selected
+
+    const embedding =
+      embeddingConfig && this.deps.embeddingRepository
+        ? await this.buildEmbeddingStatus(conversation.id, embeddingConfig)
+        : undefined
 
     const lorebook = await this.loadLorebook(characterVersion, messages)
 
@@ -187,8 +220,32 @@ export class ConversationContextLoader {
       memories,
       promptMemories,
       memorySelection,
+      ...(embedding ? { embedding } : {}),
       playerCharacter,
       ...(lorebook ? { lorebook } : {}),
+    }
+  }
+
+  private async buildEmbeddingStatus(
+    conversationId: string,
+    config: EmbeddingRuntimeConfig,
+  ): Promise<
+    NonNullable<ConversationContextLoadResult["embedding"]>
+  > {
+    const counts = await this.deps.embeddingRepository!.countStatus(
+      conversationId,
+      {
+        provider: config.provider,
+        model: config.model,
+        dimension: config.dimension,
+      },
+    )
+    return {
+      enabled: true,
+      provider: config.provider,
+      model: config.model,
+      indexed: counts.indexed,
+      missing: counts.missing,
     }
   }
 
