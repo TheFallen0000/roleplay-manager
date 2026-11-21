@@ -53,7 +53,7 @@ describe("ReorderLorebookEntriesUseCase", () => {
         characterId: "char-1",
         entryIds: ["entry-2", "entry-x"],
       }),
-    ).rejects.toMatchObject({ code: "LOREBOOK_NOT_FOUND" })
+    ).rejects.toMatchObject({ code: "INVALID_LOREBOOK_ORDER" })
     expect(reorderEntries).not.toHaveBeenCalled()
   })
 

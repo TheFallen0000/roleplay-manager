@@ -38,9 +38,9 @@ export class ReorderLorebookEntriesUseCase {
       seen.add(entryId)
       if (!knownIds.has(entryId)) {
         throw new DomainError(
-          "LOREBOOK_NOT_FOUND",
-          "The lorebook entry does not exist.",
-          404,
+          "INVALID_LOREBOOK_ORDER",
+          "The entry order contains an entry that does not belong to this lorebook.",
+          400,
         )
       }
     }
