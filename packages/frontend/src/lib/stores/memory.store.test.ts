@@ -127,4 +127,60 @@ describe("useMemoryStore.runDecay", () => {
 
     expect(result).toEqual(memories)
   })
+
+  it("conserva las memorias no devueltas y actualiza la existente al aplicar propuestas", async () => {
+    const m1 = buildMemory("m-1")
+    const m2 = buildMemory("m-2", "thread")
+    const updatedM1: MemoryDTO = {
+      ...m1,
+      title: "Memory m-1 actualizada",
+      priority: 9,
+    }
+    useMemoryStore.setState({ memories: [m1, m2] })
+    vi.mocked(memoriesApi.applyProposals).mockResolvedValue({
+      memories: [updatedM1],
+      created: 0,
+      updated: 1,
+      discarded: 0,
+    })
+
+    const result = await useMemoryStore.getState().applyProposals("conv-1", [
+      { proposalId: "proposal-1", action: "apply" },
+    ])
+
+    const state = useMemoryStore.getState().memories
+    expect(state).toHaveLength(2)
+    expect(state.map((memory) => memory.id).sort()).toEqual(["m-1", "m-2"])
+    expect(state.filter((memory) => memory.id === "m-1")).toHaveLength(1)
+    expect(state.find((memory) => memory.id === "m-1")).toMatchObject({
+      title: "Memory m-1 actualizada",
+      priority: 9,
+    })
+    expect(result).toEqual([updatedM1])
+  })
+
+  it("conserva las memorias existentes y añade las nuevas al aplicar todas las propuestas", async () => {
+    const m1 = buildMemory("m-1")
+    const m2 = buildMemory("m-2", "thread")
+    const m3 = buildMemory("m-3", "episode")
+    useMemoryStore.setState({ memories: [m1, m2] })
+    vi.mocked(memoriesApi.applyAllProposals).mockResolvedValue({
+      memories: [m3],
+      created: 1,
+      updated: 0,
+      discarded: 0,
+    })
+
+    const result = await useMemoryStore.getState().applyAllProposals("conv-1")
+
+    const state = useMemoryStore.getState().memories
+    expect(state).toHaveLength(3)
+    expect(state.map((memory) => memory.id).sort()).toEqual([
+      "m-1",
+      "m-2",
+      "m-3",
+    ])
+    expect(state.find((memory) => memory.id === "m-3")?.type).toBe("episode")
+    expect(result).toEqual([m3])
+  })
 })
