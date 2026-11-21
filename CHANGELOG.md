@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.58.1] - 2026-11-21
+
 ### Added
 
 - **Tooling**: Context7 MCP for versioned library documentation and a
