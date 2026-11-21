@@ -135,6 +135,10 @@ redacción genérica de arriba:
   regla de entrada usa la **prioridad efectiva tras decaimiento** (no la
   almacenada). Una memoria con prioridad almacenada alta pero ya decaída no
   entra como `priority`.
+- **Thread en el umbral.** Un `thread` con prioridad efectiva igual al umbral
+  de decaimiento sigue siendo elegible (comparación `>=`); `fact`/`episode` en
+  ese mismo punto decaen. Es una excepción deliberada para no perder hilos
+  abiertos.
 - **`type` en propuestas.** `type` se persiste también en
   `memory_change_proposals`, con **columna propia en la migración 0021** y
   default `fact` (no solo en `memories`).
@@ -150,6 +154,10 @@ redacción genérica de arriba:
 - **Orden del loader.** El `ConversationContextLoader` resuelve los actores
   principales (personaje + personaje del usuario) **antes** del retrieval, para
   que `mainActor` esté disponible en el scoring.
+- **Regenerate/continue sin `pendingMessages`.** Cuando no hay `pendingMessages`,
+  el `ConversationContextLoader` usa el **último mensaje de usuario del
+  historial** como señal léxica, para que el retrieval sea consistente entre un
+  envío normal y una regeneración/continuación.
 
 ### Fuera de alcance
 

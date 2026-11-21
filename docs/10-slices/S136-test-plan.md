@@ -41,6 +41,12 @@
    omite como `decay` aunque su actor o una keyword aparezcan en el mensaje: la
    señal léxica **no** la revive. `thread` sigue su regla de elegibilidad por
    prioridad efectiva (si decae bajo el umbral, también es `decay`).
+10. **Frontera de elegibilidad de `thread`.** Un `thread` con
+    `effectivePriority === threshold` sigue siendo elegible (comparador `>=`);
+    `fact`/`episode` en ese mismo punto decaen (comparador `>`).
+11. **Señal léxica sin `pendingMessages`.** En regenerate/continue (sin mensaje
+    pendiente), el loader usa el **último mensaje de usuario del historial**
+    como señal léxica para `actorInPending` y keywords.
 
 ---
 
@@ -84,7 +90,7 @@
 - `packages/backend/src/application/use-cases/memory/apply-all-memory-changes.use-case.test.ts`
 - `packages/backend/src/infrastructure/adapters/primary/routes/memory.routes.test.ts` (el JSON de `apply`/`apply-all` pasa de array a `{ memories, created, updated, discarded }`)
 - `packages/backend/src/application/use-cases/conversation/send-message.use-case.test.ts` (verificar el mock `buildApplyAllForOoc` del auto-apply OOC ante el nuevo tipo de retorno)
-- `packages/backend/src/application/services/conversation-context-loader.service.test.ts`
+- `packages/backend/src/application/services/conversation-context-loader.service.test.ts` (incluye la regresión de regenerate/continue sin `pendingMessages`: señal léxica = último mensaje de usuario del historial)
 - `packages/backend/src/application/services/context-compiler.service.test.ts`
 - `packages/backend/src/infrastructure/adapters/secondary/prompt-context-builder/prompt-context-builder.impl.test.ts`
 - `packages/backend/src/lib/propose-memory-changes.tool.test.ts`
@@ -111,6 +117,7 @@
 | `mkMemory(id, { type?, priority, updatedAt, actor, title, description })` | builder base; sin `type` → `fact` |
 | memoria `thread` elegible (efectiva > umbral) con actor fuera del pendiente | entra por regla `thread` |
 | memoria `thread` decaída bajo el umbral | omitida como `decay` (no entra por `thread`) |
+| `thread` con `effectivePriority === threshold` | elegible (frontera `>=`); `fact`/`episode` idénticos decaen |
 | memoria prioridad 10, efectiva entre umbral y 8 (elegible) | no entra por `priority`; sí por `thread` o keyword |
 | memoria decaída bajo el umbral con keyword/actor en el pendiente | omitida como `decay`; la señal léxica no la revive |
 | título con acentos/stopword/token de 2 chars vs pendiente normalizado | `keyword` respeta normalización + stopwords + longitud mínima |
@@ -170,7 +177,9 @@
 | presupuesto máximo | `effectiveWindow*0.12 > 2048` → clamp a 2048 |
 | empate de score | con memorias **elegibles** (no decaídas): orden `score desc → priority desc → updatedAt desc → id asc`; determinista en 2 ejecuciones |
 | decaída con keyword/actor | `included:false`, `reason:'decay'`; la señal léxica no revive una memoria bajo el umbral de decaimiento |
+| frontera `thread` en el umbral | `thread` con `effectivePriority === threshold` → elegible (`>=`); `fact`/`episode` idénticos → `reason:'decay'` |
 | elegible con efectiva < 8 | no entra por `priority`; sí por `thread` o keyword |
+| regenerate/continue sin `pendingMessages` | el loader usa el último mensaje de usuario del historial como señal léxica; mismo resultado de selección que con el pendiente equivalente |
 | actor principal | `actorInPending (+4)` por frase normalizada exacta / `mainActor (+2)` ganan a prioridad alta no relacionada |
 | keyword | tokens normalizados únicos (minúsculas, sin acentos, 3+ chars, sin stopwords), `+1` cada uno, tope `+5` (≥5 keywords empatan en `+5`; 4 puntúan menos); motivo `keyword` |
 | thread | entra sin señal léxica (solo si es elegible por prioridad efectiva); peso `1.5` |
@@ -279,4 +288,5 @@ pnpm audit --prod
   (tokenización, prioridad efectiva, `type` en propuestas, recencia lineal,
   forma de `selection`, servicio de retrieval, orden del loader,
   normalización de consolidación, resultado `{ memories, created, updated,
-  discarded }` y decaimiento estricto).
+  discarded }`, decaimiento estricto, frontera `>=` de `thread` y señal léxica
+  de regenerate/continue).
