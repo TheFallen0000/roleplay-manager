@@ -10,7 +10,7 @@ migraciones, rutas y tests).
 | Comprobación | Resultado |
 | ------------ | --------- |
 | `pnpm check:arch` | 7/7, 0 warnings |
-| `pnpm --filter @workspace/backend test` | 167 archivos / 1085 tests |
+| `pnpm --filter @workspace/backend test` | 167 archivos / 1090 tests (1085 antes de S135) |
 | `query-performance.test.ts` | 6 planes de consulta con `USING INDEX`, sin `SCAN` |
 | `drizzle-kit check` | `Everything's fine` |
 | Migraciones 0019/0020 | Tests de migración presentes |
@@ -27,8 +27,8 @@ migraciones, rutas y tests).
 - **Impacto:** un id de otro libro podía cambiar su `order`; un id inexistente
   se ignoraba silenciosamente.
 - **Fix:** se valida que cada id pertenezca a las entradas del libro y que no
-  haya duplicados antes de escribir. Códigos: `LOREBOOK_NOT_FOUND` (404) e
-  `INVALID_LOREBOOK_ORDER` (400).
+  haya duplicados antes de escribir. Código: `INVALID_LOREBOOK_ORDER` (400)
+  para ids ajenos y duplicados.
 - **Validación:** `reorder-lorebook-entries.use-case.test.ts` cubre orden
   válido, id ajeno y duplicados; el test existente de `lorebook.use-case.test.ts`
   se actualizó con dos entradas reales.

@@ -256,9 +256,10 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 - **S131 comparte un type predicate.** `isSafeWorkingWindow` acepta la frontera
   exacta (`workingWindow + maxTokens === contextWindow`) y lo usan el resolver y
   la limpieza de settings; un valor explícito inseguro ahora se rechaza.
-- **S133 N3 omite claves nulas, no las borra del original.** El builder de `rm`
-  deja de escribir `subtitle`/`instructions` cuando no hay valor; las
-  extensiones importadas que ya los tuvieran se conservan.
+- **S133 N3: los campos normalizados de `rm` son autoritativos.** Al exportar
+  se eliminan del `rm` crudo las claves conocidas y se re-emiten desde la
+  versión; las claves desconocidas se conservan. Así, borrar
+  `subtitle`/`instructions` en el editor no resucita el valor importado.
 - **S133 UI N5 preserva la escritura.** El efecto de `KeyListInput` solo
   reemplaza el texto si las claves parseadas difieren del `value` recibido.
 - **Modern web sin reescrituras.** `toSorted`/`toReversed` son seguros con
@@ -276,7 +277,7 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 - `pnpm --filter @workspace/backend typecheck`: OK.
 - `pnpm --filter @workspace/frontend typecheck`: 0 errores, 2 hints
   preexistentes (`keyCode` del fallback IME y `document.execCommand`).
-- `pnpm --filter @workspace/backend test`: 167 archivos / 1087 tests.
+- `pnpm --filter @workspace/backend test`: 167 archivos / 1090 tests.
 - `pnpm --filter @workspace/frontend exec vitest run`: 94 archivos / 495 tests.
 - `drizzle-kit check`: `Everything's fine`.
 - `legacy-scan` frontend y website: 0 hallazgos.
@@ -287,8 +288,14 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 
 ## Review
 
-- **Estado:** pendiente
+- **Estado:** PASS WITH NOTES
 - **Informe:** `docs/10-slices/S135-review.md`
+- **Bloqueantes/mayores:** ninguno.
+- **Menores resueltos:** `rm` obsoleto al borrar un campo y código/mensaje del
+  id ajeno en reorden.
+- **Nits resueltos:** predicado de ventana en import, tests de locale por use
+  case, aislamiento del test IME, nombre accesible del chat y redacción del
+  CHANGELOG.
 
 ## Deferred
 
@@ -321,3 +328,4 @@ Los tests se escriben antes de la implementación. Matriz inicial:
 9. `d3be5d8` `chore(website): refresh release snapshot and translate fetch messages`
 10. `152aaef` `docs(slice): record S135 audits, roadmap and changelog`
 11. `41eb126` `fix(backend): stabilize lorebook shelf ordering`
+12. `93087e8` `docs(tooling): clarify the optional Context7 key`

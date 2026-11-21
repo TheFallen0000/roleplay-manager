@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- **Characters**: card import and update fallbacks (description and greeting)
-  follow the request `Accept-Language` instead of always using English.
+- **Characters**: card preview, import and update fallbacks (description and
+  greeting) follow the request `Accept-Language` instead of always using
+  English.
 - **Context**: the working-window boundary is shared by the effective-window
   resolver and the conversation settings cleanup, so a window that leaves
   exactly the reply reserve is accepted consistently.
@@ -32,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Lorebooks**: reordering entries rejects ids from another book and
   duplicates instead of silently updating them.
 - **Cards**: exported `extensions.rm` omits `subtitle`/`instructions` when they
-  are null.
+  are null and clears stale imported values, so clearing a field in the editor
+  survives the export.
 - **Lorebooks**: the key list input resyncs when the selected version changes
   while preserving a trailing comma during typing.
 - **Frontend**: reduced-motion preferences, text wrapping and image
