@@ -5,7 +5,10 @@ import { Memory } from "../../../domain/entities/memory.entity"
 import type { CreateMemoryInput, MemoryDTO } from "@workspace/shared/types/memory"
 
 export class CreateMemoryUseCase {
-  constructor(private readonly memoryRepository: MemoryRepository) {}
+  constructor(
+    private readonly memoryRepository: MemoryRepository,
+    private readonly onMemoryChanged?: (memory: Memory) => void,
+  ) {}
 
   async execute(
     conversationId: string,
@@ -28,6 +31,7 @@ export class CreateMemoryUseCase {
     })
 
     await this.memoryRepository.create(memory)
+    this.onMemoryChanged?.(memory)
 
     return {
       id: memory.id,

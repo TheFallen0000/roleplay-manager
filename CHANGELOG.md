@@ -23,6 +23,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Evaluation**: retrieval eval over three labeled conversations covering actor
   noise, keyword-only matches, budget cuts, decayed memories and score ties,
   alongside the existing context assembly eval.
+- **Memory**: opt-in semantic retrieval via embeddings, local-first (Ollama) by
+  default and remote (OpenAI-compatible) only by explicit choice, configured
+  from an Embeddings section in the provider manager with a privacy warning for
+  remote providers.
+- **Memory**: hybrid retrieval fuses the lexical score with the cosine
+  similarity of the memory vector (weight 2.0, threshold 0.55) and adds the
+  `semantic` and `hybrid` selection reasons; disabled embeddings or a failing
+  provider keep the lexical result unchanged.
+- **Memory**: derived `memory_embeddings` table (migration 0022, cascade on
+  delete, little-endian `Float32Array` BLOB) invalidated by text hash, provider,
+  model and dimension, with eager best-effort indexing, lazy embedding on
+  retrieval and a manual global reindex in batches of 16 reporting
+  `indexed`/`missing`/`failed`. Vectors never travel in export/import.
+- **Context**: the manifest exposes `memories.embedding` (`enabled`, provider,
+  model, `indexed`, `missing`) so the preview can explain semantic retrieval.
+- **Evaluation**: vector retrieval eval with a deterministic offline embedding
+  fake covering paraphrases, partial synonymy, false proximity, provider
+  fallback and budget cuts, plus the S136 fixtures as regression baseline.
 
 ### Changed
 
@@ -35,6 +53,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   duplicate it.
 - **Context**: the prompt memory line shows the type, and the proposal tool and
   fallback block accept an optional `type` that the server normalizes to `fact`.
+- **Settings**: the embedding target (provider, instance, model and active
+  dimension) persists in `settings` and is exposed through
+  `/api/settings/embeddings` without secrets; a `POST` to
+  `/api/settings/embeddings/reindex` reindexes every conversation.
+- **Memory**: prompt memory selection accepts optional semantic scores while
+  keeping the S136 order, budget and reasons; `selectMemoriesForPrompt` stays
+  synchronous and an async orchestrator resolves the semantic signal.
 
 ### Fixed
 
@@ -42,6 +67,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   by using the last user message of the history as the retrieval query.
 - **Memory**: a memory below the decay threshold stays out of the prompt even
   when its actor or a keyword appears in the message.
+- **Memory**: the embedding provider and instance pair is validated on the
+  server, so a local provider cannot point at a remote instance and leak memory
+  text; `hasApiKey` also checks the inherited global API key.
+- **Memory**: the active embedding dimension is written after the first
+  successful embed (not only after a reindex), cleared when the target changes,
+  and the reindex rejects vectors whose length does not match it.
 
 ### Tests
 
@@ -50,6 +81,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   export/import; frontend coverage for the type controls, filters and selection
   preview; regression tests for regenerate/continue and the `thread` decay
   boundary.
+- Backend coverage for the embedding adapters, migration 0022, the BLOB
+  round-trip, the embedding service, hybrid retrieval, the config/reindex API
+  and its use cases; frontend coverage for the embedding settings section;
+  vector eval for paraphrases with the S136 fixtures as regression.
 
 ## [1.58.1] - 2026-11-21
 

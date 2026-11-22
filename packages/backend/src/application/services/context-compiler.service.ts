@@ -39,6 +39,14 @@ export interface ContextCompileInput {
   summary: Summary | null
   playerCharacter?: { name: string; description: string }
   lorebook?: PromptContextLorebook
+  /** Derived vector index status; copied into the manifest when present. */
+  embedding?: {
+    enabled: boolean
+    provider?: string
+    model?: string
+    indexed: number
+    missing: number
+  }
   locale?: Locale
   outputReserve: number
   compaction: { needed: boolean; applied: boolean }
@@ -162,6 +170,7 @@ export class ContextCompiler {
           input.memories.length - input.promptMemories.length,
         ),
         selection: input.memorySelection ?? [],
+        ...(input.embedding ? { embedding: input.embedding } : {}),
       },
       ...(input.lorebook
         ? {

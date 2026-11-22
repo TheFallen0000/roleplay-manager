@@ -1,9 +1,13 @@
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import { NotFoundError } from "../../../domain/errors"
+import type { Memory } from "../../../domain/entities/memory.entity"
 import type { UpdateMemoryInput, MemoryDTO } from "@workspace/shared/types/memory"
 
 export class UpdateMemoryUseCase {
-  constructor(private readonly memoryRepository: MemoryRepository) {}
+  constructor(
+    private readonly memoryRepository: MemoryRepository,
+    private readonly onMemoryChanged?: (memory: Memory) => void,
+  ) {}
 
   async execute(
     conversationId: string,
@@ -27,6 +31,7 @@ export class UpdateMemoryUseCase {
     )
 
     await this.memoryRepository.update(updated)
+    this.onMemoryChanged?.(updated)
 
     return {
       id: updated.id,

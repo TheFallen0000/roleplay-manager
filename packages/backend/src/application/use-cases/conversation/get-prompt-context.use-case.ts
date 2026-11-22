@@ -69,6 +69,7 @@ export class GetPromptContextUseCase {
       memories: loaded.memories,
       promptMemories: loaded.promptMemories,
       memorySelection: loaded.memorySelection,
+      ...(loaded.embedding ? { embedding: loaded.embedding } : {}),
       summary: latestSummary,
       playerCharacter: loaded.playerCharacter,
       lorebook: loaded.lorebook,

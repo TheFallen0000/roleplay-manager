@@ -1,6 +1,7 @@
 import OpenAI from "openai"
 
 import type { CapabilityClaim } from "@workspace/shared/types/model-capabilities"
+import type { EmbedRequest, EmbedResult } from "@workspace/shared/types/embedding"
 import { normalizeModelIdentity } from "@workspace/shared/lib/model-capabilities"
 import type {
   ProviderModel,
@@ -258,6 +259,37 @@ export class OpenAICompatibleAdapter implements ProviderPort {
     return e.status ?? e.response?.status
   }
 
+  supportsEmbeddings(): boolean {
+    return true
+  }
+
+  /**
+   * OpenAI-compatible embeddings via the SDK (`/v1/embeddings`). Vectors are
+   * L2-normalized here so cosine similarity is a dot product downstream.
+   */
+  async embed(input: EmbedRequest): Promise<EmbedResult> {
+    try {
+      const response = await this.client.embeddings.create({
+        model: input.model,
+        input: input.texts,
+      })
+      const vectors = response.data.map((entry) =>
+        normalizeEmbedding(entry.embedding as number[]),
+      )
+      return {
+        vectors,
+        model: input.model,
+        dimension: vectors[0]?.length ?? 0,
+      }
+    } catch (error) {
+      if (error instanceof ProviderTimeoutError) throw error
+      throw new ProviderError(
+        "PROVIDER_CONNECTION_FAILED",
+        `OpenAI-compatible embeddings failed: ${(error as Error).message}`,
+      )
+    }
+  }
+
   async *generateStreaming(
     context: PromptContext,
     options?: GenerateOptions,
@@ -343,4 +375,12 @@ export class OpenAICompatibleAdapter implements ProviderPort {
       )
     }
   }
+}
+
+const normalizeEmbedding = (vector: readonly number[]): number[] => {
+  const norm = Math.sqrt(
+    vector.reduce((sum, value) => sum + value * value, 0),
+  )
+  if (norm === 0) return vector.map(() => 0)
+  return vector.map((value) => value / norm)
 }

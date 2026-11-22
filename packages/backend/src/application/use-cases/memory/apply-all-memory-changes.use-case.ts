@@ -20,6 +20,7 @@ export class ApplyAllMemoryChangesUseCase {
     private readonly memoryRepository: MemoryRepository,
     private readonly memoryChangeProposalRepository: MemoryChangeProposalRepository,
     private readonly logger: Logger,
+    private readonly onMemoryChanged?: (memory: Memory) => void,
   ) {}
 
   async execute(input: ApplyAllMemoryChangesInput): Promise<ApplyMemoryChangesResult> {
@@ -61,6 +62,7 @@ export class ApplyAllMemoryChangesUseCase {
               )
               await this.memoryRepository.update(updated)
               replaceMemory(conversationMemories, updated)
+              this.onMemoryChanged?.(updated)
               result.memories.push(toMemoryDTO(updated))
               result.updated += 1
               break
@@ -81,6 +83,7 @@ export class ApplyAllMemoryChangesUseCase {
             })
             await this.memoryRepository.create(memory)
             conversationMemories.push(memory)
+            this.onMemoryChanged?.(memory)
             result.memories.push(toMemoryDTO(memory))
             result.created += 1
             break
@@ -112,6 +115,7 @@ export class ApplyAllMemoryChangesUseCase {
             )
             await this.memoryRepository.update(updated)
             result.memories.push(toMemoryDTO(updated))
+            this.onMemoryChanged?.(updated)
             result.updated += 1
             break
           }

@@ -155,6 +155,13 @@
       "when": 1795295435870,
       "tag": "0021_memory_types",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1795370000000,
+      "tag": "0022_memory_embeddings",
+      "breakpoints": true
     }
   ]
 }

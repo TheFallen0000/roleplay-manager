@@ -1,4 +1,5 @@
 import type { CapabilityClaim } from "@workspace/shared/types/model-capabilities"
+import type { EmbedRequest, EmbedResult } from "@workspace/shared/types/embedding"
 import { normalizeModelIdentity } from "@workspace/shared/lib/model-capabilities"
 import type { ProviderModel, ProviderStatus } from "@workspace/shared/types/provider"
 
@@ -201,6 +202,36 @@ export class OllamaAdapter implements ProviderPort {
     return null
   }
 
+  supportsEmbeddings(): boolean {
+    return true
+  }
+
+  /**
+   * Ollama embeddings via `POST /api/embed`. Vectors are L2-normalized here so
+   * cosine similarity is a dot product downstream.
+   */
+  async embed(input: EmbedRequest): Promise<EmbedResult> {
+    const response = await this.fetchWithTimeout("/api/embed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: input.model, input: input.texts }),
+    })
+    if (!response.ok) {
+      throw new ProviderError(
+        "PROVIDER_CONNECTION_FAILED",
+        `Ollama /api/embed returned ${response.status}`,
+      )
+    }
+    const body = (await response.json()) as { embeddings?: number[][] }
+    const raw = body.embeddings ?? []
+    const vectors = raw.map((vector) => normalizeEmbedding(vector))
+    return {
+      vectors,
+      model: input.model,
+      dimension: vectors[0]?.length ?? 0,
+    }
+  }
+
   async *generateStreaming(
     context: PromptContext,
     options?: GenerateOptions,
@@ -332,4 +363,12 @@ export class OllamaAdapter implements ProviderPort {
       clearTimeout(timer)
     }
   }
+}
+
+const normalizeEmbedding = (vector: readonly number[]): number[] => {
+  const norm = Math.sqrt(
+    vector.reduce((sum, value) => sum + value * value, 0),
+  )
+  if (norm === 0) return vector.map(() => 0)
+  return vector.map((value) => value / norm)
 }

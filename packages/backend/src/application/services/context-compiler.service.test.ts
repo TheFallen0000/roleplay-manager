@@ -217,6 +217,7 @@ describe("ContextCompiler", () => {
       excluded: 1,
       selection: memorySelection,
     })
+    expect(manifest.memories.embedding).toBeUndefined()
 
     // Message selection counts.
     expect(manifest.messages).toEqual({
@@ -350,5 +351,24 @@ describe("ContextCompiler", () => {
     const compiler = new ContextCompiler(fakeBuilder)
     const { manifest } = await compiler.compile(buildInput())
     expect(manifest).toBeDefined()
+  })
+
+  it("adds the embedding status to the manifest only when provided", async () => {
+    const compiler = new ContextCompiler(fakeBuilder)
+    const embedding = {
+      enabled: true,
+      provider: "ollama",
+      model: "nomic-embed-text",
+      indexed: 2,
+      missing: 1,
+    }
+
+    const plain = await compiler.compile(buildInput())
+    expect(plain.manifest.memories.embedding).toBeUndefined()
+
+    const withEmbedding = await compiler.compile(
+      buildInput({ embedding }),
+    )
+    expect(withEmbedding.manifest.memories.embedding).toEqual(embedding)
   })
 })

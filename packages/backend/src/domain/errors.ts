@@ -185,3 +185,15 @@ export class UpdateFailedError extends DomainError {
     this.name = "UpdateFailedError"
   }
 }
+
+/**
+ * The configured embedding provider cannot produce vectors right now. Internal
+ * only: retrieval and best-effort indexing downgrade to the lexical path and
+ * never surface this to the user.
+ */
+export class EmbeddingUnavailableError extends DomainError {
+  constructor(message = "The embedding provider is not available.") {
+    super("EMBEDDING_UNAVAILABLE", message, 503)
+    this.name = "EmbeddingUnavailableError"
+  }
+}

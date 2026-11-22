@@ -22,6 +22,7 @@ import { DrizzleConversationRepository } from "../infrastructure/adapters/second
 import { DrizzleMessageRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-message.repository"
 import { DrizzleProviderInstanceRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-provider-instance.repository"
 import { DrizzleMemoryRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-memory.repository"
+import { DrizzleMemoryEmbeddingRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-memory-embedding.repository"
 import { DrizzleMemoryChangeProposalRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-memory-change-proposal.repository"
 import { DrizzleHealthRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-health.repository"
 import { DrizzleSummaryRepository } from "../infrastructure/adapters/secondary/drizzle/repositories/drizzle-summary.repository"
@@ -49,6 +50,8 @@ import type {
   MessageRepository,
 } from "../domain/ports/message.repository"
 import type { MemoryRepository } from "../domain/ports/memory.repository"
+import type { EmbeddingRepository } from "../domain/ports/embedding.repository"
+import type { Memory } from "../domain/entities/memory.entity"
 import type { MemoryChangeProposalRepository } from "../domain/ports/memory-change-proposal.repository"
 import type { ProviderInstanceRepository } from "../domain/ports/provider-instance.repository"
 import type { SummaryRepository } from "../domain/ports/summary.repository"
@@ -151,6 +154,13 @@ import { UpdateMemoryUseCase } from "../application/use-cases/memory/update-memo
 import { DeleteMemoryUseCase } from "../application/use-cases/memory/delete-memory.use-case"
 import { ListMemoriesUseCase } from "../application/use-cases/memory/list-memories.use-case"
 import { ListProposalsUseCase } from "../application/use-cases/memory/list-proposals.use-case"
+import { ConfigureEmbeddingUseCase } from "../application/use-cases/memory/configure-embedding.use-case"
+import { GetEmbeddingConfigUseCase } from "../application/use-cases/memory/get-embedding-config.use-case"
+import { ReindexMemoryEmbeddingsUseCase } from "../application/use-cases/memory/reindex-memory-embeddings.use-case"
+import { MemoryEmbeddingService } from "../application/services/embedding/memory-embedding.service"
+import { resolveEmbeddingConfig } from "../application/services/embedding/embedding-config"
+import { EMBEDDING_SETTINGS_KEYS } from "../application/services/embedding/embedding-config"
+import { MemoryHybridRetrievalService } from "../application/services/memory-hybrid-retrieval.service"
 import { GenerateConversationTitleUseCase } from "../application/use-cases/conversation/generate-conversation-title.use-case"
 import { GetPromptContextUseCase } from "../application/use-cases/conversation/get-prompt-context.use-case"
 import { ListSummariesUseCase } from "../application/use-cases/summary/list-summaries.use-case"
@@ -191,6 +201,7 @@ export interface AppContainer {
   conversationRepository: ConversationRepository
   messageRepository: MessageRepository
   memoryRepository: MemoryRepository
+  embeddingRepository: EmbeddingRepository
   memoryChangeProposalRepository: MemoryChangeProposalRepository
   promptContextBuilder: PromptContextBuilder
   createCharacter: CreateCharacterUseCase
@@ -309,6 +320,13 @@ export interface AppContainer {
   listMemories: ListMemoriesUseCase
   listProposals: ListProposalsUseCase
   decayMemories: DecayConversationMemoryUseCase
+
+  // Embeddings (S137)
+  memoryEmbeddingService: MemoryEmbeddingService
+  memoryHybridRetrieval: MemoryHybridRetrievalService
+  getEmbeddingConfig: GetEmbeddingConfigUseCase
+  configureEmbedding: ConfigureEmbeddingUseCase
+  reindexMemoryEmbeddings: ReindexMemoryEmbeddingsUseCase
 }
 
 export interface BuildContainerOptions {
@@ -393,12 +411,42 @@ export const buildContainer = ({
     new DrizzleMessageRepository(database)
   const memoryRepository: MemoryRepository =
     new DrizzleMemoryRepository(database)
+  const embeddingRepository: EmbeddingRepository =
+    new DrizzleMemoryEmbeddingRepository(database)
+  const resolveEmbeddingTarget = () => resolveEmbeddingConfig(settings)
   const memoryChangeProposalRepository: MemoryChangeProposalRepository =
     new DrizzleMemoryChangeProposalRepository(database)
   const promptContextBuilder: PromptContextBuilder = new PromptContextBuilderImpl()
   const summaryRepository: SummaryRepository = new DrizzleSummaryRepository(database)
   const providerInstanceRepository: ProviderInstanceRepository =
     new DrizzleProviderInstanceRepository(database)
+  const memoryEmbeddingService = new MemoryEmbeddingService({
+    repository: embeddingRepository,
+    registry: providerRegistry,
+    providerInstanceRepository,
+  })
+  const memoryHybridRetrieval = new MemoryHybridRetrievalService({
+    embeddingService: memoryEmbeddingService,
+    embeddingRepository,
+  })
+  // Fire-and-forget: a provider failure never blocks or fails the save.
+  const embedMemoryBestEffort = (memory: Memory): void => {
+    void resolveEmbeddingTarget()
+      .then(async (config) => {
+        if (!config) return
+        const record = await memoryEmbeddingService.embedMemory({
+          memory,
+          config,
+        })
+        if (record && config.dimension === null) {
+          await settings.set(
+            EMBEDDING_SETTINGS_KEYS.dimension,
+            String(record.dimension),
+          )
+        }
+      })
+      .catch(() => {})
+  }
   // Probe claims are shared across requests; the cache is lost on restart.
   const modelCapabilitiesCache = new ModelCapabilitiesCache()
   const getDefaultProvider = new GetDefaultProviderUseCase(settings, providerInstanceRepository)
@@ -412,6 +460,9 @@ export const buildContainer = ({
     summaryRepository,
     playerCharacterRepository,
     lorebookRepository,
+    memoryHybridRetrieval,
+    embeddingRepository,
+    resolveEmbeddingConfig: resolveEmbeddingTarget,
   })
   const contextCompiler = new ContextCompiler(promptContextBuilder)
 
@@ -487,6 +538,7 @@ export const buildContainer = ({
     memoryRepository,
     memoryChangeProposalRepository,
     logger,
+    embedMemoryBestEffort,
   )
 
   const decayMemories = new DecayConversationMemoryUseCase(
@@ -695,6 +747,7 @@ export const buildContainer = ({
     conversationRepository,
     messageRepository,
     memoryRepository,
+    embeddingRepository,
     memoryChangeProposalRepository,
     promptContextBuilder,
     summaryRepository,
@@ -929,13 +982,40 @@ export const buildContainer = ({
       memoryRepository,
       memoryChangeProposalRepository,
       logger,
+      embedMemoryBestEffort,
     ),
     applyAllMemoryChanges,
-    createMemory: new CreateMemoryUseCase(memoryRepository),
-    updateMemory: new UpdateMemoryUseCase(memoryRepository),
+    createMemory: new CreateMemoryUseCase(
+      memoryRepository,
+      embedMemoryBestEffort,
+    ),
+    updateMemory: new UpdateMemoryUseCase(
+      memoryRepository,
+      embedMemoryBestEffort,
+    ),
     deleteMemory: new DeleteMemoryUseCase(memoryRepository),
     listMemories: new ListMemoriesUseCase(memoryRepository, messageRepository),
     listProposals: new ListProposalsUseCase(memoryChangeProposalRepository),
     decayMemories,
+    memoryEmbeddingService,
+    memoryHybridRetrieval,
+    getEmbeddingConfig: new GetEmbeddingConfigUseCase(
+      settings,
+      providerInstanceRepository,
+      embeddingRepository,
+      conversationRepository,
+    ),
+    configureEmbedding: new ConfigureEmbeddingUseCase(
+      settings,
+      providerInstanceRepository,
+    ),
+    reindexMemoryEmbeddings: new ReindexMemoryEmbeddingsUseCase({
+      conversationRepository,
+      memoryRepository,
+      embeddingRepository,
+      embeddingService: memoryEmbeddingService,
+      settings,
+      resolveConfig: resolveEmbeddingTarget,
+    }),
   }
 }

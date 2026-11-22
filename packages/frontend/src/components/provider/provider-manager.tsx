@@ -29,6 +29,8 @@ import { ProviderCard } from "@/components/shared/provider/provider-card"
 import { InstanceFormDialog } from "@/components/shared/provider/instance-form-dialog"
 import { useInstanceDialog } from "@/components/shared/provider/use-instance-dialog"
 
+import { EmbeddingSettings } from "./embedding-settings"
+
 export function ProviderManager({ locale }: { locale: Locale }) {
   return (
     <I18nProvider initialLocale={locale}>
@@ -379,6 +381,8 @@ function ProviderManagerContent() {
           hasModel={!!defaultConfig.models["openai-compatible"]}
         />
       ) : null}
+
+      <EmbeddingSettings />
 
       <InstanceFormDialog
         open={dialog.state.open}

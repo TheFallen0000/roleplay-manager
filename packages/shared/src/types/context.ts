@@ -44,6 +44,8 @@ export type MemorySelectionReason =
   | "thread"
   | "budget"
   | "decay"
+  | "semantic"
+  | "hybrid"
   | "not-relevant"
 
 export interface ContextManifestMemorySelectionDTO {
@@ -76,6 +78,14 @@ export interface ContextManifestDTO {
     included: number
     excluded: number
     selection: ContextManifestMemorySelectionDTO[]
+    /** Vector index status for the conversation; only present with config. */
+    embedding?: {
+      enabled: boolean
+      provider?: string
+      model?: string
+      indexed: number
+      missing: number
+    }
   }
   lorebook?: {
     /** Activated entries dropped because the token budget was exceeded. */

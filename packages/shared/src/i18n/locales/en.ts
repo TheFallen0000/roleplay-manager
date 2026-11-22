@@ -1216,6 +1216,25 @@ export const en = {
     openModelList: "Open model list",
     clearModel: "Clear model",
     noModelsFound: "No models found.",
+    embeddingHeading: "Embeddings",
+    embeddingDescription:
+      "Optional semantic memory search. Choose which provider and model produce the vectors.",
+    embeddingProviderLabel: "Embedding provider",
+    embeddingModelLabel: "Embedding model",
+    embeddingModelsHint:
+      "Known models: nomic-embed-text, mxbai-embed-large, all-minilm.",
+    embeddingPrivacyWarning:
+      "With a remote provider, memory text leaves the device.",
+    embeddingEnabled: "Embeddings enabled",
+    embeddingDisabled: "Embeddings disabled",
+    embeddingIndexed: "{count} indexed",
+    embeddingPending: "{count} pending",
+    embeddingReindex: "Reindex",
+    embeddingReindexRunning: "Reindexing…",
+    embeddingReindexDone: "Reindex finished",
+    embeddingReindexFailed: "The memories could not be reindexed",
+    embeddingLoadFailed: "The embedding configuration could not be loaded",
+    embeddingSaveFailed: "The embedding configuration could not be saved",
   },
   summaries: {
     generateNow: "Generate summary now",
@@ -1275,6 +1294,8 @@ export const en = {
       thread: "Open thread",
       budget: "Token budget",
       decay: "Decayed",
+      semantic: "Semantic match",
+      hybrid: "Lexical and semantic match",
       notRelevant: "Not relevant",
     },
     priorityDecayed: {
