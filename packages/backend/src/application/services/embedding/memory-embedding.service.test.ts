@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 
-import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
+import type {
+  ProviderInstanceRecord,
+  ProviderInstanceRepository,
+} from "../../../domain/ports/provider-instance.repository"
 import type { EmbeddingRepository } from "../../../domain/ports/embedding.repository"
 import type {
   ProviderPort,
@@ -44,13 +47,29 @@ const buildRepository = (): EmbeddingRepository => ({
   countStatus: vi.fn(async () => ({ indexed: 0, missing: 0 })),
 })
 
-const providerInstanceRepository: ProviderInstanceRepository = {
-  list: vi.fn(async () => []),
-  findById: vi.fn(async () => null),
+const buildInstance = (
+  id: string,
+  kind: "ollama" | "openai-compatible",
+): ProviderInstanceRecord => ({
+  id,
+  kind,
+  name: id,
+  url: "http://localhost:1234/v1",
+  hasApiKey: false,
+  apiKey: null,
+  createdAt: now.toISOString(),
+  updatedAt: now.toISOString(),
+})
+
+const buildInstanceRepository = (
+  instances: Record<string, ProviderInstanceRecord> = {},
+): ProviderInstanceRepository => ({
+  list: vi.fn(async () => Object.values(instances)),
+  findById: vi.fn(async (id) => instances[id] ?? null),
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(async () => {}),
-}
+})
 
 const buildRegistry = (adapter: ProviderPort | null): ProviderRegistry => ({
   listRegistered: () => ["ollama", "openai-compatible"],
@@ -68,11 +87,16 @@ const config = {
 const buildService = (
   adapter: ProviderPort | null,
   repository = buildRepository(),
+  options: {
+    registry?: ProviderRegistry
+    instanceRepository?: ProviderInstanceRepository
+  } = {},
 ) =>
   new MemoryEmbeddingService({
     repository,
-    registry: buildRegistry(adapter),
-    providerInstanceRepository,
+    registry: options.registry ?? buildRegistry(adapter),
+    providerInstanceRepository:
+      options.instanceRepository ?? buildInstanceRepository(),
   })
 
 describe("MemoryEmbeddingService", () => {
@@ -230,5 +254,53 @@ describe("MemoryEmbeddingService", () => {
     await expect(
       failing.embedQuery({ text: "El wyrm exhala llamas", config }),
     ).resolves.toBeNull()
+  })
+
+  it("refuses an instance whose kind differs from the config provider", async () => {
+    const embed = vi.fn(async () => ({
+      vectors: [[3, 4]],
+      model: DETERMINISTIC_EMBEDDING_MODEL,
+      dimension: 2,
+    }))
+    const adapter: ProviderPort = {
+      validateConnection: async () => "available",
+      listModels: async () => ({ models: [], manualEntryRequired: false }),
+      async *generateStreaming() {},
+      embed,
+    }
+    const createAdapter = vi.fn(() => adapter)
+    const registry: ProviderRegistry = {
+      listRegistered: () => ["ollama", "openai-compatible"],
+      getAdapter: vi.fn(async () => adapter),
+      createAdapter,
+    }
+    const instanceRepository = buildInstanceRepository({
+      "inst-1": buildInstance("inst-1", "openai-compatible"),
+    })
+    const service = buildService(adapter, buildRepository(), {
+      registry,
+      instanceRepository,
+    })
+    const mismatchedConfig = {
+      ...config,
+      provider: "ollama" as const,
+      providerInstanceId: "inst-1",
+    }
+
+    await expect(
+      service.embedTexts({
+        texts: ["El dragón escupe fuego"],
+        config: mismatchedConfig,
+      }),
+    ).resolves.toBeNull()
+    await expect(
+      service.embedMemory({
+        memory: mkMemory(),
+        config: mismatchedConfig,
+      }),
+    ).resolves.toBeNull()
+
+    expect(createAdapter).not.toHaveBeenCalled()
+    expect(embed).not.toHaveBeenCalled()
   })
 })

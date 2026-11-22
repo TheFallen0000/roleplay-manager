@@ -106,13 +106,14 @@ const buildUseCase = (params: {
   const conversationRepository = buildConversationRepository(
     params.conversations ?? [],
   )
+  const instanceRepository = buildInstanceRepository(params.apiKey ?? null)
   const useCase = new GetEmbeddingConfigUseCase(
     buildSettings(params.settings),
-    buildInstanceRepository(params.apiKey ?? null),
+    instanceRepository,
     embeddingRepository,
     conversationRepository,
   )
-  return { useCase, embeddingRepository, conversationRepository }
+  return { useCase, embeddingRepository, conversationRepository, instanceRepository }
 }
 
 describe("GetEmbeddingConfigUseCase", () => {
@@ -223,6 +224,24 @@ describe("GetEmbeddingConfigUseCase", () => {
       hasApiKey: false,
       enabled: true,
     })
+  })
+
+  it("reports the global OpenAI-compatible API key without an instance", async () => {
+    const secret = "sk-global-secret"
+    const { useCase, instanceRepository } = buildUseCase({
+      settings: {
+        embeddings_provider: "openai-compatible",
+        embeddings_model_openai_compatible: "text-embedding-3-small",
+        provider_openai_compatible_api_key: secret,
+      },
+    })
+
+    const result = await useCase.execute()
+
+    expect(result.hasApiKey).toBe(true)
+    expect(result.providerInstanceId).toBeNull()
+    expect(instanceRepository.findById).not.toHaveBeenCalled()
+    expect(JSON.stringify(result)).not.toContain(secret)
   })
 
   it("falls back to a null provider when the stored provider is unknown", async () => {

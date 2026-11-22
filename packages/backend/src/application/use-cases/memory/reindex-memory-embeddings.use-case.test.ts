@@ -388,6 +388,25 @@ describe("ReindexMemoryEmbeddingsUseCase", () => {
     )
   })
 
+  it("counts a vector whose length differs from the active dimension as failed", async () => {
+    const conversationId = "conv-1"
+    const memories = [mkMemory(conversationId, 1)]
+    const service = buildEmbeddingService()
+    service.embedTexts.mockResolvedValueOnce({
+      vectors: [Float32Array.from([1, 0, 0])],
+      dimension: 3,
+    })
+    const { useCase, embeddingRepository } = buildUseCase({
+      conversations: { [conversationId]: memories },
+      service,
+    })
+
+    const result = await useCase.execute()
+
+    expect(result).toEqual({ indexed: 0, missing: 1, failed: 1 })
+    expect(embeddingRepository.upsert).not.toHaveBeenCalled()
+  })
+
   it("does nothing when embeddings are not configured", async () => {
     const conv1 = "conv-1"
     const conv2 = "conv-2"

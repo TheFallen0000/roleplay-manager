@@ -1,7 +1,24 @@
 import { describe, expect, it, vi } from "vitest"
 
+import type { ProviderInstanceRecord, ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { SettingsRepository } from "../../../domain/ports/settings.repository"
 import { ConfigureEmbeddingUseCase } from "./configure-embedding.use-case"
+
+const now = "2026-11-21T12:00:00.000Z"
+
+const buildInstance = (
+  id: string,
+  kind: "ollama" | "openai-compatible",
+): ProviderInstanceRecord => ({
+  id,
+  kind,
+  name: id,
+  url: "http://localhost:1234/v1",
+  hasApiKey: false,
+  apiKey: null,
+  createdAt: now,
+  updatedAt: now,
+})
 
 const buildSettings = (
   stored: Record<string, string | null> = {},
@@ -11,6 +28,25 @@ const buildSettings = (
   set: vi.fn(async () => {}),
   setMany: vi.fn(async () => {}),
 })
+
+const buildInstanceRepository = (
+  instances: Record<string, ProviderInstanceRecord> = {
+    "inst-1": buildInstance("inst-1", "openai-compatible"),
+    "inst-2": buildInstance("inst-2", "openai-compatible"),
+    "inst-ollama": buildInstance("inst-ollama", "ollama"),
+  },
+): ProviderInstanceRepository => ({
+  list: vi.fn(async () => Object.values(instances)),
+  findById: vi.fn(async (id) => instances[id] ?? null),
+  create: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(async () => {}),
+})
+
+const buildUseCase = (
+  settings: SettingsRepository,
+  instanceRepository = buildInstanceRepository(),
+) => new ConfigureEmbeddingUseCase(settings, instanceRepository)
 
 const dimensionWasCleared = (settings: SettingsRepository): boolean => {
   const clearedBySet = vi
@@ -36,7 +72,7 @@ describe("ConfigureEmbeddingUseCase", () => {
       embeddings_model_ollama: "nomic-embed-text",
       embeddings_dimension: "768",
     })
-    const useCase = new ConfigureEmbeddingUseCase(settings)
+    const useCase = buildUseCase(settings)
 
     await useCase.execute({
       provider: "ollama",
@@ -58,20 +94,22 @@ describe("ConfigureEmbeddingUseCase", () => {
     expect(dimensionWasCleared(settings)).toBe(true)
   })
 
-  it("disables embeddings by clearing the provider and the active dimension", async () => {
+  it("disables embeddings by clearing the provider, instance and active dimension", async () => {
     const settings = buildSettings({
       embeddings_provider: "ollama",
       embeddings_model_ollama: "nomic-embed-text",
       embeddings_dimension: "768",
     })
-    const useCase = new ConfigureEmbeddingUseCase(settings)
+    const instanceRepository = buildInstanceRepository()
+    const useCase = buildUseCase(settings, instanceRepository)
 
     await useCase.execute({
       provider: null,
-      providerInstanceId: null,
+      providerInstanceId: "inst-1",
       models: {},
     })
 
+    expect(instanceRepository.findById).not.toHaveBeenCalled()
     expect(settings.setMany).toHaveBeenCalledWith(
       expect.objectContaining({
         embeddings_provider: "",
@@ -90,7 +128,7 @@ describe("ConfigureEmbeddingUseCase", () => {
       embeddings_model_ollama: "nomic-embed-text",
       embeddings_dimension: "768",
     })
-    const useCase = new ConfigureEmbeddingUseCase(settings)
+    const useCase = buildUseCase(settings)
 
     await useCase.execute({
       provider: "ollama",
@@ -108,7 +146,7 @@ describe("ConfigureEmbeddingUseCase", () => {
       embeddings_model_openai_compatible: "text-embedding-3-small",
       embeddings_dimension: "1536",
     })
-    const useCase = new ConfigureEmbeddingUseCase(settings)
+    const useCase = buildUseCase(settings)
 
     await useCase.execute({
       provider: "openai-compatible",
@@ -124,6 +162,47 @@ describe("ConfigureEmbeddingUseCase", () => {
     expect(dimensionWasCleared(settings)).toBe(true)
   })
 
+  it("accepts an instance whose kind matches the provider", async () => {
+    const settings = buildSettings()
+    const instanceRepository = buildInstanceRepository()
+    const useCase = buildUseCase(settings, instanceRepository)
+
+    await expect(
+      useCase.execute({
+        provider: "ollama",
+        providerInstanceId: "inst-ollama",
+        models: { ollama: "nomic-embed-text" },
+      }),
+    ).resolves.toBeUndefined()
+
+    expect(instanceRepository.findById).toHaveBeenCalledWith("inst-ollama")
+    expect(settings.setMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        embeddings_provider: "ollama",
+        embeddings_provider_instance_id: "inst-ollama",
+      }),
+    )
+  })
+
+  it("rejects an instance whose kind does not match the provider", async () => {
+    const settings = buildSettings()
+    const usedInstance = buildInstance("inst-1", "openai-compatible")
+    const instanceRepository = buildInstanceRepository({
+      "inst-1": usedInstance,
+    })
+    const useCase = buildUseCase(settings, instanceRepository)
+
+    await expect(
+      useCase.execute({
+        provider: "ollama",
+        providerInstanceId: "inst-1",
+        models: { ollama: "nomic-embed-text" },
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_EMBEDDING_INSTANCE" })
+
+    expect(settings.setMany).not.toHaveBeenCalled()
+  })
+
   it("never returns an API key", async () => {
     const settings = buildSettings({
       embeddings_provider: "openai-compatible",
@@ -131,7 +210,7 @@ describe("ConfigureEmbeddingUseCase", () => {
       provider_openai_compatible_api_key: "sk-secret-value",
       embeddings_dimension: "1536",
     })
-    const useCase = new ConfigureEmbeddingUseCase(settings)
+    const useCase = buildUseCase(settings)
 
     const result = await useCase.execute({
       provider: "openai-compatible",
