@@ -1,8 +1,8 @@
 # S137 — Retrieval vectorial/RAG y búsqueda híbrida
 
-**Estado:** Aprobado
+**Estado:** Completado
 **Inicio:** 2026-11-21
-**Fin:** —
+**Fin:** 2026-11-21
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -222,31 +222,31 @@ Obligatorio: cambia la selección de memoria y el prompt.
 
 ## Criterios de aceptación
 
-- [ ] `ProviderPort` expone `embed?` opcional; los adaptadores existentes
+- [x] `ProviderPort` expone `embed?` opcional; los adaptadores existentes
       compilan sin implementarlo; Ollama (`/api/embed`) y OpenAI-compatible
       (`/v1/embeddings`) lo implementan con normalización L2 y dimensiones.
-- [ ] Migración `0022` crea `memory_embeddings` aditiva; `onDelete: cascade`
+- [x] Migración `0022` crea `memory_embeddings` aditiva; `onDelete: cascade`
       sobre `memories`; test de migración.
-- [ ] Config global de embeddings (`provider`, `instance`, `model`) persiste en
+- [x] Config global de embeddings (`provider`, `instance`, `model`) persiste en
       `settings` y se expone por DTO sin secretos.
-- [ ] Al crear/editar una memoria, el embedding se intenta best-effort y un
+- [x] Al crear/editar una memoria, el embedding se intenta best-effort y un
       fallo del proveedor **no** interrumpe el guardado ni el envío.
-- [ ] En retrieval, una memoria sin vector, con `text_hash` desactualizado o con
+- [x] En retrieval, una memoria sin vector, con `text_hash` desactualizado o con
       `provider`/`model`/`dimension` distintos a la configuración activa se
       puntúa léxicamente (sin señal semántica) o se re-embebe; nunca rompe.
-- [ ] La fusión híbrida añade motivos `semantic`/`hybrid` al manifiesto y
+- [x] La fusión híbrida añade motivos `semantic`/`hybrid` al manifiesto y
       mantiene el orden estable y el presupuesto de S136.
-- [ ] Con embeddings desactivados o proveedor caído, la selección es bit-igual a
+- [x] Con embeddings desactivados o proveedor caído, la selección es bit-igual a
       S136 (test de regresión).
-- [ ] Reindexado manual con progreso y estado (`indexed`/`missing`/`failed`);
+- [x] Reindexado manual con progreso y estado (`indexed`/`missing`/`failed`);
       no exporta vectores; import reconstruye por reindexado.
-- [ ] UI: sección de embeddings (proveedor/modelo/estado + reindexar) en el
+- [x] UI: sección de embeddings (proveedor/modelo/estado + reindexar) en el
       gestor de proveedores, con aviso de privacidad para remoto; i18n en/es.
-- [ ] Eval de vector/híbrido en verde con los umbrales del plan de eval; los
+- [x] Eval de vector/híbrido en verde con los umbrales del plan de eval; los
       fixtures de S136 siguen en verde sin regresión.
-- [ ] `pnpm check`, tests backend/frontend, `pnpm build`, `pnpm audit --prod` y
+- [x] `pnpm check`, tests backend/frontend, `pnpm build`, `pnpm audit --prod` y
       `pnpm eval` pasan.
-- [ ] `CHANGELOG` bajo `[Unreleased]`, en inglés; sin bump de versión.
+- [x] `CHANGELOG` bajo `[Unreleased]`, en inglés; sin bump de versión.
 
 ## Red tests
 
@@ -264,20 +264,40 @@ Obligatorio: cambia la selección de memoria y el prompt.
 
 ## Decisiones
 
-Decisiones cerradas en el RFC (ver **Clarificaciones confirmadas** más abajo):
-
-- **Opt-in y local-first.** Sin configuración, S137 es S136. Embeddings se
-  activan explícitamente; default local (Ollama), remoto opt-in.
+- **Opt-in y local-first.** Sin configuración, S137 es S136 (léxico puro).
+  Embeddings se activan explícitamente; default local (Ollama) y remoto
+  (OpenAI-compatible) solo por elección del usuario, con aviso de privacidad.
 - **Método opcional `embed?` en `ProviderPort`, no un puerto separado.**
-  Coherente con los métodos opcionales existentes y sin romper adaptadores.
-- **Tabla derivada + coseno en JS**, sin extensiones nativas; volumen acotado.
-- **Eager best-effort + lazy en retrieval + reindexado manual.** El envío nunca
-  espera ni falla por el embedding.
-- **Fusión por suma ponderada** sobre el scorer de S136, no RRF; motivos
-  `semantic`/`hybrid` nuevos.
-- **Vectores derivados:** no se exportan; invalidación por `text_hash` del
-  texto `title + description` y por comparación separada de
-  `provider`/`model`/`dimension` (cambiar de modelo invalida el vector).
+  `EmbedRequest { texts, model }` y `EmbedResult { vectors, model, dimension }`;
+  los adaptadores existentes compilan sin implementarlo. Errores de dominio
+  (`EmbeddingUnavailableError`) no se propagan al usuario.
+- **Tabla derivada + coseno en JS**, sin extensiones nativas: migración aditiva
+  `0022` con `memory_embeddings` (`memory_id` PK/FK cascade, `provider`,
+  `model`, `dimension`, `vector` BLOB `Float32Array` little-endian,
+  `text_hash`, timestamps). El coseno se calcula en JS sobre el volumen de
+  memoria de una conversación.
+- **Eager best-effort + lazy en retrieval + reindexado manual global.** Al
+  crear/editar se intenta embeber sin bloquear el guardado; en retrieval se
+  re-embebe perezosamente; `ReindexMemoryEmbeddingsUseCase.execute()` no recibe
+  `conversationId`, recorre todas las conversaciones en lotes de 16 y devuelve
+  `{ indexed, missing, failed }` (fallos por memoria, sin abortar el resto).
+- **Fusión por suma ponderada** sobre el scorer de S136, no RRF:
+  `base = signal + priorityScore + recency + 2.0 * semanticScore`, elegibilidad
+  con umbral 0.55 y motivos `semantic`/`hybrid` nuevos. Orden y presupuesto de
+  S136 intactos; sin `semanticScores` el resultado es bit-igual.
+- **Dimensión en `settings`.** `embeddings_dimension` se escribe tras el primer
+  embed correcto (eager o reindex) y se borra al cambiar provider/model/
+  instancia; sin dimensión activa no se usa el coseno y todo cuenta como
+  `missing`.
+- **Validación de provider/instancia.** `configure-embedding` rechaza una
+  instancia cuyo `kind` no coincide con el provider
+  (`INVALID_EMBEDDING_INSTANCE`, 400), el servicio repite la defensa y
+  `hasApiKey` consulta también la clave global heredada. El DTO nunca expone la
+  clave.
+- **Privacidad.** Sin texto de memoria ni vectores en logs; el camino remoto
+  solo se activa de forma explícita y queda validado en servidor. Los vectores
+  son derivados: no viajan en export/import ni cambian
+  `EXPORT_SCHEMA_VERSION`.
 
 ## Clarificaciones confirmadas (2026-11-21)
 
@@ -298,42 +318,59 @@ genérica de arriba:
    (señal ya cubierta por S136); el vector captura el hecho, no la propiedad
    del actor.
 
-## Verificación pendiente
+## Verificación
 
-- [ ] Tests backend (adaptadores, repositorio, servicio, retrieval, migración).
-- [ ] Tests frontend (config, reindexado, aviso de privacidad).
-- [ ] `pnpm check`: 5/5 (`check:arch` + `typecheck` + `lint`).
-- [ ] `pnpm --filter @workspace/backend eval` en verde con los umbrales.
-- [ ] `pnpm build`: 4/4.
-- [ ] `pnpm audit --prod`: limpio.
-- [ ] `git diff --check`: limpio.
-- [ ] Release dry-run: no aplica (sin cambios de packaging, lockfile ni módulos
-      nativos).
+- **Tests:** backend 181 archivos / 1213 tests; frontend 96 archivos /
+  513 tests; eval 3 archivos / 92 tests.
+- **`pnpm check`:** 5/5 (`check:arch` + typecheck + lint).
+- **`pnpm build`:** 4/4.
+- **`pnpm audit --prod`:** limpio.
+- **`git diff --check`:** limpio.
+- **Release:** sin bump de versión ni release publicada; los cambios van bajo
+  `[Unreleased]`.
+- **Release dry-run:** no aplica (sin cambios de packaging, lockfile ni módulos
+  nativos).
 
-## Review pendiente
+## Review
 
-- **Estado:** pendiente
-- **Informe:** `docs/10-slices/S137-review.md` (aún no creado)
-- **Bloqueantes/mayores:** —
+- **Estado:** PASS WITH NOTES
+- **Informe:** `docs/10-slices/S137-review.md`
+- **Bloqueantes/mayores:** ninguno.
+- **Resumen:** seis hallazgos menores. Resueltos el 1 (la dimensión solo se
+  escribía en el reindex), el 2 (el reindex no validaba la longitud del vector)
+  y el 5 (formato en `get-prompt-context`), además del 3 (provider/instancia y
+  `hasApiKey` global), todos en `dba2f5f` con tests. Aceptados y documentados el
+  4 (`aggregateStatus` hace 2N consultas en ajustes) y el 6 (race inherente al
+  fire-and-forget, se auto-cura por `textHash` y reindex).
 
 ## Deferred
 
-- `generate-summary` con el filtro antiguo → **S138** (ya diferido en S136).
-- Re-embedding automático al cambiar de modelo → reindexado manual por ahora.
-- Reranking con LLM de candidatos semánticos → posterior.
-- `sqlite-vec` / ANN nativo → solo si el volumen o la latencia lo justifican.
-- RAG sobre mensajes/lorebooks completos → posterior.
-- Memoria entre conversaciones o por personaje → posterior.
+- **`aggregateStatus` O(2N)** en `get-embedding-config`: aceptado para el
+  volumen actual; una consulta agregada queda como mejora futura.
+- **Race fire-and-forget** al crear/editar: un edit inmediato puede persistir el
+  vector de la versión anterior; se auto-cura en retrieval y reindex.
+- **Re-embedding automático al cambiar de modelo**: por ahora invalidación por
+  provider/model/dimension + reindexado manual.
+- **`sqlite-vec` / ANN nativo**: solo si el volumen o la latencia lo justifican.
+- **RAG sobre mensajes/lorebooks completos**: fuera del alcance de S137.
+- **`generate-summary` con el filtro antiguo** → **S138** (políticas de
+  contexto).
+- **Reranking con LLM** de candidatos semánticos → posterior.
+- **Memoria entre conversaciones o por personaje** → posterior.
 
-## Commits propuestos
+## Commits
 
-1. `docs(slice): add S137 RFC`
-2. `test(backend): add S137 red tests and vector eval fixtures`
-3. `feat(shared): add embedding types and hybrid selection reasons`
-4. `feat(backend): add embedding port and memory_embeddings persistence`
-5. `feat(backend): implement ollama and openai-compatible embeddings`
-6. `feat(backend): fuse lexical and semantic memory retrieval`
-7. `feat(backend): add embedding config and reindex use cases`
-8. `feat(frontend): add embedding settings and index status`
-9. `test(frontend): cover embedding settings and reindex`
-10. `docs(slice): add S137 review report and close`
+1. `544a41c` `docs(slice): add S137 RFC`
+2. `8b8adac` `docs(slice): approve S137 RFC`
+3. `49f83b3` `docs(slice): add S137 orchestration plan`
+4. `503822e` `docs(slice): add S137 test plan`
+5. `eb895d9` `docs(slice): set S137 global reindex and dimension contract`
+6. `51a07f8` `test(memory): add S137 red tests and eval fixtures`
+7. `7d58e87` `test(backend): fix S137 reindex target typing`
+8. `75300fc` `feat(shared): add embedding types and hybrid selection reasons`
+9. `085b03e` `feat(backend): add embedding persistence and provider adapters`
+10. `6e2eed1` `feat(backend): add embedding service, hybrid retrieval and reindex API`
+11. `9efa874` `feat(frontend): add embedding settings and reindex controls`
+12. `a5e6b68` `chore(website): refresh release snapshot to 1.58.1`
+13. `ee82ec1` `test(backend): cover S137 review edge cases`
+14. `dba2f5f` `fix(backend): validate S137 embedding target and dimension`
