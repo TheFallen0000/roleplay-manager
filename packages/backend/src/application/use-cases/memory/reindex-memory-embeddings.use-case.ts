@@ -110,6 +110,10 @@ export class ReindexMemoryEmbeddingsUseCase {
             result.failed += 1
             continue
           }
+          if (dimension !== null && vector.length !== dimension) {
+            result.failed += 1
+            continue
+          }
           try {
             await this.deps.embeddingRepository.upsert({
               memoryId: memory.id,

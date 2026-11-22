@@ -4,6 +4,8 @@ import type {
 } from "@workspace/shared/types/embedding"
 import type { ProviderId } from "@workspace/shared/types/provider"
 
+import { DomainError } from "../../../domain/errors"
+import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
 import type { SettingsRepository } from "../../../domain/ports/settings.repository"
 import {
   EMBEDDING_MODEL_KEYS,
@@ -16,13 +18,30 @@ import {
  * active model invalidates the stored dimension so the next embed can fix it.
  */
 export class ConfigureEmbeddingUseCase {
-  constructor(private readonly settings: SettingsRepository) {}
+  constructor(
+    private readonly settings: SettingsRepository,
+    private readonly providerInstanceRepository: ProviderInstanceRepository,
+  ) {}
 
   async execute(input: ConfigureEmbeddingInput): Promise<void> {
     const provider: ProviderId | null = isProviderId(input.provider)
       ? input.provider
       : null
-    const instanceId = input.providerInstanceId ?? ""
+    const instanceId =
+      provider === null ? "" : (input.providerInstanceId ?? "")
+
+    if (provider !== null && instanceId) {
+      const instance =
+        await this.providerInstanceRepository.findById(instanceId)
+      if (!instance || instance.kind !== provider) {
+        throw new DomainError(
+          "INVALID_EMBEDDING_INSTANCE",
+          "The provider instance does not match the embedding provider.",
+          400,
+        )
+      }
+    }
+
     const models = normalizeModels(input.models)
 
     const current = await this.settings.getMany([

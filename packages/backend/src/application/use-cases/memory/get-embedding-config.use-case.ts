@@ -64,7 +64,10 @@ export class GetEmbeddingConfigUseCase {
     const model = models[
       provider === "ollama" ? "ollama" : "openaiCompatible"
     ]
-    const hasApiKey = await this.resolveHasApiKey(providerInstanceId)
+    const hasApiKey = await this.resolveHasApiKey(
+      provider,
+      providerInstanceId,
+    )
 
     if (!model) {
       return {
@@ -91,12 +94,19 @@ export class GetEmbeddingConfigUseCase {
   }
 
   private async resolveHasApiKey(
+    provider: ProviderId,
     providerInstanceId: string | null,
   ): Promise<boolean> {
-    if (!providerInstanceId) return false
-    const instance =
-      await this.providerInstanceRepository.findById(providerInstanceId)
-    return instance?.hasApiKey ?? false
+    if (providerInstanceId) {
+      const instance =
+        await this.providerInstanceRepository.findById(providerInstanceId)
+      return instance?.hasApiKey ?? false
+    }
+    if (provider !== "openai-compatible") return false
+    const apiKey = await this.settings.get(
+      "provider_openai_compatible_api_key",
+    )
+    return apiKey !== null && apiKey.trim() !== ""
   }
 
   private async aggregateStatus(

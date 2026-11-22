@@ -149,6 +149,11 @@ export class MemoryEmbeddingService {
           `Provider instance '${config.providerInstanceId}' not found.`,
         )
       }
+      if (instance.kind !== config.provider) {
+        throw new EmbeddingUnavailableError(
+          `Provider instance '${config.providerInstanceId}' does not match '${config.provider}'.`,
+        )
+      }
       return this.deps.registry.createAdapter(instance)
     }
     try {

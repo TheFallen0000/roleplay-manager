@@ -159,6 +159,7 @@ import { GetEmbeddingConfigUseCase } from "../application/use-cases/memory/get-e
 import { ReindexMemoryEmbeddingsUseCase } from "../application/use-cases/memory/reindex-memory-embeddings.use-case"
 import { MemoryEmbeddingService } from "../application/services/embedding/memory-embedding.service"
 import { resolveEmbeddingConfig } from "../application/services/embedding/embedding-config"
+import { EMBEDDING_SETTINGS_KEYS } from "../application/services/embedding/embedding-config"
 import { MemoryHybridRetrievalService } from "../application/services/memory-hybrid-retrieval.service"
 import { GenerateConversationTitleUseCase } from "../application/use-cases/conversation/generate-conversation-title.use-case"
 import { GetPromptContextUseCase } from "../application/use-cases/conversation/get-prompt-context.use-case"
@@ -431,11 +432,19 @@ export const buildContainer = ({
   // Fire-and-forget: a provider failure never blocks or fails the save.
   const embedMemoryBestEffort = (memory: Memory): void => {
     void resolveEmbeddingTarget()
-      .then((config) =>
-        config
-          ? memoryEmbeddingService.embedMemory({ memory, config })
-          : null,
-      )
+      .then(async (config) => {
+        if (!config) return
+        const record = await memoryEmbeddingService.embedMemory({
+          memory,
+          config,
+        })
+        if (record && config.dimension === null) {
+          await settings.set(
+            EMBEDDING_SETTINGS_KEYS.dimension,
+            String(record.dimension),
+          )
+        }
+      })
       .catch(() => {})
   }
   // Probe claims are shared across requests; the cache is lost on restart.
@@ -996,7 +1005,10 @@ export const buildContainer = ({
       embeddingRepository,
       conversationRepository,
     ),
-    configureEmbedding: new ConfigureEmbeddingUseCase(settings),
+    configureEmbedding: new ConfigureEmbeddingUseCase(
+      settings,
+      providerInstanceRepository,
+    ),
     reindexMemoryEmbeddings: new ReindexMemoryEmbeddingsUseCase({
       conversationRepository,
       memoryRepository,
