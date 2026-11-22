@@ -374,3 +374,5 @@ genérica de arriba:
 12. `a5e6b68` `chore(website): refresh release snapshot to 1.58.1`
 13. `ee82ec1` `test(backend): cover S137 review edge cases`
 14. `dba2f5f` `fix(backend): validate S137 embedding target and dimension`
+15. `c3f98f8` `docs(slice): add S137 review report`
+16. `3d6cafa` `docs(slice): close S137 and update changelog`
