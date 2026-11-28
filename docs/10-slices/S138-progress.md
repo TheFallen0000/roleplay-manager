@@ -1,6 +1,6 @@
 # S138 — Políticas de contexto fast/balanced/deep y presupuesto
 
-**Estado:** Draft
+**Estado:** Aprobado
 **Inicio:** 2026-11-28
 **Fin:** —
 
@@ -13,8 +13,9 @@ S138 introduce una **política de contexto** por conversación (`fast`, `balance
 `deep`) que reparte la ventana efectiva entre resumen, memoria, mensajes y
 reserva de salida de forma determinista, unifica el presupuesto que hoy vive
 disperso en tres servicios y lo expone en la UI con un selector y un desglose
-por sección. `balanced` reproduce **exactamente** el comportamiento actual, así
-que las conversaciones existentes no cambian salvo por las mejoras documentadas.
+por sección. `balanced` reproduce **exactamente** el prompt de chat y la
+compactación actuales, así que las conversaciones existentes no cambian salvo por
+la mejora documentada del resumen (cap de memoria del resumen, 12 %).
 Deja fuera el tokenizer real (S139), la selección de modelo, el RAG completo y
 cualquier cambio de embeddings.
 
@@ -66,10 +67,12 @@ de que el usuario lo ajuste según lo que quiere priorizar:
 - **Migración aditiva y compatible.** Añadir `context_policy` (migration
   `0023`) con default `balanced` y backfill; no romper export/import
   (`EXPORT_SCHEMA_VERSION` sigue en 1) ni conversaciones existentes.
-- **Sin regresión de S136/S137/S130/S131.** Con `balanced` (o sin política) el
-  presupuesto de memoria, el de resumen y la compactación deben producir los
-  mismos valores que hoy. Las evals `memory-retrieval`, `memory-vector-retrieval`
-  y `context-assembly` siguen en verde sin tocar sus umbrales.
+- **Sin regresión de S136/S137/S130/S131.** Con `balanced` (o sin política) la
+  selección de memoria del **chat**, el presupuesto de salida del resumen y la
+  compactación producen los mismos valores que hoy. El **cap de memoria del
+  resumen** es el único cambio frente al comportamiento actual (confirmado y
+  acotado). Las evals `memory-retrieval`, `memory-vector-retrieval` y
+  `context-assembly` siguen en verde sin tocar sus umbrales.
 - **Nunca superar la ventana.** La suma de las secciones + reserva de salida
   nunca excede la ventana efectiva (`resolveEffectiveWindow`); el plan clampa
   cada cap y el residuo va a mensajes, que la compactación ya recorta.
@@ -112,8 +115,10 @@ Se elige **A**. Resumen de las decisiones (cada punto con su detalle abajo):
    conversaciones nuevas; un `compactionThreshold` explícito del usuario gana.
 5. **Memoria.** La política solo cambia el **presupuesto** de memoria; el modo
    léxico/híbrido sigue siendo el opt-in de S137.
-6. **Resumen.** `generate-summary` se alinea con el retrieval (mismo selector) y
-   recibe su propio presupuesto; se evita la doble reserva.
+6. **Resumen.** `generate-summary` usa el **mismo retrieval que el chat**
+   (léxico o híbrido según S137) con `summaryMemoryBudget` propio y fallback
+   léxico; se evita la doble reserva. El cap de memoria del resumen aplica
+   también en `balanced` (cambio acotado, confirmado).
 7. **UI.** Selector de política en Historia + desglose de presupuesto por
    sección + warnings; sin tocar el gestor de proveedores.
 8. **API/DTO.** `contextPolicy` con default `balanced` y validación de enum; el
@@ -150,8 +155,8 @@ interface ContextPolicy {
   - `summaryOutput.ratio = 0.10, min = 256, max = 1024` (idéntico a
     `preferredSummary` de hoy).
   - `summaryMemory.ratio = 0.12, min = 256, max = 2048` (mismo criterio que el
-    prompt de chat; hoy el resumen inyecta **todas** las memorias sin límite,
-    así que esto es una mejora acotada y documentada).
+    prompt de chat; **cambio confirmado**: hoy el resumen inyecta **todas** las
+    memorias sin límite, así que este cap es un cambio acotado y documentado).
   - `compaction.threshold = 80, target = 60` (idéntico a hoy).
 - **`fast`**: menos contexto, más margen de velocidad (menos tokens a procesar
   y compacta antes): `memory.ratio = 0.06, min = 128, max = 1024`;
@@ -223,7 +228,7 @@ compactionTarget    = policy.compaction.target
   claman y el residuo lo gestiona la compactación.
 - **Sin override manual en S138** salvo el umbral de compactación ya existente.
   Un override fino por sección (input numérico en la UI) queda **diferido** (ver
-  Deferred y Ambigüedades); no bloquea.
+  Deferred); no bloquea.
 - **Precedencia**: `workingWindow`/`maxTokens` (usuario o "Aplicar detectado")
   > política. La política solo decide cómo se reparte la ventana **de entrada**
   que ya quedó acotada por `resolveEffectiveWindow`. `compactionThreshold`
@@ -241,10 +246,10 @@ compactionTarget    = policy.compaction.target
   conversación **existente** conserva su `compactionThreshold` guardado (no se
   pisa al cambiar de política). Si el usuario edita el umbral a mano, ese valor
   gana siempre.
-- **Recomendación sobre cambiar de política en una conversación existente:**
-  **no** se resetea `compactionThreshold`; la política solo cambia los
-  presupuestos de memoria/resumen y el modo en la UI. El umbral sigue siendo
-  editable de forma independiente. (Ambigüedad #2.)
+- **Cambiar de política en una conversación existente no resetea
+  `compactionThreshold` (confirmado):** la política solo cambia los presupuestos
+  de memoria/resumen y el modo en la UI. El umbral sigue siendo editable de
+  forma independiente (Clarificación #2).
 - `recentMessageCount`/`summaryFrequency` **quedan obsoletos** de facto: el
   motor no los lee (desde S122); la política asume el papel de "cuánta historia
   cabe". Se conservan en BD/export por compatibilidad (como ya se hacía) y se
@@ -259,15 +264,22 @@ compactionTarget    = policy.compaction.target
 - Con `deep`, una memoria relevante entra con más presupuesto (ratio 0.18), pero
   la regla de entrada y el orden de S136 no cambian; solo cabe más dentro del
   cap. Con `fast`, menos.
-- **Hint en la UI (no bloqueante):** en el desglose, `deep` puede mostrar "para
-  aprovechar más memoria, activa embeddings" (enlace al gestor de proveedores)
-  **sin** invadir ese gestor ni cambiar su configuración. (Ambigüedad #1.)
+- **Hint en la UI (no bloqueante, confirmado):** en el desglose, `deep` muestra
+  "para aprovechar más memoria, activa embeddings" (enlace al gestor de
+  proveedores)
+  **sin** invadir ese gestor ni cambiar su configuración (Clarificación #1).
 
 #### 6. Resumen
 
-- `generate-summary` se alinea con el retrieval: usa `selectMemoriesForPrompt`
-  (o el híbrido) con el `summaryMemoryBudget` del plan en lugar de
-  `filterMemoriesForPrompt`. Esto cierra el deferido explícito de S136/S137.
+- `generate-summary` usa el **mismo retrieval que el chat**: léxico o híbrido
+  según la configuración de embeddings de S137, con el `summaryMemoryBudget` del
+  plan como cap de la sección de memoria y **fallback léxico** si no hay
+  proveedor de embeddings o falla. Sustituye `filterMemoriesForPrompt`, cerrando
+  el deferido explícito de S136/S137.
+- **Cap del resumen en `balanced`.** El cap `summaryMemoryBudget` aplica también
+  en `balanced` (12 %, 256–2048), un cambio acotado frente al comportamiento
+  actual (que inyectaba **todas** las memorias al resumen); se documenta y se
+  mide en la eval.
 - **Doble reserva**: el resumen consume `summaryOutputBudget` como límite de
   salida y `summaryMemoryBudget` para la sección de memoria del prompt de
   resumen; la ventana de transcripción sigue la fórmula actual
@@ -327,22 +339,34 @@ Ver "Plan de eval" abajo.
 - RAG sobre mensajes/lorebooks completos (S137 solo cubrió memoria).
 - Cambios en embeddings, reindexado o reranking.
 - Memoria entre conversaciones o memoria global de personaje.
-- Override fino por sección (inputs numéricos) → diferido (Ambigüedad #4).
+- Override fino por sección (inputs numéricos) → diferido (Clarificación #4).
 - Resumen jerárquico/multi-resumen.
 
-### Ambigüedades que requieren aprobación
+### Clarificaciones confirmadas (2026-11-28)
 
-1. **¿`deep` sugiere embeddings o se queda léxico?** Recomendación: la política
-   solo cambia presupuesto; `deep` muestra un **hint no bloqueante** que enlaza
-   al gestor de proveedores, sin activar nada.
-2. **¿Cambiar de política en una conversación existente resetea el umbral de
-   compactación?** Recomendación: **no**. La política solo fija el default para
-   conversaciones nuevas; un `compactionThreshold` guardado gana siempre.
-3. **Calibrado de `fast`/`deep`.** Los ratios son punto de partida; la eval los
-   fija. ¿Se aprueban los valores propuestos en §1?
-4. **Override manual por sección.** ¿Lo dejamos fuera (recomendado) o añadimos
-   ya un input numérico de memoria/resumen por conversación? Recomendado: fuera,
-   diferido, para no agrandar el slice.
+Confirmadas por el usuario al aprobar el RFC; priman sobre cualquier redacción
+genérica de arriba:
+
+1. **`deep` solo sugiere embeddings, nunca los activa.** La política no activa
+   embeddings; en el desglose, `deep` muestra un **hint no bloqueante** hacia el
+   gestor de proveedores (enlace + aviso), sin cambiar su configuración.
+2. **Cambiar de política no resetea `compactionThreshold`.** La política solo
+   fija el umbral/target por defecto para conversaciones nuevas; una conversación
+   existente conserva su `compactionThreshold` guardado y el umbral editado a
+   mano gana siempre.
+3. **Ratios de `fast`/`deep` aprobados como punto de partida.** Se aprueban los
+   valores propuestos en §1; la eval los calibra y, si hace falta, se ajustan
+   antes de cerrar el slice.
+4. **Overrides manuales por sección diferidos.** S138 solo ofrece las tres
+   políticas; un input numérico de memoria/resumen por conversación queda
+   diferido (ver Deferred).
+5. **Cap de memoria del resumen también en `balanced`.** Se acepta
+   `summaryMemory.ratio = 0.12, min = 256, max = 2048` en `balanced` como cambio
+   acotado frente al comportamiento actual (que inyecta **todas** las memorias al
+   resumen sin límite); se documenta y se mide en la eval.
+6. **El prompt de resumen usa el mismo retrieval que el chat.** `generate-summary`
+   usa el retrieval léxico o híbrido según la configuración de embeddings de
+   S137, con `summaryMemoryBudget` y fallback léxico si no hay proveedor o falla.
 
 ## Plan de eval
 
@@ -373,12 +397,18 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
   vs ventana, overflow (nunca), orden estable entre dos ejecuciones, latencia
   (informativa) y recall/irrelevantes de los fixtures de S136 reutilizados.
 - **Baseline:** comportamiento actual con `balanced` (constantes de hoy):
-  `resolveMemoryBudget` y `preferredSummary` actuales; se registran como
-  referencia y se exige igualdad exacta.
-- **Umbral:** paridad exacta `balanced` = baseline (0 diffs); caps nunca
+  `resolveMemoryBudget` y `preferredSummary` actuales. La **selección de memoria
+  del chat**, el **presupuesto de salida del resumen** y la **compactación** se
+  registran como referencia y se exige igualdad exacta; la **sección de memoria
+  del prompt de resumen** es la única que cambia (cap 12 %, 256–2048) y se mide
+  aparte como mejora acotada.
+- **Umbral:** paridad exacta `balanced` = baseline (0 diffs) en selección de
+  memoria del chat, presupuesto de salida del resumen y compactación; caps nunca
   superados; determinismo (misma salida en dos ejecuciones); los umbrales de
   S136/S137 (recall ≥ 0,8, irrelevantes ≤ 0,2) siguen en verde con `balanced`.
-  Si `fast`/`deep` no mejoran la sección que prometen (más/menos memoria) en los
+  El cap de memoria del resumen en `balanced` se mide (tokens de la sección ≤
+  `summaryMemoryBudget`) y no se exige que iguale el baseline anterior. Si
+  `fast`/`deep` no mejoran la sección que prometen (más/menos memoria) en los
   fixtures, se recalibran los ratios antes de cerrar.
 
 ## Criterios de aceptación
@@ -391,11 +421,14 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
       un export antiguo importa `balanced`; `EXPORT_SCHEMA_VERSION` no cambia.
 - [ ] `memory-retrieval`, `context-compaction` y `generate-summary` consumen el
       plan de `resolveContextBudget` y dejan de usar constantes sueltas.
-- [ ] `generate-summary` usa el retrieval (no `filterMemoriesForPrompt`) con
-      `summaryMemoryBudget` propio.
-- [ ] Con `balanced` (o sin política) la selección de memoria, el presupuesto de
-      resumen y la compactación son **idénticos** al comportamiento actual
-      (tests de no-regresión; evals S136/S137 intactas).
+- [ ] `generate-summary` usa el **mismo retrieval que el chat** (léxico o híbrido
+      según S137, fallback léxico) con `summaryMemoryBudget` propio, no
+      `filterMemoriesForPrompt`.
+- [ ] Con `balanced` (o sin política) la selección de memoria del chat, el
+      presupuesto de salida del resumen y la compactación son **idénticos** al
+      comportamiento actual (tests de no-regresión; evals S136/S137 intactas); la
+      sección de memoria del prompt de resumen queda acotada por
+      `summaryMemoryBudget` (cambio confirmado, ≤ 12 %).
 - [ ] La suma de secciones + reserva de salida nunca supera la ventana efectiva
       (test de overflow con ventana pequeña y `deep`).
 - [ ] `PATCH /api/conversations/:id/settings` acepta `contextPolicy` con enum
@@ -427,20 +460,25 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
 
 ## Decisiones
 
-Decisiones ya cerradas en el RFC (sujetas a aprobación):
+Decisiones ya cerradas en el RFC y confirmadas el 2026-11-28:
 
 - **Política como constantes puras + columna por conversación** (opción A), no
   `settings` ni KV.
-- **`balanced` = comportamiento actual** (ratios 0.12 / 0.10 / 0.12, umbral
-  80/target 60); `fast`/`deep` son punto de partida calibrable.
+- **`balanced` = comportamiento actual del chat y de la compactación** (ratios
+  0.12 / 0.10 / 0.12, umbral 80/target 60), con el cap de memoria del resumen
+  (12 %, 256–2048) como único cambio acotado y documentado; `fast`/`deep` son
+  punto de partida calibrable en la eval.
 - **La política reparte presupuesto y fija defaults de compactación; no toca
   modelo, reserva de salida ni modo de retrieval.**
 - **Un único `resolveContextBudget`** como fuente de verdad del presupuesto,
   consumido por retrieval, compactación y resumen.
-- **`generate-summary` se alinea con el retrieval** y recibe presupuesto propio
-  (cierra el deferido de S136/S137).
+- **`generate-summary` usa el mismo retrieval que el chat** (léxico o híbrido,
+  fallback léxico) y recibe `summaryMemoryBudget` propio (cierra el deferido de
+  S136/S137).
 - **`recentMessageCount`/`summaryFrequency` quedan obsoletos** y documentados;
   se conservan en BD/export por compatibilidad.
+- **Los overrides manuales por sección quedan diferidos**; S138 solo ofrece las
+  tres políticas.
 
 ## Verificación
 
@@ -463,7 +501,12 @@ Pendiente. Al cerrar el slice:
 ## Deferred
 
 - **Override fino por sección** (input numérico de memoria/resumen por
-  conversación) — no entra en S138 salvo decisión contraria (Ambigüedad #4).
+  conversación) — no entra en S138 (Clarificación #4). Si se retoma: un override
+  numérico por sección con precedencia sobre la política, viajando en
+  export/rama/plantilla igual que `compactionThreshold`.
+- **Calibración de ratios de `fast`/`deep`.** Los ratios aprobados en §1 son el
+  punto de partida; la eval los fija. Si se ajustan, actualizar
+  `context-policy.ts` y el desglose de la UI (son la misma fuente).
 - **Tokenizer real por proveedor** → S139.
 - **Selección de modelo por política** y **RAG sobre mensajes/lorebooks**
   completos.
