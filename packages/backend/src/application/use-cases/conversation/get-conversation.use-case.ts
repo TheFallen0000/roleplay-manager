@@ -80,6 +80,7 @@ export class GetConversationUseCase {
       contextWindow: conversation.contextWindow,
       workingWindow: conversation.workingWindow,
       compactionThreshold: conversation.compactionThreshold,
+      contextPolicy: conversation.contextPolicy,
       temperature: conversation.temperature,
       maxTokens: conversation.maxTokens,
       topP: conversation.topP,

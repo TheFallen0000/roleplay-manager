@@ -1,3 +1,7 @@
+import {
+  resolveContextBudget,
+  resolveEffectiveCompaction,
+} from "@workspace/shared/lib/context-policy"
 import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
 import {
   estimateMessagesTokens,
@@ -135,7 +139,22 @@ export class ContextCompiler {
       workingWindow: input.conversation.workingWindow,
       maxTokens: input.conversation.maxTokens,
     })
-    const outputReserve = effective.net ? 0 : input.outputReserve
+    const plan = resolveContextBudget({
+      policy: input.conversation.contextPolicy,
+      contextWindow: input.conversation.contextWindow,
+      workingWindow: input.conversation.workingWindow,
+      maxTokens: input.conversation.maxTokens,
+    })
+    // The plan owns the reply reserve: a caller fallback must not inflate the
+    // manifest beyond the conversation's own maximum, but a smaller caller
+    // reserve (for example after compaction) still wins.
+    const outputReserve = effective.net
+      ? 0
+      : Math.min(input.outputReserve, plan.outputReserve)
+    const compaction = resolveEffectiveCompaction({
+      policy: input.conversation.contextPolicy,
+      compactionThreshold: input.conversation.compactionThreshold,
+    })
 
     const estimatedInputTokens =
       estimateTextTokens(context.systemPrompt) +
@@ -148,10 +167,20 @@ export class ContextCompiler {
       outputReserve,
       estimatedInputTokens,
       estimatedTotalTokens: estimatedInputTokens + outputReserve,
+      contextPolicy: input.conversation.contextPolicy,
+      budget: {
+        window: plan.window,
+        outputReserve: plan.outputReserve,
+        memory: plan.memoryBudget,
+        summaryOutput: plan.summaryOutputBudget,
+        summaryMemory: plan.summaryMemoryBudget,
+        compactionThreshold: compaction.threshold,
+        compactionTarget: compaction.target,
+      },
       compaction: {
         needed: input.compaction.needed,
         applied: input.compaction.applied,
-        threshold: input.conversation.compactionThreshold,
+        threshold: compaction.threshold,
       },
       summary: {
         id: input.summary?.id ?? null,

@@ -570,6 +570,10 @@ export const buildContainer = ({
     getDefaultProvider,
     providerInstanceRepository,
     logger,
+    {
+      memoryHybridRetrieval,
+      resolveEmbeddingConfig: resolveEmbeddingTarget,
+    },
   )
 
   const contextCompaction = new ContextCompactionService(

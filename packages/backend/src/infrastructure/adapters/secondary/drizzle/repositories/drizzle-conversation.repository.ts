@@ -45,6 +45,7 @@ const toConversation = (row: ConversationRow): Conversation =>
     contextWindow: row.contextWindow ?? null,
     workingWindow: row.workingWindow ?? null,
     compactionThreshold: row.compactionThreshold ?? 80,
+    contextPolicy: row.contextPolicy ?? "balanced",
     temperature: row.temperature ?? 0.7,
     maxTokens: row.maxTokens ?? 2048,
     topP: row.topP ?? 0.9,
@@ -84,6 +85,7 @@ export class DrizzleConversationRepository implements ConversationRepository {
       contextWindow: conversation.contextWindow,
       workingWindow: conversation.workingWindow,
       compactionThreshold: conversation.compactionThreshold,
+      contextPolicy: conversation.contextPolicy,
       temperature: conversation.temperature,
       maxTokens: conversation.maxTokens,
       topP: conversation.topP,
@@ -223,6 +225,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
       values.workingWindow = settings.workingWindow
     if (settings.compactionThreshold !== undefined)
       values.compactionThreshold = settings.compactionThreshold
+    if (settings.contextPolicy !== undefined)
+      values.contextPolicy = settings.contextPolicy
     if (settings.temperature !== undefined)
       values.temperature = settings.temperature
     if (settings.maxTokens !== undefined) values.maxTokens = settings.maxTokens

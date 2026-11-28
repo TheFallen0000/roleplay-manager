@@ -6,6 +6,10 @@ import type { ProviderId } from "@workspace/shared/types/provider"
 import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { MESSAGE_STYLES, isMessageStyle } from "@workspace/shared/lib/message-style"
 import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
+import {
+  CONTEXT_POLICY_IDS,
+  isContextPolicy,
+} from "@workspace/shared/lib/context-policy"
 import { isSafeWorkingWindow } from "@workspace/shared/lib/context-window"
 import {
   clampContextWindow,
@@ -82,6 +86,16 @@ export class UpdateConversationSettingsUseCase {
       if (!playerCharacter) {
         throw new PlayerCharacterNotFoundError(input.playerCharacterId)
       }
+    }
+
+    if (
+      input.contextPolicy !== undefined &&
+      !isContextPolicy(input.contextPolicy)
+    ) {
+      throw new DomainError(
+        "INVALID_CONTEXT_POLICY",
+        `Invalid context policy. Must be one of: ${CONTEXT_POLICY_IDS.join(", ")}`,
+      )
     }
 
     if (input.provider !== undefined) {
@@ -314,6 +328,7 @@ export class UpdateConversationSettingsUseCase {
       contextWindow: updated.contextWindow,
       workingWindow: updated.workingWindow,
       compactionThreshold: updated.compactionThreshold,
+      contextPolicy: updated.contextPolicy,
       temperature: updated.temperature,
       maxTokens: updated.maxTokens,
       topP: updated.topP,
