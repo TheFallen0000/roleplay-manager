@@ -1,8 +1,8 @@
 # S138 — Políticas de contexto fast/balanced/deep y presupuesto
 
-**Estado:** Aprobado
+**Estado:** Completado
 **Inicio:** 2026-11-28
-**Fin:** —
+**Fin:** 2026-11-28
 
 > `Draft` → `Aprobado` → `En progreso` → `Completado`.
 > Solo el usuario cambia `Draft` a `Aprobado`.
@@ -473,16 +473,16 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
 
 ## Criterios de aceptación
 
-- [ ] `context-policy.ts` en `shared` con `ContextPolicyId`, las tres políticas
+- [x] `context-policy.ts` en `shared` con `ContextPolicyId`, las tres políticas
       y `resolveContextBudget({ policy, contextWindow, workingWindow, maxTokens })`
       puro y determinista (aritmética entera), que llama a `resolveEffectiveWindow`
       y devuelve `window`/`outputReserve` resueltos y los `fallback` por política
       cuando no hay ventana.
-- [ ] Migración `0023` añade `context_policy` con default `balanced` y backfill;
+- [x] Migración `0023` añade `context_policy` con default `balanced` y backfill;
       test de migración (filas antiguas → `balanced`).
-- [ ] `Conversation`/Drizzle/DTO/export/rama/plantilla propagan `contextPolicy`;
+- [x] `Conversation`/Drizzle/DTO/export/rama/plantilla propagan `contextPolicy`;
       un export antiguo importa `balanced`; `EXPORT_SCHEMA_VERSION` no cambia.
-- [ ] `memory-retrieval`, `context-compaction` y `generate-summary` consumen el
+- [x] `memory-retrieval`, `context-compaction` y `generate-summary` consumen el
       plan de `resolveContextBudget` y dejan de usar constantes sueltas; `memory`
       y `summaryMemory` usan `round`, **`summaryOutput` usa `floor`** (paridad
       exacta con S122, p. ej. `5735 * 0.10 → 573`) y plan/manifiesto/compactación
@@ -490,33 +490,33 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
       deriva con `resolveCompactionTarget` solo cuando el umbral es explícito
       (`!= 80`), y sin umbral explícito se usan
       `policy.compaction.threshold/target` tal cual.
-- [ ] `generate-summary` usa el **mismo retrieval que el chat** (léxico o híbrido
+- [x] `generate-summary` usa el **mismo retrieval que el chat** (léxico o híbrido
       según S137, fallback léxico) con `summaryMemoryBudget` propio, no
       `filterMemoriesForPrompt`.
-- [ ] Con `balanced` (o sin política) la selección de memoria del chat, el
+- [x] Con `balanced` (o sin política) la selección de memoria del chat, el
       presupuesto de salida del resumen y la compactación son **idénticos** al
       comportamiento actual (tests de no-regresión; evals S136/S137 intactas); la
       sección de memoria del prompt de resumen queda acotada por
       `summaryMemoryBudget` (cambio confirmado, ≤ 12 %) y es la **única** sección
       excluida de la paridad.
-- [ ] `hasStoredCompactionThreshold` trata como explícito **solo** un valor
+- [x] `hasStoredCompactionThreshold` trata como explícito **solo** un valor
       `!= 80`; con `80`, `fast`/`deep` usan 70/90 (default de la política) y un
       valor explícito distinto de 80 (p. ej. 85) nunca se pisa al cambiar de
       política (test de regresión del límite 80).
-- [ ] La suma de secciones + reserva de salida nunca supera la ventana efectiva
+- [x] La suma de secciones + reserva de salida nunca supera la ventana efectiva
       (test de overflow con ventana pequeña y `deep`).
-- [ ] `PATCH /api/conversations/:id/settings` acepta `contextPolicy` con enum
+- [x] `PATCH /api/conversations/:id/settings` acepta `contextPolicy` con enum
       válido y rechaza valores inválidos (`INVALID_CONTEXT_POLICY`); DTO sin
       secretos.
-- [ ] El manifiesto expone `contextPolicy` y `budget` (plan resuelto) y la UI
+- [x] El manifiesto expone `contextPolicy` y `budget` (plan resuelto) y la UI
       pinta el desglose por sección.
-- [ ] UI: selector de política en Historia con descripción en en/es, desglose de
+- [x] UI: selector de política en Historia con descripción en en/es, desglose de
       presupuesto en el preview y warnings descartables; accesible (labels,
       foco, `aria-live`); sin invadir el gestor de proveedores.
-- [ ] Eval de políticas en verde con los umbrales del plan de eval.
-- [ ] `pnpm check`, tests backend/frontend, `pnpm build`, `pnpm audit --prod` y
+- [x] Eval de políticas en verde con los umbrales del plan de eval.
+- [x] `pnpm check`, tests backend/frontend, `pnpm build`, `pnpm audit --prod` y
       `pnpm eval` pasan.
-- [ ] `CHANGELOG` bajo `[Unreleased]`, en inglés; sin bump de versión.
+- [x] `CHANGELOG` bajo `[Unreleased]`, en inglés; sin bump de versión.
 
 ## Red tests
 
@@ -563,51 +563,72 @@ Decisiones ya cerradas en el RFC y confirmadas el 2026-11-28:
 
 ## Verificación
 
-Pendiente. Al cerrar el slice:
-
-- Tests: backend/frontend/evals con los conteos finales.
-- `pnpm check` (arch + typecheck + lint).
-- `pnpm build`.
-- `pnpm audit --prod`.
-- Release dry-run: no aplica (sin cambios de packaging, lockfile ni módulos
+- **`pnpm check`:** 7/7 `check:arch`, typecheck 5/5, lint 5/5.
+- **Tests backend:** 184 archivos / 1284 tests.
+- **Tests frontend:** 97 archivos / 524 tests.
+- **Evals:** 4 archivos / 113 tests.
+- **`pnpm build`:** 4/4 tareas correctas (`@workspace/website` cache hit). No dejó
+  archivos generados sucios (`git status` limpio; `release.json` siguió en
+  1.58.1).
+- **`pnpm audit --prod`:** sin vulnerabilidades conocidas.
+- **`git diff --check`:** limpio.
+- **Release dry-run:** no aplica (sin cambios de packaging, lockfile ni módulos
   nativos).
-- Prueba manual: cambiar de política en una conversación y ver el desglose y el
-  indicador de uso.
+- **Prueba manual:** no se registró una sesión manual en el cierre; el selector y
+  el desglose quedan cubiertos por `context-policy-card.test.tsx` y
+  `context-manifest-view.test.tsx`.
+- **Release:** sin bump de versión ni release publicada; los cambios van bajo
+  `[Unreleased]`.
 
 ## Review
 
-- **Estado:** pendiente
+- **Estado:** PASS WITH NOTES
 - **Informe:** `docs/10-slices/S138-review.md`
+- **Bloqueantes/mayores:** ninguno.
+- **Resumen:** tres hallazgos menores y tres nits, todos resueltos. Menor 1
+  (query semántica del resumen vacía), menor 2 (`mainActors` omitía al PJ) y
+  menor 3 (`withContextPolicy` sin uso) en `7496d4f`; nits 4 y 5 (test de doble
+  margen y cap del resumen en la eval) en `885fc83`; nit 6 (entradas reales de la
+  referencia de la eval) en `54488f7`.
 
 ## Deferred
 
-- **Override fino por sección** (input numérico de memoria/resumen por
-  conversación) — no entra en S138 (Clarificación #4). Si se retoma: un override
-  numérico por sección con precedencia sobre la política, viajando en
-  export/rama/plantilla igual que `compactionThreshold`.
+- **Overrides manuales por sección** (input numérico de memoria/resumen por
+  conversación) — no entra en S138 (Clarificación #4). Si se retoma: precedencia
+  sobre la política y propagación por export/rama/plantilla igual que
+  `compactionThreshold`.
+- **Calibración de los ratios de `fast`/`deep`.** Los aprobados en §1 se
+  mantienen; la eval confirma los presupuestos y la paridad de `balanced`, pero
+  no se recalibraron. Si se ajustan, actualizar `context-policy.ts` y el desglose
+  de la UI (misma fuente).
 - **Limitación conocida: el 80 explícito no es distinguible.** Sin una columna
   nueva (p. ej. `compaction_threshold_explicit`) no se puede distinguir un 80
   guardado explícitamente del default legado; con 80, `fast`/`deep` usan sus
-  defaults 70/90. Queda fuera de S138 (Clarificación #8); se re-evalúa solo si
-  aparece una necesidad real de preservar un 80 explícito.
-- **Calibración de ratios de `fast`/`deep`.** Los ratios aprobados en §1 son el
-  punto de partida; la eval los fija. Si se ajustan, actualizar
-  `context-policy.ts` y el desglose de la UI (son la misma fuente).
+  defaults 70/90. Se re-evalúa solo si aparece una necesidad real de preservar un
+  80 explícito.
 - **Tokenizer real por proveedor** → S139.
-- **Selección de modelo por política** y **RAG sobre mensajes/lorebooks**
-  completos.
-- **Re-embedding / reranking / memoria entre conversaciones** — fuera de S138.
+- **Selección de modelo por política** y **RAG completo sobre
+  mensajes/lorebooks**, **reranking** y **memoria entre conversaciones** — fuera
+  de S138.
 
 ## Commits
 
-1. `docs(slice): add S138 RFC`
-2. `docs(slice): approve S138 RFC`
-3. `test(backend): add S138 red tests and context policy fixtures`
-4. `feat(shared): add context policy types and budget resolver`
-5. `feat(backend): add context_policy column and thread it through conversations`
-6. `feat(backend): use the policy budget in retrieval, compaction and summary`
-7. `feat(backend): expose the resolved budget in the context manifest`
-8. `feat(frontend): add policy selector and budget breakdown`
-9. `test(frontend): cover policy selector and budget view`
-10. `docs(slice): add S138 review report`
-11. `docs(slice): close S138 and update roadmap`
+1. `dfb75cf` `docs(slice): add S138 RFC`
+2. `9af9643` `docs(slice): approve S138 RFC`
+3. `8ff6348` `docs(slice): add S138 orchestration plan`
+4. `7e47211` `docs(slice): clarify S138 budget contracts`
+5. `e5f9f6c` `docs(slice): add S138 test plan`
+6. `fadaaef` `test(context): add S138 red tests and eval fixtures`
+7. `ae4ef49` `docs(slice): clarify S138 rounding and threshold defaults`
+8. `1b83c33` `test(context): align S138 tests with floor and retrieval contracts`
+9. `fd3d789` `feat(shared): add context policy budget contracts`
+10. `4b4e811` `feat(backend): persist and apply conversation context policies`
+11. `e394746` `feat(frontend): add context policy selector and budget view`
+12. `7563e4b` `test(frontend): fix context manifest warning coverage`
+13. `7496d4f` `fix(backend): align summary retrieval and policy normalization`
+14. `885fc83` `test(backend): cover S138 review fixes`
+15. `54488f7` `test(backend): align S138 summary eval inputs`
+16. `24ae23f` `docs(slice): add S138 review report`
+
+El commit de cierre de documentación (este cambio) se añadirá con su hash al
+preparar el PR.
