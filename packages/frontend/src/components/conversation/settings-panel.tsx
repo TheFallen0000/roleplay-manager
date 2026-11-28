@@ -32,7 +32,6 @@ import type {
   MemoryProposalMode,
   TitleSource,
 } from "@workspace/shared/types/conversation"
-import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
 import { clampOutputTokens } from "@workspace/shared/lib/inference"
 
 import { updateConversationSettings } from "@/lib/api/conversations"
@@ -42,6 +41,7 @@ import { useSummaryStore } from "@/lib/stores/summary.store"
 import { SummaryViewer } from "./summary-viewer"
 import { InferenceParamsCard } from "./inference-params-card"
 import { CompactionSettingsCard } from "./compaction-settings-card"
+import { ContextPolicyCard } from "./context-policy-card"
 import { MemoryModeCard } from "./memory-mode-card"
 import { MemoryDecayCard } from "./memory-decay-card"
 import { ProposalList } from "./proposal-list"
@@ -51,6 +51,7 @@ import { useTranslation } from "@/lib/hooks/use-translation"
 import { ModelSelector, type ModelUpdate } from "./model-selector"
 import { CustomizationTab } from "./customization-tab"
 import { PlayerCharacterCard } from "./player-character-card"
+import { useHistoriaSettings } from "./use-historia-settings"
 
 type SettingsSection = "historia" | "modelo" | "personalizacion" | "persona"
 
@@ -116,9 +117,7 @@ export function SettingsPanel({
   const [frequencyPenalty, setFrequencyPenalty] = useState(current.frequencyPenalty ?? 0)
   const [presencePenalty, setPresencePenalty] = useState(current.presencePenalty ?? 0)
   const [stopSequences, setStopSequences] = useState(current.stopSequences?.join(", ") ?? "")
-  const [compactionThreshold, setCompactionThreshold] = useState(
-    current.compactionThreshold ?? 80,
-  )
+  const historia = useHistoriaSettings(current)
 
   const [saving, setSaving] = useState(false)
 
@@ -137,8 +136,6 @@ export function SettingsPanel({
     frequencyPenalty === 0 && presencePenalty === 0 &&
     stopSequences === ""
 
-  const isHistoriaDefaults = compactionThreshold === 80
-
   const modeloHasChanges =
     modelUpdate.provider !== (current.provider ?? "ollama") ||
     modelUpdate.providerInstanceId !== current.providerInstanceId ||
@@ -151,9 +148,6 @@ export function SettingsPanel({
     frequencyPenalty !== (current.frequencyPenalty ?? 0) ||
     presencePenalty !== (current.presencePenalty ?? 0) ||
     stopSequences !== (current.stopSequences?.join(", ") ?? "")
-
-  const historiaHasChanges =
-    compactionThreshold !== (current.compactionThreshold ?? 80)
 
   const persistSettings = async (settings: ConversationSettingsUpdate) => {
     setSaving(true)
@@ -180,10 +174,6 @@ export function SettingsPanel({
     setStopSequences("")
   }
 
-  const resetHistoriaValues = () => {
-    setCompactionThreshold(80)
-  }
-
   const handleModeloReset = () => {
     if (isModeloDefaults) {
       resetModeloValues()
@@ -194,8 +184,8 @@ export function SettingsPanel({
   }
 
   const handleHistoriaReset = () => {
-    if (isHistoriaDefaults) {
-      resetHistoriaValues()
+    if (historia.isDefaults) {
+      historia.reset()
     } else {
       setResetTarget("historia")
       setResetConfirmOpen(true)
@@ -206,7 +196,7 @@ export function SettingsPanel({
     if (resetTarget === "modelo") {
       resetModeloValues()
     } else if (resetTarget === "historia") {
-      resetHistoriaValues()
+      historia.reset()
     }
     setResetConfirmOpen(false)
   }
@@ -261,12 +251,9 @@ export function SettingsPanel({
   }
 
   const handleSaveHistoria = async () => {
-    const settings: ConversationSettingsUpdate = {}
-    const nextThreshold = clampCompactionThreshold(compactionThreshold)
-    if (nextThreshold !== (current.compactionThreshold ?? 80))
-      settings.compactionThreshold = nextThreshold
-    if (nextThreshold !== compactionThreshold) {
-      setCompactionThreshold(nextThreshold)
+    const { settings, nextThreshold } = historia.buildUpdate()
+    if (nextThreshold !== historia.compactionThreshold) {
+      historia.setCompactionThreshold(nextThreshold)
     }
     await persistSettings(settings)
   }
@@ -361,10 +348,14 @@ export function SettingsPanel({
                   ) : null}
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-4">
+                  <ContextPolicyCard
+                    value={historia.contextPolicy}
+                    onChange={historia.setContextPolicy}
+                  />
                   <CompactionSettingsCard
-                    value={compactionThreshold}
+                    value={historia.compactionThreshold}
                     contextWindow={current.contextWindow}
-                    onChange={setCompactionThreshold}
+                    onChange={historia.setCompactionThreshold}
                   />
                   <SummaryViewer
                     conversationId={conversationId}
@@ -392,7 +383,7 @@ export function SettingsPanel({
             </Accordion>
           </div>
           <ActionsFooter
-            hasChanges={historiaHasChanges}
+            hasChanges={historia.hasChanges}
             saving={saving}
             onSave={handleSaveHistoria}
             onReset={handleHistoriaReset}
