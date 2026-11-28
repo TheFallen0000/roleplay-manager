@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest"
 import { cleanup, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 
 import type { ContextManifestDTO } from "@workspace/shared/types/context"
 
@@ -148,7 +149,7 @@ describe("ContextManifestView", () => {
     expect(screen.getByText(/mem-1/)).toBeTruthy()
     expect(screen.getByText(/actor/i)).toBeTruthy()
     expect(screen.getByText(/mem-3/)).toBeTruthy()
-    expect(screen.getByText(/budget/i)).toBeTruthy()
+    expect(screen.getByText("Token budget")).toBeTruthy()
   })
 })
 
