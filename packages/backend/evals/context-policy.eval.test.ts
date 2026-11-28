@@ -426,6 +426,7 @@ describe("context policy eval: generate-summary", () => {
 
     return {
       conversation,
+      character,
       memories,
       messages,
       useCase,
@@ -437,14 +438,18 @@ describe("context policy eval: generate-summary", () => {
   it("uses the same retrieval as chat with the summary memory cap", async () => {
     const harness = buildHarness({ contextWindow: 8_000, memoryCount: 50 })
     const plan = planFor("deep", 8_000)
+    const summarizedMessages = harness.messages.slice(0, -2)
+    const lastUserMessage = [...summarizedMessages]
+      .reverse()
+      .find((message) => message.role === "user")
     const expected = selectMemoriesForPrompt({
       conversation: harness.conversation,
       memories: harness.memories,
       messages: harness.messages
         .filter((message) => message.role === "user")
         .map((message) => ({ role: "user", createdAt: message.createdAt })),
-      pendingMessage: "",
-      mainActors: ["Lyra", "Alice"],
+      pendingMessage: lastUserMessage?.content ?? "",
+      mainActors: [harness.character.name],
       budget: plan.summaryMemoryBudget,
     })
 
