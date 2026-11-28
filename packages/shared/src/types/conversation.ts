@@ -1,5 +1,6 @@
 import type { ProviderStatus } from "./provider"
 import type { ImageDimensions } from "./image"
+import type { ContextPolicyId } from "../lib/context-policy"
 
 export type MemoryProposalMode = "auto" | "manual"
 
@@ -41,6 +42,8 @@ export interface ConversationDetail {
   workingWindow?: number | null
   /** Percentage of the window that triggers automatic compaction. */
   compactionThreshold: number
+  /** How the input window is split between memory, summary and messages. */
+  contextPolicy: ContextPolicyId
   temperature: number | null
   maxTokens: number | null
   topP: number | null
@@ -90,6 +93,7 @@ export interface ConversationSettingsUpdate {
   contextWindow?: number | null
   workingWindow?: number | null
   compactionThreshold?: number
+  contextPolicy?: ContextPolicyId
   temperature?: number
   maxTokens?: number
   topP?: number
