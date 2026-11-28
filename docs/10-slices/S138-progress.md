@@ -113,7 +113,7 @@ Se elige **A**. Resumen de las decisiones (cada punto con su detalle abajo):
    compactionTarget }`; los tres
    servicios lo consumen y dejan de usar constantes sueltas.
 4. **Compactación.** La política aporta el umbral/target **por defecto** para
-   conversaciones nuevas; un `compactionThreshold` explícito del usuario gana
+   conversaciones nuevas; un `compactionThreshold` explícito del usuario (`!= 80`) gana
    (y el target se deriva con `resolveCompactionTarget`, sin doble margen).
 5. **Memoria.** La política solo cambia el **presupuesto** de memoria; el modo
    léxico/híbrido sigue siendo el opt-in de S137.
@@ -238,13 +238,20 @@ memoryBudget        = window === null
   : clamp(round(window * policy.memory.ratio), memory.min, memory.max)
 summaryOutputBudget = window === null
   ? policy.summaryOutput.fallback
-  : clamp(round(window * policy.summaryOutput.ratio), summaryOutput.min, summaryOutput.max)
+  : clamp(floor(window * policy.summaryOutput.ratio), summaryOutput.min, summaryOutput.max)
 summaryMemoryBudget = window === null
   ? policy.summaryMemory.fallback
   : clamp(round(window * policy.summaryMemory.ratio), summaryMemory.min, summaryMemory.max)
 compactionThreshold = policy.compaction.threshold   // default; ver §4 para el override
 compactionTarget    = policy.compaction.target      // default; ver §4 para el target derivado
 ```
+
+`memory` y `summaryMemory` redondean con `round` (como hoy en
+`resolveMemoryBudget`); **`summaryOutput` usa `floor`** para conservar
+exactamente el comportamiento de S122 (`5735 * 0.10 = 573.5 → 573`). El plan,
+el manifiesto y la compactación consumen **este mismo** `summaryOutputBudget`:
+no existe un `floor` especial dentro de `ContextCompactionService` ni doble
+redondeo entre plan/manifiesto/compactación (una única fuente de verdad).
 
 - **Caps por sección**: memoria, resumen (salida) y memoria-en-resumen tienen
   caps independientes; **mensajes** absorben el residuo (`window` menos system,
@@ -273,19 +280,24 @@ compactionTarget    = policy.compaction.target      // default; ver §4 para el 
 #### 4. Compactación
 
 - **Umbral y target por defecto de la política.** Para conversaciones **nuevas**
-  sin umbral guardado, se usan `policy.compaction.threshold` y
-  `policy.compaction.target` **tal cual** (sin margen adicional: el target ya es
-  el resultado del margen deseado por la política). Una conversación **existente**
-  conserva su `compactionThreshold` guardado (no se pisa al cambiar de política).
-- **Umbral explícito/guardado.** Si la conversación tiene un
-  `compactionThreshold` guardado (o el usuario lo edita a mano), se usa **ese**
-  umbral y el target se deriva con `resolveCompactionTarget(threshold)`
-  (comportamiento actual: umbral − 20, mínimo 30). **No** se aplica
-  `policy.compaction.target` ni se vuelve a restar margen: no hay doble margen.
-- **Cambiar de política en una conversación existente no resetea
-  `compactionThreshold` (confirmado):** la política solo cambia los presupuestos
-  de memoria/resumen y el modo en la UI. El umbral sigue siendo editable de
-  forma independiente (Clarificación #2).
+  se usan `policy.compaction.threshold` y `policy.compaction.target` **tal cual**
+  (sin margen adicional: el target ya es el resultado del margen deseado por la
+  política).
+- **Umbral explícito = cualquier valor distinto de 80.** `80` es el **default
+  legado** y no se distingue de un 80 guardado explícitamente:
+  `hasStoredCompactionThreshold` considera explícito **solo** un valor `!= 80`.
+  Por tanto, con `compactionThreshold = 80`, `fast`/`deep` usan sus defaults
+  (70/90) — cambiar de política re-aplica el default de la política. Un valor
+  explícito distinto de 80 (p. ej. 85) gana siempre y **nunca** se pisa al
+  cambiar de política; su target se deriva con
+  `resolveCompactionTarget(threshold)` (comportamiento actual: umbral − 20,
+  mínimo 30). **No** se aplica `policy.compaction.target` ni se vuelve a restar
+  margen: no hay doble margen.
+- **Cambiar de política en una conversación existente no resetea un umbral
+  explícito (confirmado):** la política solo cambia los presupuestos de
+  memoria/resumen y el modo en la UI; un `compactionThreshold` explícito (`!= 80`)
+  sigue ganando. El umbral sigue siendo editable de forma independiente
+  (Clarificación #2).
 - `recentMessageCount`/`summaryFrequency` **quedan obsoletos** de facto: el
   motor no los lee (desde S122); la política asume el papel de "cuánta historia
   cabe". Se conservan en BD/export por compatibilidad (como ya se hacía) y se
@@ -388,8 +400,8 @@ genérica de arriba:
    gestor de proveedores (enlace + aviso), sin cambiar su configuración.
 2. **Cambiar de política no resetea `compactionThreshold`.** La política solo
    fija el umbral/target por defecto para conversaciones nuevas; una conversación
-   existente conserva su `compactionThreshold` guardado y el umbral editado a
-   mano gana siempre.
+   existente conserva su `compactionThreshold` explícito (cualquier valor distinto
+   de 80) y ese valor gana siempre; 80 se interpreta como default legado.
 3. **Ratios de `fast`/`deep` aprobados como punto de partida.** Se aprueban los
    valores propuestos en §1; la eval los calibra y, si hace falta, se ajustan
    antes de cerrar el slice.
@@ -403,6 +415,16 @@ genérica de arriba:
 6. **El prompt de resumen usa el mismo retrieval que el chat.** `generate-summary`
    usa el retrieval léxico o híbrido según la configuración de embeddings de
    S137, con `summaryMemoryBudget` y fallback léxico si no hay proveedor o falla.
+7. **Redondeo del `summaryOutput` con `floor`.** `memory` y `summaryMemory` usan
+   `round`; `summaryOutput` usa **`floor`** para conservar exactamente el
+   comportamiento de S122 (`5735 * 0.10 = 573.5 → 573`). El plan, el manifiesto y
+   la compactación usan el **mismo** valor; no hay un `floor` especial solo
+   dentro de `ContextCompactionService`.
+8. **Umbral 80 como default legado.** `hasStoredCompactionThreshold` considera
+   explícito **cualquier valor distinto de 80**; con 80, `fast`/`deep` usan sus
+   defaults 70/90 (80 no distingue "legado" de "guardado explícito"). Un valor
+   explícito distinto de 80 (p. ej. 85) gana y su target se deriva con
+   `resolveCompactionTarget`.
 
 ## Plan de eval
 
@@ -461,9 +483,12 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
 - [ ] `Conversation`/Drizzle/DTO/export/rama/plantilla propagan `contextPolicy`;
       un export antiguo importa `balanced`; `EXPORT_SCHEMA_VERSION` no cambia.
 - [ ] `memory-retrieval`, `context-compaction` y `generate-summary` consumen el
-      plan de `resolveContextBudget` y dejan de usar constantes sueltas; con un
-      `compactionThreshold` explícito/guardado, el target se deriva con
-      `resolveCompactionTarget` (sin doble margen), y sin umbral se usan
+      plan de `resolveContextBudget` y dejan de usar constantes sueltas; `memory`
+      y `summaryMemory` usan `round`, **`summaryOutput` usa `floor`** (paridad
+      exacta con S122, p. ej. `5735 * 0.10 → 573`) y plan/manifiesto/compactación
+      comparten el mismo valor sin doble redondeo; el target de compactación se
+      deriva con `resolveCompactionTarget` solo cuando el umbral es explícito
+      (`!= 80`), y sin umbral explícito se usan
       `policy.compaction.threshold/target` tal cual.
 - [ ] `generate-summary` usa el **mismo retrieval que el chat** (léxico o híbrido
       según S137, fallback léxico) con `summaryMemoryBudget` propio, no
@@ -474,6 +499,10 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
       sección de memoria del prompt de resumen queda acotada por
       `summaryMemoryBudget` (cambio confirmado, ≤ 12 %) y es la **única** sección
       excluida de la paridad.
+- [ ] `hasStoredCompactionThreshold` trata como explícito **solo** un valor
+      `!= 80`; con `80`, `fast`/`deep` usan 70/90 (default de la política) y un
+      valor explícito distinto de 80 (p. ej. 85) nunca se pisa al cambiar de
+      política (test de regresión del límite 80).
 - [ ] La suma de secciones + reserva de salida nunca supera la ventana efectiva
       (test de overflow con ventana pequeña y `deep`).
 - [ ] `PATCH /api/conversations/:id/settings` acepta `contextPolicy` con enum
@@ -497,7 +526,7 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
 | Migración | `context_policy` no existe en el esquema; filas antiguas no quedan `balanced`. |
 | Repositorio/entidad | `Conversation.contextPolicy` es `undefined`; `updateSettings` no persiste el campo; `ConversationDetail` no lo expone. |
 | Retrieval | `resolveMemoryBudget` no respeta el plan (usa la constante 0.12 en vez de la política). |
-| Compactación | `preferredSummary` no usa `summaryOutputBudget` de la política; el umbral default de `fast`/`deep` no aplica en conversaciones nuevas; con umbral explícito el target no usa `resolveCompactionTarget`. |
+| Compactación | `preferredSummary` no usa `summaryOutputBudget` de la política (floor); el umbral default de `fast`/`deep` no aplica con `80`; con umbral explícito (`!= 80`) el target no usa `resolveCompactionTarget`. |
 | Resumen | `generate-summary` sigue usando `filterMemoriesForPrompt`; no aplica `summaryMemoryBudget`. |
 | Compiler/manifiesto | `manifest.budget`/`manifest.contextPolicy` no existen. |
 | UI | Falta `context-policy-card.tsx`; `settings-panel` no manda `contextPolicy`; el preview no muestra el desglose. |
@@ -517,6 +546,13 @@ Decisiones ya cerradas en el RFC y confirmadas el 2026-11-28:
   modelo, reserva de salida ni modo de retrieval.**
 - **Un único `resolveContextBudget`** como fuente de verdad del presupuesto,
   consumido por retrieval, compactación y resumen.
+- **`summaryOutput` redondea con `floor`** (paridad exacta con S122), mientras
+  `memory`/`summaryMemory` usan `round`; plan, manifiesto y compactación
+  comparten el mismo valor sin `floor` especial ni doble redondeo.
+- **`80` es el default legado, no un umbral explícito distinguible.**
+  `hasStoredCompactionThreshold` solo trata `!= 80` como explícito; con 80,
+  `fast`/`deep` usan 70/90, y un explícito distinto de 80 (p. ej. 85) gana y
+  deriva su target con `resolveCompactionTarget`.
 - **`generate-summary` usa el mismo retrieval que el chat** (léxico o híbrido,
   fallback léxico) y recibe `summaryMemoryBudget` propio (cierra el deferido de
   S136/S137).
@@ -549,6 +585,11 @@ Pendiente. Al cerrar el slice:
   conversación) — no entra en S138 (Clarificación #4). Si se retoma: un override
   numérico por sección con precedencia sobre la política, viajando en
   export/rama/plantilla igual que `compactionThreshold`.
+- **Limitación conocida: el 80 explícito no es distinguible.** Sin una columna
+  nueva (p. ej. `compaction_threshold_explicit`) no se puede distinguir un 80
+  guardado explícitamente del default legado; con 80, `fast`/`deep` usan sus
+  defaults 70/90. Queda fuera de S138 (Clarificación #8); se re-evalúa solo si
+  aparece una necesidad real de preservar un 80 explícito.
 - **Calibración de ratios de `fast`/`deep`.** Los ratios aprobados en §1 son el
   punto de partida; la eval los fija. Si se ajustan, actualizar
   `context-policy.ts` y el desglose de la UI (son la misma fuente).

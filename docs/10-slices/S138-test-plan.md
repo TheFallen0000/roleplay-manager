@@ -5,8 +5,10 @@
 **Contrato de referencia:** `S138-progress.md` (RFC aprobado + clarificaciones) · `S138-orchestration.md`
 
 > Contratos fijados en el RFC: ventana desconocida por política, firma de
-> `resolveContextBudget`, precedencia del umbral de compactación y alcance del
-> baseline de paridad. Quedan recogidos como aserciones abajo (no hay ambigüedad abierta).
+> `resolveContextBudget`, precedencia del umbral de compactación, alcance del
+> baseline de paridad, redondeo (`round` vs `floor`), semántica del umbral 80
+> legado, resumen = mismo retrieval que el chat, y lint de la eval (sin `vi`
+> huérfano). Quedan recogidos como aserciones abajo (no hay ambigüedad abierta).
 
 ## Resumen de la matriz
 
@@ -48,8 +50,14 @@ No se añade vitest a `shared` en S138.
 - `resolveContextBudget({ policy, contextWindow, workingWindow, maxTokens })` es **puro y determinista** (aritmética entera, dos llamadas → deep equal). Internamente llama a `resolveEffectiveWindow` y devuelve `window`/`outputReserve` en el plan; **los tests no pasan un `window` ya resuelto** — pasan `contextWindow`/`workingWindow`/`maxTokens` crudos y asertan que `window`/`outputReserve` del plan coinciden con `resolveEffectiveWindow` (incluido el caso `net:true` con `outputReserve:0`).
 - **Paridad balanced = constantes actuales:** para `contextWindow` 4000/8000/32000 (sin `workingWindow`),
   `memoryBudget === clamp(round(window*0.12),256,2048)` y
-  `summaryOutputBudget === clamp(round(window*0.10),256,1024)` (igualar literalmente
+  `summaryOutputBudget === clamp(floor(window*0.10),256,1024)` (igualar literalmente
   `resolveMemoryBudget` y el `preferredSummary` de `context-compaction.service.ts:162-165`).
+- **Redondeo (contrato fijado):** `memory` y `summaryMemory` usan `round`;
+  `summaryOutput` usa **`floor`**. Caso exacto balanced con ventana **neta** 5735
+  (`contextWindow=8192, workingWindow=5735, maxTokens=2048`):
+  `summaryOutputBudget === 573` (no 574). El plan, el manifiesto y la compactación
+  deben usar **el mismo** valor (plan como única fuente); **sin** un `floor` especial
+  dentro de `ContextCompactionService`.
 - **Precedencia:** con `workingWindow`/`maxTokens` seguros, los ratios se aplican sobre
   la **ventana efectiva** (`resolveEffectiveWindow`), no sobre `contextWindow` crudo
   (p.ej. `contextWindow=8192, workingWindow=5735, maxTokens=2048` → presupuestos sobre 5735).
@@ -72,13 +80,21 @@ No se añade vitest a `shared` en S138.
 ### 3. Compactación
 - Conversación **nueva** sin umbral guardado: el umbral/target por defecto vienen de la
   política (`fast`→70/50, `deep`→90/70). `balanced`→80/60 idéntico a hoy.
-- **Precedencia del umbral (contrato fijado):** si hay `compactionThreshold` explícito/guardado,
-  ese umbral **gana** y el target se deriva con `resolveCompactionTarget` (comportamiento actual).
-  Si **no** hay umbral guardado, se usan `policy.compaction.threshold/target` **sin doble margen**
-  (no se aplica `resolveCompactionTarget` sobre el target de la política). Casos:
-  - umbral guardado 85 → target `resolveCompactionTarget(85)` (=65), ignorando el target de la política;
+- **Precedencia del umbral (contrato fijado):** 80 es el **default legado**. Con `fast`/`deep`
+  y `compactionThreshold: 80` se usan los umbrales de la política (70/90 respectivamente).
+  **Solo un valor distinto de 80 es explícito y gana**: ese umbral manda y su target se
+  deriva con `resolveCompactionTarget` (comportamiento actual). Si **no** hay umbral
+  guardado, se usan `policy.compaction.threshold/target` **sin doble margen** (no se aplica
+  `resolveCompactionTarget` sobre el target de la política). Casos:
+  - `fast` con umbral 80 → umbral 70 / target 50 (no 80);
+  - `deep` con umbral 80 → umbral 90 / target 70 (no 80);
+  - `balanced` con umbral 80 → 80/60 idéntico a hoy;
+  - umbral explícito 85 (≠80) → target `resolveCompactionTarget(85)` (=65), ignorando el target de la política;
   - sin umbral guardado → umbral y target de la política tal cual (80/60, 70/50, 90/70).
-- **Cambiar de política no resetea `compactionThreshold`** guardado (assert: cambiar fast→deep deja el umbral manual intacto).
+- **Limitación documentada del 80 explícito:** un usuario que quiera 80 en `fast`/`deep`
+  no puede distinguirse del default legado; 80 siempre se interpreta como "sin override"
+  y aplica el default de la política. Se documenta, no se bloquea.
+- **Cambiar de política no resetea un `compactionThreshold` explícito (≠80); el assert debe usar 85 (no 80) y cambiar fast→deep deja 85 intacto.**
 - El servicio consume `plan.summaryOutputBudget` (reemplaza `preferredSummary`) y
   `plan.compactionTarget`; sin volver a calcular ratios sueltos.
 - `recentMessageCount`/`summaryFrequency` **no se leen** en el cálculo de compactación (assert de que el resultado no cambia al variarlos; se conservan en BD/export por compatibilidad).
@@ -93,6 +109,14 @@ No se añade vitest a `shared` en S138.
 
 ### 5. Resumen (`generate-summary`)
 - Usa el **mismo retrieval que el chat** (léxico o híbrido según config S137, fallback léxico); **no** llama a `filterMemoriesForPrompt` (assert de que el símbolo desaparece o que la selección coincide con `selectMemoriesForPrompt`/híbrido).
+- **Misma regla de entrada que el chat (contrato reforzado):** una memoria prompt-elegible
+  (por decaimiento) pero **sin señal léxica ni semántica** (prioridad 5, sin keyword, sin
+  actor en el pendiente, no thread, no semántica) queda **excluida** del prompt de resumen.
+  **Sin** expectativa de `includeEligible`: el resumen solo incluye lo que el selector
+  compartido incluye.
+- **Test antiguo de «memoria dinámica»:** el fixture debe usar una memoria que el selector
+  compartido **incluya** (prioridad 9 o tipo `thread`), no una lista arbitraria. Si el
+  fixture actual inyecta memorias sin señal, se reescribe.
 - Sección de memoria del prompt de resumen ≤ `summaryMemoryBudget` (fixture que hoy inyectaría **todas** las memorias y en S138 queda acotada → "fixture que mide" el cap).
 - `summaryOutputBudget` como límite de salida; **sin doble reserva**: la ventana de transcripción sigue `contextWindow − summaryMaxTokens − SUMMARY_PROMPT_RESERVE` **sin** restar de nuevo la reserva del chat (paridad con `get-prompt-context.parity.test.ts` "working window").
 - `balanced` → `summaryMemory` = clamp(round(window*0.12),256,2048) (cambio acotado, documentado, medido aparte del baseline).
@@ -122,8 +146,9 @@ Fixtures compuestas: ventanas 4000/8000/32000 × {muchas memorias (40–60), poc
 - Escenario 3 **deep** muchas memorias → más incluidas (o cap mayor) sin romper el orden estable.
 - Escenario 4 ventana pequeña + deep → caps clampeados, suma nunca supera la ventana.
 - Escenario 5 sin ventana → defaults por política (fast 256/128/256, balanced 512/256/512, deep 1024/512/1024) sin romper.
-- Escenario 6 `generate-summary` deep → sección de memoria ≤ `summaryMemoryBudget` y usa retrieval (no `filterMemoriesForPrompt`).
-- Métricas: tokens por sección vs cap, `estimatedInputTokens` vs ventana, overflow (nunca), determinismo (dos ejecuciones → igual), latencia informativa, recall/irrelevantes S136 con balanced (≥0.8 / ≤0.2).
+- Escenario 6 `generate-summary` deep → sección de memoria ≤ `summaryMemoryBudget` y usa retrieval (no `filterMemoriesForPrompt`); incluye el caso negativo: memoria sin señal léxica/semántica queda excluida.
+- Métricas: tokens por sección vs cap, `estimatedInputTokens` vs ventana, overflow (nunca), determinismo (dos ejecuciones → igual), latencia informativa, recall/irrelevantes S136 con balanced (≥0.8 / ≤0.2). Incluir assert de `summaryOutputBudget === 573` (ventana neta 5735) para que el valor de `floor` quede anclado también en la eval.
+- **Lint (contrato fijado):** el archivo de eval no debe importar `vi` si no lo usa (sin imports huérfanos).
 
 ## Comandos
 
@@ -156,3 +181,6 @@ pnpm build                                       # gate final
 4. **Orden/determinismo**: el cap por política recorta por score; el orden estable de S136 es parte del contrato (empates → id asc). Assertarlo explícitamente, no asumirlo.
 5. **Umbral guardado**: probar que cambiar de política no pisa `compactionThreshold` usando una conversación con umbral explícito distinto del default de la política.
 6. **Doble margen en compactación**: cuando hay umbral guardado, el target se deriva con `resolveCompactionTarget`; cuando no, se usan `policy.compaction.threshold/target` tal cual. No aplicar ambos caminos a la vez.
+7. **Umbral 80 legado**: 80 nunca es un override explícito; `fast`/`deep` con 80 usan 70/90. No asumir que 80 "gana" sobre la política.
+8. **Redondeo `round` vs `floor`**: `memory`/`summaryMemory` redondean, `summaryOutput` trunca. El caso 5735→573 es la frontera: no "corregir" 573 a 574 en ningún assert.
+9. **Lint de la eval**: no importar `vi` (ni otros símbolos) sin uso; el `pnpm check` (eslint) falla con imports huérfanos.
