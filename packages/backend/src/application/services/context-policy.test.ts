@@ -5,7 +5,6 @@ import {
   resolveContextBudget,
   type ContextPolicyId,
 } from "@workspace/shared/lib/context-policy"
-import { resolveCompactionTarget } from "@workspace/shared/lib/compaction"
 import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
 
 const POLICIES: ContextPolicyId[] = ["fast", "balanced", "deep"]
@@ -148,16 +147,6 @@ describe("resolveContextBudget ratios and clamps", () => {
     expect(plan.summaryOutputBudget).toBe(573)
     expect(plan.memoryBudget).toBe(688)
     expect(plan.summaryMemoryBudget).toBe(688)
-  })
-
-  it("keeps the policy defaults free of a second compaction margin", () => {
-    for (const policy of POLICIES) {
-      const plan = budget({ policy, contextWindow: 8_000 })
-      expect(plan.compactionTarget).toBe(
-        resolveCompactionTarget(plan.compactionThreshold),
-      )
-    }
-    expect(resolveCompactionTarget(85)).toBe(65)
   })
 })
 

@@ -421,6 +421,7 @@ describe("context policy eval: generate-summary", () => {
       } as never,
       providerInstanceRepository,
       logger,
+      null,
     )
 
     return {
@@ -444,8 +445,10 @@ describe("context policy eval: generate-summary", () => {
         .map((message) => ({ role: "user", createdAt: message.createdAt })),
       pendingMessage: "",
       mainActors: ["Lyra", "Alice"],
+      budget: plan.summaryMemoryBudget,
     })
 
+    expect(expected.budget).toBe(plan.summaryMemoryBudget)
     expect(expected.memories.length).toBeLessThan(harness.memories.length)
     expect(expected.tokens).toBeLessThanOrEqual(plan.summaryMemoryBudget)
 
