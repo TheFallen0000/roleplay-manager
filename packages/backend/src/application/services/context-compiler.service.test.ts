@@ -478,7 +478,8 @@ describe("ContextCompiler policy budget", () => {
       window: 5_735,
       outputReserve: 0,
       memory: 688,
-      summaryOutput: 574,
+      // S122 parity: summaryOutput floors. Plan, manifest and compaction agree.
+      summaryOutput: 573,
       summaryMemory: 688,
       compactionThreshold: 80,
       compactionTarget: 60,

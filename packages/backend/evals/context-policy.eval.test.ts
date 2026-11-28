@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import { resolveContextBudget } from "@workspace/shared/lib/context-policy"
 import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
@@ -156,6 +156,17 @@ describe("context policy eval: balanced baseline", () => {
     expect(plan.memoryBudget).toBe(baselineMemoryBudget(plan.window))
     expect(selection.budget).toBe(plan.memoryBudget)
     expect(selection.tokens).toBeLessThanOrEqual(plan.memoryBudget)
+  })
+
+  it("floors the balanced summaryOutput budget on a net 5735 window", () => {
+    const plan = planFor("balanced", 8_192, {
+      workingWindow: 5_735,
+      maxTokens: 2_048,
+    })
+    expect(plan.window).toBe(5_735)
+    expect(plan.summaryOutputBudget).toBe(573)
+    expect(plan.memoryBudget).toBe(688)
+    expect(plan.summaryMemoryBudget).toBe(688)
   })
 })
 

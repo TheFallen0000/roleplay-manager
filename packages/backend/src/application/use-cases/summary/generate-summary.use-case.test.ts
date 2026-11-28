@@ -117,17 +117,27 @@ const buildCharacterRepo = (exists: boolean): CharacterRepository => ({
   updateProfileImageAssetId: async () => {},
 })
 
+const memoryNow = new Date("2026-11-06T12:00:00.000Z")
+
 const buildMemoryRepo = (count: number): MemoryRepository => ({
   findById: async () => null,
   findByConversationId: async () =>
-    Array.from({ length: count }, (_, i) => ({
-      id: `mem-${i}`,
-      conversationId: "conv-1",
-      actor: `Actor${i}`,
-      title: `Memory ${i}`,
-      description: `Description ${i}`,
-      priority: 5,
-    })) as never,
+    Array.from({ length: count }, (_, i) =>
+      Memory.reconstruct({
+        id: `mem-${i}`,
+        conversationId: "conv-1",
+        actor: `Actor${i}`,
+        title: `Memory ${i}`,
+        description: `Description ${i}`,
+        // The chat retrieval must include these by signal (priority >= 8).
+        priority: 9,
+        type: "fact",
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: memoryNow,
+        updatedAt: memoryNow,
+      }),
+    ),
   create: async (m) => m,
   update: async (m) => m,
   deleteById: async () => {},
@@ -474,7 +484,7 @@ describe("GenerateSummaryUseCase", () => {
       contextWindow: 8_000,
       contextPolicy: "balanced",
     })
-    const memories = Array.from({ length: 40 }, (_, index) =>
+    const signalMemories = Array.from({ length: 9 }, (_, index) =>
       Memory.reconstruct({
         id: `mem-${String(index).padStart(2, "0")}`,
         conversationId: "conv-1",
@@ -485,10 +495,27 @@ describe("GenerateSummaryUseCase", () => {
         type: "fact",
         createdBy: "assistant",
         updatedBy: "system",
-        createdAt: new Date("2026-11-06T12:00:00.000Z"),
-        updatedAt: new Date("2026-11-06T12:00:00.000Z"),
+        createdAt: memoryNow,
+        updatedAt: memoryNow,
       }),
     )
+    // Prompt-eligible (priority 5 > decay threshold) but without any lexical
+    // signal: not principal actor, no keyword, not a thread, priority < 8.
+    // The chat retrieval leaves it out, so the summary prompt must too.
+    const noSignalMemory = Memory.reconstruct({
+      id: "mem-no-signal",
+      conversationId: "conv-1",
+      actor: "Nadie",
+      title: "Dato",
+      description: "Sin relación.",
+      priority: 5,
+      type: "fact",
+      createdBy: "assistant",
+      updatedBy: "system",
+      createdAt: memoryNow,
+      updatedAt: memoryNow,
+    })
+    const memories = [...signalMemories, noSignalMemory]
     const memoryRepo = buildMemoryRepoFrom(memories)
 
     const expected = selectMemoriesForPrompt({
@@ -502,6 +529,12 @@ describe("GenerateSummaryUseCase", () => {
     expect(expected.budget).toBe(960)
     expect(expected.memories.length).toBeLessThan(memories.length)
     expect(expected.tokens).toBeLessThanOrEqual(expected.budget)
+    expect(
+      expected.selection.find((entry) => entry.id === noSignalMemory.id),
+    ).toMatchObject({ included: false, reason: "not-relevant" })
+    expect(expected.memories.map((memory) => memory.id)).not.toContain(
+      noSignalMemory.id,
+    )
 
     await buildUseCase(
       true,
@@ -517,6 +550,7 @@ describe("GenerateSummaryUseCase", () => {
 
     expect(capturedContext).not.toBeNull()
     const systemPrompt = capturedContext!.systemPrompt
+    expect(systemPrompt).not.toContain(`[${noSignalMemory.id}]`)
     const includedIds = new Set(
       expected.memories.map((memory) => memory.id),
     )

@@ -405,6 +405,7 @@ describe("ContextCompactionService effective window", () => {
     if (!result.ok) return
     expect(result.compacted).toBe(true)
     expect(result.outputTokens).toBe(2_048)
+    // 5735 * 0.1 = 573.5 -> floor 573, matching the plan and manifest.
     expect(execute).toHaveBeenCalledWith("conv-1", {
       locale: "en",
       upToMessageId: "msg-15",
@@ -566,6 +567,30 @@ describe("ContextCompactionService context policy", () => {
     },
   )
 
+  it.each([
+    ["fast", 20, false, 21, true],
+    ["deep", 26, false, 27, true],
+  ] as const)(
+    "treats compactionThreshold 80 as the legacy default for %s (an explicit 80 cannot be distinguished)",
+    async (policy, belowCount, belowExpected, aboveCount, aboveExpected) => {
+      const service = buildService()
+
+      // 80 is the pre-S138 default: it is not a user override, so fast/deep
+      // must keep their own 70/90 threshold. Only a value != 80 (e.g. 85) is
+      // treated as explicit and wins.
+      expect(
+        await service.needsCompaction(
+          policyInput(policy, belowCount, { compactionThreshold: 80 }),
+        ),
+      ).toBe(belowExpected)
+      expect(
+        await service.needsCompaction(
+          policyInput(policy, aboveCount, { compactionThreshold: 80 }),
+        ),
+      ).toBe(aboveExpected)
+    },
+  )
+
   it.each(["fast", "balanced", "deep"] as const)(
     "lets a saved threshold win over the %s policy threshold",
     async (policy) => {
@@ -614,7 +639,7 @@ describe("ContextCompactionService context policy", () => {
     },
   )
 
-  it("derives the target with resolveCompactionTarget for a saved threshold", async () => {
+  it("derives the target with resolveCompactionTarget for an explicit 85 (80 is not explicit)", async () => {
     const execute = vi.fn(async () => ({ summary: summaryDTO }))
     const service = new ContextCompactionService(
       builder(),
@@ -631,6 +656,33 @@ describe("ContextCompactionService context policy", () => {
     if (!result.ok) return
     expect(result.messages).toHaveLength(15)
   })
+
+  it.each([
+    ["fast", 11, 175],
+    ["deep", 15, 525],
+  ] as const)(
+    "keeps the %s policy target when compactionThreshold is 80",
+    async (policy, keptCount, summaryMaxTokens) => {
+      const execute = vi.fn(async () => ({ summary: summaryDTO }))
+      const service = new ContextCompactionService(
+        builder(),
+        { execute } as unknown as GenerateSummaryUseCase,
+        logger,
+      )
+
+      const result = await service.compact(
+        policyInput(policy, 31, { compactionThreshold: 80 }),
+      )
+
+      expect(result.ok).toBe(true)
+      if (!result.ok) return
+      expect(result.messages).toHaveLength(keptCount)
+      expect(execute).toHaveBeenCalledWith(
+        "conv-1",
+        expect.objectContaining({ maxTokens: summaryMaxTokens }),
+      )
+    },
+  )
 
   it("does not reset a saved threshold when the policy changes to deep", async () => {
     const execute = vi.fn(async () => ({ summary: summaryDTO }))

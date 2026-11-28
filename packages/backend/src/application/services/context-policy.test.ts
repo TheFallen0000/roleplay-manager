@@ -136,6 +136,20 @@ describe("resolveContextBudget ratios and clamps", () => {
     }
   })
 
+  it("floors only summaryOutput and keeps round for memory sections", () => {
+    const plan = budget({
+      policy: "balanced",
+      contextWindow: 8_192,
+      workingWindow: 5_735,
+      maxTokens: 2_048,
+    })
+
+    // 5735 * 0.1 = 573.5 -> 573 (S122 floor). 5735 * 0.12 = 688.2 -> 688.
+    expect(plan.summaryOutputBudget).toBe(573)
+    expect(plan.memoryBudget).toBe(688)
+    expect(plan.summaryMemoryBudget).toBe(688)
+  })
+
   it("keeps the policy defaults free of a second compaction margin", () => {
     for (const policy of POLICIES) {
       const plan = budget({ policy, contextWindow: 8_000 })
@@ -191,17 +205,15 @@ describe("resolveContextBudget effective window", () => {
       window: 5_735,
       outputReserve: 0,
       memoryBudget: Math.min(2048, Math.max(256, Math.round(5_735 * 0.12))),
-      summaryOutputBudget: Math.min(
-        1024,
-        Math.max(256, Math.round(5_735 * 0.1)),
-      ),
+      // S122 parity: the summary output budget floors (5_735 * 0.1 = 573.5).
+      summaryOutputBudget: Math.min(1024, Math.max(256, Math.floor(5_735 * 0.1))),
       summaryMemoryBudget: Math.min(
         2048,
         Math.max(256, Math.round(5_735 * 0.12)),
       ),
     })
     expect(plan.memoryBudget).toBe(688)
-    expect(plan.summaryOutputBudget).toBe(574)
+    expect(plan.summaryOutputBudget).toBe(573)
     expect(plan.summaryMemoryBudget).toBe(688)
   })
 
