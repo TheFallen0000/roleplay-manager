@@ -107,12 +107,14 @@ Se elige **A**. Resumen de las decisiones (cada punto con su detalle abajo):
 2. **Dónde se guarda.** Columna `context_policy` en `conversations` (migration
    `0023`), default `balanced`, backfill de filas existentes, en export/import,
    ramas y plantillas de settings.
-3. **Presupuesto.** Un único `resolveContextBudget({ policy, effectiveWindow })`
-   en `shared` devuelve el plan `{ memoryBudget, summaryOutputBudget,
-   summaryMemoryBudget, compactionThreshold, compactionTarget }`; los tres
+3. **Presupuesto.** Un único `resolveContextBudget({ policy, contextWindow, workingWindow, maxTokens })`
+   en `shared` devuelve el plan `{ window, outputReserve, memoryBudget,
+   summaryOutputBudget, summaryMemoryBudget, compactionThreshold,
+   compactionTarget }`; los tres
    servicios lo consumen y dejan de usar constantes sueltas.
 4. **Compactación.** La política aporta el umbral/target **por defecto** para
-   conversaciones nuevas; un `compactionThreshold` explícito del usuario gana.
+   conversaciones nuevas; un `compactionThreshold` explícito del usuario gana
+   (y el target se deriva con `resolveCompactionTarget`, sin doble margen).
 5. **Memoria.** La política solo cambia el **presupuesto** de memoria; el modo
    léxico/híbrido sigue siendo el opt-in de S137.
 6. **Resumen.** `generate-summary` usa el **mismo retrieval que el chat**
@@ -138,39 +140,49 @@ type ContextPolicyId = "fast" | "balanced" | "deep"
 
 interface ContextPolicy {
   id: ContextPolicyId
-  /** Memory section budget: clamp(round(window * ratio), min, max). */
-  memory: { ratio: number; min: number; max: number }
+  /** Memory section budget: clamp(round(window * ratio), min, max); `fallback` when window is null. */
+  memory: { ratio: number; min: number; max: number; fallback: number }
   /** Summary generation output budget (the summary text written into the prompt). */
-  summaryOutput: { ratio: number; min: number; max: number }
+  summaryOutput: { ratio: number; min: number; max: number; fallback: number }
   /** Memory section budget inside the summary prompt (generate-summary). */
-  summaryMemory: { ratio: number; min: number; max: number }
+  summaryMemory: { ratio: number; min: number; max: number; fallback: number }
   /** Default compaction threshold/target for new conversations. */
   compaction: { threshold: number; target: number }
 }
 ```
 
 - **`balanced`** reproduce los valores actuales **exactamente**:
-  - `memory.ratio = 0.12, min = 256, max = 2048` (idéntico a
-    `resolveMemoryBudget` de hoy).
-  - `summaryOutput.ratio = 0.10, min = 256, max = 1024` (idéntico a
-    `preferredSummary` de hoy).
-  - `summaryMemory.ratio = 0.12, min = 256, max = 2048` (mismo criterio que el
-    prompt de chat; **cambio confirmado**: hoy el resumen inyecta **todas** las
-    memorias sin límite, así que este cap es un cambio acotado y documentado).
+  - `memory.ratio = 0.12, min = 256, max = 2048, fallback = 512` (idéntico a
+    `resolveMemoryBudget` de hoy, incluido el default sin ventana).
+  - `summaryOutput.ratio = 0.10, min = 256, max = 1024, fallback = 256` (idéntico
+    a `preferredSummary` de hoy).
+  - `summaryMemory.ratio = 0.12, min = 256, max = 2048, fallback = 512` (mismo
+    criterio que el prompt de chat; **cambio confirmado**: hoy el resumen inyecta
+    **todas** las memorias sin límite, así que este cap es un cambio acotado y
+    documentado).
   - `compaction.threshold = 80, target = 60` (idéntico a hoy).
 - **`fast`**: menos contexto, más margen de velocidad (menos tokens a procesar
-  y compacta antes): `memory.ratio = 0.06, min = 128, max = 1024`;
-  `summaryOutput.ratio = 0.05, min = 128, max = 512`;
-  `summaryMemory.ratio = 0.06, min = 128, max = 1024`;
+  y compacta antes): `memory.ratio = 0.06, min = 128, max = 1024, fallback = 256`;
+  `summaryOutput.ratio = 0.05, min = 128, max = 512, fallback = 128`;
+  `summaryMemory.ratio = 0.06, min = 128, max = 1024, fallback = 256`;
   `compaction.threshold = 70, target = 50`.
 - **`deep`**: más contexto (más memoria y resumen, compacta más tarde):
-  `memory.ratio = 0.18, min = 256, max = 4096`;
-  `summaryOutput.ratio = 0.15, min = 256, max = 2048`;
-  `summaryMemory.ratio = 0.18, min = 256, max = 4096`;
+  `memory.ratio = 0.18, min = 256, max = 4096, fallback = 1024`;
+  `summaryOutput.ratio = 0.15, min = 256, max = 2048, fallback = 512`;
+  `summaryMemory.ratio = 0.18, min = 256, max = 4096, fallback = 1024`;
   `compaction.threshold = 90, target = 70`.
 
 Los números de `fast`/`deep` son **punto de partida** y se calibran con la eval;
 los de `balanced` son fijos (no se tocan: son el baseline).
+
+**Ratios y defaults por política** (los `fallback` aplican solo con
+`contextWindow: null`, cuando no hay ventana para calcular el ratio):
+
+| Política  | memory (ratio / min / max / fallback) | summaryOutput (ratio / min / max / fallback) | summaryMemory (ratio / min / max / fallback) | compaction (threshold / target) |
+| --------- | ------------------------------------- | -------------------------------------------- | -------------------------------------------- | ------------------------------- |
+| `fast`     | 0.06 / 128 / 1024 / **256**           | 0.05 / 128 / 512 / **128**                   | 0.06 / 128 / 1024 / **256**                   | 70 / 50                         |
+| `balanced` | 0.12 / 256 / 2048 / **512**           | 0.10 / 256 / 1024 / **256**                  | 0.12 / 256 / 2048 / **512**                   | 80 / 60                         |
+| `deep`     | 0.18 / 256 / 4096 / **1024**          | 0.15 / 256 / 2048 / **512**                  | 0.18 / 256 / 4096 / **1024**                  | 90 / 70                         |
 
 **Qué controla y qué no.** La política controla: presupuesto de memoria, de
 resumen (salida) y de memoria-en-resumen, y el umbral/target de compactación
@@ -207,18 +219,31 @@ Nuevo `resolveContextBudget` puro en
 `packages/shared/src/lib/context-policy.ts`:
 
 ```
-resolveContextBudget({ policy, window, workingWindow, maxTokens })
+resolveContextBudget({ policy, contextWindow, workingWindow, maxTokens })
   → ContextBudgetPlan
 ```
 
-donde `window`/`outputReserve` salen de `resolveEffectiveWindow` (S131). El plan:
+La función llama **internamente** a `resolveEffectiveWindow({ contextWindow,
+workingWindow, maxTokens })` (S131): no recibe una ventana ya resuelta. El plan
+devuelve la ventana y la reserva de salida resueltas (`window`/`outputReserve`)
+junto a los presupuestos, para que el llamador no re-compute la precedencia:
 
 ```
-memoryBudget        = clamp(round(window * policy.memory.ratio), memory.min, memory.max)
-summaryOutputBudget = clamp(round(window * policy.summaryOutput.ratio), summaryOutput.min, summaryOutput.max)
-summaryMemoryBudget = clamp(round(window * policy.summaryMemory.ratio), summaryMemory.min, summaryMemory.max)
-compactionThreshold = policy.compaction.threshold   // default; user value wins (ver §4)
-compactionTarget    = policy.compaction.target
+effective = resolveEffectiveWindow({ contextWindow, workingWindow, maxTokens })
+window    = effective.window          // null si no hay ventana
+outputReserve = effective.outputReserve
+
+memoryBudget        = window === null
+  ? policy.memory.fallback
+  : clamp(round(window * policy.memory.ratio), memory.min, memory.max)
+summaryOutputBudget = window === null
+  ? policy.summaryOutput.fallback
+  : clamp(round(window * policy.summaryOutput.ratio), summaryOutput.min, summaryOutput.max)
+summaryMemoryBudget = window === null
+  ? policy.summaryMemory.fallback
+  : clamp(round(window * policy.summaryMemory.ratio), summaryMemory.min, summaryMemory.max)
+compactionThreshold = policy.compaction.threshold   // default; ver §4 para el override
+compactionTarget    = policy.compaction.target      // default; ver §4 para el target derivado
 ```
 
 - **Caps por sección**: memoria, resumen (salida) y memoria-en-resumen tienen
@@ -226,6 +251,11 @@ compactionTarget    = policy.compaction.target
   resumen, memoria y reserva de salida), que es exactamente lo que la
   compactación ya recorta. La suma nunca supera la ventana porque los caps se
   claman y el residuo lo gestiona la compactación.
+- **Ventana desconocida (`contextWindow: null`).** Sin ventana no hay ratio que
+  aplicar: cada sección usa su `fallback` (ver tabla §1). Con `balanced` son los
+  defaults actuales (512 memoria / 256 resumen / 512 memoria-resumen); con
+  `fast` 256/128/256 y con `deep` 1024/512/1024. La compactación no se dispara
+  sin ventana (comportamiento actual).
 - **Sin override manual en S138** salvo el umbral de compactación ya existente.
   Un override fino por sección (input numérico en la UI) queda **diferido** (ver
   Deferred); no bloquea.
@@ -235,17 +265,23 @@ compactionTarget    = policy.compaction.target
   explícito > política (§4).
 - **Consumidores**: `memory-retrieval.service.ts` reemplaza
   `resolveMemoryBudget` por `plan.memoryBudget`; `context-compaction.service.ts`
-  reemplaza `preferredSummary` por `plan.summaryOutputBudget` y el umbral/target
-  por los del plan (respetando el override); `generate-summary.use-case.ts` usa
-  `plan.summaryOutputBudget` y `plan.summaryMemoryBudget`.
+  reemplaza `preferredSummary` por `plan.summaryOutputBudget` y usa el umbral del
+  plan como default (con `resolveCompactionTarget` si hay umbral explícito, §4);
+  `generate-summary.use-case.ts` usa `plan.summaryOutputBudget` y
+  `plan.summaryMemoryBudget`.
 
 #### 4. Compactación
 
-- La política aporta `compaction.threshold/target` **por defecto**. Para
-  conversaciones **nuevas** el umbral inicial es el de la política. Una
-  conversación **existente** conserva su `compactionThreshold` guardado (no se
-  pisa al cambiar de política). Si el usuario edita el umbral a mano, ese valor
-  gana siempre.
+- **Umbral y target por defecto de la política.** Para conversaciones **nuevas**
+  sin umbral guardado, se usan `policy.compaction.threshold` y
+  `policy.compaction.target` **tal cual** (sin margen adicional: el target ya es
+  el resultado del margen deseado por la política). Una conversación **existente**
+  conserva su `compactionThreshold` guardado (no se pisa al cambiar de política).
+- **Umbral explícito/guardado.** Si la conversación tiene un
+  `compactionThreshold` guardado (o el usuario lo edita a mano), se usa **ese**
+  umbral y el target se deriva con `resolveCompactionTarget(threshold)`
+  (comportamiento actual: umbral − 20, mínimo 30). **No** se aplica
+  `policy.compaction.target` ni se vuelve a restar margen: no hay doble margen.
 - **Cambiar de política en una conversación existente no resetea
   `compactionThreshold` (confirmado):** la política solo cambia los presupuestos
   de memoria/resumen y el modo en la UI. El umbral sigue siendo editable de
@@ -322,9 +358,9 @@ compactionTarget    = policy.compaction.target
   pero el use case repite la defensa como en S137).
 - `PromptContextMetadataDTO` y `ContextManifestDTO` ganan:
   - `manifest.contextPolicy: ContextPolicyId`
-  - `manifest.budget`: `{ window, memory, summaryOutput, summaryMemory,
-    compactionThreshold, compactionTarget }` (valores resueltos) para que la UI
-    pinte el desglose sin recomputar.
+  - `manifest.budget`: `{ window, outputReserve, memory, summaryOutput,
+    summaryMemory, compactionThreshold, compactionTarget }` (valores resueltos del
+    plan) para que la UI pinte el desglose sin recomputar.
 - Sin secretos en DTOs (la política es un enum y números).
 - `ExportSettings.contextPolicy` opcional (default `balanced`).
 
@@ -388,8 +424,9 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
      romper el orden estable de S136.
   4. Ventana pequeña con `deep` → los caps se claman y la suma
      system+summary+memories+reserva nunca supera la ventana.
-  5. Sin ventana (`contextWindow: null`) → `balanced` devuelve los defaults
-     actuales (512 de memoria, 256/1024 de resumen) y no rompe.
+  5. Sin ventana (`contextWindow: null`) → cada política usa su `fallback`
+     (fast 256/128/256, balanced 512/256/512, deep 1024/512/1024) y no compacta
+     (comportamiento actual).
   6. `generate-summary` con `deep` → la sección de memoria del prompt de
      resumen respeta `summaryMemoryBudget` y usa el retrieval (no
      `filterMemoriesForPrompt`).
@@ -397,30 +434,37 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
   vs ventana, overflow (nunca), orden estable entre dos ejecuciones, latencia
   (informativa) y recall/irrelevantes de los fixtures de S136 reutilizados.
 - **Baseline:** comportamiento actual con `balanced` (constantes de hoy):
-  `resolveMemoryBudget` y `preferredSummary` actuales. La **selección de memoria
-  del chat**, el **presupuesto de salida del resumen** y la **compactación** se
-  registran como referencia y se exige igualdad exacta; la **sección de memoria
-  del prompt de resumen** es la única que cambia (cap 12 %, 256–2048) y se mide
-  aparte como mejora acotada.
+  `resolveMemoryBudget` y `preferredSummary` actuales. **La paridad del baseline
+  excluye la sección de memoria del prompt de resumen**: el cap
+  `summaryMemory` (12 %, 256–2048) es el **único** cambio documentado de
+  `balanced`. La **selección de memoria del chat**, el **presupuesto de salida
+  del resumen** y la **compactación** se registran como referencia y se exige
+  igualdad exacta; la **sección de memoria del prompt de resumen** se mide
+  aparte (tokens ≤ `summaryMemoryBudget`).
 - **Umbral:** paridad exacta `balanced` = baseline (0 diffs) en selección de
-  memoria del chat, presupuesto de salida del resumen y compactación; caps nunca
-  superados; determinismo (misma salida en dos ejecuciones); los umbrales de
-  S136/S137 (recall ≥ 0,8, irrelevantes ≤ 0,2) siguen en verde con `balanced`.
-  El cap de memoria del resumen en `balanced` se mide (tokens de la sección ≤
-  `summaryMemoryBudget`) y no se exige que iguale el baseline anterior. Si
-  `fast`/`deep` no mejoran la sección que prometen (más/menos memoria) en los
-  fixtures, se recalibran los ratios antes de cerrar.
+  memoria del chat, presupuesto de salida del resumen y compactación — con la
+  salvedad explícita de la sección de memoria del resumen, que no se exige
+  idéntica; caps nunca superados; determinismo (misma salida en dos ejecuciones);
+  los umbrales de S136/S137 (recall ≥ 0,8, irrelevantes ≤ 0,2) siguen en verde
+  con `balanced`. Si `fast`/`deep` no mejoran la sección que prometen (más/menos
+  memoria) en los fixtures, se recalibran los ratios antes de cerrar.
 
 ## Criterios de aceptación
 
 - [ ] `context-policy.ts` en `shared` con `ContextPolicyId`, las tres políticas
-      y `resolveContextBudget` puro y determinista (aritmética entera).
+      y `resolveContextBudget({ policy, contextWindow, workingWindow, maxTokens })`
+      puro y determinista (aritmética entera), que llama a `resolveEffectiveWindow`
+      y devuelve `window`/`outputReserve` resueltos y los `fallback` por política
+      cuando no hay ventana.
 - [ ] Migración `0023` añade `context_policy` con default `balanced` y backfill;
       test de migración (filas antiguas → `balanced`).
 - [ ] `Conversation`/Drizzle/DTO/export/rama/plantilla propagan `contextPolicy`;
       un export antiguo importa `balanced`; `EXPORT_SCHEMA_VERSION` no cambia.
 - [ ] `memory-retrieval`, `context-compaction` y `generate-summary` consumen el
-      plan de `resolveContextBudget` y dejan de usar constantes sueltas.
+      plan de `resolveContextBudget` y dejan de usar constantes sueltas; con un
+      `compactionThreshold` explícito/guardado, el target se deriva con
+      `resolveCompactionTarget` (sin doble margen), y sin umbral se usan
+      `policy.compaction.threshold/target` tal cual.
 - [ ] `generate-summary` usa el **mismo retrieval que el chat** (léxico o híbrido
       según S137, fallback léxico) con `summaryMemoryBudget` propio, no
       `filterMemoriesForPrompt`.
@@ -428,7 +472,8 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
       presupuesto de salida del resumen y la compactación son **idénticos** al
       comportamiento actual (tests de no-regresión; evals S136/S137 intactas); la
       sección de memoria del prompt de resumen queda acotada por
-      `summaryMemoryBudget` (cambio confirmado, ≤ 12 %).
+      `summaryMemoryBudget` (cambio confirmado, ≤ 12 %) y es la **única** sección
+      excluida de la paridad.
 - [ ] La suma de secciones + reserva de salida nunca supera la ventana efectiva
       (test de overflow con ventana pequeña y `deep`).
 - [ ] `PATCH /api/conversations/:id/settings` acepta `contextPolicy` con enum
@@ -448,11 +493,11 @@ Obligatorio: cambia el presupuesto y el comportamiento del prompt.
 
 | Área | Test rojo esperado |
 | ---- | ------------------ |
-| Shared | `resolveContextBudget` no existe; `ContextPolicyId`/`normalizeContextPolicy` no se exportan; `balanced` no iguala `resolveMemoryBudget` actual. |
+| Shared | `resolveContextBudget` no existe; `ContextPolicyId`/`normalizeContextPolicy` no se exportan; `balanced` no iguala `resolveMemoryBudget` actual; `fallback` por política ausente con `contextWindow: null`. |
 | Migración | `context_policy` no existe en el esquema; filas antiguas no quedan `balanced`. |
 | Repositorio/entidad | `Conversation.contextPolicy` es `undefined`; `updateSettings` no persiste el campo; `ConversationDetail` no lo expone. |
 | Retrieval | `resolveMemoryBudget` no respeta el plan (usa la constante 0.12 en vez de la política). |
-| Compactación | `preferredSummary` no usa `summaryOutputBudget` de la política; el umbral default de `fast`/`deep` no aplica en conversaciones nuevas. |
+| Compactación | `preferredSummary` no usa `summaryOutputBudget` de la política; el umbral default de `fast`/`deep` no aplica en conversaciones nuevas; con umbral explícito el target no usa `resolveCompactionTarget`. |
 | Resumen | `generate-summary` sigue usando `filterMemoriesForPrompt`; no aplica `summaryMemoryBudget`. |
 | Compiler/manifiesto | `manifest.budget`/`manifest.contextPolicy` no existen. |
 | UI | Falta `context-policy-card.tsx`; `settings-panel` no manda `contextPolicy`; el preview no muestra el desglose. |
