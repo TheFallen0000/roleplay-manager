@@ -500,7 +500,7 @@ describe("selectMemoriesForPrompt", () => {
     const memories = Array.from({ length: 40 }, (_, index) =>
       mkMemory(`mem-${String(index).padStart(2, "0")}`, {
         actor: "Lyra",
-        title: `Bosque ${index}`,
+        title: `Bosque ${String(index).padStart(2, "0")}`,
         description:
           "Una descripción larga de un recuerdo que ocupa bastantes tokens en la sección de memoria renderizada.",
         priority: 8,
@@ -550,5 +550,189 @@ describe("selectMemoriesForPrompt", () => {
       result.budget,
     )
     expect(result.tokens).toBeLessThanOrEqual(result.budget)
+  })
+})
+
+describe("selectMemoriesForPrompt context policy budgets", () => {
+  type Policy = "fast" | "balanced" | "deep"
+
+  const policyConversation = (
+    policy: Policy,
+    overrides: { contextWindow?: number | null } = {},
+  ): Conversation =>
+    Conversation.create({
+      id: "conv-1",
+      versionId: "ver-1",
+      title: null,
+      titleSource: null,
+      model: "llama3",
+      provider: "ollama",
+      providerInstanceId: null,
+      recentMessageCount: 20,
+      summaryFrequency: 20,
+      contextWindow:
+        "contextWindow" in overrides ? overrides.contextWindow : 8_000,
+      maxTokens: 2_048,
+      compactionThreshold: 80,
+      temperature: 0.7,
+      topP: 0.9,
+      frequencyPenalty: 0,
+      presencePenalty: 0,
+      stopSequences: [],
+      memoryProposalMode: "auto",
+      contextPolicy: policy,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+  const longMemories = (count: number): Memory[] =>
+    Array.from({ length: count }, (_, index) =>
+      mkMemory(`mem-${String(index).padStart(2, "0")}`, {
+        actor: "Lyra",
+        title: `Bosque ${String(index).padStart(2, "0")}`,
+        description:
+          "Una descripción larga de un recuerdo que ocupa bastantes tokens en la sección de memoria renderizada.",
+        priority: 8,
+      }),
+    )
+
+  it("uses the memory budget of each policy", () => {
+    expect(
+      select({ conversation: policyConversation("fast"), memories: [] }).budget,
+    ).toBe(480)
+    expect(
+      select({ conversation: policyConversation("balanced"), memories: [] })
+        .budget,
+    ).toBe(960)
+    expect(
+      select({ conversation: policyConversation("deep"), memories: [] }).budget,
+    ).toBe(1_440)
+  })
+
+  it("clamps the memory budget to each policy min and max", () => {
+    expect(
+      select({
+        conversation: policyConversation("fast", { contextWindow: 32_000 }),
+        memories: [],
+      }).budget,
+    ).toBe(1_024)
+    expect(
+      select({
+        conversation: policyConversation("balanced", { contextWindow: 32_000 }),
+        memories: [],
+      }).budget,
+    ).toBe(2_048)
+    expect(
+      select({
+        conversation: policyConversation("deep", { contextWindow: 32_000 }),
+        memories: [],
+      }).budget,
+    ).toBe(4_096)
+
+    expect(
+      select({
+        conversation: policyConversation("fast", { contextWindow: 500 }),
+        memories: [],
+      }).budget,
+    ).toBe(128)
+    expect(
+      select({
+        conversation: policyConversation("deep", { contextWindow: 1_000 }),
+        memories: [],
+      }).budget,
+    ).toBe(256)
+  })
+
+  it("uses the fallback budget when the window is unknown", () => {
+    for (const [policy, fallback] of [
+      ["fast", 256],
+      ["balanced", 512],
+      ["deep", 1_024],
+    ] as const) {
+      expect(
+        select({
+          conversation: policyConversation(policy, { contextWindow: null }),
+          memories: [],
+        }).budget,
+      ).toBe(fallback)
+    }
+  })
+
+  it("includes fewer memories with fast and more with deep, keeping the order", () => {
+    const memories = longMemories(40)
+    const pendingMessage = "Lyra recuerda el bosque."
+
+    const fast = select({
+      conversation: policyConversation("fast"),
+      memories,
+      pendingMessage,
+    })
+    const balanced = select({
+      conversation: policyConversation("balanced"),
+      memories,
+      pendingMessage,
+    })
+    const deep = select({
+      conversation: policyConversation("deep"),
+      memories,
+      pendingMessage,
+    })
+
+    const ids = (result: ReturnType<typeof select>) =>
+      result.memories.map((memory) => memory.id)
+
+    expect(fast.tokens).toBeLessThanOrEqual(fast.budget)
+    expect(balanced.tokens).toBeLessThanOrEqual(balanced.budget)
+    expect(deep.tokens).toBeLessThanOrEqual(deep.budget)
+
+    expect(fast.memories.length).toBeLessThan(balanced.memories.length)
+    expect(balanced.memories.length).toBeLessThan(deep.memories.length)
+
+    expect(ids(balanced).slice(0, fast.memories.length)).toEqual(ids(fast))
+    expect(ids(deep).slice(0, balanced.memories.length)).toEqual(
+      ids(balanced),
+    )
+  })
+
+  it("keeps the deep selection deterministic and ordered by id on ties", () => {
+    const memories = longMemories(40)
+    const conversation = policyConversation("deep")
+
+    const first = select({
+      conversation,
+      memories,
+      pendingMessage: "Lyra recuerda el bosque.",
+    })
+    const second = select({
+      conversation,
+      memories,
+      pendingMessage: "Lyra recuerda el bosque.",
+    })
+
+    expect(second.selection).toEqual(first.selection)
+    const sortedIds = [...first.memories.map((memory) => memory.id)].sort()
+    expect(first.memories.map((memory) => memory.id)).toEqual(sortedIds)
+  })
+
+  it("does not enable semantic retrieval by itself", () => {
+    const memories = longMemories(20)
+    const input = {
+      conversation: policyConversation("deep"),
+      memories,
+      messages: [],
+      pendingMessage: "Lyra recuerda el bosque.",
+      mainActors: [],
+    }
+
+    const lexical = selectMemoriesForPrompt(input)
+    const withEmptyScores = selectMemoriesForPrompt({
+      ...input,
+      semanticScores: new Map(),
+    })
+
+    expect(withEmptyScores.selection).toEqual(lexical.selection)
+    expect(withEmptyScores.memories.map((memory) => memory.id)).toEqual(
+      lexical.memories.map((memory) => memory.id),
+    )
   })
 })

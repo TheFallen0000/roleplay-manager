@@ -79,6 +79,7 @@ const conversationProps = {
   memoryDecayThreshold: 4,
   memoryDecayAgeThreshold: 40,
   memoryDecaySpeed: 5,
+  contextPolicy: "deep" as const,
   createdAt: now,
   updatedAt: new Date(now.getTime() + 1000),
 }
@@ -286,6 +287,7 @@ describe("ExportCharacterUseCase", () => {
     expect(exported?.settings?.model).toBe("gpt-4o-mini")
     expect(exported?.settings?.contextWindow).toBe(8_192)
     expect(exported?.settings?.workingWindow).toBe(5_735)
+    expect(exported?.settings?.contextPolicy).toBe("deep")
     expect(exported?.settings?.memoryDecayMode).toBe("manual")
     expect(exported?.customProfileImageAssetId).toBe("asset-9")
     expect(exported?.backgroundImageAssetId).toBeNull()
@@ -298,6 +300,7 @@ describe("ExportCharacterUseCase", () => {
 
     expect(result.standaloneSettings?.temperature).toBe(0.9)
     expect(result.standaloneSettings?.memoryDecayThreshold).toBe(4)
+    expect(result.standaloneSettings?.contextPolicy).toBe("deep")
     // The template carries the custom chat image (id plus binary).
     expect(result.standaloneSettings?.customProfileImageAssetId).toBe("asset-9")
     expect(result.standaloneSettingsImage?.assetId).toBe("asset-9")

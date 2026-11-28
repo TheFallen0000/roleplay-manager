@@ -194,6 +194,7 @@ describe("ImportCharacterUseCase", () => {
             characterDialogueColor: "#7c3aed",
             userDialogueColor: null,
             customProfileImageAssetId: null,
+            contextPolicy: "deep",
           },
           messages: [
             {
@@ -286,6 +287,7 @@ describe("ImportCharacterUseCase", () => {
     expect(createdConversation.characterDialogueColor).toBe("#7c3aed")
     expect(createdConversation.userDialogueColor).toBeNull()
     expect(createdConversation.titleSource).toBe("manual")
+    expect(createdConversation.contextPolicy).toBe("deep")
 
     expect(repos.messageRepository.create).toHaveBeenCalledTimes(2)
     expect(repos.memoryRepository.create).toHaveBeenCalledTimes(1)
@@ -336,6 +338,32 @@ describe("ImportCharacterUseCase", () => {
     const createdMemory = (repos.memoryRepository.create as ReturnType<typeof vi.fn>)
       .mock.calls[0][0]
     expect(createdMemory.type).toBe("fact")
+  })
+
+  it("defaults the context policy to balanced in the shared export settings", () => {
+    expect(DEFAULT_EXPORT_SETTINGS.contextPolicy).toBe("balanced")
+  })
+
+  it("importa un export antiguo sin contextPolicy como balanced", async () => {
+    const repos = buildRepos()
+    const {
+      contextPolicy: _omitted,
+      ...legacySettings
+    } = DEFAULT_EXPORT_SETTINGS as typeof DEFAULT_EXPORT_SETTINGS & {
+      contextPolicy?: unknown
+    }
+    const payload = buildPayload({
+      conversations: [
+        exportConversation({ settings: legacySettings as never }),
+      ],
+    })
+
+    await buildUseCase(repos).execute({ payload })
+
+    const created = (
+      repos.conversationRepository.create as ReturnType<typeof vi.fn>
+    ).mock.calls[0][0]
+    expect(created.contextPolicy).toBe("balanced")
   })
 
   it("importa solo la definición (sin imagen ni conversaciones)", async () => {

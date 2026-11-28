@@ -72,6 +72,7 @@ const current: ConversationDetail = {
   summaryFrequency: 20,
   contextWindow: null,
   compactionThreshold: 80,
+  contextPolicy: "balanced",
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,

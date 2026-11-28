@@ -13,6 +13,16 @@ const manifest: ContextManifestDTO = {
   outputReserve: 2_048,
   estimatedInputTokens: 600,
   estimatedTotalTokens: 2_648,
+  contextPolicy: "balanced",
+  budget: {
+    window: 8_000,
+    outputReserve: 2_048,
+    memory: 960,
+    summaryOutput: 800,
+    summaryMemory: 960,
+    compactionThreshold: 80,
+    compactionTarget: 60,
+  },
   compaction: { needed: true, applied: false, threshold: 80 },
   summary: {
     id: null,
@@ -52,9 +62,12 @@ const manifest: ContextManifestDTO = {
   ],
 }
 
-const renderView = (value: ContextManifestDTO = manifest) =>
+const renderView = (
+  value: ContextManifestDTO = manifest,
+  locale: "es" | "en" = "en",
+) =>
   render(
-    <I18nProvider initialLocale="en">
+    <I18nProvider initialLocale={locale}>
       <ContextManifestView manifest={value} />
     </I18nProvider>,
   )
@@ -136,5 +149,112 @@ describe("ContextManifestView", () => {
     expect(screen.getByText(/actor/i)).toBeTruthy()
     expect(screen.getByText(/mem-3/)).toBeTruthy()
     expect(screen.getByText(/budget/i)).toBeTruthy()
+  })
+})
+
+const deepManifest: ContextManifestDTO = {
+  ...manifest,
+  contextPolicy: "deep",
+  budget: {
+    window: 8_000,
+    outputReserve: 2_048,
+    memory: 1_440,
+    summaryOutput: 1_200,
+    summaryMemory: 1_440,
+    compactionThreshold: 90,
+    compactionTarget: 70,
+  },
+  sections: [
+    {
+      id: "memories",
+      source: "system",
+      tokens: 1_440,
+      characters: 3_200,
+      included: true,
+      reason: "included memories",
+      itemCount: 18,
+    },
+    {
+      id: "summary",
+      source: "system",
+      tokens: 1_200,
+      characters: 2_600,
+      included: true,
+      reason: "previous summary",
+    },
+    {
+      id: "history",
+      source: "history",
+      tokens: 333,
+      characters: 210,
+      included: true,
+      reason: "Conversation history after the summary",
+      itemCount: 2,
+    },
+  ],
+}
+
+describe("ContextManifestView policy budget", () => {
+  it("renders the policy and the resolved budget", () => {
+    renderView(deepManifest)
+
+    expect(screen.getAllByText(/Policy/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Deep/).length).toBeGreaterThan(0)
+    expect(screen.getByText("Policy budget")).toBeTruthy()
+    expect(screen.getByText("Memory cap: 1440 tokens")).toBeTruthy()
+    expect(screen.getByText("Summary output cap: 1200 tokens")).toBeTruthy()
+    expect(screen.getByText("Summary memory cap: 1440 tokens")).toBeTruthy()
+    expect(screen.getByText("Compaction: 90% → 70%")).toBeTruthy()
+  })
+
+  it("shows tokens and cap for a section at its cap", () => {
+    renderView(deepManifest)
+
+    expect(screen.getByText("1440 / 1440")).toBeTruthy()
+    expect(screen.getByText("1200 / 1200")).toBeTruthy()
+  })
+
+  it("warns with aria-live when a section reaches its policy cap", async () => {
+    renderView(deepManifest)
+
+    const status = screen.getByRole("status")
+    expect(status).toHaveAttribute("aria-live", "polite")
+    expect(status.textContent).toMatch(/policy cap/i)
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Dismiss warning" }),
+    )
+
+    expect(screen.queryByRole("status")).toBeNull()
+  })
+
+  it("warns when the context window is unknown", () => {
+    renderView({
+      ...manifest,
+      contextWindow: null,
+      budget: { ...manifest.budget!, window: null },
+    })
+
+    expect(screen.getByRole("status").textContent).toMatch(/window unknown/i)
+  })
+
+  it("renders the budget warnings in Spanish and lets the user dismiss them", async () => {
+    renderView(deepManifest, "es")
+
+    const status = screen.getByRole("status")
+    expect(status).toHaveAttribute("aria-live", "polite")
+    expect(status.textContent).toMatch(/límite/i)
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Descartar aviso" }),
+    )
+
+    expect(screen.queryByRole("status")).toBeNull()
+  })
+
+  it("does not warn when every section is below its cap", () => {
+    renderView()
+
+    expect(screen.queryByRole("status")).toBeNull()
   })
 })

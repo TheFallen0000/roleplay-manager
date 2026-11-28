@@ -74,6 +74,7 @@ const baseConversation = (overrides: Partial<ConversationDetail> = {}): Conversa
   providerInstanceId: null,
   recentMessageCount: 10,
   summaryFrequency: 20,
+  contextPolicy: "balanced",
   temperature: null,
   maxTokens: null,
   topP: null,

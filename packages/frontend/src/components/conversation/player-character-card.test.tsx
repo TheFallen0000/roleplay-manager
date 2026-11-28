@@ -32,6 +32,7 @@ const conversation: ConversationDetail = {
   providerInstanceId: null,
   recentMessageCount: 10,
   summaryFrequency: 20,
+  contextPolicy: "balanced",
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,

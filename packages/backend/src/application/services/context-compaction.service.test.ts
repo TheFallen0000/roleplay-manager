@@ -488,3 +488,200 @@ describe("ContextCompactionService effective window", () => {
     }
   })
 })
+
+describe("ContextCompactionService context policy", () => {
+  type Policy = "fast" | "balanced" | "deep"
+
+  const policyConversation = (
+    policy: Policy,
+    overrides: {
+      compactionThreshold?: number
+      recentMessageCount?: number
+      summaryFrequency?: number
+    } = {},
+  ) =>
+    Conversation.create({
+      id: "conv-1",
+      versionId: "ver-1",
+      title: null,
+      titleSource: null,
+      model: "llama3",
+      provider: "ollama",
+      providerInstanceId: null,
+      recentMessageCount: overrides.recentMessageCount ?? 10,
+      summaryFrequency: overrides.summaryFrequency ?? 20,
+      // Net window: 3500 input tokens with no reply reserve to subtract.
+      contextWindow: 4_000,
+      workingWindow: 3_500,
+      maxTokens: 500,
+      contextPolicy: policy,
+      temperature: 0.7,
+      topP: 0.9,
+      frequencyPenalty: 0,
+      presencePenalty: 0,
+      stopSequences: [],
+      memoryProposalMode: "auto",
+      createdAt: now,
+      updatedAt: now,
+      ...(overrides.compactionThreshold !== undefined
+        ? { compactionThreshold: overrides.compactionThreshold }
+        : {}),
+    })
+
+  const policyInput = (
+    policy: Policy,
+    count: number,
+    overrides: {
+      compactionThreshold?: number
+      recentMessageCount?: number
+      summaryFrequency?: number
+    } = {},
+  ) => ({
+    conversation: policyConversation(policy, overrides),
+    characterVersion: version,
+    messages: uniformMessages(count),
+    memories: [],
+    latestSummary: null,
+    locale: "en" as const,
+  })
+
+  it.each([
+    // threshold: 70% of 3500 = 2450 tokens; 110 + 21 * 114 = 2504.
+    ["fast", 20, false, 21, true],
+    // threshold: 80% of 3500 = 2800 tokens; 110 + 23 * 114 = 2732 / 2846.
+    ["balanced", 23, false, 24, true],
+    // threshold: 90% of 3500 = 3150 tokens; 110 + 26 * 114 = 3074 / 3188.
+    ["deep", 26, false, 27, true],
+  ] as const)(
+    "uses the %s policy threshold for a new conversation",
+    async (policy, belowCount, belowExpected, aboveCount, aboveExpected) => {
+      const service = buildService()
+
+      expect(
+        await service.needsCompaction(policyInput(policy, belowCount)),
+      ).toBe(belowExpected)
+      expect(
+        await service.needsCompaction(policyInput(policy, aboveCount)),
+      ).toBe(aboveExpected)
+    },
+  )
+
+  it.each(["fast", "balanced", "deep"] as const)(
+    "lets a saved threshold win over the %s policy threshold",
+    async (policy) => {
+      const service = buildService()
+
+      // Explicit 85% -> 2975 tokens; 110 + 25 * 114 = 2960 / 3074.
+      expect(
+        await service.needsCompaction(
+          policyInput(policy, 25, { compactionThreshold: 85 }),
+        ),
+      ).toBe(false)
+      expect(
+        await service.needsCompaction(
+          policyInput(policy, 26, { compactionThreshold: 85 }),
+        ),
+      ).toBe(true)
+    },
+  )
+
+  it.each([
+    // target 50%, summary 175: keep 1465 -> 12 raw, leading assistant trimmed -> 11
+    ["fast", 11, 175],
+    // target 60%, summary 350: keep 1640 -> 14 raw, leading assistant trimmed -> 13
+    ["balanced", 13, 350],
+    // target 70%, summary 525: keep 1815 -> 15 raw, starts on a user turn -> 15
+    ["deep", 15, 525],
+  ] as const)(
+    "uses the %s policy threshold/target and summary budget without a second margin",
+    async (policy, keptCount, summaryMaxTokens) => {
+      const execute = vi.fn(async () => ({ summary: summaryDTO }))
+      const service = new ContextCompactionService(
+        builder(),
+        { execute } as unknown as GenerateSummaryUseCase,
+        logger,
+      )
+
+      const result = await service.compact(policyInput(policy, 31))
+
+      expect(result.ok).toBe(true)
+      if (!result.ok) return
+      expect(result.messages).toHaveLength(keptCount)
+      expect(execute).toHaveBeenCalledWith(
+        "conv-1",
+        expect.objectContaining({ maxTokens: summaryMaxTokens }),
+      )
+    },
+  )
+
+  it("derives the target with resolveCompactionTarget for a saved threshold", async () => {
+    const execute = vi.fn(async () => ({ summary: summaryDTO }))
+    const service = new ContextCompactionService(
+      builder(),
+      { execute } as unknown as GenerateSummaryUseCase,
+      logger,
+    )
+
+    // Balanced summary 350, target 65% = 2275 -> keep 1815 -> 15 raw.
+    const result = await service.compact(
+      policyInput("balanced", 31, { compactionThreshold: 85 }),
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.messages).toHaveLength(15)
+  })
+
+  it("does not reset a saved threshold when the policy changes to deep", async () => {
+    const execute = vi.fn(async () => ({ summary: summaryDTO }))
+    const service = new ContextCompactionService(
+      builder(),
+      { execute } as unknown as GenerateSummaryUseCase,
+      logger,
+    )
+
+    // Saved 85%: target 65% = 2275, deep summary 525 -> keep 1640 -> 14 raw,
+    // leading assistant trimmed -> 13. Resetting to the deep default (90/70)
+    // would keep 15 instead.
+    const result = await service.compact(
+      policyInput("deep", 31, { compactionThreshold: 85 }),
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.messages).toHaveLength(13)
+    expect(execute).toHaveBeenCalledWith(
+      "conv-1",
+      expect.objectContaining({ maxTokens: 525 }),
+    )
+  })
+
+  it("does not read recentMessageCount or summaryFrequency", async () => {
+    const execute = vi.fn(async () => ({ summary: summaryDTO }))
+    const service = new ContextCompactionService(
+      builder(),
+      { execute } as unknown as GenerateSummaryUseCase,
+      logger,
+    )
+
+    const low = await service.compact(
+      policyInput("balanced", 30, {
+        recentMessageCount: 3,
+        summaryFrequency: 5,
+      }),
+    )
+    const high = await service.compact(
+      policyInput("balanced", 30, {
+        recentMessageCount: 50,
+        summaryFrequency: 60,
+      }),
+    )
+
+    expect(low.ok && high.ok).toBe(true)
+    if (!low.ok || !high.ok) return
+    expect(high.messages.map((message) => message.id)).toEqual(
+      low.messages.map((message) => message.id),
+    )
+    expect(execute).toHaveBeenCalledTimes(2)
+  })
+})

@@ -93,6 +93,7 @@ const baseConversation = (overrides: Partial<ConversationDetail> = {}): Conversa
   contextWindow: null,
   workingWindow: null,
   compactionThreshold: 80,
+  contextPolicy: "balanced",
   temperature: null,
   maxTokens: null,
   topP: null,
@@ -332,6 +333,29 @@ describe("SettingsPanel", () => {
     await waitFor(() => {
       expect(mocks.updateConversationSettings).toHaveBeenCalledWith("conv-1", {
         compactionThreshold: 60,
+      })
+    })
+  })
+
+  it("saves the context policy from the Historia dialog without resetting the threshold", async () => {
+    renderPanel()
+    await openSection("Historia")
+
+    await userEvent.click(screen.getByRole("button", { name: /Resúmenes/ }))
+
+    const policy = await screen.findByRole("combobox", {
+      name: "Política de contexto",
+    })
+    await userEvent.click(policy)
+    await userEvent.click(
+      await screen.findByRole("option", { name: /Profunda/ }),
+    )
+
+    await userEvent.click(screen.getByRole("button", { name: "Aplicar cambios" }))
+
+    await waitFor(() => {
+      expect(mocks.updateConversationSettings).toHaveBeenCalledWith("conv-1", {
+        contextPolicy: "deep",
       })
     })
   })
