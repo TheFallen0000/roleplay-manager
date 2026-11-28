@@ -18,6 +18,7 @@ import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { ProviderRegistry } from "../../../domain/ports/provider.port"
 import type { ProviderPort } from "../../../domain/ports/provider.port"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { DefaultProviderConfig, ProviderId } from "@workspace/shared/types/provider"
@@ -81,6 +82,7 @@ export class GenerateSummaryUseCase {
     private readonly getDefaultProvider: GetDefaultProviderUseCase,
     private readonly providerInstanceRepository: ProviderInstanceRepository,
     private readonly logger: Logger,
+    private readonly playerCharacterRepository?: PlayerCharacterRepository | null,
     private readonly retrieval?: GenerateSummaryRetrievalDeps,
   ) {}
 
@@ -191,11 +193,22 @@ export class GenerateSummaryUseCase {
       transcriptBudget,
     )
 
+    const playerCharacter =
+      conversation.playerCharacterId && this.playerCharacterRepository
+        ? await this.playerCharacterRepository.findById(
+            conversation.playerCharacterId,
+          )
+        : null
+    const mainActors = [
+      characterResult.currentVersion.name,
+      ...(playerCharacter ? [playerCharacter.name] : []),
+    ]
     const promptMemories = await this.selectSummaryMemories({
       conversation,
       memories,
       memoryTurns,
-      mainActors: [characterResult.currentVersion.name],
+      mainActors,
+      pendingMessage: lastUserMessageContent(newMessages),
       budget: plan.summaryMemoryBudget,
     })
     let summaryContent = latestSummary?.content
@@ -270,13 +283,14 @@ export class GenerateSummaryUseCase {
     memories: Memory[]
     memoryTurns: { role: string; createdAt: Date }[]
     mainActors: string[]
+    pendingMessage: string
     budget: number
   }): Promise<Memory[]> {
     const input = {
       conversation: params.conversation,
       memories: params.memories,
       messages: params.memoryTurns,
-      pendingMessage: "",
+      pendingMessage: params.pendingMessage,
       mainActors: params.mainActors,
       budget: params.budget,
     }
@@ -457,6 +471,14 @@ function splitIntoChunks(
 
   if (current.length > 0) chunks.push(current)
   return chunks
+}
+
+function lastUserMessageContent(messages: readonly Message[]): string {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message.role === "user") return message.content
+  }
+  return ""
 }
 
 function toSummaryDTO(s: Summary): SummaryDTO {

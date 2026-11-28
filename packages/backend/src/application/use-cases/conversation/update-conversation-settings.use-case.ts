@@ -97,6 +97,11 @@ export class UpdateConversationSettingsUseCase {
         `Invalid context policy. Must be one of: ${CONTEXT_POLICY_IDS.join(", ")}`,
       )
     }
+    if (input.contextPolicy !== undefined) {
+      input.contextPolicy = conv.withContextPolicy(
+        input.contextPolicy,
+      ).contextPolicy
+    }
 
     if (input.provider !== undefined) {
       if (!VALID_PROVIDERS.includes(input.provider as ProviderId)) {

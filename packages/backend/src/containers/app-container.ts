@@ -570,6 +570,7 @@ export const buildContainer = ({
     getDefaultProvider,
     providerInstanceRepository,
     logger,
+    playerCharacterRepository,
     {
       memoryHybridRetrieval,
       resolveEmbeddingConfig: resolveEmbeddingTarget,
