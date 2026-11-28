@@ -241,6 +241,31 @@ describe("UpdateConversationSettingsUseCase", () => {
     expect(capturedSettings.compactionThreshold).toBe(50)
   })
 
+  it("persiste la política de contexto", async () => {
+    const useCase = buildUseCase()
+
+    await useCase.execute("conv-1", { contextPolicy: "deep" })
+
+    expect(capturedSettings.contextPolicy).toBe("deep")
+  })
+
+  it("rechaza una política de contexto desconocida", async () => {
+    const useCase = buildUseCase()
+
+    await expect(
+      useCase.execute("conv-1", { contextPolicy: "turbo" as never }),
+    ).rejects.toMatchObject({ code: "INVALID_CONTEXT_POLICY" })
+    expect(capturedSettings.contextPolicy).toBeUndefined()
+  })
+
+  it("expone contextPolicy en el DTO de la conversación", async () => {
+    const useCase = buildUseCase()
+
+    const result = await useCase.execute("conv-1", {})
+
+    expect(result.contextPolicy).toBe("balanced")
+  })
+
   it("rechaza una reserva de respuesta que no cabe en la ventana", async () => {
     const useCase = buildUseCase()
     await expect(

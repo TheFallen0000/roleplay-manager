@@ -1,4 +1,5 @@
 import type { PromptContextDTO, PromptContextMetadataDTO } from "@workspace/shared/types/context"
+import { resolveEffectiveCompaction } from "@workspace/shared/lib/context-policy"
 import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
 import { estimateContextTokens } from "@workspace/shared/lib/token-estimate"
 import type { Locale } from "@workspace/shared/i18n"
@@ -97,7 +98,10 @@ export class GetPromptContextUseCase {
       totalContextMessages: context.messages.length,
       totalCharacters,
       ...tokenEstimate,
-      compactionThreshold: conversation.compactionThreshold,
+      compactionThreshold: resolveEffectiveCompaction({
+        policy: conversation.contextPolicy,
+        compactionThreshold: conversation.compactionThreshold,
+      }).threshold,
     }
 
     return {

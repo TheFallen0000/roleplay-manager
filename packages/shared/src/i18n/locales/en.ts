@@ -351,6 +351,18 @@ export const en = {
     contextManifestCompaction: "Compaction",
     contextManifestCompactionNeeded: "needed",
     contextManifestCompactionApplied: "applied",
+    contextBudgetTitle: "Policy budget",
+    contextBudgetPolicy: "Policy",
+    contextBudgetMemoryCap: "Memory cap: {count} tokens",
+    contextBudgetSummaryOutputCap: "Summary output cap: {count} tokens",
+    contextBudgetSummaryMemoryCap: "Summary memory cap: {count} tokens",
+    contextBudgetCompaction: "Compaction: {threshold}% → {target}%",
+    contextBudgetSectionUsage: "{tokens} / {cap}",
+    contextBudgetCapWarning:
+      "A section reached its policy cap; older items may be left out.",
+    contextBudgetWindowUnknown:
+      "Context window unknown, so policy fallbacks are used.",
+    contextBudgetDismiss: "Dismiss warning",
     contextSection: {
       character: "Character",
       cards: "Cards",
@@ -492,6 +504,21 @@ export const en = {
       "Set the context window in Model to enable automatic compaction.",
     compactionMaxTokensBlocked:
       "The reply budget ({maxTokens} tokens) must be lower than the context window ({window} tokens).",
+    contextPolicyTitle: "Context policy",
+    contextPolicyDescription:
+      "Decides how the input window is split between memory, summary and messages. It does not change the model.",
+    contextPolicyFast: "Fast",
+    contextPolicyBalanced: "Balanced",
+    contextPolicyDeep: "Deep",
+    contextPolicyFastDescription:
+      "Less memory and summary; faster replies and earlier compaction.",
+    contextPolicyBalancedDescription:
+      "Balance between memory, summary and speed.",
+    contextPolicyDeepDescription:
+      "More memory and summary; deeper replies and later compaction.",
+    contextPolicyDeepHint:
+      "To make the most of memory, enable embeddings in the provider settings.",
+    contextPolicyOpenProviders: "Open provider settings",
     providerLabel: "Provider:",
     providersLoadFailed: "The providers could not be loaded",
     instanceCreated: "Instance created",

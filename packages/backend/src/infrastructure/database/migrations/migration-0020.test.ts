@@ -102,13 +102,13 @@ describe("migration 0020_lorebook_versions", () => {
     )
   })
 
-  it("does not ship a migration 0023 (S136 adds 0021, S137 adds 0022)", () => {
+  it("does not ship a migration 0024 (S136 adds 0021, S137 adds 0022, S138 adds 0023)", () => {
     const journal = readJournal()
-    expect(journal.entries.find((item) => item.idx === 23)).toBeUndefined()
+    expect(journal.entries.find((item) => item.idx === 24)).toBeUndefined()
 
     const files = readdirSync(migrationsDir)
-    expect(files.some((file) => /^0023_.*\.sql$/.test(file))).toBe(false)
-    expect(existsSync(join(migrationsDir, "meta", "0023_snapshot.json"))).toBe(
+    expect(files.some((file) => /^0024_.*\.sql$/.test(file))).toBe(false)
+    expect(existsSync(join(migrationsDir, "meta", "0024_snapshot.json"))).toBe(
       false,
     )
   })

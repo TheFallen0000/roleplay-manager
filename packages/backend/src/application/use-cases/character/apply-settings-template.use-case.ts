@@ -13,6 +13,7 @@ import { CharacterNotFoundError } from "../../../domain/errors"
 import { isValidDialogueColor } from "@workspace/shared/lib/dialogue-color"
 import { isMessageStyle } from "@workspace/shared/lib/message-style"
 import { clampCompactionThreshold } from "@workspace/shared/lib/compaction"
+import { normalizeContextPolicy } from "@workspace/shared/lib/context-policy"
 import {
   clampContextWindow,
   clampOutputTokens,
@@ -193,6 +194,9 @@ function toSettingsUpdate(
     update.compactionThreshold = clampCompactionThreshold(
       settings.compactionThreshold,
     )
+  }
+  if (settings.contextPolicy !== undefined) {
+    update.contextPolicy = normalizeContextPolicy(settings.contextPolicy)
   }
   if (settings.temperature !== undefined) {
     update.temperature = settings.temperature

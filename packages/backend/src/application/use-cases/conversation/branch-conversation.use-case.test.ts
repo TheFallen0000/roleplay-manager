@@ -67,6 +67,7 @@ const origin = Conversation.create({
   memoryDecayThreshold: 4,
   memoryDecayAgeThreshold: 40,
   memoryDecaySpeed: 5,
+  contextPolicy: "deep",
   createdAt: now,
   updatedAt: now,
 })
@@ -246,6 +247,7 @@ describe("BranchConversationUseCase", () => {
     expect(result.memoryDecayThreshold).toBe(4)
     expect(result.memoryDecayAgeThreshold).toBe(40)
     expect(result.memoryDecaySpeed).toBe(5)
+    expect(result.contextPolicy).toBe("deep")
   })
 
   it("no copia resúmenes cuyo rango queda fuera de la rama", async () => {
@@ -293,6 +295,7 @@ describe("BranchConversationUseCase", () => {
     expect(created.messageStyle).toBe("novel")
     expect(created.characterDialogueColor).toBe("#ec4899")
     expect(created.userDialogueColor).toBe("#0ea5e9")
+    expect(created.contextPolicy).toBe("deep")
   })
 
   it("lanza ConversationNotFoundError si el origen no existe", async () => {

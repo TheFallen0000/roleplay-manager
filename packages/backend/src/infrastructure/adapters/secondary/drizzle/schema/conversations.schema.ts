@@ -25,6 +25,11 @@ export const conversations = sqliteTable(
     contextWindow: integer("context_window"),
     workingWindow: integer("working_window"),
     compactionThreshold: integer("compaction_threshold").default(80),
+    contextPolicy: text("context_policy", {
+      enum: ["fast", "balanced", "deep"],
+    })
+      .notNull()
+      .default("balanced"),
     temperature: real("temperature").default(0.7),
     maxTokens: integer("max_tokens").default(2048),
     topP: real("top_p").default(0.9),

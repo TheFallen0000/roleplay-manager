@@ -1,5 +1,6 @@
 import type { CharacterVersionDTO } from "./character"
 import type { BackgroundFit, MessageStyle } from "./conversation"
+import type { ContextPolicyId } from "../lib/context-policy"
 import type { MemoryDTO } from "./memory"
 import type { MessageDTO } from "./message"
 import type { LorebookDTO } from "./sillytavern-card"
@@ -58,6 +59,8 @@ export interface ExportSettings {
   contextWindow: number | null
   workingWindow?: number | null
   compactionThreshold: number
+  /** Optional for older exports; missing means `balanced`. */
+  contextPolicy?: ContextPolicyId
   temperature: number
   maxTokens: number
   topP: number
@@ -85,6 +88,7 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   contextWindow: null,
   workingWindow: null,
   compactionThreshold: 80,
+  contextPolicy: "balanced",
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,

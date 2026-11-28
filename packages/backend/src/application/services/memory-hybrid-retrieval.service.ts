@@ -16,6 +16,8 @@ export interface MemoryHybridRetrievalInput {
   mainActors: readonly string[]
   /** `null` disables semantic scoring for this request. */
   embedding: EmbeddingRuntimeConfig | null
+  /** Overrides the policy budget (e.g. the summary memory section). */
+  budget?: number
 }
 
 export interface MemoryHybridRetrievalDeps {
@@ -45,6 +47,7 @@ export class MemoryHybridRetrievalService {
       pendingMessage: input.pendingMessage,
       mainActors: input.mainActors,
       ...(semanticScores ? { semanticScores } : {}),
+      ...(input.budget !== undefined ? { budget: input.budget } : {}),
     })
   }
 

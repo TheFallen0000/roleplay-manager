@@ -82,6 +82,7 @@ const conversation: ConversationDetail = {
   presencePenalty: null,
   stopSequences: [],
   memoryProposalMode: "auto",
+  contextPolicy: "balanced",
   customProfileImageAssetId: null,
   backgroundImageAssetId: null,
   backgroundFit: "cover",

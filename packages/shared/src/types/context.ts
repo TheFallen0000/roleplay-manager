@@ -1,3 +1,5 @@
+import type { ContextPolicyId } from "../lib/context-policy"
+
 export interface PromptContextMessageDTO {
   role: "system" | "user" | "assistant"
   content: string
@@ -55,6 +57,16 @@ export interface ContextManifestMemorySelectionDTO {
   reason: MemorySelectionReason
 }
 
+export interface ContextBudgetDTO {
+  window: number | null
+  outputReserve: number
+  memory: number
+  summaryOutput: number
+  summaryMemory: number
+  compactionThreshold: number
+  compactionTarget: number
+}
+
 export interface ContextManifestDTO {
   version: 1
   model: string | null
@@ -62,6 +74,8 @@ export interface ContextManifestDTO {
   outputReserve: number
   estimatedInputTokens: number
   estimatedTotalTokens: number
+  contextPolicy: ContextPolicyId
+  budget: ContextBudgetDTO
   compaction: {
     needed: boolean
     applied: boolean

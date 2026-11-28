@@ -1,12 +1,16 @@
 import { describe, it, expect, vi } from "vitest"
 
+import { estimateTextTokens } from "@workspace/shared/lib/token-estimate"
+
 import { GenerateSummaryUseCase } from "./generate-summary.use-case"
+import type { GenerateSummaryRetrievalDeps } from "./generate-summary.use-case"
 import type { DefaultProviderConfig } from "@workspace/shared/types/provider"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
 import { buildMessageHistoryRepository } from "../../../test-utils/message-history"
 import type { CharacterRepository } from "../../../domain/ports/character.repository"
 import type { MemoryRepository } from "../../../domain/ports/memory.repository"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { ProviderRegistry, ProviderPort } from "../../../domain/ports/provider.port"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
@@ -17,6 +21,13 @@ import {
   Conversation,
   type ConversationProps,
 } from "../../../domain/entities/conversation.entity"
+import { Memory } from "../../../domain/entities/memory.entity"
+import { PlayerCharacter } from "../../../domain/entities/player-character.entity"
+import { selectMemoriesForPrompt } from "../../services/memory-retrieval.service"
+import type {
+  MemoryHybridRetrievalInput,
+  MemoryHybridRetrievalService,
+} from "../../services/memory-hybrid-retrieval.service"
 
 const buildConversationEntity = (
   overrides: Partial<ConversationProps> = {},
@@ -113,20 +124,57 @@ const buildCharacterRepo = (exists: boolean): CharacterRepository => ({
   updateProfileImageAssetId: async () => {},
 })
 
+const memoryNow = new Date("2026-11-06T12:00:00.000Z")
+
 const buildMemoryRepo = (count: number): MemoryRepository => ({
   findById: async () => null,
   findByConversationId: async () =>
-    Array.from({ length: count }, (_, i) => ({
-      id: `mem-${i}`,
-      conversationId: "conv-1",
-      actor: `Actor${i}`,
-      title: `Memory ${i}`,
-      description: `Description ${i}`,
-      priority: 5,
-    })) as never,
+    Array.from({ length: count }, (_, i) =>
+      Memory.reconstruct({
+        id: `mem-${i}`,
+        conversationId: "conv-1",
+        actor: `Actor${i}`,
+        title: `Memory ${i}`,
+        description: `Description ${i}`,
+        // The chat retrieval must include these by signal (priority >= 8).
+        priority: 9,
+        type: "fact",
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: memoryNow,
+        updatedAt: memoryNow,
+      }),
+    ),
   create: async (m) => m,
   update: async (m) => m,
   deleteById: async () => {},
+})
+
+const buildMemoryRepoFrom = (memories: Memory[]): MemoryRepository => ({
+  findById: async () => null,
+  findByConversationId: async () => memories,
+  create: async (m) => m,
+  update: async (m) => m,
+  deleteById: async () => {},
+})
+
+const aria = PlayerCharacter.reconstruct({
+  id: "pc-1",
+  name: "Aria",
+  description: "Una exploradora curiosa.",
+  createdAt: memoryNow,
+  updatedAt: memoryNow,
+})
+
+const buildPlayerCharacterRepo = (
+  playerCharacter: PlayerCharacter | null,
+): PlayerCharacterRepository => ({
+  findById: async (id) =>
+    playerCharacter && playerCharacter.id === id ? playerCharacter : null,
+  list: async () => (playerCharacter ? [playerCharacter] : []),
+  create: async (item) => item,
+  update: async (item) => item,
+  delete: async () => {},
 })
 
 const buildSummaryRepo = (hasLatest: boolean): SummaryRepository => ({
@@ -154,11 +202,16 @@ const buildSummaryRepo = (hasLatest: boolean): SummaryRepository => ({
 
 let capturedContext: PromptContext | null = null
 let capturedContexts: PromptContext[] = []
+let capturedOptions: Array<{ maxTokens?: number }> = []
 
 const buildCapturingAdapter = (): ProviderPort => ({
-  generateStreaming: async function* (context: PromptContext) {
+  generateStreaming: async function* (
+    context: PromptContext,
+    options?: { maxTokens?: number },
+  ) {
     capturedContext = context
     capturedContexts.push(context)
+    capturedOptions.push(options ?? {})
     yield { content: "Generated summary content." }
   },
   validateConnection: async () => ({ ok: true } as never),
@@ -225,6 +278,9 @@ const buildUseCase = (
   capture?: boolean,
   contentLength = 0,
   conversation?: Conversation,
+  memoryRepo?: MemoryRepository,
+  playerCharacterRepo?: PlayerCharacterRepository,
+  retrieval?: GenerateSummaryRetrievalDeps,
 ): GenerateSummaryUseCase => {
   const messageRepo = buildMessageRepo(msgCount, contentLength)
   return new GenerateSummaryUseCase(
@@ -238,12 +294,14 @@ const buildUseCase = (
       },
     ),
     buildCharacterRepo(charExists),
-    buildMemoryRepo(memCount),
+    memoryRepo ?? buildMemoryRepo(memCount),
     buildSummaryRepo(hasPrevSummary),
     buildProviderRegistry(capture),
     buildDefaultProvider(),
     buildProviderInstanceRepo(false),
     buildLogger(),
+    playerCharacterRepo ?? buildPlayerCharacterRepo(null),
+    retrieval,
   )
 }
 
@@ -342,6 +400,113 @@ describe("GenerateSummaryUseCase", () => {
     expect(capturedContext!.systemPrompt).toContain("Memory 1")
   })
 
+  it("incluye al personaje jugador en los mainActors del resumen", async () => {
+    capturedContext = null
+    const conversation = buildConversationEntity({
+      contextWindow: 8_000,
+      contextPolicy: "balanced",
+      playerCharacterId: "pc-1",
+    })
+    const ariaMemory = Memory.reconstruct({
+      id: "mem-aria",
+      conversationId: "conv-1",
+      actor: "Aria",
+      title: "Exploradora",
+      description: "Guía al grupo por el bosque.",
+      priority: 5,
+      type: "fact",
+      createdBy: "assistant",
+      updatedBy: "system",
+      createdAt: memoryNow,
+      updatedAt: memoryNow,
+    })
+
+    await buildUseCase(
+      true,
+      10,
+      true,
+      0,
+      false,
+      true,
+      0,
+      conversation,
+      buildMemoryRepoFrom([ariaMemory]),
+      buildPlayerCharacterRepo(aria),
+    ).execute("conv-1", { locale: "es" })
+
+    expect(capturedContext).not.toBeNull()
+    expect(capturedContext!.systemPrompt).toContain("[mem-aria]")
+  })
+
+  it("usa la última intervención user del rango resumido como consulta híbrida", async () => {
+    capturedContext = null
+    const conversation = buildConversationEntity({
+      contextWindow: 8_000,
+      contextPolicy: "balanced",
+      playerCharacterId: "pc-1",
+    })
+    const sentinel = Memory.reconstruct({
+      id: "mem-hybrid",
+      conversationId: "conv-1",
+      actor: "Aria",
+      title: "Centinela",
+      description: "Coincide con la consulta.",
+      priority: 9,
+      type: "fact",
+      createdBy: "assistant",
+      updatedBy: "system",
+      createdAt: memoryNow,
+      updatedAt: memoryNow,
+    })
+    let capturedInput: MemoryHybridRetrievalInput | undefined
+    const retrieve = vi.fn(async (input: MemoryHybridRetrievalInput) => {
+      capturedInput = input
+      return {
+        memories: [sentinel],
+        selection: [
+          { id: sentinel.id, included: true, score: 1, reason: "hybrid" },
+        ],
+        tokens: 12,
+        budget: input.budget ?? 0,
+      }
+    })
+    const retrieval: GenerateSummaryRetrievalDeps = {
+      memoryHybridRetrieval: {
+        retrieve,
+      } as unknown as MemoryHybridRetrievalService,
+      resolveEmbeddingConfig: async () => ({
+        provider: "ollama",
+        providerInstanceId: null,
+        model: "fake-embed",
+        dimension: 3,
+      }),
+    }
+
+    await buildUseCase(
+      true,
+      10,
+      true,
+      0,
+      false,
+      true,
+      0,
+      conversation,
+      buildMemoryRepoFrom([]),
+      buildPlayerCharacterRepo(aria),
+      retrieval,
+    ).execute("conv-1", { locale: "es", upToMessageId: "msg-8" })
+
+    expect(retrieve).toHaveBeenCalledTimes(1)
+    expect(capturedInput).toBeDefined()
+    expect(capturedInput!.pendingMessage).toBe("Message 8")
+    expect(capturedInput!.budget).toBe(960)
+    expect(capturedInput!.mainActors).toEqual(
+      expect.arrayContaining(["TestChar", "Aria"]),
+    )
+    expect(capturedContext).not.toBeNull()
+    expect(capturedContext!.systemPrompt).toContain("[mem-hybrid]")
+  })
+
   it("omite la memoria dinámica del system prompt cuando no hay memorias", async () => {
     capturedContext = null
     const useCase = buildUseCase(true, 10, true, 0, false, true)
@@ -419,5 +584,149 @@ describe("GenerateSummaryUseCase", () => {
 
     expect(withWorkingChunks).toBeGreaterThan(1)
     expect(capturedContexts.length).toBe(withWorkingChunks)
+  })
+
+  it.each([
+    ["fast", 128],
+    ["balanced", 256],
+    ["deep", 375],
+  ] as const)(
+    "uses the %s summaryOutputBudget as the output limit",
+    async (policy, expectedMaxTokens) => {
+      capturedOptions = []
+      const conversation = buildConversationEntity({
+        contextWindow: 2_500,
+        contextPolicy: policy,
+      })
+
+      await buildUseCase(
+        true,
+        10,
+        true,
+        0,
+        false,
+        true,
+        0,
+        conversation,
+      ).execute("conv-1", { locale: "es" })
+
+      expect(capturedOptions).toHaveLength(1)
+      expect(capturedOptions[0].maxTokens).toBe(expectedMaxTokens)
+    },
+  )
+
+  it("caps the summary memory section and uses the same retrieval as the chat", async () => {
+    capturedContext = null
+    const conversation = buildConversationEntity({
+      contextWindow: 8_000,
+      contextPolicy: "balanced",
+    })
+    const signalMemories = Array.from({ length: 9 }, (_, index) =>
+      Memory.reconstruct({
+        id: `mem-${String(index).padStart(2, "0")}`,
+        conversationId: "conv-1",
+        actor: "Nadie",
+        title: `Recuerdo ${index}`,
+        description: "Detalle largo que ocupa tokens en el prompt. ".repeat(6),
+        priority: 9,
+        type: "fact",
+        createdBy: "assistant",
+        updatedBy: "system",
+        createdAt: memoryNow,
+        updatedAt: memoryNow,
+      }),
+    )
+    // Prompt-eligible (priority 5 > decay threshold) but without any lexical
+    // signal: not principal actor, no keyword, not a thread, priority < 8.
+    // The chat retrieval leaves it out, so the summary prompt must too.
+    const noSignalMemory = Memory.reconstruct({
+      id: "mem-no-signal",
+      conversationId: "conv-1",
+      actor: "Nadie",
+      title: "Dato",
+      description: "Sin relación.",
+      priority: 5,
+      type: "fact",
+      createdBy: "assistant",
+      updatedBy: "system",
+      createdAt: memoryNow,
+      updatedAt: memoryNow,
+    })
+    const memories = [...signalMemories, noSignalMemory]
+    const memoryRepo = buildMemoryRepoFrom(memories)
+
+    const expected = selectMemoriesForPrompt({
+      conversation,
+      memories,
+      messages: [],
+      pendingMessage: "",
+      mainActors: [],
+    })
+
+    expect(expected.budget).toBe(960)
+    expect(expected.memories.length).toBeLessThan(memories.length)
+    expect(expected.tokens).toBeLessThanOrEqual(expected.budget)
+    expect(
+      expected.selection.find((entry) => entry.id === noSignalMemory.id),
+    ).toMatchObject({ included: false, reason: "not-relevant" })
+    expect(expected.memories.map((memory) => memory.id)).not.toContain(
+      noSignalMemory.id,
+    )
+
+    await buildUseCase(
+      true,
+      10,
+      true,
+      memories.length,
+      false,
+      true,
+      0,
+      conversation,
+      memoryRepo,
+    ).execute("conv-1", { locale: "es" })
+
+    expect(capturedContext).not.toBeNull()
+    const systemPrompt = capturedContext!.systemPrompt
+    expect(systemPrompt).not.toContain(`[${noSignalMemory.id}]`)
+    const includedIds = new Set(
+      expected.memories.map((memory) => memory.id),
+    )
+    for (const memory of memories) {
+      if (includedIds.has(memory.id)) {
+        expect(systemPrompt).toContain(`[${memory.id}]`)
+      } else {
+        expect(systemPrompt).not.toContain(`[${memory.id}]`)
+      }
+    }
+  })
+
+  it("keeps the transcript budget free of a second reply reserve", async () => {
+    capturedContexts = []
+    const conversation = buildConversationEntity({
+      contextWindow: 4_000,
+      maxTokens: 2_048,
+      contextPolicy: "balanced",
+      workingWindow: 1_900,
+    })
+
+    await buildUseCase(
+      true,
+      6,
+      true,
+      0,
+      false,
+      true,
+      2_000,
+      conversation,
+    ).execute("conv-1", { locale: "es" })
+
+    // 4000 - 400 (balanced summaryOutput) - 1536 reserve = 2064 tokens per
+    // chunk; each 2009-char message is 739 tokens, so four summarized messages
+    // travel in two calls. Subtracting the chat reserve again would force one
+    // message per call.
+    expect(capturedContexts).toHaveLength(2)
+    expect(estimateTextTokens(capturedContexts[0]!.systemPrompt)).toBeLessThan(
+      4_000,
+    )
   })
 })

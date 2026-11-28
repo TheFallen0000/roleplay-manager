@@ -389,6 +389,7 @@ export class ImportCharacterUseCase {
         compactionThreshold: clampCompactionThreshold(
           settings.compactionThreshold ?? 80,
         ),
+        contextPolicy: settings.contextPolicy,
         temperature: settings.temperature,
         maxTokens: importedMaxTokens,
         topP: settings.topP,

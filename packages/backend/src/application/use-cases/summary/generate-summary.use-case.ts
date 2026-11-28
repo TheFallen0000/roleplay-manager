@@ -8,6 +8,7 @@ import {
   type TranslationParams,
 } from "@workspace/shared/i18n"
 import { estimateTextTokens } from "@workspace/shared/lib/token-estimate"
+import { resolveContextBudget } from "@workspace/shared/lib/context-policy"
 import type { SummaryRepository } from "../../../domain/ports/summary.repository"
 import type { ConversationRepository } from "../../../domain/ports/conversation.repository"
 import type { MessageRepository } from "../../../domain/ports/message.repository"
@@ -17,14 +18,21 @@ import type { MemoryRepository } from "../../../domain/ports/memory.repository"
 import type { ProviderRegistry } from "../../../domain/ports/provider.port"
 import type { ProviderPort } from "../../../domain/ports/provider.port"
 import type { ProviderInstanceRepository } from "../../../domain/ports/provider-instance.repository"
+import type { PlayerCharacterRepository } from "../../../domain/ports/player-character.repository"
 import type { Logger } from "../../../domain/ports/logger.port"
 import type { GetDefaultProviderUseCase } from "../provider/get-default-provider.use-case"
 import type { DefaultProviderConfig, ProviderId } from "@workspace/shared/types/provider"
 import { Summary } from "../../../domain/entities/summary.entity"
+import type { Conversation } from "../../../domain/entities/conversation.entity"
 import type { PromptContext, PromptContextMessage } from "../../../domain/value-objects/prompt-context"
 import type { Memory } from "../../../domain/entities/memory.entity"
 import type { Message } from "../../../domain/entities/message.entity"
-import { filterMemoriesForPrompt } from "../../../lib/memory-decay"
+import type { EmbeddingRuntimeConfig } from "../../services/embedding/embedding-config"
+import {
+  selectMemoriesForPrompt,
+  type SelectMemoriesResult,
+} from "../../services/memory-retrieval.service"
+import type { MemoryHybridRetrievalService } from "../../services/memory-hybrid-retrieval.service"
 
 interface GenerateSummaryResult {
   summary: SummaryDTO
@@ -48,10 +56,19 @@ export interface GenerateSummaryOptions {
 
 const DEFAULT_SUMMARY_WINDOW = 8_192
 const MIN_SUMMARY_BUDGET = 128
-const MAX_SUMMARY_BUDGET = 1_024
 const SUMMARY_PROMPT_RESERVE = 1_536
 /** Manual summaries leave the newest messages verbatim for the next prompt. */
 const MANUAL_KEEP_RECENT_MESSAGES = 2
+
+/**
+ * Optional hybrid retrieval so the summary prompt sees the same memory
+ * selection as the chat prompt. Without it the summary falls back to the
+ * lexical S136 selector.
+ */
+export interface GenerateSummaryRetrievalDeps {
+  memoryHybridRetrieval: MemoryHybridRetrievalService
+  resolveEmbeddingConfig: () => Promise<EmbeddingRuntimeConfig | null>
+}
 
 export class GenerateSummaryUseCase {
   constructor(
@@ -65,6 +82,8 @@ export class GenerateSummaryUseCase {
     private readonly getDefaultProvider: GetDefaultProviderUseCase,
     private readonly providerInstanceRepository: ProviderInstanceRepository,
     private readonly logger: Logger,
+    private readonly playerCharacterRepository?: PlayerCharacterRepository | null,
+    private readonly retrieval?: GenerateSummaryRetrievalDeps,
   ) {}
 
   async execute(
@@ -149,10 +168,18 @@ export class GenerateSummaryUseCase {
     }
 
     const model = resolvedModel ?? undefined
-    const summaryMaxTokens = Math.min(
-      MAX_SUMMARY_BUDGET,
-      Math.max(MIN_SUMMARY_BUDGET, options.maxTokens ?? conversation.maxTokens),
-    )
+    // The summary is a separate call against the raw model window: the chat
+    // working window (already net of its reply) must not shrink it again.
+    const plan = resolveContextBudget({
+      policy: conversation.contextPolicy,
+      contextWindow: conversation.contextWindow,
+      workingWindow: null,
+      maxTokens: null,
+    })
+    const summaryMaxTokens =
+      options.maxTokens !== undefined
+        ? Math.max(MIN_SUMMARY_BUDGET, options.maxTokens)
+        : plan.summaryOutputBudget
     const transcriptBudget = Math.max(
       512,
       (conversation.contextWindow ?? DEFAULT_SUMMARY_WINDOW) -
@@ -166,11 +193,24 @@ export class GenerateSummaryUseCase {
       transcriptBudget,
     )
 
-    const promptMemories = filterMemoriesForPrompt(
+    const playerCharacter =
+      conversation.playerCharacterId && this.playerCharacterRepository
+        ? await this.playerCharacterRepository.findById(
+            conversation.playerCharacterId,
+          )
+        : null
+    const mainActors = [
+      characterResult.currentVersion.name,
+      ...(playerCharacter ? [playerCharacter.name] : []),
+    ]
+    const promptMemories = await this.selectSummaryMemories({
       conversation,
       memories,
       memoryTurns,
-    )
+      mainActors,
+      pendingMessage: lastUserMessageContent(newMessages),
+      budget: plan.summaryMemoryBudget,
+    })
     let summaryContent = latestSummary?.content
     for (const chunk of chunks) {
       const context = this.buildSummaryContext({
@@ -236,6 +276,36 @@ export class GenerateSummaryUseCase {
       0,
       messagesAfterSummary.length - MANUAL_KEEP_RECENT_MESSAGES,
     )
+  }
+
+  private async selectSummaryMemories(params: {
+    conversation: Conversation
+    memories: Memory[]
+    memoryTurns: { role: string; createdAt: Date }[]
+    mainActors: string[]
+    pendingMessage: string
+    budget: number
+  }): Promise<Memory[]> {
+    const input = {
+      conversation: params.conversation,
+      memories: params.memories,
+      messages: params.memoryTurns,
+      pendingMessage: params.pendingMessage,
+      mainActors: params.mainActors,
+      budget: params.budget,
+    }
+
+    if (!this.retrieval) {
+      return selectMemoriesForPrompt(input).memories
+    }
+
+    const embedding = await this.retrieval.resolveEmbeddingConfig()
+    const result: SelectMemoriesResult =
+      await this.retrieval.memoryHybridRetrieval.retrieve({
+        ...input,
+        embedding,
+      })
+    return result.memories
   }
 
   private async streamSummary(
@@ -401,6 +471,14 @@ function splitIntoChunks(
 
   if (current.length > 0) chunks.push(current)
   return chunks
+}
+
+function lastUserMessageContent(messages: readonly Message[]): string {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message.role === "user") return message.content
+  }
+  return ""
 }
 
 function toSummaryDTO(s: Summary): SummaryDTO {

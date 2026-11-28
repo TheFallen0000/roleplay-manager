@@ -41,6 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Evaluation**: vector retrieval eval with a deterministic offline embedding
   fake covering paraphrases, partial synonymy, false proximity, provider
   fallback and budget cuts, plus the S136 fixtures as regression baseline.
+- **Context**: per-conversation context policies (`fast`, `balanced`, `deep`)
+  split the effective window deterministically between memory, summary and
+  summary-memory and set the default compaction threshold; the additive
+  migration `0023_context_policy` defaults to `balanced`, the policy travels in
+  export/import, branches and settings templates, and History gets a selector
+  while the context manifest shows the per-section breakdown with dismissible
+  warnings.
 
 ### Changed
 
@@ -60,6 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Memory**: prompt memory selection accepts optional semantic scores while
   keeping the S136 order, budget and reasons; `selectMemoriesForPrompt` stays
   synchronous and an async orchestrator resolves the semantic signal.
+- **Context**: `balanced` keeps the previous chat and compaction budgets;
+  `summaryOutput` floors the ratio (573 at 5735) and the summary prompt caps its
+  memory section (12%, 256–2048); the summary uses the same lexical or hybrid
+  retrieval as the chat, with the last user turn as query and the player
+  character included in `mainActors`.
+- **Context**: `80` remains the legacy default compaction threshold, so only a
+  stored value other than `80` counts as an explicit override; `fast` and `deep`
+  apply their own 70/90 defaults otherwise.
 
 ### Fixed
 
@@ -73,6 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Memory**: the active embedding dimension is written after the first
   successful embed (not only after a reindex), cleared when the target changes,
   and the reindex rejects vectors whose length does not match it.
+- **Context**: the summary retrieval queries with the last user intervention,
+  includes the player character in `mainActors`, and normalizes the policy
+  through the conversation entity while preserving `INVALID_CONTEXT_POLICY` for
+  invalid values.
 
 ### Tests
 
@@ -85,6 +104,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   round-trip, the embedding service, hybrid retrieval, the config/reindex API
   and its use cases; frontend coverage for the embedding settings section;
   vector eval for paraphrases with the S136 fixtures as regression.
+- Backend and eval coverage for the context-policy budgets, migration 0023,
+  legacy exports, compaction thresholds 70/80/90 and 80/85, net mode, the
+  summary-memory cap and the summary retrieval; frontend coverage for the policy
+  selector and the manifest budget breakdown and warnings.
 
 ## [1.58.1] - 2026-11-21
 

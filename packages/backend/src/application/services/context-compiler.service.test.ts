@@ -372,3 +372,117 @@ describe("ContextCompiler", () => {
     expect(withEmbedding.manifest.memories.embedding).toEqual(embedding)
   })
 })
+
+describe("ContextCompiler policy budget", () => {
+  const policyConversation = (
+    overrides: {
+      contextPolicy?: "fast" | "balanced" | "deep"
+      contextWindow?: number | null
+      workingWindow?: number | null
+      maxTokens?: number
+    } = {},
+  ) =>
+    Conversation.create({
+      id: "conv-policy",
+      versionId: "ver-1",
+      title: null,
+      titleSource: null,
+      model: "llama3",
+      provider: "ollama",
+      providerInstanceId: null,
+      recentMessageCount: 10,
+      summaryFrequency: 20,
+      contextWindow: 8_000,
+      temperature: 0.7,
+      maxTokens: 2_048,
+      topP: 0.9,
+      frequencyPenalty: 0,
+      presencePenalty: 0,
+      stopSequences: [],
+      memoryProposalMode: "auto",
+      createdAt: now,
+      updatedAt: now,
+      ...overrides,
+    })
+
+  it("exposes the balanced policy and its resolved budget", async () => {
+    const compiler = new ContextCompiler(fakeBuilder)
+    const { manifest } = await compiler.compile(buildInput())
+
+    expect(manifest.contextPolicy).toBe("balanced")
+    expect(manifest.budget).toEqual({
+      window: 8_000,
+      outputReserve: 2_048,
+      memory: 960,
+      summaryOutput: 800,
+      summaryMemory: 960,
+      compactionThreshold: 80,
+      compactionTarget: 60,
+    })
+  })
+
+  it("exposes the deep policy and its resolved budget", async () => {
+    const compiler = new ContextCompiler(fakeBuilder)
+    const { manifest } = await compiler.compile(
+      buildInput({
+        conversation: policyConversation({ contextPolicy: "deep" }),
+      }),
+    )
+
+    expect(manifest.contextPolicy).toBe("deep")
+    expect(manifest.budget).toEqual({
+      window: 8_000,
+      outputReserve: 2_048,
+      memory: 1_440,
+      summaryOutput: 1_200,
+      summaryMemory: 1_440,
+      compactionThreshold: 90,
+      compactionTarget: 70,
+    })
+  })
+
+  it("uses the balanced fallbacks when the window is unknown", async () => {
+    const compiler = new ContextCompiler(fakeBuilder)
+    const { manifest } = await compiler.compile(
+      buildInput({
+        conversation: policyConversation({ contextWindow: null }),
+      }),
+    )
+
+    expect(manifest.contextPolicy).toBe("balanced")
+    expect(manifest.budget).toEqual({
+      window: null,
+      outputReserve: 2_048,
+      memory: 512,
+      summaryOutput: 256,
+      summaryMemory: 512,
+      compactionThreshold: 80,
+      compactionTarget: 60,
+    })
+  })
+
+  it("reports the net budget without adding the reserve twice", async () => {
+    const compiler = new ContextCompiler(fakeBuilder)
+    const { manifest } = await compiler.compile(
+      buildInput({
+        conversation: policyConversation({
+          contextWindow: 8_192,
+          workingWindow: 5_735,
+          maxTokens: 2_048,
+        }),
+      }),
+    )
+
+    expect(manifest.outputReserve).toBe(0)
+    expect(manifest.budget).toEqual({
+      window: 5_735,
+      outputReserve: 0,
+      memory: 688,
+      // S122 parity: summaryOutput floors. Plan, manifest and compaction agree.
+      summaryOutput: 573,
+      summaryMemory: 688,
+      compactionThreshold: 80,
+      compactionTarget: 60,
+    })
+  })
+})

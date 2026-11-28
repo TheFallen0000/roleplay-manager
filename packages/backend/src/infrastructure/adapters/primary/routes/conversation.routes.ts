@@ -89,6 +89,7 @@ const UpdateConversationSettingsSchema = z.object({
     .nullable()
     .optional(),
   compactionThreshold: z.number().int().min(50).max(95).optional(),
+  contextPolicy: z.enum(["fast", "balanced", "deep"]).optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().min(1).max(MAX_OUTPUT_TOKENS).optional(),
   topP: z.number().min(0).max(1).optional(),

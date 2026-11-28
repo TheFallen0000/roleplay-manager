@@ -184,4 +184,79 @@ describe("DrizzleConversationRepository context window", () => {
       (await repository.findById("conv-threshold"))?.compactionThreshold,
     ).toBe(60)
   })
+
+  it("persists, defaults and updates the context policy", async () => {
+    const repository = new DrizzleConversationRepository(db)
+
+    await repository.create(
+      Conversation.create({
+        id: "conv-policy",
+        versionId: "ver-1",
+        title: null,
+        titleSource: null,
+        model: "llama3",
+        provider: "ollama",
+        providerInstanceId: null,
+        recentMessageCount: 10,
+        summaryFrequency: 20,
+        contextWindow: 8_192,
+        contextPolicy: "deep",
+        temperature: 0.7,
+        maxTokens: 2048,
+        topP: 0.9,
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+        stopSequences: [],
+        memoryProposalMode: "auto",
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+
+    expect((await repository.findById("conv-policy"))?.contextPolicy).toBe(
+      "deep",
+    )
+
+    await repository.updateSettings("conv-policy", { contextPolicy: "fast" })
+    expect((await repository.findById("conv-policy"))?.contextPolicy).toBe(
+      "fast",
+    )
+
+    await repository.updateSettings("conv-policy", { temperature: 0.5 })
+    expect((await repository.findById("conv-policy"))?.contextPolicy).toBe(
+      "fast",
+    )
+  })
+
+  it("defaults a conversation created without a policy to balanced", async () => {
+    const repository = new DrizzleConversationRepository(db)
+
+    await repository.create(
+      Conversation.create({
+        id: "conv-policy-default",
+        versionId: "ver-1",
+        title: null,
+        titleSource: null,
+        model: "llama3",
+        provider: "ollama",
+        providerInstanceId: null,
+        recentMessageCount: 10,
+        summaryFrequency: 20,
+        contextWindow: 8_192,
+        temperature: 0.7,
+        maxTokens: 2048,
+        topP: 0.9,
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+        stopSequences: [],
+        memoryProposalMode: "auto",
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+
+    expect(
+      (await repository.findById("conv-policy-default"))?.contextPolicy,
+    ).toBe("balanced")
+  })
 })

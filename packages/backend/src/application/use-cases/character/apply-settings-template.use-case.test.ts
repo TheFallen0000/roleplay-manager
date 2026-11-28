@@ -151,6 +151,7 @@ describe("ApplySettingsTemplateUseCase", () => {
         memoryDecayThreshold: 4,
         memoryDecayAgeThreshold: 20,
         memoryDecaySpeed: 5,
+        contextPolicy: "deep",
       },
     })
 
@@ -175,6 +176,7 @@ describe("ApplySettingsTemplateUseCase", () => {
         memoryDecayThreshold: 4,
         memoryDecayAgeThreshold: 20,
         memoryDecaySpeed: 5,
+        contextPolicy: "deep",
         force: true,
       }),
     )
@@ -411,5 +413,32 @@ describe("ApplySettingsTemplateUseCase", () => {
 
     const update = updateSettings.execute.mock.calls[0][1] as ConversationSettingsUpdate
     expect(update.workingWindow ?? null).toBeNull()
+  })
+
+  it("copies the context policy and normalizes an invalid one without aborting", async () => {
+    const { useCase, updateSettings } = buildUseCase()
+
+    const result = await useCase.execute({
+      characterId: "char-1",
+      settings: { contextPolicy: "deep", temperature: 0.4 },
+    })
+
+    expect(result.applied).toBe(2)
+    expect(result.warnings).toEqual([])
+    expect(updateSettings.execute.mock.calls[0][1]).toEqual(
+      expect.objectContaining({ contextPolicy: "deep", temperature: 0.4 }),
+    )
+
+    updateSettings.execute.mockClear()
+    const invalid = await useCase.execute({
+      characterId: "char-1",
+      settings: { contextPolicy: "turbo" as never, temperature: 0.4 },
+    })
+
+    expect(invalid.applied).toBe(2)
+    expect(invalid.warnings).toEqual([])
+    expect(updateSettings.execute.mock.calls[0][1]).toEqual(
+      expect.objectContaining({ contextPolicy: "balanced", temperature: 0.4 }),
+    )
   })
 })

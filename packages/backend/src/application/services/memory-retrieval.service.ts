@@ -1,4 +1,4 @@
-import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
+import { resolveContextBudget } from "@workspace/shared/lib/context-policy"
 import { estimateTextTokens } from "@workspace/shared/lib/token-estimate"
 import { translate, type Locale } from "@workspace/shared/i18n"
 import type {
@@ -28,6 +28,8 @@ export interface SelectMemoriesInput {
    * empty the result is bit-for-bit the lexical S136 selection.
    */
   semanticScores?: ReadonlyMap<string, number>
+  /** Overrides the policy budget (e.g. the summary memory section). */
+  budget?: number
 }
 
 export interface SelectMemoriesResult {
@@ -37,10 +39,6 @@ export interface SelectMemoriesResult {
   budget: number
 }
 
-const DEFAULT_MEMORY_BUDGET = 512
-const MIN_MEMORY_BUDGET = 256
-const MAX_MEMORY_BUDGET = 2048
-const BUDGET_RATIO = 0.12
 const RECENCY_WINDOW = 50
 const ACTOR_IN_PENDING_WEIGHT = 4
 const MAIN_ACTOR_WEIGHT = 2
@@ -139,7 +137,7 @@ export function selectMemoriesForPrompt(
     .filter((entry) => entry.included)
     .sort(compareEntries)
 
-  const budget = resolveMemoryBudget(input.conversation)
+  const budget = input.budget ?? resolveMemoryBudget(input.conversation)
   const included: Memory[] = []
   const budgetIds = new Set<string>()
   for (const entry of ordered) {
@@ -226,18 +224,13 @@ const compareEntries = (
 
 const roundScore = (value: number): number => Math.round(value * 1000) / 1000
 
-export const resolveMemoryBudget = (conversation: Conversation): number => {
-  const effective = resolveEffectiveWindow({
+export const resolveMemoryBudget = (conversation: Conversation): number =>
+  resolveContextBudget({
+    policy: conversation.contextPolicy,
     contextWindow: conversation.contextWindow,
     workingWindow: conversation.workingWindow,
     maxTokens: conversation.maxTokens,
-  })
-  if (effective.window === null) return DEFAULT_MEMORY_BUDGET
-  return Math.min(
-    MAX_MEMORY_BUDGET,
-    Math.max(MIN_MEMORY_BUDGET, Math.round(effective.window * BUDGET_RATIO)),
-  )
-}
+  }).memoryBudget
 
 /**
  * Token estimate of the rendered memory section. Both UI locales are measured

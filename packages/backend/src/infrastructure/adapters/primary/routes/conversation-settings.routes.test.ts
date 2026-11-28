@@ -79,4 +79,32 @@ describe("conversation settings route", () => {
     expect(response.status).toBe(400)
     expect(execute).not.toHaveBeenCalled()
   })
+
+  it("pasa la política de contexto al caso de uso", async () => {
+    const execute = vi.fn(async () => ({ id: "conv-1" }))
+    const baseUrl = await startServer(execute)
+
+    const response = await fetch(`${baseUrl}/conversations/conv-1/settings`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contextPolicy: "deep" }),
+    })
+
+    expect(response.status).toBe(200)
+    expect(execute).toHaveBeenCalledWith("conv-1", { contextPolicy: "deep" })
+  })
+
+  it("rechaza una política de contexto desconocida", async () => {
+    const execute = vi.fn()
+    const baseUrl = await startServer(execute)
+
+    const response = await fetch(`${baseUrl}/conversations/conv-1/settings`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contextPolicy: "turbo" }),
+    })
+
+    expect(response.status).toBe(400)
+    expect(execute).not.toHaveBeenCalled()
+  })
 })

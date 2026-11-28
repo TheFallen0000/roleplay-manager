@@ -9,6 +9,10 @@ import {
   DEFAULT_COMPACTION_THRESHOLD,
 } from "@workspace/shared/lib/compaction"
 import {
+  normalizeContextPolicy,
+  type ContextPolicyId,
+} from "@workspace/shared/lib/context-policy"
+import {
   clampContextWindow,
   clampOutputTokens,
 } from "@workspace/shared/lib/inference"
@@ -28,6 +32,7 @@ export interface ConversationProps {
   contextWindow?: number | null
   workingWindow?: number | null
   compactionThreshold?: number
+  contextPolicy?: ContextPolicyId
   temperature: number
   maxTokens: number
   topP: number
@@ -71,6 +76,7 @@ export class Conversation {
       compactionThreshold: clampCompactionThreshold(
         props.compactionThreshold ?? DEFAULT_COMPACTION_THRESHOLD,
       ),
+      contextPolicy: normalizeContextPolicy(props.contextPolicy),
       maxTokens: clampOutputTokens(props.maxTokens),
       customProfileImageAssetId: props.customProfileImageAssetId ?? null,
       backgroundImageAssetId: props.backgroundImageAssetId ?? null,
@@ -99,6 +105,7 @@ export class Conversation {
   get contextWindow(): number | null { return this.props.contextWindow ?? null }
   get workingWindow(): number | null { return this.props.workingWindow ?? null }
   get compactionThreshold(): number { return this.props.compactionThreshold ?? DEFAULT_COMPACTION_THRESHOLD }
+  get contextPolicy(): ContextPolicyId { return normalizeContextPolicy(this.props.contextPolicy) }
   get temperature(): number { return this.props.temperature }
   get maxTokens(): number { return this.props.maxTokens }
   get topP(): number { return this.props.topP }
@@ -124,6 +131,18 @@ export class Conversation {
   withMemoryProposalMode(mode: MemoryProposalMode): Conversation {
     if (this.props.memoryProposalMode === mode) return this
     return new Conversation({ ...this.props, memoryProposalMode: mode, updatedAt: new Date() })
+  }
+
+  /**
+   * The policy only changes the budget split; a stored compaction threshold is
+   * deliberately preserved so switching policies never resets it.
+   */
+  withContextPolicy(policy: ContextPolicyId): Conversation {
+    return new Conversation({
+      ...this.props,
+      contextPolicy: normalizeContextPolicy(policy),
+      updatedAt: new Date(),
+    })
   }
 
   withTitle(title: string, source: TitleSource): Conversation {

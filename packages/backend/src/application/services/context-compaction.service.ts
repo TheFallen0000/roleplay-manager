@@ -1,7 +1,10 @@
 import type { SummaryDTO } from "@workspace/shared/types/summary"
 import type { Locale } from "@workspace/shared/i18n"
 import { translate } from "@workspace/shared/i18n"
-import { resolveCompactionTarget } from "@workspace/shared/lib/compaction"
+import {
+  resolveContextBudget,
+  resolveEffectiveCompaction,
+} from "@workspace/shared/lib/context-policy"
 import { resolveEffectiveWindow } from "@workspace/shared/lib/context-window"
 import type { EffectiveWindow } from "@workspace/shared/lib/context-window"
 import {
@@ -70,7 +73,6 @@ export type ContextCompactionResult =
 const DEFAULT_OUTPUT_RESERVE = 2_048
 const MIN_OUTPUT_RESERVE = 256
 const MIN_SUMMARY_BUDGET = 128
-const MAX_SUMMARY_BUDGET = 1_024
 const MESSAGE_OVERHEAD_TOKENS = 4
 
 /**
@@ -107,7 +109,7 @@ export class ContextCompactionService {
       input.messages,
       effective,
     )
-    const threshold = window * (input.conversation.compactionThreshold / 100)
+    const threshold = window * (this.compactionThreshold(input.conversation) / 100)
     return current.estimate.totalTokens >= threshold
   }
 
@@ -134,13 +136,23 @@ export class ContextCompactionService {
         [],
         effective,
       )
-      const threshold = window * (input.conversation.compactionThreshold / 100)
+      const threshold = window * (this.compactionThreshold(input.conversation) / 100)
       return context.estimate.totalTokens >= threshold
         ? this.tooLarge(input.locale)
         : this.unchanged(input, desiredOutput)
     }
 
-    const threshold = window * (input.conversation.compactionThreshold / 100)
+    const plan = resolveContextBudget({
+      policy: input.conversation.contextPolicy,
+      contextWindow: input.conversation.contextWindow,
+      workingWindow: input.conversation.workingWindow,
+      maxTokens: input.conversation.maxTokens,
+    })
+    const compaction = resolveEffectiveCompaction({
+      policy: input.conversation.contextPolicy,
+      compactionThreshold: input.conversation.compactionThreshold,
+    })
+    const threshold = window * (compaction.threshold / 100)
     const totalBudget = Math.floor(threshold)
     const current = await this.buildContext(
       input,
@@ -152,19 +164,14 @@ export class ContextCompactionService {
       return this.unchanged(input, desiredOutput)
     }
 
-    const targetRatio =
-      resolveCompactionTarget(input.conversation.compactionThreshold) / 100
+    const targetRatio = compaction.target / 100
     const base = await this.buildContext(input, undefined, [], effective)
     const minimumKept = selectKeptMessages(input.messages, 0)
     const minimumKeptTokens = estimateMessagesTokens(minimumKept)
     const fixedTokens = base.estimate.systemTokens + minimumKeptTokens
 
-    const preferredSummary = Math.min(
-      MAX_SUMMARY_BUDGET,
-      Math.max(256, Math.floor(window * 0.1)),
-    )
     let outputTokens = desiredOutput
-    let summaryBudget = preferredSummary
+    let summaryBudget = plan.summaryOutputBudget
     // In net mode the working window already excluded the reply reserve, so
     // it must not be subtracted from the budgets again.
     const outputCost = net ? 0 : outputTokens
@@ -455,6 +462,13 @@ export class ContextCompactionService {
         message: translate(locale ?? "en", "errors.CONTEXT_TOO_LARGE"),
       },
     }
+  }
+
+  private compactionThreshold(conversation: Conversation): number {
+    return resolveEffectiveCompaction({
+      policy: conversation.contextPolicy,
+      compactionThreshold: conversation.compactionThreshold,
+    }).threshold
   }
 
   private async buildContext(

@@ -352,6 +352,18 @@ export const es: Dictionary = {
     contextManifestCompaction: "Compactación",
     contextManifestCompactionNeeded: "necesaria",
     contextManifestCompactionApplied: "aplicada",
+    contextBudgetTitle: "Presupuesto de la política",
+    contextBudgetPolicy: "Política",
+    contextBudgetMemoryCap: "Límite de memoria: {count} tokens",
+    contextBudgetSummaryOutputCap: "Límite de salida del resumen: {count} tokens",
+    contextBudgetSummaryMemoryCap: "Límite de memoria del resumen: {count} tokens",
+    contextBudgetCompaction: "Compactación: {threshold}% → {target}%",
+    contextBudgetSectionUsage: "{tokens} / {cap}",
+    contextBudgetCapWarning:
+      "Una sección alcanzó su límite de la política; pueden quedar fuera elementos antiguos.",
+    contextBudgetWindowUnknown:
+      "Ventana de contexto desconocida; se usan los valores por defecto de la política.",
+    contextBudgetDismiss: "Descartar aviso",
     contextSection: {
       character: "Personaje",
       cards: "Fichas",
@@ -493,6 +505,21 @@ export const es: Dictionary = {
       "Configura la ventana de contexto en Modelo para activar la compactación automática.",
     compactionMaxTokensBlocked:
       "El límite de respuesta ({maxTokens} tokens) debe ser menor que la ventana de contexto ({window} tokens).",
+    contextPolicyTitle: "Política de contexto",
+    contextPolicyDescription:
+      "Decide cómo se reparte la ventana de entrada entre memoria, resumen y mensajes. No cambia el modelo.",
+    contextPolicyFast: "Rápida",
+    contextPolicyBalanced: "Equilibrada",
+    contextPolicyDeep: "Profunda",
+    contextPolicyFastDescription:
+      "Menos memoria y resumen; respuestas más rápidas y compactación antes.",
+    contextPolicyBalancedDescription:
+      "Equilibrio entre memoria, resumen y velocidad.",
+    contextPolicyDeepDescription:
+      "Más memoria y resumen; respuestas más profundas y compactación más tarde.",
+    contextPolicyDeepHint:
+      "Para aprovechar más memoria, activa embeddings en los ajustes de proveedores.",
+    contextPolicyOpenProviders: "Abrir ajustes de proveedores",
     providerLabel: "Proveedor:",
     providersLoadFailed: "No se pudieron cargar los proveedores",
     instanceCreated: "Instancia creada",
